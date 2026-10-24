@@ -14,6 +14,7 @@
   "dependencies": {
     "@obdc/core": "workspace:*",
     "@obdc/ui": "workspace:*",
+    "@sentry/react": "8.47.0",
     "@supabase/supabase-js": "2.47.10",
     "@tanstack/react-query": "5.62.7",
     "react": "18.3.1",
