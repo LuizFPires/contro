@@ -50,6 +50,33 @@ const paths = {
     </>
   ),
   chevronDown: <polyline points="6 9 12 15 18 9" />,
+  chevronRight: <polyline points="9 6 15 12 9 18" />,
+  modelos: (
+    <>
+      <path d="M12 3 3 7.5 12 12l9-4.5L12 3Z" />
+      <path d="M3 12l9 4.5L21 12" />
+      <path d="M3 16.5 12 21l9-4.5" />
+    </>
+  ),
+  duplicar: (
+    <>
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5 15V5a2 2 0 0 1 2-2h8" />
+    </>
+  ),
+  editar: (
+    <>
+      <path d="M4 20h4L19 9l-4-4L4 16v4Z" />
+      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+    </>
+  ),
+  lixeira: (
+    <>
+      <path d="M4 7h16" />
+      <path d="M9 7V5h6v2" />
+      <path d="M6 7l1 13h10l1-13" />
+    </>
+  ),
   more: (
     <>
       <circle cx="5" cy="12" r="1" />
