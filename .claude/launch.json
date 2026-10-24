@@ -4,8 +4,8 @@
     {
       "name": "obdc-web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@obdc/web", "dev", "--", "--port", "5183", "--strictPort"],
-      "port": 5183
+      "runtimeArgs": ["--filter", "@obdc/web", "dev"],
+      "port": 5173
     }
   ]
 }
