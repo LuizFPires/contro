@@ -1,0 +1,39 @@
+/* Fontes self-hosted (Nunito Sans) — pesos usados pelo obdc */
+@import '@fontsource/nunito-sans/400.css';
+@import '@fontsource/nunito-sans/600.css';
+@import '@fontsource/nunito-sans/700.css';
+@import '@fontsource/nunito-sans/800.css';
+
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--obdc-font);
+  font-size: var(--obdc-fs-body);
+  line-height: 1.5;
+  color: var(--obdc-text);
+  background: var(--obdc-bg-app);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Foco sempre visível (acessibilidade) */
+:focus-visible {
+  outline: 2px solid var(--obdc-focus);
+  outline-offset: 2px;
+}

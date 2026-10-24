@@ -1,0 +1,23 @@
+.card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--obdc-surface);
+  border-radius: var(--obdc-radius-card);
+  box-shadow: inset 0 0 0 1px var(--obdc-border);
+  padding: var(--obdc-space-4);
+}
+
+.interactive {
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 0.12s ease;
+  font: inherit;
+  color: inherit;
+}
+
+.interactive:active {
+  box-shadow:
+    inset 0 0 0 1px var(--obdc-border),
+    var(--obdc-shadow-2);
+}

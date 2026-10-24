@@ -1,0 +1,25 @@
+.seg {
+  display: inline-flex;
+  padding: var(--obdc-space-1);
+  gap: var(--obdc-space-1);
+  background: var(--obdc-selected);
+  border-radius: var(--obdc-radius-pill);
+}
+
+.option {
+  appearance: none;
+  border: none;
+  background: transparent;
+  min-height: 36px;
+  padding: 0 var(--obdc-space-4);
+  border-radius: var(--obdc-radius-pill);
+  font-size: var(--obdc-fs-body-sm);
+  font-weight: 700;
+  color: var(--obdc-text);
+  cursor: pointer;
+}
+
+.selected {
+  background: var(--obdc-surface);
+  box-shadow: var(--obdc-shadow-1);
+}
