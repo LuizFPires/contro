@@ -1,0 +1,8 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# Build scripts aprovados (pnpm 11 pede opt-in explícito)
+allowBuilds:
+  esbuild: true
+  sharp: true
