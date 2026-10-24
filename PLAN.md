@@ -29,15 +29,17 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 - [x] Vite + React + TS + PWA (manifest, ícone provisório obdc, service worker)
 - [x] Tokens OBDC em `packages/ui` (cores, raios, Nunito Sans self-hosted, vermelho só como `--obdc-late`)
 - [x] Componentes base: Botão (primário, secundário, terciário), Chip, Card, BottomSheet, Toast com "Desfazer", TabBar, Input, Segmented
-- [~] Supabase: projeto de dev e homologação; Auth com e-mail e senha — **código pronto** (cliente + login + useSession); falta o usuário criar os projetos e preencher as variáveis
-- [x] Tabelas `pessoa` (perfil gestor | equipe), `unidade`, `sugestao` + RLS (sem feriados) — migration, políticas, seed e teste pgTAP prontos (aplicar requer o projeto Supabase)
-- [~] CI: lint, typecheck, vitest; deploy de preview por PR — **CI pronto** (GitHub Actions); preview por PR requer ligar a Vercel ao repositório
+- [x] Supabase: projeto criado e **Auth e-mail/senha validado de ponta a ponta** (login logado e logout funcionando com o projeto `oaslrtizvfornxjuxpgp`). Falta só o 2º projeto (homologação)
+- [x] Tabelas `pessoa` (perfil gestor | equipe), `unidade`, `sugestao` + RLS — migration, políticas, seed e teste pgTAP **aplicados no projeto**
+- [x] CI: lint, typecheck, vitest, build — **verde** (GitHub Actions; repo tornado público). Deploy de preview por PR ainda requer ligar a Vercel
 - [~] Sentry no web — código pronto (inerte sem DSN); falta o usuário fornecer o DSN
 - [x] Importar o símbolo vetorial aprovado da pasta do projeto obdc (ícone do app, favicon, cabeçalho)
 
 **Aceite:** login no celular, PWA instalável, tela vazia "Minhas obras" no padrão OBDC, CI verde.
 
-> **Pendências de credencial (só o usuário):** criar projetos Supabase (dev + homologação), ligar a Vercel ao repo para preview por PR, e fornecer o DSN do Sentry. O restante do M0 está implementado e verde.
+> **Aceite do M0 validado em 24/10/2026:** login logado de ponta a ponta no app contra o Supabase real, tela "Minhas obras" no padrão OBDC, logout, CI verde. Migrations + RLS + seed aplicados; usuário de teste `engenheiro@obdc.dev` (gestor).
+>
+> **Ainda pendente (não bloqueia o M0):** 2º projeto Supabase (homologação), ligar a Vercel ao repo para preview por PR, e DSN do Sentry.
 >
 > **Débitos técnicos do M0 (resolver antes do M1):**
 > - Rodar o teste de RLS (pgTAP) no CI — exige subir o Supabase local (Docker) na pipeline; por ora o teste roda localmente com `supabase test db`.
