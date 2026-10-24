@@ -25,17 +25,19 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## M0 · Fundação
 **Objetivo:** projeto rodando ponta a ponta com login e o visual OBDC.
 
-- [ ] Monorepo pnpm (`apps/web`, `apps/pdf-service`, `packages/core`, `packages/ui`, `supabase`)
-- [ ] Vite + React + TS + PWA (manifest, ícone provisório obdc, service worker)
-- [ ] Tokens OBDC em `packages/ui` (cores, raios, Nunito Sans self-hosted, vermelho só como `--obdc-late`)
-- [ ] Componentes base: Botão (primário, secundário, terciário), Chip, Card, BottomSheet, Toast com "Desfazer", TabBar, Input, Segmented
-- [ ] Supabase: projeto de dev e homologação; Auth com e-mail e senha (ou link mágico)
-- [ ] Tabelas `pessoa` (perfil gestor | equipe), `unidade`, `sugestao` + RLS (sem feriados)
-- [ ] CI: lint, typecheck, vitest; deploy de preview por PR
-- [ ] Sentry no web
-- [ ] Importar o símbolo vetorial aprovado da pasta do projeto obdc (ícone do app, favicon, cabeçalho)
+- [x] Monorepo pnpm (`apps/web`, `apps/pdf-service`, `packages/core`, `packages/ui`, `supabase`)
+- [x] Vite + React + TS + PWA (manifest, ícone provisório obdc, service worker)
+- [x] Tokens OBDC em `packages/ui` (cores, raios, Nunito Sans self-hosted, vermelho só como `--obdc-late`)
+- [x] Componentes base: Botão (primário, secundário, terciário), Chip, Card, BottomSheet, Toast com "Desfazer", TabBar, Input, Segmented
+- [~] Supabase: projeto de dev e homologação; Auth com e-mail e senha — **código pronto** (cliente + login + useSession); falta o usuário criar os projetos e preencher as variáveis
+- [x] Tabelas `pessoa` (perfil gestor | equipe), `unidade`, `sugestao` + RLS (sem feriados) — migration, políticas, seed e teste pgTAP prontos (aplicar requer o projeto Supabase)
+- [~] CI: lint, typecheck, vitest; deploy de preview por PR — **CI pronto** (GitHub Actions); preview por PR requer ligar a Vercel ao repositório
+- [~] Sentry no web — código pronto (inerte sem DSN); falta o usuário fornecer o DSN
+- [x] Importar o símbolo vetorial aprovado da pasta do projeto obdc (ícone do app, favicon, cabeçalho)
 
 **Aceite:** login no celular, PWA instalável, tela vazia "Minhas obras" no padrão OBDC, CI verde.
+
+> **Pendências de credencial (só o usuário):** criar projetos Supabase (dev + homologação), ligar a Vercel ao repo para preview por PR, e fornecer o DSN do Sentry. O restante do M0 está implementado e verde. O símbolo ainda é raster embutido em SVG; vetorizar e otimizar os assets é refinamento previsto.
 
 ## M1 · Modelos de obra e motor de cronograma
 **Objetivo:** o gestor mantém vários modelos de obra, e o core calcula o cronograma de qualquer obra.
