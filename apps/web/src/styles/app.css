@@ -1,0 +1,44 @@
+#root {
+  min-height: 100dvh;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--obdc-bg-app);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: var(--obdc-space-2);
+  padding: var(--obdc-space-3) var(--obdc-space-4);
+  background: var(--obdc-surface-inverse);
+  color: var(--obdc-text-inverse);
+  padding-top: calc(var(--obdc-space-3) + env(safe-area-inset-top, 0));
+}
+
+.app-wordmark {
+  font-weight: 800;
+  font-size: var(--obdc-fs-h3);
+  letter-spacing: 0.02em;
+}
+
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.app-placeholder {
+  padding: var(--obdc-space-8) var(--obdc-space-4);
+  text-align: center;
+  color: var(--obdc-muted);
+}
+
+.app-mais {
+  padding: var(--obdc-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-4);
+}

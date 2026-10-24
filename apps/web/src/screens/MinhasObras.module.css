@@ -1,0 +1,55 @@
+.screen {
+  padding: var(--obdc-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-4);
+}
+
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--obdc-space-3);
+}
+
+.titulo {
+  font-size: var(--obdc-fs-h1);
+  font-weight: 800;
+  margin: 0;
+}
+
+.nova {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--obdc-touch);
+  height: var(--obdc-touch);
+  border: none;
+  border-radius: var(--obdc-radius-pill);
+  background: var(--obdc-action-primary-bg);
+  color: var(--obdc-action-primary-text);
+  cursor: pointer;
+}
+
+.vazio {
+  margin-top: var(--obdc-space-8);
+  text-align: center;
+  color: var(--obdc-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--obdc-space-3);
+}
+
+.vazio h2 {
+  font-size: var(--obdc-fs-h3);
+  font-weight: 700;
+  color: var(--obdc-text);
+  margin: 0;
+}
+
+.vazio p {
+  margin: 0;
+  max-width: 28ch;
+  font-size: var(--obdc-fs-body-sm);
+}
