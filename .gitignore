@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+.vite/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Testes / cobertura
+coverage/
+playwright-report/
+test-results/
+
+# Material de referência (não faz parte do produto)
+exemplos de projetos/
+
+# Estado do roteiro (memória entre sessões, local)
+.claude/roteiro.json

@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>obdc · Maquete 3D da obra</title>
+<script src="./support.js"></script>
+<script src="/_blob/928609be009d6fa2b67d80713db79165"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F6F6}
+a{color:#181818}
+button,input{font-family:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #54B4B0;outline-offset:2px}
+.scr::-webkit-scrollbar{display:none}
+.rng{-webkit-appearance:none;appearance:none;width:100%;height:36px;background:transparent;margin:0}
+.rng::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,#181818 var(--p),rgba(24,24,24,.12) var(--p))}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#54B4B0;border:3px solid #181818;margin-top:-10px;box-shadow:0 2px 8px rgba(24,24,24,.3)}
+.rng::-moz-range-track{height:8px;border-radius:99px;background:rgba(24,24,24,.12)}
+.rng::-moz-range-progress{height:8px;border-radius:99px;background:#181818}
+.rng::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#54B4B0;border:3px solid #181818}
+@keyframes up{0%{transform:translateY(14px);opacity:0}100%{transform:none;opacity:1}}
+.up{animation:up .25s ease-out}
+@keyframes sheet{0%{transform:translateY(100%)}100%{transform:none}}
+.sheet{animation:sheet .28s ease-out}
+@keyframes flash{0%{opacity:.95}100%{opacity:0}}
+.flash{animation:flash .45s ease-out forwards}
+@keyframes pop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
+.pop{animation:pop .45s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(84,180,176,.55)}50%{box-shadow:0 0 0 10px rgba(84,180,176,0)}}
+.glow{animation:glow 1.8s ease-in-out infinite}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; background: #F6F6F6; color: #181818; font-family: 'Nunito Sans', system-ui, sans-serif; font-size: 16px; line-height: 1.4; display: flex; flex-direction: column">
+
+  <div style="background: #181818; color: #fff; padding: 10px 10px 12px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; position: relative; z-index: 3">
+    <a href="Main.dc.html" aria-label="Voltar para a obra" style="width: 44px; height: 44px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </a>
+    <div style="flex-grow: 1; min-width: 0; line-height: 1.2">
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #54B4B0">Maquete 3D da obra</div>
+      <div style="font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">CDC Contagem · Eldorado</div>
+    </div>
+    <button type="button" onClick="{{abrirPlanta}}" aria-label="Planta base da maquete" style="min-height: 40px; padding: 0 12px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,.35); background: transparent; color: #fff; font-weight: 800; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6M8 13h8M8 17h5"></path></svg>Planta
+    </button>
+  </div>
+
+  <div style="position: relative; height: 404px; flex-shrink: 0; background: {{vpBg}}">
+    <canvas ref="{{refCv}}" aria-label="Maquete 3D da unidade. Arraste para girar, use dois dedos para aproximar e toque numa peça para ver a atividade." style="display: block; width: 390px; height: 404px; touch-action: none; cursor: grab"></canvas>
+
+    <div style="position: absolute; top: 12px; left: 12px; display: flex; background: rgba(255,255,255,.88); border-radius: 12px; padding: 3px; box-shadow: 0 2px 10px rgba(24,24,24,.12)">
+      <sc-for list="{{vistas}}" as="vw" hint-placeholder-count="2">
+        <button type="button" onClick="{{vw.set}}" aria-pressed="{{vw.on}}" style="min-height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: {{vw.bg}}; color: {{vw.fg}}; font-weight: 800; font-size: 13px; cursor: pointer">{{vw.t}}</button>
+      </sc-for>
+    </div>
+    <div style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 8px">
+      <button type="button" onClick="{{togAuto}}" aria-label="Girar automaticamente" aria-pressed="{{autoAria}}" style="width: 44px; height: 44px; border-radius: 12px; border: 0; background: {{autoBg}}; color: {{autoFg}}; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(24,24,24,.12)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"></path><path d="M21 3v6h-6"></path></svg>
+      </button>
+      <button type="button" onClick="{{recentrar}}" aria-label="Voltar à vista inicial" style="width: 44px; height: 44px; border-radius: 12px; border: 0; background: rgba(255,255,255,.88); color: #181818; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(24,24,24,.12)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
+      </button>
+    </div>
+    <sc-if value="{{emPrevia}}" hint-placeholder-val="{{false}}">
+      <div style="position: absolute; top: 64px; left: 12px; background: #181818; color: #fff; border-radius: 99px; padding: 6px 12px; font-size: 13px; font-weight: 800; display: inline-flex; gap: 6px; align-items: center">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #54B4B0"></span>Prévia · {{simTxt}}
+      </div>
+    </sc-if>
+    <div style="position: absolute; left: 12px; bottom: 30px; display: flex; gap: 10px; background: rgba(255,255,255,.88); border-radius: 99px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: #181818; box-shadow: 0 2px 10px rgba(24,24,24,.10)">
+      <span style="display: inline-flex; align-items: center; gap: 5px"><i style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px dashed #8C949C; background: rgba(207,211,215,.5); display: inline-block"></i>previsto</span>
+      <span style="display: inline-flex; align-items: center; gap: 5px"><i style="width: 12px; height: 12px; border-radius: 3px; background: #54B4B0; display: inline-block"></i>executado</span>
+    </div>
+    <sc-if value="{{carregando}}" hint-placeholder-val="{{false}}">
+      <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #464646; font-weight: 700">
+        <span class="spin" style="width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(24,24,24,.15); border-top-color: #54B4B0"></span>Montando a maquete…
+      </div>
+    </sc-if>
+    <sc-if value="{{flash}}" hint-placeholder-val="{{false}}">
+      <div class="flash" style="position: absolute; inset: 0; background: #fff"></div>
+    </sc-if>
+  </div>
+
+  <div style="flex-grow: 1; background: #fff; border-radius: 24px 24px 0 0; margin-top: -18px; position: relative; z-index: 2; display: flex; flex-direction: column; padding: 16px 0 0; box-shadow: 0 -6px 24px rgba(24,24,24,.10); min-height: 0">
+    <div style="padding: 0 16px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px">
+      <div style="line-height: 1.05">
+        <div style="font-size: 40px; font-weight: 900; letter-spacing: -.02em">{{pct}}<span style="font-size: 22px">%</span></div>
+        <div style="font-size: 13px; color: #464646; font-weight: 700">da unidade construída</div>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+        <span style="font-size: 13px; font-weight: 800; background: rgba(84,180,176,.22); padding: 4px 10px; border-radius: 99px">{{nPecas}} de 28 peças</span>
+        <span style="font-size: 13px; font-weight: 800; background: #181818; color: #fff; padding: 4px 10px; border-radius: 99px">{{xp}} XP</span>
+      </div>
+    </div>
+    <div style="padding: 10px 16px 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px">
+      <sc-for list="{{fasesBar}}" as="fb" hint-placeholder-count="6">
+        <div style="display: flex; flex-direction: column; gap: 3px">
+          <div style="height: 6px; border-radius: 3px; background: rgba(24,24,24,.10); overflow: hidden"><div style="height: 100%; width: {{fb.w}}; background: {{fb.cor}}"></div></div>
+          <span style="font-size: 11px; font-weight: 800; color: #464646">{{fb.t}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{temSel}}" hint-placeholder-val="{{false}}">
+      <div class="up" style="margin: 12px 16px 0; border: 2px solid #181818; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px">
+          <div style="min-width: 0">
+            <div style="font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #464646">Peça da maquete · {{sel.fase}}</div>
+            <div style="font-size: 20px; font-weight: 800; line-height: 1.2">{{sel.peca}}</div>
+            <div style="font-size: 14px; color: #464646">#{{sel.id}} {{sel.n}}</div>
+          </div>
+          <button type="button" onClick="{{fecharSel}}" aria-label="Fechar peça" style="width: 44px; height: 44px; border: 0; background: transparent; font-size: 24px; cursor: pointer; color: #181818; flex-shrink: 0">×</button>
+        </div>
+        <sc-if value="{{sel.temQ}}" hint-placeholder-val="{{false}}">
+          <div style="font-size: 13px; background: rgba(24,24,24,.05); border-radius: 10px; padding: 8px 10px; color: #181818"><b>Do executivo:</b> {{sel.q}}</div>
+        </sc-if>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+          <span style="font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 99px; background: {{sel.stBg}}; color: {{sel.stFg}}">{{sel.st}}</span>
+          <span style="font-size: 13px; color: #464646">{{sel.info}}</span>
+        </div>
+        <sc-if value="{{sel.pode}}" hint-placeholder-val="{{false}}">
+          <button type="button" onClick="{{sel.concluir}}" class="glow" style="min-height: 52px; border-radius: 14px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>Concluir com foto · +50 XP
+          </button>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{semSel}}" hint-placeholder-val="{{true}}">
+      <div style="padding: 12px 16px 0">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #464646">Linha do tempo</span>
+          <sc-if value="{{emPrevia}}" hint-placeholder-val="{{false}}">
+            <button type="button" onClick="{{voltarHoje}}" style="min-height: 32px; padding: 0 10px; border-radius: 99px; border: 1.5px solid #181818; background: #fff; font-weight: 800; font-size: 13px; cursor: pointer; color: #181818">Voltar para hoje</button>
+          </sc-if>
+        </div>
+        <input class="rng" type="range" min="0" max="28" step="1" value="{{simVal}}" onChange="{{onSim}}" aria-label="Simular o avanço da obra na maquete" style="--p: {{simP}}">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #464646; margin-top: -4px">
+          <span>Terreno</span><span>{{simLbl}}</span><span>Inauguração</span>
+        </div>
+      </div>
+      <div style="padding: 12px 16px 6px; display: flex; justify-content: space-between; align-items: center">
+        <span style="font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #464646">Próximas peças</span>
+        <span style="font-size: 13px; color: #464646">{{nLib}} liberadas</span>
+      </div>
+      <div class="scr" style="display: flex; gap: 10px; overflow-x: auto; padding: 2px 16px 16px; scroll-snap-type: x mandatory">
+        <sc-for list="{{proximas}}" as="pr" hint-placeholder-count="3">
+          <div style="flex-shrink: 0; width: 232px; scroll-snap-align: start; border: 1px solid rgba(24,24,24,.12); border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 6px; background: #fff">
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span style="font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: rgba(24,24,24,.07)">{{pr.fase}}</span>
+              <button type="button" onClick="{{pr.ver}}" style="min-height: 32px; padding: 0 8px; border: 0; background: transparent; font-size: 13px; font-weight: 800; text-decoration: underline; cursor: pointer; color: #181818">Ver na maquete</button>
+            </div>
+            <div style="font-size: 17px; font-weight: 800; line-height: 1.2">{{pr.peca}}</div>
+            <div style="font-size: 13px; color: #464646; flex-grow: 1">#{{pr.id}} {{pr.n}} · {{pr.d}} d</div>
+            <button type="button" onClick="{{pr.concluir}}" style="min-height: 46px; border-radius: 12px; border: 0; background: {{pr.bg}}; color: #181818; font-weight: 800; font-size: 14px; cursor: pointer">{{pr.btn}}</button>
+          </div>
+        </sc-for>
+        <sc-if value="{{tudoPronto}}" hint-placeholder-val="{{false}}">
+          <div style="flex-shrink: 0; width: 330px; border-radius: 18px; padding: 16px; background: #181818; color: #fff">
+            <div style="font-size: 18px; font-weight: 800">Unidade inaugurada</div>
+            <div style="font-size: 14px; color: rgba(255,255,255,.8)">Todas as 28 peças montadas. A maquete acendeu as luzes.</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div class="up" role="status" style="position: absolute; left: 16px; right: 16px; bottom: 20px; z-index: 6; background: #181818; color: #fff; border-radius: 14px; padding: 14px 16px; font-size: 15px; font-weight: 700; display: flex; gap: 12px; align-items: center; box-shadow: 0 8px 24px rgba(24,24,24,.3)">
+      <span style="flex-grow: 1">{{toast}}</span>
+      <sc-if value="{{hasUndo}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{desfazer}}" style="border: 0; background: transparent; color: #54B4B0; font-weight: 800; font-size: 15px; cursor: pointer; min-height: 44px">Desfazer</button></sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{temCelebra}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; z-index: 7; background: rgba(24,24,24,.55); display: flex; align-items: center; justify-content: center; padding: 24px">
+      <div class="pop" style="background: #181818; color: #fff; border-radius: 24px; padding: 26px 22px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: #54B4B0; display: flex; align-items: center; justify-content: center">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#181818" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8z"></path></svg>
+        </div>
+        <div style="font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #54B4B0">{{cel.sup}}</div>
+        <div style="font-size: 24px; font-weight: 900; line-height: 1.15">{{cel.tit}}</div>
+        <div style="font-size: 15px; color: rgba(255,255,255,.82)">{{cel.txt}}</div>
+        <button type="button" onClick="{{fecharCelebra}}" style="margin-top: 6px; min-height: 52px; width: 100%; border-radius: 14px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 16px; cursor: pointer">Ver na maquete</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{planta}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; z-index: 8; background: rgba(24,24,24,.45); display: flex; flex-direction: column; justify-content: flex-end">
+      <button type="button" onClick="{{fecharPlanta}}" aria-label="Fechar" style="flex-grow: 1; min-height: 60px; border: 0; background: transparent; cursor: pointer"></button>
+      <div class="sheet scr" style="background: #fff; border-radius: 24px 24px 0 0; padding: 10px 16px 24px; display: flex; flex-direction: column; gap: 12px; max-height: 740px; overflow-y: auto">
+        <span style="align-self: center; width: 44px; height: 5px; border-radius: 3px; background: rgba(24,24,24,.2); flex-shrink: 0"></span>
+        <div>
+          <div style="font-size: 22px; font-weight: 800; line-height: 1.2">Planta base da maquete</div>
+          <div style="font-size: 14px; color: #464646">As peças nascem do projeto executivo e cada uma fica ligada a uma atividade do cronograma.</div>
+        </div>
+        <div style="background: #181818; color: #fff; border-radius: 16px; padding: 14px; display: flex; gap: 12px; align-items: center">
+          <span style="width: 44px; height: 52px; border-radius: 8px; background: #fff; color: #181818; font-size: 11px; font-weight: 900; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; box-sizing: border-box; flex-shrink: 0">PDF</span>
+          <span style="min-width: 0"><span style="display: block; font-weight: 800">{{arqNome}}</span><span style="display: block; font-size: 13px; color: rgba(255,255,255,.75)">{{arqInfo}}</span></span>
+        </div>
+        <sc-if value="{{importando}}" hint-placeholder-val="{{false}}">
+          <div style="border: 1px solid rgba(24,24,24,.12); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: center; gap: 10px; font-weight: 800"><span class="spin" style="width: 18px; height: 18px; border-radius: 50%; border: 3px solid rgba(24,24,24,.15); border-top-color: #54B4B0; flex-shrink: 0"></span>{{impTxt}}</div>
+            <div style="height: 8px; border-radius: 99px; background: rgba(24,24,24,.10); overflow: hidden"><div style="height: 100%; width: {{impW}}; background: #54B4B0; transition: width .5s"></div></div>
+          </div>
+        </sc-if>
+        <div style="font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #464646; margin-top: 4px">Reconhecido nas pranchas</div>
+        <sc-for list="{{reconhecidos}}" as="rc" hint-placeholder-count="6">
+          <div style="display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(24,24,24,.08)">
+            <span style="min-width: 44px; height: 32px; border-radius: 8px; background: rgba(84,180,176,.22); font-size: 12px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0">{{rc.pr}}</span>
+            <span style="flex-grow: 1; min-width: 0">
+              <span style="display: block; font-weight: 800; font-size: 15px">{{rc.t}}</span>
+              <span style="display: block; font-size: 13px; color: #464646">{{rc.q}}</span>
+              <span style="display: block; font-size: 12px; font-weight: 800; margin-top: 2px">→ {{rc.liga}}</span>
+            </span>
+          </div>
+        </sc-for>
+        <div style="font-size: 13px; color: #464646; background: rgba(24,24,24,.05); border-radius: 12px; padding: 10px 12px">O gestor confere os elementos reconhecidos antes de liberar a maquete para a equipe. Ambientes e quantidades vêm do layout, da paginação de piso, do forro, do mapa de pintura, da luminotécnica e da fachada.</div>
+        <button type="button" onClick="{{importar}}" style="min-height: 56px; border-radius: 16px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"></path></svg>Enviar outra planta em PDF
+        </button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { done: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 14], sim: null, sel: null, terreo: false, auto: false, planta: false, imp: 0, toast: '', undo: null, celebra: null, flash: false, xp: 1240, pronto: false };
+    this.refCv = el => { if (el && el !== this._cv) { this._cv = el; if (this._mounted) this.boot(); } };
+  }
+
+  // ---------------- dados da obra ----------------
+  T() {
+    if (this._T) return this._T;
+    const A = (id, n, f, d, p, pc, q) => ({ id, n, f, d, p, pc, q: q || '' });
+    this._T = [
+      A(1, 'Mobilização e tapumes', 1, 2, [], 'Tapumes e contêiner'),
+      A(2, 'Demolições e retiradas', 1, 5, [1], 'Paredes e forro antigos removidos'),
+      A(3, 'Limpeza e bota-fora', 1, 2, [2], 'Entulho retirado'),
+      A(4, 'Alvenarias e novos fechamentos', 2, 6, [3], 'Alvenarias do apoio e caixa do elevador'),
+      A(5, 'Infra de elétrica', 2, 8, [3], 'Eletrocalhas'),
+      A(6, 'Infra de ar-condicionado', 2, 6, [3], 'Dutos e condensadoras'),
+      A(7, 'Água fria e esgoto', 2, 6, [3], 'Tubulações de água e esgoto'),
+      A(8, 'Infra de dados, CFTV e som', 2, 4, [5], 'Câmeras, caixas de som e rede'),
+      A(9, 'Infra de incêndio', 2, 5, [3], 'Rede de sprinklers e hidrantes'),
+      A(10, 'Impermeabilização dos vestiários', 3, 3, [7], 'Manta dos vestiários'),
+      A(11, 'Contrapiso e regularização', 3, 4, [7, 10], 'Contrapiso', 'Base para 803,80 m² de vinílico e 308,00 m² de borracha'),
+      A(12, 'Forro de gesso', 3, 8, [5, 6, 8, 9], 'Forro de gesso e ripado turquesa', 'Gesso com junta de dilatação, emassado e pintado branco neve (Coral)'),
+      A(13, 'Revestimento cerâmico vestiários', 3, 6, [11], 'Porcelanato dos vestiários', 'Porcelanato 60×60 Cemento Grigio · 55,44 m²'),
+      A(14, 'Fechamento em drywall', 3, 4, [4, 5], 'Paredes de drywall'),
+      A(15, 'Emassamento', 4, 6, [12, 14], 'Massa nas paredes'),
+      A(16, 'Pintura', 4, 6, [15], 'Pintura e grafismo', 'Paredes e drywall na cor escura padrão · parede com grafismo'),
+      A(17, 'Piso emborrachado e vinílico', 4, 5, [11, 16], 'Piso vinílico, borracha e pista', 'Vinílico 3 mm 803,80 m² · borracha 100×100 308,00 m² · pista Massai Red 32,98 m²'),
+      A(18, 'Louças e metais', 4, 3, [13], 'Louças e metais', '7 vasos (2 PCD) · 6 cubas (2 PCD) · 1 mictório · 9 duchas'),
+      A(19, 'Bancadas e divisórias', 4, 3, [13], 'Bancadas, divisórias e escaninhos', '65 escaninhos · divisórias Ônix branco · bancadas'),
+      A(20, 'Esquadrias, vidros e espelhos', 4, 4, [16], 'Vitrine de vidro e espelhos', 'Vitrine da fachada · espelhos com fita LED 3.000 K'),
+      A(21, 'Luminárias e acabamento elétrico', 5, 4, [16], 'Iluminação em LED', 'Perfis de LED da luminotécnica (prancha 07)'),
+      A(22, 'Evaporadoras e start-up do ar', 5, 3, [12, 16], 'Evaporadoras'),
+      A(23, 'Comunicação visual e fachada', 5, 4, [16], 'Fachada Contorno', 'Letreiro Academia Contorno do corpo · moldura turquesa · parede verde'),
+      A(24, 'Catraca, CFTV e som', 5, 3, [21], 'Catracas e totem'),
+      A(25, 'Equipamentos de academia', 6, 3, [17], 'Equipamentos', '18 esteiras · elípticos · bikes · musculação · 6 TVs 50"'),
+      A(26, 'Limpeza fina', 6, 2, [18, 19, 20, 21, 22, 23, 24, 25], 'Canteiro desmobilizado e vagas pintadas'),
+      A(27, 'Vistoria e punch list', 6, 2, [26], 'Paisagismo e ajustes finais'),
+      A(28, 'Entrega à operação', 6, 1, [27], 'Mobiliário e inauguração')
+    ];
+    return this._T;
+  }
+  FASES() { return ['Mobilização', 'Infraestrutura', 'Fechamentos', 'Acabamentos', 'Instalações finais', 'Entrega']; }
+  sched() {
+    if (this._S) return this._S;
+    const es = {}, ef = {};
+    this.T().forEach(a => { const s = Math.max(0, ...a.p.map(p => ef[p] || 0)); es[a.id] = s; ef[a.id] = s + a.d; });
+    const ordem = this.T().map(a => a.id).sort((x, y) => (ef[x] - ef[y]) || (x - y));
+    this._S = { es, ef, ordem };
+    return this._S;
+  }
+  doneSet(st) { const s = st || this.state; return s.sim == null ? new Set(s.done) : new Set(this.sched().ordem.slice(0, s.sim)); }
+
+  // ---------------- ciclo de vida ----------------
+  componentDidMount() { this._mounted = true; this.boot(); }
+  componentDidUpdate() { if (this._booted) this.sync(true); }
+  componentWillUnmount() {
+    this._dead = true; cancelAnimationFrame(this._raf); clearTimeout(this._bt); clearTimeout(this._tt);
+    const cv = this._cv; if (cv && this._h) { Object.keys(this._h).forEach(k => cv.removeEventListener(k, this._h[k])); }
+    if (this.renderer) this.renderer.dispose();
+  }
+  boot() {
+    if (this._booted || !this._cv || this._dead) return;
+    if (!window.THREE) { this._bt = setTimeout(() => this.boot(), 120); return; }
+    this._booted = true;
+    try { this.initScene(); } catch (e) { this._erro = e; }
+    this.setState({ pronto: true });
+  }
+
+  // ---------------- texturas ----------------
+  cvs(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return c; }
+  rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+  noise(g, w, h, base, amp, n, seed) {
+    const r = this.rnd(seed || 7); g.fillStyle = base; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < n; i++) { const v = (r() - .5) * amp; g.fillStyle = v > 0 ? 'rgba(255,255,255,' + v + ')' : 'rgba(0,0,0,' + (-v) + ')'; const s = 1 + r() * 3; g.fillRect(r() * w, r() * h, s, s); }
+  }
+  texturas() {
+    const T = this.THREE, R = this.rnd(11);
+    const X = {};
+    X.wood = this.cvs(512, 512, (g, w, h) => {
+      g.fillStyle = '#B4865B'; g.fillRect(0, 0, w, h);
+      for (let row = 0; row < 8; row++) {
+        let x = -R() * 300;
+        while (x < w) { const L = 180 + R() * 220; const l = 44 + R() * 12; g.fillStyle = 'hsl(' + (27 + R() * 6) + ',' + (38 + R() * 10) + '%,' + l + '%)'; g.fillRect(x, row * 64, L, 64);
+          for (let k = 0; k < 6; k++) { g.fillStyle = 'rgba(70,40,15,' + (0.05 + R() * .07) + ')'; g.fillRect(x, row * 64 + R() * 64, L, 1 + R() * 2); }
+          g.fillStyle = 'rgba(60,35,15,.55)'; g.fillRect(x, row * 64, 2, 64); x += L; }
+        g.fillStyle = 'rgba(60,35,15,.6)'; g.fillRect(0, row * 64, w, 2);
+      }
+    });
+    X.rubber = this.cvs(256, 256, (g, w, h) => { this.noise(g, w, h, '#28292C', .12, 3500, 3); g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(0, 0, w, 2); g.fillRect(0, 128, w, 2); g.fillRect(0, 0, 2, h); g.fillRect(128, 0, 2, h); });
+    X.track = this.cvs(128, 256, (g, w, h) => { this.noise(g, w, h, '#A3392D', .1, 1200, 5); g.fillStyle = '#F4F1EA'; [3, 42, 84, 122].forEach(x => g.fillRect(x, 0, 4, h)); });
+    X.tile = this.cvs(256, 256, (g, w, h) => { this.noise(g, w, h, '#8F8E8A', .1, 2200, 9); g.fillStyle = '#B5B4AF'; g.fillRect(0, 0, w, 2); g.fillRect(0, 128, w, 2); g.fillRect(0, 0, 2, h); g.fillRect(128, 0, 2, h); });
+    X.tileW = this.cvs(256, 256, (g, w, h) => { this.noise(g, w, h, '#D6D5D1', .08, 1500, 13); g.fillStyle = '#B9B8B3'; g.fillRect(0, 0, w, 2); g.fillRect(0, 128, w, 2); g.fillRect(0, 0, 2, h); g.fillRect(128, 0, 2, h); });
+    X.block = this.cvs(256, 256, (g, w, h) => { this.noise(g, w, h, '#C9C1B4', .12, 2500, 17); g.fillStyle = '#AFA798'; for (let r = 0; r < 4; r++) { g.fillRect(0, r * 64, w, 3); const off = r % 2 ? 64 : 0; for (let c = -1; c < 3; c++) g.fillRect(off + c * 128, r * 64, 3, 64); } });
+    X.conc = this.cvs(512, 512, (g, w, h) => { g.fillStyle = '#9E9F9B'; g.fillRect(0, 0, w, h); const r = this.rnd(21); for (let i = 0; i < 260; i++) { const v = (r() - .5) * .07; g.fillStyle = v > 0 ? 'rgba(255,255,255,' + v + ')' : 'rgba(0,0,0,' + (-v) + ')'; g.beginPath(); g.arc(r() * w, r() * h, 20 + r() * 70, 0, 7); g.fill(); } this.noiseOver(g, w, h, 6000, .08, 23); });
+    X.ribbed = this.cvs(256, 64, (g, w, h) => { for (let x = 0; x < w; x += 16) { g.fillStyle = '#8E9092'; g.fillRect(x, 0, 8, h); g.fillStyle = '#A3A5A7'; g.fillRect(x + 8, 0, 8, h); } });
+    X.moss = this.cvs(256, 256, (g, w, h) => { this.noise(g, w, h, '#69772F', .28, 9000, 31); });
+    X.graf = this.cvs(1024, 256, () => {}); X.logo1 = this.cvs(1024, 400, () => {}); X.logo2 = this.cvs(1024, 220, () => {}); X.tv = this.cvs(256, 144, () => {});
+    X.street = this.cvs(256, 256, (g, w, h) => { this.noise(g, w, h, '#74797D', .1, 4000, 41); });
+    X.park = this.cvs(256, 256, (g, w, h) => { this.noise(g, w, h, '#A7ABAE', .08, 3000, 43); });
+    X.paver = this.cvs(256, 256, (g, w, h) => { this.noise(g, w, h, '#C9C6C0', .08, 2000, 47); g.fillStyle = 'rgba(0,0,0,.10)'; for (let i = 0; i < 8; i++) { g.fillRect(0, i * 32, w, 2); for (let j = 0; j < 4; j++) g.fillRect((i % 2 ? 32 : 0) + j * 64, i * 32, 2, 32); } });
+    this.X = X;
+    this.texCache = {};
+    this.textos();
+  }
+  // desenha (ou redesenha) as artes com texto, nos mesmos canvases
+  textos() {
+    const X = this.X; const F = '"Nunito Sans", Arial, sans-serif';
+    const fit = (g, txt, size, peso, maxW) => { let f = size; g.font = peso + ' ' + f + 'px ' + F; while (g.measureText(txt).width > maxW && f > 10) { f -= 4; g.font = peso + ' ' + f + 'px ' + F; } };
+    const d = (c, fn) => { const g = c.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.shadowBlur = 0; g.textAlign = 'left'; fn(g, c.width, c.height); };
+    d(X.graf, (g, w, h) => {
+      g.fillStyle = '#2C2D30'; g.fillRect(0, 0, w, h);
+      g.fillStyle = 'rgba(255,255,255,.05)'; for (let x = 0; x < w; x += 64) g.fillRect(x, 0, 30, h);
+      g.strokeStyle = '#F2F2F2'; g.lineWidth = 6; g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(0, 190); g.lineTo(260, 190); g.lineTo(300, 70); g.lineTo(350, 220); g.lineTo(400, 120); g.lineTo(440, 190); g.lineTo(1024, 190); g.stroke();
+      g.lineWidth = 3; g.beginPath(); g.moveTo(560, 40); g.lineTo(980, 40); g.lineTo(1000, 60); g.stroke();
+      g.fillStyle = '#F2F2F2'; fit(g, 'CONTORNO', 64, 900, 400); g.fillText('CONTORNO', 590, 140);
+    });
+    d(X.logo1, (g, w, h) => {
+      g.fillStyle = '#FFFFFF'; g.shadowColor = 'rgba(0,0,0,.25)'; g.shadowBlur = 8;
+      g.font = '700 64px ' + F; g.fillText('Academia', 40, 86);
+      fit(g, 'CONTORNO', 196, 900, 970); g.fillText('CONTORNO', 24, 260);
+      g.font = '700 92px ' + F; g.textAlign = 'right'; g.fillText('do corpo', 1000, 360);
+    });
+    d(X.logo2, (g, w, h) => { g.fillStyle = '#FFFFFF'; g.shadowColor = 'rgba(255,255,255,.4)'; g.shadowBlur = 12; fit(g, 'CONTORNO', 176, 900, 960); g.textAlign = 'center'; g.fillText('CONTORNO', 512, 170); });
+    d(X.tv, (g, w, h) => { const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#1F6F6B'); gr.addColorStop(1, '#0E2B2A'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; fit(g, 'CONTORNO', 34, 900, 220); g.textAlign = 'center'; g.fillText('CONTORNO', w / 2, 84); });
+    (this._logoMats || []).forEach(m => { if (m.map) m.map.needsUpdate = true; if (m.emissiveMap) m.emissiveMap.needsUpdate = true; });
+  }
+  noiseOver(g, w, h, n, amp, seed) { const r = this.rnd(seed); for (let i = 0; i < n; i++) { const v = (r() - .5) * amp; g.fillStyle = v > 0 ? 'rgba(255,255,255,' + v + ')' : 'rgba(0,0,0,' + (-v) + ')'; g.fillRect(r() * w, r() * h, 2, 2); } }
+  tex(name, rx, ry) {
+    const k = name + ':' + rx.toFixed(2) + ':' + ry.toFixed(2);
+    if (this.texCache[k]) return this.texCache[k];
+    const T = this.THREE; const t = new T.CanvasTexture(this.X[name]);
+    t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(rx, ry); t.encoding = T.sRGBEncoding; t.anisotropy = 4;
+    this.texCache[k] = t; return t;
+  }
+
+  // ---------------- materiais ----------------
+  materiais() {
+    const T = this.THREE;
+    const S = (c, o) => new T.MeshStandardMaterial(Object.assign({ color: c, roughness: .85, metalness: 0 }, o || {}));
+    this.MB = {
+      base: S('#C4C7CA'), shell: S('#C2C6CA'), old: S('#B3B5B7'), debris: S('#A39E95'), cacamba: S('#5E6D77', { roughness: .6 }),
+      tapume: S('#EEEEEA'), teal: S('#54B4B0', { roughness: .55 }), putty: S('#ECEAE4'), paintW: S('#E7E5E0'), dark: S('#2D2F31'),
+      gesso: S('#D9D9D7'), neve: S('#F6F6F3'), drywall: S('#E1E1DF'), yellow: S('#D4A537', { roughness: .5, metalness: .3 }),
+      metal: S('#B9C1C7', { roughness: .35, metalness: .7 }), blue: S('#3E7CC2', { roughness: .5 }), brown: S('#8A5A33', { roughness: .6 }),
+      fire: S('#B4432F', { roughness: .5 }), black: S('#1C1D1F', { roughness: .55 }), screed: S('#B8B5AE'), membrane: S('#46596A', { roughness: .4 }),
+      porc: S('#F5F5F3', { roughness: .25 }), stone: S('#35363A', { roughness: .35 }), divi: S('#F0F0EE', { roughness: .5 }), locker: S('#3A3D40', { roughness: .6 }),
+      desk: S('#2B2C2E', { roughness: .45 }), frame: S('#26272A', { roughness: .5, metalness: .4 }), white: S('#F2F2F2', { roughness: .5 }),
+      chrome: S('#C9CED2', { roughness: .2, metalness: .9 }), plant: S('#4E8B46', { roughness: .9 }), plant2: S('#3F7A3C', { roughness: .9 }), pot: S('#3B3B3B', { roughness: .7 }),
+      sofa: S('#BFAF9A', { roughness: .95 }), paint: S('#F4F4F2', { roughness: .7 }), pcd: S('#2F62B5', { roughness: .7 }), tealS: S('#54B4B0', { roughness: .6 }),
+      glass: new T.MeshPhysicalMaterial({ color: '#A9CBD8', roughness: .05, metalness: .1, transparent: true, opacity: .32, depthWrite: false }),
+      mirror: S('#DCE4E8', { roughness: .06, metalness: 1 }),
+      led: new T.MeshStandardMaterial({ color: '#FFFFFF', emissive: '#FFFFFF', emissiveIntensity: 1.2 }),
+      ledTeal: new T.MeshStandardMaterial({ color: '#8FEAE4', emissive: '#6EE6DE', emissiveIntensity: 1.3 }),
+      tree: S('#5C8E4E', { roughness: .95 }), trunk: S('#6B5845')
+    };
+    this.TX = { wood: 2, rubber: 2, track: 0, tile: 1.2, tileW: 1.2, block: 1.6, conc: 6, ribbed: 2, moss: 2, street: 8, park: 6, paver: 2 };
+    this.ghost = new T.MeshStandardMaterial({ color: '#D3D7DB', roughness: 1, transparent: true, opacity: .26, depthWrite: false });
+    this.ghostPlane = new T.MeshBasicMaterial({ color: '#C4C9CE', transparent: true, opacity: .12, depthWrite: false, side: T.DoubleSide });
+    this.edgeMat = new T.LineBasicMaterial({ color: '#8A939B', transparent: true, opacity: .55 });
+    this.selMat = new T.LineBasicMaterial({ color: '#181818' });
+    this.matCache = {};
+  }
+  matFor(key, dims, o) {
+    const T = this.THREE;
+    if (key === 'logo1' || key === 'logo2' || key === 'graf' || key === 'tv') {
+      const k = 'p:' + key; if (this.matCache[k]) return this.matCache[k];
+      const t = new T.CanvasTexture(this.X[key]); t.encoding = T.sRGBEncoding; t.anisotropy = 4; t.wrapS = T.RepeatWrapping; t.repeat.x = -1;
+      const m = key === 'graf' || key === 'tv' ? new T.MeshStandardMaterial({ map: t, roughness: .7, emissive: key === 'tv' ? '#FFFFFF' : '#000000', emissiveMap: key === 'tv' ? t : null, emissiveIntensity: key === 'tv' ? .7 : 0 })
+        : new T.MeshStandardMaterial({ map: t, transparent: true, alphaTest: .05, emissive: '#FFFFFF', emissiveMap: t, emissiveIntensity: .35, roughness: .6, side: T.DoubleSide });
+      this.matCache[k] = m; this._logoMats = (this._logoMats || []).concat([m]); return m;
+    }
+    if (this.TX[key] === undefined) return this.MB[key] || this.MB.base;
+    const [w, h, d] = dims; let a, b;
+    const thin = Math.min(w, h, d);
+    if (thin === h) { a = w; b = d; } else if (thin === w) { a = d; b = h; } else { a = w; b = h; }
+    let rx, ry;
+    if (key === 'track') { rx = 1; ry = d / 4; } else { const ts = this.TX[key]; rx = Math.max(a / ts, .2); ry = Math.max(b / ts, .2); }
+    rx = Math.round(rx * 4) / 4 || .25; ry = Math.round(ry * 4) / 4 || .25;
+    const k = key + ':' + rx + ':' + ry; if (this.matCache[k]) return this.matCache[k];
+    const rough = { wood: .55, rubber: .9, track: .8, tile: .35, tileW: .3, block: .95, conc: .9, ribbed: .5, moss: 1, street: .95, park: .95, paver: .9 }[key];
+    const m = new T.MeshStandardMaterial({ map: this.tex(key, rx, ry), roughness: rough, metalness: key === 'ribbed' ? .35 : 0 });
+    this.matCache[k] = m; return m;
+  }
+
+  // ---------------- cena ----------------
+  initScene() {
+    const T = window.THREE; this.THREE = T;
+    const cv = this._cv; const W = cv.clientWidth || 390, H = cv.clientHeight || 404;
+    const r = new T.WebGLRenderer({ canvas: cv, antialias: true });
+    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); r.setSize(W, H, false);
+    r.outputEncoding = T.sRGBEncoding; r.toneMapping = T.NoToneMapping;
+    r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
+    this.renderer = r;
+    const sc = new T.Scene(); this.scene = sc;
+    this.root = new T.Group(); this.root.scale.x = -1; sc.add(this.root); // coordenadas da planta (x à direita, z da rua para o fundo)
+    this.bgDay = new T.CanvasTexture(this.cvs(4, 256, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#F3F5F6'); gr.addColorStop(1, '#D9DEE2'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }));
+    this.bgNight = new T.CanvasTexture(this.cvs(4, 256, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#0C1118'); gr.addColorStop(1, '#1D2833'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }));
+    this.bgDay.encoding = this.bgNight.encoding = T.sRGBEncoding;
+    sc.background = this.bgDay;
+    this.cam = new T.PerspectiveCamera(36, W / H, .5, 500);
+    this.hemi = new T.HemisphereLight('#FFFFFF', '#A9B0B7', .62); sc.add(this.hemi);
+    const sun = new T.DirectionalLight('#FFF6E8', 1.25); sun.position.set(-52, 66, -30); sun.target.position.set(-12.5, 0, 14);
+    sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); const sh = sun.shadow.camera; sh.left = -36; sh.right = 36; sh.top = 36; sh.bottom = -36; sh.near = 10; sh.far = 160;
+    sun.shadow.bias = -.0004; sun.shadow.normalBias = .03; sc.add(sun); sc.add(sun.target); this.sun = sun;
+    this.fill = new T.DirectionalLight('#DDE8F0', .22); this.fill.position.set(30, 25, 40); sc.add(this.fill);
+    this.nightLights = [];
+    [[6, 3, 8], [16, 3, 8], [6, 3, 24], [16, 3, 24], [23, 2.5, 3]].forEach(p => { const l = new T.PointLight('#FFE9C9', 0, 18, 2); l.position.set(p[0], p[1], p[2]); this.root.add(l); this.nightLights.push(l); });
+    this.texturas(); this.materiais();
+    this.els = []; this.pick = [];
+    this.modelo();
+    this.ctl = { theta: -2.2, phi: 0.96, r: 66, tx: -13, ty: 0.5, tz: 10.5, ptrs: new Map(), pinch: 0, moved: 0, downAt: 0 };
+    this.home = { theta: -2.2, phi: 0.96, r: 66, tx: -13, ty: 0.5, tz: 10.5 };
+    this.anims = []; this.ray = new T.Raycaster();
+    this.controles();
+    if (document.fonts && document.fonts.load) {
+      Promise.all([document.fonts.load('900 100px "Nunito Sans"'), document.fonts.load('700 60px "Nunito Sans"')]).then(() => { if (!this._dead) this.textos(); }).catch(() => {});
+    }
+    this.sync(false);
+    const loop = () => { if (this._dead) return; this._raf = requestAnimationFrame(loop); this.frame(); };
+    loop();
+  }
+  // parte: [x0,y0,z0,x1,y1,z1, chaveFixa, opções]
+  el(spec) {
+    const T = this.THREE; const g = new T.Group();
+    let baseY = Infinity; spec.parts.forEach(p => { baseY = Math.min(baseY, p[1]); });
+    g.position.y = baseY;
+    const meshes = [];
+    spec.parts.forEach(p => {
+      const [x0, y0, z0, x1, y1, z1, key, o0] = p; const o = o0 || {};
+      const w = x1 - x0, h = y1 - y0, d = z1 - z0;
+      let geo;
+      if (o.cyl) { const len = o.cyl === 'x' ? w : o.cyl === 'y' ? h : d; geo = new T.CylinderGeometry(o.r, o.r, len, 12); if (o.cyl === 'x') geo.rotateZ(Math.PI / 2); if (o.cyl === 'z') geo.rotateX(Math.PI / 2); }
+      else if (o.plane) { geo = new T.PlaneGeometry(o.plane === 'x' || o.plane === '-x' ? d : w, h); if (o.plane === '-z') geo.rotateY(Math.PI); if (o.plane === 'down') { geo = new T.PlaneGeometry(w, d); geo.rotateX(Math.PI / 2); } if (o.plane === 'x') geo.rotateY(Math.PI / 2); if (o.plane === '-x') geo.rotateY(-Math.PI / 2); }
+      else if (o.sph) { geo = new T.SphereGeometry(o.sph, 16, 12); }
+      else geo = new T.BoxGeometry(Math.max(w, .01), Math.max(h, .01), Math.max(d, .01));
+      const m = new T.Mesh(geo, this.ghost);
+      m.position.set(x0 + w / 2, y0 + h / 2 - baseY, z0 + d / 2);
+      if (o.ry) m.rotation.y = o.ry;
+      if (o.rx) m.rotation.x = o.rx;
+      m.receiveShadow = true;
+      m.userData = { key: key || null, dims: [w, h, d], o };
+      if (!o.plane && !o.noEdge && spec.mode !== 'static') { const e = new T.LineSegments(new T.EdgesGeometry(geo), this.edgeMat); e.visible = false; m.add(e); m.userData.edge = e; }
+      g.add(m); meshes.push(m); this.pick.push(m);
+    });
+    const el = Object.assign({ mode: 'build' }, spec, { g, meshes, baseY, cur: null, anim: false });
+    meshes.forEach(m => { m.userData.el = el; });
+    this.root.add(g); this.els.push(el); return el;
+  }
+  // atalho: lista de caixas com a mesma chave
+  bx(list, key, o) { return list.map(b => [b[0], b[1], b[2], b[3], b[4], b[5], b[6] || key || null, b[7] || o]); }
+
+  modelo() {
+    const E = s => this.el(s);
+    const ST = (parts, k) => E({ mode: 'static', st: [[0, k]], parts });
+    // ---- entorno (sempre visível)
+    ST([[-40, -.06, -40, 70, -.02, 75, 'park']], 'park');
+    ST([[-40, -.02, -22, 70, .02, -11, 'street']], 'street');
+    ST([[-40, 0, -11, 70, .16, -8.6, 'paver']], 'paver');
+    ST([[-0.3, 0, -8.6, 25.3, .05, -0.3, 'park']], 'park');
+    ST([[-0.3, 0, -0.3, 25.3, .15, 31.3]], 'base');
+    ST([[-40, 0, -8.6, -0.3, .05, 75, 'park'], [25.3, 0, -8.6, 70, .05, 75, 'park']], 'park');
+    // árvores da calçada
+    [-4, 9.5, 29].forEach(x => { ST([[x - .1, .16, -10.1, x + .1, 2.8, -9.9, 'trunk'], [x - 1.2, 2.4, -11.2, x + 1.2, 4.8, -8.8, 'tree', { sph: 1.25 }]], 'tree'); });
+    // casca existente
+    this.shL = E({ mode: 'static', fade: 'L', st: [[0, 'shell']], parts: [[-0.3, .15, -0.3, 0, 8.4, 31.3]] });
+    this.shR = E({ mode: 'static', fade: 'R', st: [[0, 'shell']], parts: [[25, .15, -0.3, 25.3, 8.4, 31.3]] });
+    this.shB = E({ mode: 'static', fade: 'B', st: [[0, 'shell']], parts: [[-0.3, .15, 31, 25.3, 8.4, 31.3]] });
+    // pilares
+    const cols = []; [6.5, 13, 19.3].forEach(x => [0.05, 7.75, 15.5, 23.25].forEach(z => cols.push([x - .22, .15, z, x + .22, 8.2, z + .44, 'conc'])));
+    ST(cols, 'conc');
+    // mezanino estrutural e escada
+    E({ mode: 'static', up: true, st: [[0, 'base']], parts: [[0, 3.95, 15.5, 25, 4.2, 31]] });
+    const esc = []; for (let i = 0; i < 14; i++) esc.push([21.4, .15 + i * .27, 12.75 + i * .19, 23.05, .15 + (i + 1) * .27, 12.75 + (i + 1) * .19 + .02]);
+    ST(this.bx(esc, 'base'), 'base');
+
+    // ---- 1 mobilização (temporário até a limpeza fina)
+    E({ a: 1, mode: 'window', end: 26, st: [[1, 'tapume']], parts: [[-1, 0, -8.35, 26.3, 2.3, -8.2], [-1, 2.05, -8.42, 26.3, 2.3, -8.35, 'teal'], [1.2, 0, -6.9, 7.3, 2.6, -4.5, 'cacamba']] });
+    // ---- 2 demolição: paredes e forro antigos
+    E({ a: 2, mode: 'remove', st: [[0, 'old']], parts: [[3.5, .15, 9.8, 12.5, 3.1, 10.0], [8.1, .15, 17.5, 8.3, 3.1, 27.5], [12.8, .15, 22, 18.8, 3.1, 22.2], [.2, 3.0, .2, 19.2, 3.06, 8.5], [21.3, .15, 6.0, 25, 3.1, 6.2]] });
+    // ---- 3 entulho (entre demolição e limpeza)
+    const deb = []; const rr = this.rnd(5); for (let i = 0; i < 9; i++) { const x = 2 + rr() * 15, z = 4 + rr() * 22, s = .6 + rr() * 1.1; deb.push([x, .15, z, x + s, .15 + s * .5, z + s * .8, null, { ry: rr() * 3 }]); }
+    deb.push([9, 0, -6.7, 12.6, 1.4, -4.9, 'cacamba']);
+    E({ a: 3, end: 3, startA: 2, mode: 'between', st: [[2, 'debris']], parts: deb });
+    // ---- 4 alvenarias do apoio + caixa do elevador
+    E({ a: 4, st: [[4, 'block'], [15, 'putty'], [16, 'paintW']], parts: this.bx([[21.15, .15, 5.2, 21.3, 3.0, 12.7], [21.15, .15, 15.3, 21.3, 3.0, 31], [21.3, .15, 5.2, 25, 3.0, 5.35], [21.3, .15, 15.3, 25, 3.0, 15.45], [21.3, .15, 21.0, 25, 3.0, 21.15], [21.3, .15, 25.3, 25, 3.0, 25.45], [21.3, .15, 29.8, 25, 3.0, 29.95], [23.3, .15, 12.7, 25, 7.6, 12.85], [23.3, .15, 12.7, 23.45, 7.6, 15.3]]) });
+    // ---- 5 eletrocalhas
+    E({ a: 5, up: true, st: [[5, 'yellow']], parts: this.bx([[3.1, 7.55, .5, 3.4, 7.65, 30.5], [9.6, 7.55, .5, 9.9, 7.65, 30.5], [16.1, 7.55, .5, 16.4, 7.65, 30.5], [.5, 7.55, 30.1, 19, 7.65, 30.4], [23.0, 2.72, .5, 23.3, 2.8, 30.5]]) });
+    // ---- 6 dutos e condensadoras
+    E({ a: 6, up: true, st: [[6, 'metal']], parts: this.bx([[.6, 6.85, 7.7, 19, 7.35, 8.3, null, { cyl: 'x', r: .3 }], [.6, 6.85, 23.2, 19, 7.35, 23.8, null, { cyl: 'x', r: .3 }], [4.5, 6.95, .6, 4.9, 7.25, 30.4, null, { cyl: 'z', r: .18 }]]) });
+    E({ a: 6, st: [[6, 'metal']], parts: this.bx([[2.5, 0, 31.6, 4.0, 1.2, 32.4], [5, 0, 31.6, 6.5, 1.2, 32.4], [7.5, 0, 31.6, 9.0, 1.2, 32.4], [10, 0, 31.6, 11.5, 1.2, 32.4]]) });
+    // ---- 7 água e esgoto
+    E({ a: 7, st: [[7, 'blue']], parts: this.bx([[24.5, 2.5, 13, 24.62, 2.62, 31, null, { cyl: 'z', r: .06 }], [24.5, .15, 18, 24.62, 2.6, 18.12, null, { cyl: 'y', r: .06 }], [24.5, .15, 27.5, 24.62, 2.6, 27.62, null, { cyl: 'y', r: .06 }]]) });
+    E({ a: 7, st: [[7, 'brown']], parts: this.bx([[24.7, .2, 15.4, 24.86, .36, 31, null, { cyl: 'z', r: .08 }], [21.6, .2, 17.0, 24.7, .36, 17.16, null, { cyl: 'x', r: .08 }], [21.6, .2, 26.8, 24.7, .36, 26.96, null, { cyl: 'x', r: .08 }]]) });
+    // ---- 8 dados, câmeras e som
+    const cams = [[.5, 7.3, .5], [18.6, 7.3, .5], [.5, 7.3, 30.2], [18.6, 7.3, 30.2], [.5, 3.6, 15.0], [18.6, 3.6, 15.0], [21.6, 2.6, .6]].map(p => [p[0], p[1], p[2], p[0] + .3, p[1] + .25, p[2] + .3]);
+    const som = [[.1, 5.6, 5], [.1, 5.6, 13], [.1, 5.6, 21], [.1, 5.6, 28]].map(p => [p[0], p[1], p[2], p[0] + .35, p[1] + .55, p[2] + .4]);
+    E({ a: 8, st: [[8, 'black']], parts: this.bx(cams.concat(som).concat([[18.9, 7.7, .5, 19.1, 7.78, 30.5]])) });
+    // ---- 9 sprinklers e hidrantes
+    const spr = []; [3, 8, 13, 18, 23, 28].forEach(z => { spr.push([.3, 7.8, z, 19.2, 7.9, z + .1, null, { cyl: 'x', r: .05 }]); });
+    E({ a: 9, up: true, st: [[9, 'fire']], parts: spr });
+    E({ a: 9, st: [[9, 'fire']], parts: this.bx([[0, 1.0, 6, .25, 1.8, 6.7], [0, 1.0, 24, .25, 1.8, 24.7], [24.75, 1.0, 2, 25, 1.8, 2.7]]) });
+    // ---- 10 manta → 13 porcelanato (vestiários)
+    E({ a: 10, st: [[10, 'membrane'], [13, 'tile']], parts: this.bx([[21.3, .15, 15.45, 25, .2, 21.0], [21.3, .15, 25.45, 25, .2, 29.8]]) });
+    // ---- 11 contrapiso → 17 pisos
+    E({ a: 11, st: [[11, 'screed'], [17, 'wood']], parts: this.bx([[0, .15, 0, 19.5, .2, 31], [21.3, .15, 0, 25, .2, 15.3], [21.3, .15, 21.15, 25, .2, 25.3], [21.3, .15, 29.95, 25, .2, 31]]) });
+    E({ a: 11, st: [[11, 'screed'], [17, 'track']], parts: [[19.5, .15, 0, 21.15, .21, 31]] });
+    E({ a: 11, up: true, st: [[11, 'screed'], [17, 'rubber']], parts: [[0, 4.2, 15.5, 25, 4.25, 31]] });
+    // ---- 12 forro + ripado turquesa
+    E({ a: 12, up: true, st: [[12, 'gesso'], [15, 'putty'], [16, 'neve']], parts: this.bx([[21.3, 2.95, 0, 25, 3.02, 12.7], [21.3, 2.95, 15.45, 25, 3.02, 31]]) });
+    const rip = []; for (let i = 0; i < 10; i++) rip.push([1 + i * 1.9, 6.6 + (i % 3) * .15, .4, 1.25 + i * 1.9, 6.75 + (i % 3) * .15, 4.6, 'teal']);
+    E({ a: 12, up: true, st: [[12, 'teal']], parts: rip });
+    // ---- 13 parede revestida dos vestiários
+    E({ a: 13, st: [[13, 'tileW']], parts: this.bx([[24.9, .2, 15.45, 25, 2.95, 21.0], [24.9, .2, 25.45, 25, 2.95, 29.8]]) });
+    // ---- 14 drywall
+    E({ a: 14, st: [[14, 'drywall'], [15, 'putty'], [16, 'dark']], parts: this.bx([[21.3, .15, 10.1, 25, 3.0, 10.22], [21.3, .15, 12.55, 23.3, 3.0, 12.67], [23.2, .15, 10.22, 23.32, 3.0, 12.55], [21.3, .15, 23.0, 25, 3.0, 23.12]]) });
+    // ---- 15 massa → 16 pintura nas faces internas
+    E({ a: 15, fade: 'L', st: [[15, 'putty'], [16, 'conc']], parts: [[0, .2, 0, .08, 8.2, 31]] });
+    E({ a: 15, fade: 'B', st: [[15, 'putty'], [16, 'dark']], parts: [[0, .2, 30.92, 25, 8.2, 31]] });
+    // ---- 16 grafismo
+    E({ a: 16, fade: 'L', st: [[16, 'graf']], parts: [[.09, 4.6, 17, .1, 7.6, 30, null, { plane: 'x' }]] });
+    E({ a: 16, st: [[16, 'dark']], parts: [[0, 8.25, 0, 25, 8.25, 31, null, { plane: 'down' }], [0, 3.93, 15.5, 19.5, 3.93, 31, null, { plane: 'down' }]] });
+    // ---- 18 louças
+    const lou = []; [[16.2, 17.2, 18.2], [26.0, 27.0, 28.0]].forEach(zs => zs.forEach(z => { lou.push([24.3, .2, z, 24.75, .6, z + .5]); lou.push([24.62, .6, z + .05, 24.75, .95, z + .45]); }));
+    [[16.4, 17.4, 18.4], [26.3, 27.3]].forEach(zs => zs.forEach(z => lou.push([21.4, .9, z, 21.8, 1.0, z + .4])));
+    E({ a: 18, st: [[18, 'porc']], parts: lou });
+    E({ a: 18, st: [[18, 'chrome']], parts: this.bx([[22.2, 2.1, 19.6, 22.5, 2.2, 19.9], [23.0, 2.1, 19.6, 23.3, 2.2, 19.9], [22.2, 2.1, 28.9, 22.5, 2.2, 29.2], [23.0, 2.1, 28.9, 23.3, 2.2, 29.2]]) });
+    // ---- 19 bancadas, divisórias, escaninhos, recepção
+    E({ a: 19, st: [[19, 'stone']], parts: this.bx([[21.3, .82, 16.0, 21.95, .9, 19.0], [21.3, .82, 26.0, 21.95, .9, 28.4]]) });
+    E({ a: 19, st: [[19, 'divi']], parts: this.bx([[23.6, .2, 16.95, 25, 2.1, 16.98], [23.6, .2, 17.95, 25, 2.1, 17.98], [23.6, .2, 18.95, 25, 2.1, 18.98], [23.6, .2, 26.75, 25, 2.1, 26.78], [23.6, .2, 27.75, 25, 2.1, 27.78]]) });
+    const esq = []; for (let i = 0; i < 5; i++) esq.push([18.55, .2, 9.4 + i * 1.3, 19.25, 2.2, 10.6 + i * 1.3]);
+    E({ a: 19, st: [[19, 'locker']], parts: esq });
+    E({ a: 19, st: [[19, 'desk']], parts: this.bx([[22.0, .2, 2.4, 24.8, 1.1, 3.2], [22.0, 1.1, 2.4, 24.8, 1.16, 3.35, 'tealS']]) });
+    // ---- 20 vitrine, espelhos e guarda-corpo
+    const vit = [[.3, .2, -0.06, 6.2, 4.4, -0.02], [6.75, .2, -0.06, 12.75, 4.4, -0.02], [13.25, .2, -0.06, 19.1, 4.4, -0.02], [19.55, .2, -0.06, 21.0, 4.4, -0.02], [21.6, .2, -0.06, 24.8, 2.6, -0.02]];
+    E({ a: 20, st: [[20, 'glass']], parts: this.bx(vit, null, { noEdge: false }) });
+    E({ a: 20, st: [[20, 'frame']], parts: this.bx([[0, 4.38, -0.1, 21.1, 4.48, 0], [0, .15, -0.1, 21.1, .25, 0], [6.2, .15, -0.1, 6.75, 4.48, 0], [12.75, .15, -0.1, 13.25, 4.48, 0], [19.1, .15, -0.1, 19.55, 4.48, 0]]) });
+    E({ a: 20, st: [[20, 'mirror']], parts: this.bx([[.09, .4, 1.5, .14, 2.5, 7.5], [.09, .4, 8.3, .14, 2.5, 14.8]]) });
+    E({ a: 20, up: true, st: [[20, 'glass']], parts: [[0, 4.25, 15.42, 19.5, 5.3, 15.48]] });
+    // ---- 21 iluminação LED
+    const led = [];
+    [2.2, 6.2, 10.2, 14.2, 18.2].forEach(x => led.push([x, 7.95, 1, x + .07, 8.0, 30]));
+    [4, 11, 19, 27].forEach(z => led.push([1, 7.95, z, 18.5, 8.0, z + .07]));
+    led.push([4, 7.95, 13, 4.07, 8.0, 18, null, { ry: .6 }]); led.push([14, 7.95, 6, 14.07, 8.0, 11, null, { ry: -.6 }]);
+    E({ a: 21, up: true, st: [[21, 'led']], parts: led });
+    const led2 = [];
+    [3, 6.5, 10, 13.5, 17].forEach(z => led2.push([1, 3.86, z, 18.5, 3.9, z + .06]));
+    E({ a: 21, st: [[21, 'led']], parts: led2.map(p => [p[0], p[1], p[2] - 2.6, p[3], p[4], p[5] - 2.6]).filter(p => p[2] > 0).concat([[21.4, 2.9, 1, 24.9, 2.94, 1.06], [21.4, 2.9, 4, 24.9, 2.94, 4.06]]) });
+    E({ a: 21, st: [[21, 'ledTeal']], parts: [[0, 3.98, 15.36, 19.5, 4.06, 15.44], [21.05, .2, -2.05, 21.12, 5.0, -1.98], [25.28, .2, -2.05, 25.35, 5.0, -1.98], [21.05, 4.95, -2.05, 25.35, 5.02, -1.98]] });
+    E({ a: 21, st: [[21, 'led']], parts: this.bx([[.15, 2.5, 1.5, .2, 2.56, 7.5], [.15, 2.5, 8.3, .2, 2.56, 14.8]]) });
+    // ---- 22 evaporadoras
+    E({ a: 22, st: [[22, 'white']], parts: this.bx([[.08, 3.0, 4.5, .36, 3.35, 5.6], [.08, 3.0, 11.5, .36, 3.35, 12.6], [.08, 6.6, 19, .36, 6.95, 20.1], [.08, 6.6, 26, .36, 6.95, 27.1], [5, 6.6, 30.62, 6.1, 6.95, 30.9], [13, 6.6, 30.62, 14.1, 6.95, 30.9], [24.7, 2.4, 1.0, 24.98, 2.72, 2.1]]) });
+    // ---- 23 fachada Contorno
+    E({ a: 23, st: [[23, 'ribbed']], parts: [[-0.3, 4.48, -0.38, 25.3, 8.6, -0.08]] });
+    E({ a: 23, st: [[23, 'teal']], parts: this.bx([[3.6, 7.6, -0.52, 25.3, 8.05, -0.38], [-0.8, 0, -0.52, -0.2, 9.1, -0.38], [-0.8, 8.65, -0.52, 3.9, 9.1, -0.38], [3.5, 7.6, -0.52, 3.95, 9.1, -0.38], [21.0, .15, -2.1, 21.5, 5.05, 0], [24.9, .15, -2.1, 25.4, 5.05, 0], [21.0, 4.6, -2.1, 25.4, 5.05, 0]]) });
+    E({ a: 23, st: [[23, 'moss']], parts: [[21.5, 2.6, -0.1, 24.9, 4.48, -0.05]] });
+    E({ a: 23, st: [[23, 'logo1']], parts: [[.4, 5.0, -0.4, 8.6, 8.2, -0.4, null, { plane: '-z' }]] });
+    E({ a: 23, st: [[23, 'logo2']], parts: [[21.7, 3.15, -0.12, 24.7, 3.8, -0.12, null, { plane: '-z' }], [6.5, 5.4, 30.88, 14.5, 7.1, 30.88, null, { plane: '-z' }]] });
+    // ---- 24 catracas e totem
+    E({ a: 24, st: [[24, 'chrome']], parts: this.bx([[19.7, .2, 1.0, 19.95, 1.05, 1.9], [20.6, .2, 1.0, 20.85, 1.05, 1.9], [19.95, .85, 1.4, 20.6, .9, 1.45]]) });
+    E({ a: 24, st: [[24, 'black']], parts: this.bx([[22.2, .2, 4.3, 22.6, 1.75, 4.55], [0.15, 2.7, 3.0, .25, 3.45, 4.3], [0.15, 2.7, 9.0, .25, 3.45, 10.3]]) });
+    // ---- 25 equipamentos
+    this.equipamentos();
+    // ---- 26 limpeza fina: vagas pintadas
+    const vag = []; for (let i = 0; i < 8; i++) vag.push([.3 + i * 2.6, .05, -7.2, .42 + i * 2.6, .08, -1.4]);
+    vag.push([21.4, .05, -7.6, 24.6, .08, -2.6, 'pcd']);
+    E({ a: 26, st: [[26, 'paint']], parts: vag });
+    // ---- 27 paisagismo
+    const vasos = []; [[1.2, 5.6], [18.2, 5.6], [21.6, 6.0], [9.5, 15.0]].forEach(([x, z]) => { vasos.push([x, .2, z, x + .9, .8, z + .9, 'pot']); vasos.push([x - .2, .8, z - .2, x + 1.1, 2.2, z + 1.1, z > 10 ? 'plant2' : 'plant', { sph: .75 }]); });
+    vasos.push([.2, .05, -8.55, 25, .35, -8.35, 'plant']);
+    E({ a: 27, st: [[27, 'plant']], parts: vasos });
+    // ---- 28 mobiliário e inauguração
+    E({ a: 28, st: [[28, 'sofa']], parts: this.bx([[21.5, .2, 6.0, 22.3, .75, 8.6], [23.3, .2, 7.0, 24.6, .95, 8.4, 'desk'], [21.6, .2, 13.2, 21.7, .2, 13.3]]) });
+  }
+  equipamentos() {
+    const E = s => this.el(s); const p1 = [], p2 = [], p3 = [];
+    for (let i = 0; i < 18; i++) { const x = .9 + i * 1.03; p1.push([x, .2, .9, x + .78, .45, 2.8]); p1.push([x + .05, .45, .75, x + .73, 1.65, .9]); p2.push([x + .12, 1.35, .62, x + .66, 1.62, .66]); }
+    for (let i = 0; i < 6; i++) { const x = 6.2 + i * 1.15; p1.push([x, .2, 3.6, x + .7, .55, 5.4]); p1.push([x + .2, .55, 3.6, x + .5, 1.8, 3.8]); }
+    [1.2, 2.4, 3.6, 14.6, 15.8, 17.0].forEach(x => { p1.push([x, .2, 3.8, x + .5, .9, 5.0]); p3.push([x + .05, .9, 4.5, x + .45, .98, 4.95]); });
+    const maq = (x, y, z) => { p1.push([x, y, z, x + 1.0, y + .2, z + 1.7]); p1.push([x + .05, y + .2, z + 1.45, x + .2, y + 2.1, z + 1.6]); p1.push([x + .8, y + .2, z + 1.45, x + .95, y + 2.1, z + 1.6]); p3.push([x + .25, y + .45, z + .4, x + .75, y + .58, z + 1.1]); };
+    [2, 5.6, 9.2, 12.8, 16.2].forEach(x => [7.2, 10.8].forEach(z => maq(x, .2, z)));
+    const up1 = [], up3 = [];
+    const maqU = (x, z) => { up1.push([x, 4.25, z, x + 1.0, 4.45, z + 1.7]); up1.push([x + .05, 4.45, z + 1.45, x + .2, 6.35, z + 1.6]); up1.push([x + .8, 4.45, z + 1.45, x + .95, 6.35, z + 1.6]); up3.push([x + .25, 4.7, z + .4, x + .75, 4.83, z + 1.1]); };
+    [2, 5.6, 9.2, 12.8, 16.2].forEach(x => [18, 21.6, 25.2].forEach(z => maqU(x, z)));
+    up1.push([1, 4.25, 29.0, 18, 5.15, 29.6]);
+    const tvs = []; for (let i = 0; i < 6; i++) tvs.push([1.4 + i * 3.1, 2.75, .12, 2.6 + i * 3.1, 3.42, .12, null, { plane: 'z' }]);
+    E({ a: 25, st: [[25, 'black']], parts: p1 });
+    E({ a: 25, st: [[25, 'tealS']], parts: p2.concat(p3) });
+    E({ a: 25, up: true, st: [[25, 'black']], parts: up1 });
+    E({ a: 25, up: true, st: [[25, 'tealS']], parts: up3 });
+    E({ a: 25, st: [[25, 'tv']], parts: tvs });
+  }
+
+  // ---------------- estados das peças ----------------
+  estado(el, D) {
+    if (el.mode === 'static') return 's:' + el.st[0][1];
+    if (el.mode === 'remove') return D.has(el.a) ? 'hidden' : 's:' + el.st[0][1];
+    if (el.mode === 'window') return D.has(el.a) && !D.has(el.end) ? 's:' + el.st[0][1] : 'hidden';
+    if (el.mode === 'between') return D.has(el.startA) && !D.has(el.end) ? 's:' + el.st[0][1] : 'hidden';
+    let k = null; el.st.forEach(([a, key]) => { if (D.has(a)) k = key; });
+    return k ? 's:' + k : 'ghost';
+  }
+  aplicar(el, st, anim) {
+    if (el.cur === st) return false;
+    const prev = el.cur; el.cur = st;
+    if (st === 'hidden') {
+      if (anim && prev && prev !== 'hidden') { this.animar(el, 1, .001, 420, 'in'); }
+      return true;
+    }
+    const ghost = st === 'ghost'; const key = ghost ? null : st.slice(2);
+    el.meshes.forEach(m => {
+      const k = ghost ? null : (m.userData.key || key);
+      m.material = ghost ? (m.userData.o.plane ? this.ghostPlane : this.ghost) : this.matFor(k, m.userData.dims, m.userData.o);
+      if (m.userData.edge) m.userData.edge.visible = ghost;
+      if (m.userData.o.plane === 'down') m.visible = !ghost;
+      m.castShadow = !ghost && !m.userData.o.plane && k !== 'glass' && k !== 'led' && k !== 'ledTeal';
+    });
+    if (anim && prev !== st) {
+      if (prev === 'ghost' || prev === 'hidden' || prev === null) this.animar(el, .001, 1, 750, 'back');
+      else this.animar(el, .9, 1, 380, 'out');
+    }
+    return true;
+  }
+  animar(el, a, b, dur, ease) { el.anim = true; el.g.scale.y = a; this.anims = this.anims.filter(x => x.el !== el); this.anims.push({ el, a, b, dur, ease, t0: performance.now() + (this._stagger || 0) }); this._stagger = (this._stagger || 0) + 45; }
+  sync(anim) {
+    if (!this.els) return;
+    const s = this.state; const D = this.doneSet();
+    this._stagger = 0;
+    const changed = new Set();
+    this.els.forEach(el => { if (this.aplicar(el, this.estado(el, D), anim)) changed.add(el.a); });
+    // foco da câmera na peça recém-concluída
+    if (this._focus) { const els = this.els.filter(e => e.a === this._focus && e.cur !== 'hidden'); this._focus = null; if (els.length) this.focar(els); }
+    if (s.sel !== this._selDraw) { this.destacar(s.sel); this._selDraw = s.sel; }
+    const night = D.has(28);
+    if (night !== this._night) {
+      this._night = night;
+      this.scene.background = night ? this.bgNight : this.bgDay;
+      this.hemi.intensity = night ? .1 : .62; this.sun.intensity = night ? .06 : 1.25; this.fill.intensity = night ? .05 : .22;
+      this.scene.fog = night ? new this.THREE.Fog('#121A22', 55, 130) : null;
+      this.MB.led.emissiveIntensity = night ? 1.6 : 1; this.MB.ledTeal.emissiveIntensity = night ? 1.6 : 1;
+      this.nightLights.forEach(l => { l.intensity = night ? 1.3 : 0; });
+      
+    }
+    if (this._auto !== s.auto) this._auto = s.auto;
+  }
+  destacar(id) {
+    this.els.forEach(el => el.meshes.forEach(m => { const e = m.userData.edge; if (!e) return; const on = id != null && el.a === id; e.material = on ? this.selMat : this.edgeMat; e.visible = on || el.cur === 'ghost'; }));
+  }
+  focar(els) {
+    const T = this.THREE; const box = new T.Box3(); els.forEach(e => box.expandByObject(e.g)); const c = box.getCenter(new T.Vector3());
+    const c0 = this.ctl; this.camTw = { t0: performance.now(), dur: 900, from: [c0.tx, c0.ty, c0.tz, c0.r], to: [c.x, Math.min(c.y, 3), c.z, Math.min(c0.r, 46)] };
+  }
+  frame() {
+    const now = performance.now(); const c = this.ctl;
+    this.anims = this.anims.filter(an => {
+      const t = Math.min(Math.max((now - an.t0) / an.dur, 0), 1);
+      let e = t; if (an.ease === 'back') { const k = 1.70158; e = 1 + (k + 1) * Math.pow(t - 1, 3) + k * Math.pow(t - 1, 2); } else if (an.ease === 'out') e = 1 - Math.pow(1 - t, 3); else if (an.ease === 'in') e = t * t * t;
+      an.el.g.scale.y = Math.max(an.a + (an.b - an.a) * e, .001);
+      if (t >= 1) { an.el.anim = false; return false; } return true;
+    });
+    if (this.camTw) { const tw = this.camTw; const t = Math.min((now - tw.t0) / tw.dur, 1); const e = 1 - Math.pow(1 - t, 3); c.tx = tw.from[0] + (tw.to[0] - tw.from[0]) * e; c.ty = tw.from[1] + (tw.to[1] - tw.from[1]) * e; c.tz = tw.from[2] + (tw.to[2] - tw.from[2]) * e; c.r = tw.from[3] + (tw.to[3] - tw.from[3]) * e; if (t >= 1) this.camTw = null; }
+    if (this.state.auto && !c.ptrs.size) c.theta += .0035;
+    const sp = Math.sin(c.phi);
+    const cx = c.tx + c.r * sp * Math.cos(c.theta), cy = c.ty + c.r * Math.cos(c.phi), cz = c.tz + c.r * sp * Math.sin(c.theta);
+    this.cam.position.set(cx, cy, cz); this.cam.lookAt(c.tx, c.ty, c.tz);
+    const ter = this.state.terreo;
+    this.els.forEach(el => {
+      let v = el.cur !== 'hidden' || el.anim;
+      if (ter && el.up) v = false;
+      if (el.fade === 'L' && cx > 1) v = false;
+      if (el.fade === 'R' && cx < -26) v = false;
+      if (el.fade === 'B' && cz > 32) v = false;
+      el.g.visible = v;
+    });
+    this.renderer.render(this.scene, this.cam);
+  }
+  controles() {
+    const cv = this._cv, c = this.ctl;
+    const pos = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top, w: r.width, h: r.height }; };
+    const h = {
+      pointerdown: e => { try { cv.setPointerCapture(e.pointerId); } catch (x) {} c.ptrs.set(e.pointerId, pos(e)); c.moved = 0; c.downAt = performance.now(); this.camTw = null; if (c.ptrs.size === 2) { const [a, b] = Array.from(c.ptrs.values()); c.pinch = Math.hypot(a.x - b.x, a.y - b.y); } },
+      pointermove: e => {
+        if (!c.ptrs.has(e.pointerId)) return; const p = pos(e); const q = c.ptrs.get(e.pointerId); c.ptrs.set(e.pointerId, p);
+        if (c.ptrs.size === 1) { const dx = p.x - q.x, dy = p.y - q.y; c.moved += Math.abs(dx) + Math.abs(dy); c.theta += dx * .009; c.phi = Math.min(Math.max(c.phi - dy * .007, .22), 1.48); }
+        else if (c.ptrs.size === 2) { const [a, b] = Array.from(c.ptrs.values()); const dd = Math.hypot(a.x - b.x, a.y - b.y); if (c.pinch) c.r = Math.min(Math.max(c.r * c.pinch / dd, 16), 110); c.pinch = dd; c.moved += 10; }
+      },
+      pointerup: e => { const was = c.ptrs.size; const p = c.ptrs.get(e.pointerId); c.ptrs.delete(e.pointerId); if (c.ptrs.size < 2) c.pinch = 0; if (was === 1 && p && c.moved < 8 && performance.now() - c.downAt < 400) this.tocar(p); },
+      pointercancel: e => { c.ptrs.delete(e.pointerId); c.pinch = 0; },
+      wheel: e => { e.preventDefault(); c.r = Math.min(Math.max(c.r * (1 + e.deltaY * .0012), 16), 110); }
+    };
+    Object.keys(h).forEach(k => cv.addEventListener(k, h[k], k === 'wheel' ? { passive: false } : undefined));
+    this._h = h;
+  }
+  tocar(p) {
+    const T = this.THREE; const v = new T.Vector2(p.x / p.w * 2 - 1, -(p.y / p.h) * 2 + 1);
+    this.ray.setFromCamera(v, this.cam);
+    const alvos = this.pick.filter(m => { let o = m; while (o) { if (!o.visible) return false; o = o.parent; } return true; });
+    const hit = this.ray.intersectObjects(alvos, false).find(h => h.object.userData.el && h.object.userData.el.a);
+    const id = hit ? hit.object.userData.el.a : null;
+    this.setState({ sel: id === this.state.sel ? null : id });
+  }
+
+  // ---------------- ações ----------------
+  say(m, undo) { this.setState({ toast: m, undo: undo || null }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '', undo: null }), undo ? 6000 : 3200); }
+  concluir(id) {
+    const s = this.state; const a = this.T().find(x => x.id === id);
+    const antes = { done: s.done.slice(), xp: s.xp };
+    this.setState({ flash: true, sim: null });
+    setTimeout(() => {
+      if (this._dead) return;
+      const done = this.state.done.concat([id]);
+      const faseOk = this.T().filter(x => x.f === a.f).every(x => done.includes(x.id));
+      const fim = done.length === 28;
+      const ganho = 50 + (faseOk ? 200 : 0);
+      this._focus = id;
+      const cel = fim ? { sup: 'Fase 6 · Entrega', tit: 'Unidade inaugurada!', txt: 'Todas as 28 peças montadas. A maquete acendeu as luzes. +' + ganho + ' XP' }
+        : faseOk ? { sup: 'Fase ' + a.f + ' completa', tit: this.FASES()[a.f - 1] + ' concluída', txt: 'Todas as peças da fase estão na maquete. +' + ganho + ' XP' } : null;
+      this.setState({ done, flash: false, sel: null, xp: this.state.xp + ganho, celebra: cel });
+      this.say('+50 XP · ' + a.pc + ' na maquete', () => this.setState({ done: antes.done, xp: antes.xp, toast: '', undo: null, celebra: null }));
+    }, 280);
+  }
+  importar() {
+    const passos = ['Lendo 20 pranchas do executivo…', 'Reconhecendo layout, piso e forro…', 'Lendo mapa de pintura, luminotécnica e fachada…', 'Ligando peças às atividades do cronograma…'];
+    let i = 0; const go = () => { if (this._dead) return; i++; if (i <= passos.length) { this.setState({ imp: i }); setTimeout(go, 900); } else { this.setState({ imp: 0 }); this.say('Maquete gerada: 23 peças ligadas às 28 atividades'); } };
+    go();
+  }
+
+  renderVals() {
+    const s = this.state, TQ = '#54B4B0', BK = '#181818';
+    const T = this.T(), F = this.FASES(), S = this.sched();
+    const D = this.doneSet();
+    const real = new Set(s.done);
+    const sumD = T.reduce((n, a) => n + a.d, 0);
+    const pct = Math.round(T.filter(a => D.has(a.id)).reduce((n, a) => n + a.d, 0) / sumD * 100);
+    const lib = a => !real.has(a.id) && a.p.every(p => real.has(p));
+    const prox = T.filter(lib).sort((x, y) => S.es[x.id] - S.es[y.id]);
+    const selA = T.find(a => a.id === s.sel) || null;
+    const simVal = s.sim == null ? s.done.length : s.sim;
+    let sel = { id: '', n: '', peca: '', fase: '', q: '', temQ: false, st: '', stBg: '#fff', stFg: BK, info: '', pode: false, concluir: () => {} };
+    if (selA) {
+      const feito = real.has(selA.id), pode = lib(selA);
+      const falta = selA.p.filter(p => !real.has(p));
+      sel = {
+        id: selA.id, n: selA.n, peca: selA.pc, fase: 'Fase ' + selA.f + ' · ' + F[selA.f - 1], q: selA.q, temQ: !!selA.q,
+        st: feito ? 'Executada' : pode ? 'Liberada' : 'Aguardando', stBg: feito ? TQ : pode ? BK : 'rgba(24,24,24,.08)', stFg: feito ? BK : pode ? '#fff' : BK,
+        info: feito ? 'Peça colorida na maquete' : pode ? 'Concluir colore a peça na hora' : 'Depende de ' + falta.map(p => '#' + p).join(', '),
+        pode: pode && s.sim == null, concluir: () => this.concluir(selA.id)
+      };
+    }
+    const fasesBar = F.map((t, i) => { const acts = T.filter(a => a.f === i + 1); const n = acts.filter(a => D.has(a.id)).length; return { t: 'F' + (i + 1), w: (n / acts.length * 100) + '%', cor: n === acts.length ? TQ : BK }; });
+    const simLbl = s.sim == null ? 'Hoje · ' + s.done.length + ' peças' : (s.sim === 0 ? 'Terreno cinza' : s.sim === 28 ? 'Unidade pronta' : 'Até ' + T.find(a => a.id === S.ordem[s.sim - 1]).pc.toLowerCase());
+    const passos = ['', 'Lendo 20 pranchas do executivo…', 'Reconhecendo layout, piso e forro…', 'Lendo mapa de pintura, luminotécnica e fachada…', 'Ligando peças às atividades do cronograma…'];
+    return {
+      refCv: this.refCv, carregando: !s.pronto,
+      vpBg: s.sim == null && real.has(28) || s.sim === 28 ? '#0C1118' : '#EEF1F3',
+      vistas: [['Completa', false], ['Só térreo', true]].map(([t, v]) => { const on = s.terreo === v; return { t, on: on ? 'true' : 'false', bg: on ? BK : 'transparent', fg: on ? '#fff' : BK, set: () => this.setState({ terreo: v }) }; }),
+      togAuto: () => this.setState({ auto: !s.auto }), autoAria: s.auto ? 'true' : 'false', autoBg: s.auto ? TQ : 'rgba(255,255,255,.88)', autoFg: BK,
+      recentrar: () => { if (this.ctl) { const c = this.ctl, h = this.home; this.camTw = { t0: performance.now(), dur: 800, from: [c.tx, c.ty, c.tz, c.r], to: [h.tx, h.ty, h.tz, h.r] }; c.theta = h.theta; c.phi = h.phi; } },
+      emPrevia: s.sim != null, simTxt: s.sim === 0 ? 'terreno cinza' : (s.sim + ' de 28 peças'),
+      flash: s.flash,
+      pct, nPecas: T.filter(a => D.has(a.id)).length, xp: s.xp.toLocaleString('pt-BR'), fasesBar,
+      temSel: !!selA, semSel: !selA, sel, fecharSel: () => this.setState({ sel: null }),
+      simVal, simP: (simVal / 28 * 100) + '%', simLbl,
+      onSim: e => { const v = +e.target.value; this.setState({ sim: v === s.done.length && s.sim == null ? null : v, sel: null }); },
+      voltarHoje: () => this.setState({ sim: null }),
+      nLib: prox.length,
+      proximas: prox.slice(0, 6).map(a => ({ id: a.id, n: a.n, d: a.d, peca: a.pc, fase: 'Fase ' + a.f, btn: s.sim == null ? 'Concluir com foto' : 'Voltar para hoje', bg: s.sim == null ? TQ : 'rgba(24,24,24,.08)', concluir: () => { if (this.state.sim != null) { this.setState({ sim: null }); return; } this.concluir(a.id); }, ver: () => { this.setState({ sel: a.id, sim: null }); const els = (this.els || []).filter(e => e.a === a.id); if (els.length) this.focar(els); } })),
+      tudoPronto: prox.length === 0 && real.size === 28,
+      hasToast: !!s.toast, toast: s.toast, hasUndo: !!s.undo, desfazer: () => s.undo && s.undo(),
+      temCelebra: !!s.celebra, cel: s.celebra || { sup: '', tit: '', txt: '' }, fecharCelebra: () => this.setState({ celebra: null }),
+      planta: s.planta, abrirPlanta: () => this.setState({ planta: true }), fecharPlanta: () => this.setState({ planta: false }),
+      arqNome: 'CDC Divinópolis 5 · Und. Itamarandiba', arqInfo: 'Projeto executivo · 20 pranchas A0 · fev/2026',
+      importando: s.imp > 0, impTxt: passos[s.imp] || '', impW: (s.imp / 4 * 100) + '%', importar: () => { if (!s.imp) this.importar(); },
+      reconhecidos: [
+        { pr: '01', t: 'Layout', q: 'Musculação, cardio, pista, recepção, coworking, vestiários, copa, spa e personal', liga: 'paredes, vestiários e mobiliário (#4, #14, #28)' },
+        { pr: '02', t: 'Construção e demolição', q: 'Paredes e forro a demolir · novas alvenarias', liga: 'demolição e alvenarias (#2, #4)' },
+        { pr: '03', t: 'Paginação de piso', q: 'Vinílico 3 mm 803,80 m² · borracha 100×100 308,00 m² · porcelanato 60×60 55,44 m² · pista Massai Red 32,98 m²', liga: 'pisos (#11, #13, #17)' },
+        { pr: '04', t: 'Forro de gesso', q: 'Gesso com junta, branco neve · teto aparente cinza escuro', liga: 'forro (#12)' },
+        { pr: '05', t: 'Mapa de pintura e revestimentos', q: 'Parede com grafismo · paredes e drywall na cor escura padrão', liga: 'massa e pintura (#15, #16)' },
+        { pr: '06', t: 'Eixos elétricos e hidráulicos', q: 'Tomadas, pontos de dados, água e esgoto dos vestiários', liga: 'infraestrutura (#5, #7, #8)' },
+        { pr: '07', t: 'Luminotécnica', q: 'Perfis de LED no teto, mezanino e espelhos', liga: 'iluminação (#21)' },
+        { pr: '15+', t: 'Detalhes, marcenaria e louças', q: '65 escaninhos · 7 vasos · 6 cubas · 9 duchas · espelhos', liga: 'louças, bancadas e espelhos (#18, #19, #20)' },
+        { pr: '20', t: 'Fachada', q: 'Moldura turquesa · letreiro Academia Contorno do corpo · parede verde no pórtico', liga: 'fachada (#23)' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

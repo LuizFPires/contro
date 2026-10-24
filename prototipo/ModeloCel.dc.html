@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>obdc · Modelo CDC no celular</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F6F6}
+a{color:#181818}
+button,input{font-family:inherit}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #54B4B0;outline-offset:2px}
+.scr::-webkit-scrollbar{display:none}
+.fld{width:100%;box-sizing:border-box;min-height:56px;border:2px solid rgba(24,24,24,.25);border-radius:14px;padding:0 16px;font-size:18px;font-weight:700;color:#181818;background:#fff}
+.fld:focus{border-color:#181818;outline:none}
+.tap:active{transform:scale(.98)}
+@keyframes inR{0%{transform:translateX(28px);opacity:0}100%{transform:none;opacity:1}}
+.inR{animation:inR .22s ease-out}
+@keyframes up{0%{transform:translateY(100%)}100%{transform:none}}
+.sheet{animation:up .25s ease-out}
+@keyframes fade{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
+.fade{animation:fade .22s ease-out}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; overflow: hidden; position: relative; background: #F6F6F6; color: #181818; font-family: 'Nunito Sans', system-ui, sans-serif; font-size: 16px; line-height: 1.4; display: flex; flex-direction: column">
+
+  <!-- ============ MODELOS ============ -->
+  <sc-if value="{{telaModelos}}" hint-placeholder-val="{{true}}">
+    <div style="background: #181818; color: #fff; padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <a href="Main.dc.html" aria-label="Voltar ao início" style="width: 44px; height: 44px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; color: #fff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+        <div style="font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.72)">Contorno do Corpo</div>
+      </div>
+      <div style="padding: 0 6px">
+        <div style="font-size: 26px; font-weight: 800; line-height: 1.15">Modelos de obra</div>
+        <div style="font-size: 15px; color: rgba(255,255,255,.8)">Ao iniciar uma obra, você escolhe qual modelo seguir.</div>
+      </div>
+    </div>
+    <div class="scr" style="flex-grow: 1; overflow-y: auto; padding: 16px 16px 120px; display: flex; flex-direction: column; gap: 10px">
+      <sc-for list="{{modelosList}}" as="m" hint-placeholder-count="3">
+        <button type="button" class="tap" onClick="{{m.abrir}}" style="display: flex; align-items: flex-start; gap: 14px; width: 100%; padding: 16px; border-radius: 18px; border: 1px solid rgba(24,24,24,.10); background: #fff; text-align: left; cursor: pointer; color: #181818">
+          <span style="width: 44px; height: 44px; border-radius: 12px; background: #181818; color: #54B4B0; font-weight: 800; font-size: 20px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0">{{m.num}}</span>
+          <span style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 800; font-size: 18px; line-height: 1.2">{{m.nome}}</span>
+            <span style="font-size: 15px; color: #464646">{{m.sub}}</span>
+            <span style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px">
+              <span style="font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: rgba(84,180,176,.30)">{{m.dias}} dias úteis</span>
+              <span style="font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: rgba(24,24,24,.07)">{{m.ativ}} atividades</span>
+              <span style="font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: rgba(24,24,24,.07)">{{m.uso}}</span>
+            </span>
+          </span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#181818" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-top: 12px; flex-shrink: 0"><path d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </sc-for>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 24px; background: linear-gradient(rgba(246,246,246,0), #F6F6F6 30%)">
+      <button type="button" onClick="{{abrirNovoModelo}}" style="width: 100%; min-height: 56px; border-radius: 16px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(24,24,24,.18)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Novo modelo</button>
+    </div>
+  </sc-if>
+
+  <!-- ============ LISTA DE FASES ============ -->
+  <sc-if value="{{telaFases}}" hint-placeholder-val="{{true}}">
+    <div style="background: #181818; color: #fff; padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <button type="button" onClick="{{voltarModelos}}" aria-label="Voltar aos modelos" style="width: 44px; height: 44px; border-radius: 12px; border: 0; background: transparent; color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+        <div style="flex-grow: 1; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.72)">Modelo de obra</div>
+        <button type="button" onClick="{{abrirOpcModelo}}" aria-label="Editar nome e subtítulo" style="min-height: 40px; padding: 0 12px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,.4); background: transparent; color: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 14px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path></svg>Editar
+        </button>
+      </div>
+      <div style="padding: 0 6px">
+        <div style="font-size: 26px; font-weight: 800; line-height: 1.15">{{mNome}}</div>
+        <div style="font-size: 16px; font-weight: 700; color: #54B4B0">{{mSub}}</div>
+        <div style="font-size: 14px; color: rgba(255,255,255,.8); margin-top: 2px">{{nAtiv}} atividades · {{total}} dias úteis até a entrega</div>
+      </div>
+    </div>
+    <div class="scr" style="flex-grow: 1; overflow-y: auto; padding: 16px 16px 120px; display: flex; flex-direction: column; gap: 10px">
+      <sc-for list="{{fasesList}}" as="f" hint-placeholder-count="6">
+        <button type="button" class="tap" onClick="{{f.abrir}}" style="display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 14px 14px 16px; border-radius: 16px; border: 1px solid rgba(24,24,24,.10); background: #fff; text-align: left; cursor: pointer; color: #181818">
+          <span style="width: 40px; height: 40px; border-radius: 12px; background: #181818; color: #54B4B0; font-weight: 800; font-size: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0">{{f.n}}</span>
+          <span style="flex-grow: 1; min-width: 0">
+            <span style="display: block; font-weight: 800; font-size: 17px">{{f.t}}</span>
+            <span style="display: block; font-size: 14px; color: #696969">{{f.resumo}}</span>
+            <span style="display: block; position: relative; height: 6px; margin-top: 8px; background: rgba(24,24,24,.07); border-radius: 3px"><span style="position: absolute; top: 0; bottom: 0; left: {{f.left}}; width: {{f.width}}; background: #54B4B0; border-radius: 3px"></span></span>
+          </span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#181818" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </sc-for>
+      <button type="button" onClick="{{addFase}}" style="min-height: 56px; border-radius: 16px; border: 2px dashed rgba(24,24,24,.35); background: transparent; font-weight: 800; font-size: 16px; color: #181818; cursor: pointer">+ Nova fase</button>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 24px; background: linear-gradient(rgba(246,246,246,0), #F6F6F6 30%)">
+      <div style="text-align: center; font-size: 13px; color: #464646; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#181818" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>Alterações salvas no modelo. Obras já iniciadas não mudam.</div>
+      <button type="button" onClick="{{duplicar}}" style="width: 100%; min-height: 56px; border-radius: 16px; border: 0; background: #181818; color: #fff; font-weight: 800; font-size: 17px; cursor: pointer">Duplicar como novo modelo</button>
+    </div>
+  </sc-if>
+
+  <!-- ============ FASE ============ -->
+  <sc-if value="{{telaFase}}" hint-placeholder-val="{{false}}">
+    <div class="inR" style="display: flex; flex-direction: column; height: 100%">
+      <div style="background: #181818; color: #fff; padding: 16px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <button type="button" onClick="{{voltarFases}}" aria-label="Voltar às fases" style="width: 44px; height: 44px; border-radius: 12px; border: 0; background: transparent; color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+          </button>
+          <button type="button" onClick="{{abrirOpcFase}}" aria-label="Opções da fase" style="width: 44px; height: 44px; border-radius: 12px; border: 0; background: transparent; color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg>
+          </button>
+        </div>
+        <div style="padding: 0 6px">
+          <div style="font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #54B4B0">Fase {{fase.n}}</div>
+          <div style="font-size: 24px; font-weight: 800; line-height: 1.15">{{fase.t}}</div>
+          <div style="font-size: 14px; color: rgba(255,255,255,.8)">{{fase.resumo}}</div>
+        </div>
+      </div>
+      <div class="scr" style="flex-grow: 1; overflow-y: auto; padding: 14px 16px 120px; display: flex; flex-direction: column; gap: 8px">
+        <sc-if value="{{fase.vazia}}" hint-placeholder-val="{{false}}">
+          <div style="padding: 28px 12px; text-align: center; color: #464646">Nenhuma atividade nesta fase ainda.<br>Toque em <b>Nova atividade</b>.</div>
+        </sc-if>
+        <sc-for list="{{fase.rows}}" as="r" hint-placeholder-count="4">
+          <button type="button" class="tap" onClick="{{r.abrir}}" style="display: flex; gap: 12px; align-items: flex-start; width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(24,24,24,.10); background: {{r.bg}}; text-align: left; cursor: pointer; color: #181818">
+            <span style="min-width: 34px; font-weight: 800; color: #696969; padding-top: 1px">#{{r.idx}}</span>
+            <span style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="font-weight: 800; font-size: 16px; line-height: 1.25">{{r.n}}</span>
+              <span style="font-size: 14px; color: #464646">{{r.dep}}</span>
+              <span style="display: flex; gap: 6px; flex-wrap: wrap">
+                <sc-for list="{{r.tags}}" as="tg" hint-placeholder-count="1"><span style="font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: rgba(24,24,24,.07)">{{tg}}</span></sc-for>
+                <sc-if value="{{r.crit}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: rgba(84,180,176,.30)">caminho crítico</span></sc-if>
+              </span>
+            </span>
+            <span style="text-align: right; flex-shrink: 0"><span style="font-size: 22px; font-weight: 800; line-height: 1">{{r.d}}</span><span style="font-size: 13px; color: #696969"> d</span><span style="display: block; font-size: 12px; color: #696969">D{{r.ini}}–D{{r.fim}}</span></span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 24px; background: linear-gradient(rgba(246,246,246,0), #F6F6F6 30%)">
+        <button type="button" onClick="{{novaAtiv}}" style="width: 100%; min-height: 56px; border-radius: 16px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px rgba(24,24,24,.18)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nova atividade
+        </button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ ASSISTENTE (nova / editar) ============ -->
+  <sc-if value="{{telaWiz}}" hint-placeholder-val="{{false}}">
+    <div style="display: flex; flex-direction: column; height: 100%; background: #fff">
+      <div style="padding: 14px 16px 10px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; border-bottom: 1px solid rgba(24,24,24,.08)">
+        <button type="button" onClick="{{wizVoltar}}" aria-label="{{wizVoltarAria}}" style="width: 44px; height: 44px; border-radius: 12px; border: 0; background: transparent; color: #181818; cursor: pointer; display: inline-flex; align-items: center; justify-content: center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+        </button>
+        <div style="flex-grow: 1; min-width: 0">
+          <div style="font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #696969">{{wizSup}}</div>
+          <div style="font-size: 16px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{wizTit}}</div>
+        </div>
+        <button type="button" onClick="{{wizFechar}}" aria-label="Fechar sem salvar" style="width: 44px; height: 44px; border-radius: 12px; border: 0; background: transparent; color: #181818; cursor: pointer; font-size: 26px; line-height: 1">×</button>
+      </div>
+      <sc-if value="{{mostraPassos}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; gap: 6px; padding: 10px 16px 0; flex-shrink: 0">
+          <sc-for list="{{passos}}" as="ps" hint-placeholder-count="5"><span style="flex-grow: 1; height: 5px; border-radius: 3px; background: {{ps.cor}}"></span></sc-for>
+        </div>
+      </sc-if>
+
+      <div class="scr" style="flex-grow: 1; overflow-y: auto; padding: 18px 16px 24px">
+
+        <sc-if value="{{p1}}" hint-placeholder-val="{{true}}">
+          <div class="fade" style="display: flex; flex-direction: column; gap: 14px">
+            <h2 style="margin: 0; font-size: 26px; line-height: 1.15; font-weight: 800">Qual é a atividade?</h2>
+            <input class="fld" value="{{dNome}}" onChange="{{setNome}}" placeholder="Digite ou escolha abaixo" aria-label="Nome da atividade">
+            <sc-if value="{{temSug}}" hint-placeholder-val="{{true}}">
+              <div style="font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #696969; margin-top: 4px">Já usadas nas obras</div>
+              <div style="display: flex; flex-direction: column; border: 1px solid rgba(24,24,24,.10); border-radius: 16px; overflow: hidden">
+                <sc-for list="{{sugs}}" as="sg" hint-placeholder-count="5">
+                  <button type="button" onClick="{{sg.usar}}" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 60px; padding: 0 16px; border: 0; border-bottom: 1px solid rgba(24,24,24,.07); background: {{sg.bg}}; text-align: left; cursor: pointer; color: #181818">
+                    <span><span style="display: block; font-weight: 700; font-size: 16px">{{sg.n}}</span><span style="font-size: 13px; color: #696969">{{sg.info}}</span></span>
+                    <span style="font-weight: 800; flex-shrink: 0">{{sg.d}} d</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{p2}}" hint-placeholder-val="{{false}}">
+          <div class="fade" style="display: flex; flex-direction: column; gap: 18px">
+            <h2 style="margin: 0; font-size: 26px; line-height: 1.15; font-weight: 800">Quantos dias úteis?</h2>
+            <sc-if value="{{semKids}}" hint-placeholder-val="{{true}}">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 22px; padding: 8px 0">
+                <button type="button" onClick="{{menos}}" aria-label="Menos um dia" style="width: 64px; height: 64px; border-radius: 50%; border: 2px solid #181818; background: #fff; font-size: 30px; font-weight: 800; cursor: pointer; color: #181818">−</button>
+                <span style="text-align: center; min-width: 96px"><span style="display: block; font-size: 64px; font-weight: 800; line-height: 1">{{dDur}}</span><span style="font-size: 15px; color: #696969">dias úteis</span></span>
+                <button type="button" onClick="{{mais}}" aria-label="Mais um dia" style="width: 64px; height: 64px; border-radius: 50%; border: 2px solid #181818; background: #fff; font-size: 30px; font-weight: 800; cursor: pointer; color: #181818">+</button>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px">
+                <sc-for list="{{prazos}}" as="pz" hint-placeholder-count="6">
+                  <button type="button" onClick="{{pz.set}}" style="min-height: 52px; border-radius: 14px; border: 2px solid {{pz.bd}}; background: {{pz.bg}}; font-weight: 800; font-size: 17px; cursor: pointer; color: #181818">{{pz.d}}</button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div style="border: 1px solid rgba(24,24,24,.12); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px">
+                <span><span style="display: block; font-weight: 800">Dividir em subitens</span><span style="font-size: 13px; color: #696969">Ex.: demolição de alvenaria, forro e piso</span></span>
+                <button type="button" onClick="{{togKids}}" role="switch" aria-checked="{{kidsAria}}" aria-label="Dividir em subitens" style="width: 56px; height: 34px; border-radius: 99px; border: 0; background: {{swBg}}; position: relative; cursor: pointer; flex-shrink: 0"><span style="position: absolute; top: 4px; left: {{swLeft}}; width: 26px; height: 26px; border-radius: 50%; background: #fff"></span></button>
+              </div>
+              <sc-for list="{{kids}}" as="k" hint-placeholder-count="0">
+                <div style="border-top: 1px solid rgba(24,24,24,.08); padding-top: 10px; display: flex; flex-direction: column; gap: 8px">
+                  <div style="display: flex; gap: 8px; align-items: center">
+                    <input class="fld" style="min-height: 48px; font-size: 16px" value="{{k.n}}" onChange="{{k.rename}}" aria-label="Nome do subitem">
+                    <button type="button" onClick="{{k.rm}}" aria-label="Remover subitem" style="width: 44px; height: 48px; border: 0; background: transparent; font-size: 24px; cursor: pointer; color: #181818; flex-shrink: 0">×</button>
+                  </div>
+                  <div style="display: flex; gap: 8px; align-items: center">
+                    <button type="button" onClick="{{k.menos}}" aria-label="Menos um dia" style="width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid rgba(24,24,24,.3); background: #fff; font-size: 20px; font-weight: 800; cursor: pointer; color: #181818">−</button>
+                    <span style="min-width: 44px; text-align: center; font-weight: 800; font-size: 18px">{{k.d}} d</span>
+                    <button type="button" onClick="{{k.mais}}" aria-label="Mais um dia" style="width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid rgba(24,24,24,.3); background: #fff; font-size: 20px; font-weight: 800; cursor: pointer; color: #181818">+</button>
+                    <sc-if value="{{k.podeSeq}}" hint-placeholder-val="{{false}}">
+                      <div style="flex-grow: 1; display: flex; background: rgba(24,24,24,.06); border-radius: 12px; padding: 3px">
+                        <button type="button" onClick="{{k.seqOn}}" style="flex: 1; min-height: 38px; border: 0; border-radius: 10px; background: {{k.bgSeq}}; font-size: 13px; font-weight: 800; cursor: pointer; color: #181818">Depois</button>
+                        <button type="button" onClick="{{k.seqOff}}" style="flex: 1; min-height: 38px; border: 0; border-radius: 10px; background: {{k.bgPar}}; font-size: 13px; font-weight: 800; cursor: pointer; color: #181818">Junto</button>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{k.primeiro}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: #696969">abre a atividade</span></sc-if>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{temKids}}" hint-placeholder-val="{{false}}">
+                <button type="button" onClick="{{addKid}}" style="min-height: 48px; border-radius: 12px; border: 1.5px dashed rgba(24,24,24,.4); background: #fff; font-weight: 800; cursor: pointer; color: #181818">+ Subitem</button>
+                <div style="font-size: 14px; color: #464646">Total calculado: <b>{{dDur}} dias úteis</b></div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{p3}}" hint-placeholder-val="{{false}}">
+          <div class="fade" style="display: flex; flex-direction: column; gap: 14px">
+            <h2 style="margin: 0; font-size: 26px; line-height: 1.15; font-weight: 800">Começa depois de quê?</h2>
+            <div style="font-size: 15px; color: #464646">Marque o que precisa estar pronto antes. Vale atividade de qualquer fase.</div>
+            <sc-if value="{{temSelPred}}" hint-placeholder-val="{{true}}">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                <sc-for list="{{selPreds}}" as="sp" hint-placeholder-count="2">
+                  <button type="button" onClick="{{sp.rm}}" aria-label="Desmarcar {{sp.t}}" style="min-height: 40px; padding: 0 8px 0 12px; border-radius: 99px; border: 0; background: #181818; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; max-width: 100%">
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{sp.t}}</span><span style="font-size: 18px; line-height: 1; color: #54B4B0">×</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div style="position: relative">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#696969" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 14px; top: 16px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+              <input class="fld" style="min-height: 52px; padding-left: 44px; font-size: 16px; font-weight: 600" value="{{predQ}}" onChange="{{setPredQ}}" placeholder="Buscar em todas as fases" aria-label="Buscar atividade">
+            </div>
+            <sc-if value="{{semBusca}}" hint-placeholder-val="{{true}}">
+              <div class="scr" style="display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 4px">
+                <sc-for list="{{predTabs}}" as="tb" hint-placeholder-count="6">
+                  <button type="button" onClick="{{tb.set}}" style="flex-shrink: 0; min-height: 44px; padding: 0 14px; border-radius: 99px; border: 1.5px solid {{tb.bd}}; background: {{tb.bg}}; color: {{tb.fg}}; font-weight: 800; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px">{{tb.t}}<sc-if value="{{tb.temN}}" hint-placeholder-val="{{false}}"><span style="min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 99px; background: #54B4B0; color: #181818; font-size: 12px; display: inline-flex; align-items: center; justify-content: center">{{tb.n}}</span></sc-if></button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div style="font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #696969">{{predListaTit}}</div>
+            <sc-if value="{{predVazia}}" hint-placeholder-val="{{false}}"><div style="padding: 16px 4px; color: #464646">Nenhuma atividade encontrada.</div></sc-if>
+            <sc-for list="{{predItens}}" as="po" hint-placeholder-count="4">
+              <button type="button" onClick="{{po.tog}}" role="checkbox" aria-checked="{{po.aria}}" style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 14px; border-radius: 14px; border: 2px solid {{po.bd}}; background: {{po.bg}}; text-align: left; cursor: pointer; color: #181818">
+                <span style="width: 26px; height: 26px; border-radius: 8px; border: 2px solid #181818; background: {{po.box}}; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0">
+                  <sc-if value="{{po.on}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg></sc-if>
+                </span>
+                <span style="flex-grow: 1; min-width: 0"><span style="font-weight: 700">#{{po.idx}} {{po.n}}</span><span style="display: block; font-size: 13px; color: #696969">{{po.info}}</span></span>
+              </button>
+            </sc-for>
+            <sc-if value="{{temBloq}}" hint-placeholder-val="{{false}}"><div style="font-size: 13px; color: #696969">{{bloqTxt}}</div></sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{p4}}" hint-placeholder-val="{{false}}">
+          <div class="fade" style="display: flex; flex-direction: column; gap: 14px">
+            <h2 style="margin: 0; font-size: 26px; line-height: 1.15; font-weight: 800">Precisa providenciar algo antes?</h2>
+            <div style="font-size: 15px; color: #464646">Vira lembrete na obra. Sem valor nem fornecedor.</div>
+            <sc-for list="{{sups}}" as="sp" hint-placeholder-count="1">
+              <div style="border: 1px solid rgba(24,24,24,.12); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+                <div style="display: flex; justify-content: space-between; align-items: center">
+                  <span style="font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 8px; background: {{sp.tagBg}}; color: {{sp.tagFg}}">{{sp.tipo}}</span>
+                  <button type="button" onClick="{{sp.rm}}" aria-label="Remover lembrete" style="width: 44px; height: 44px; border: 0; background: transparent; font-size: 24px; cursor: pointer; color: #181818">×</button>
+                </div>
+                <input class="fld" style="min-height: 50px; font-size: 16px" value="{{sp.d}}" onChange="{{sp.rename}}" placeholder="{{sp.ph}}" aria-label="O que providenciar">
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <button type="button" onClick="{{sp.menos}}" aria-label="Menos um dia" style="width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid rgba(24,24,24,.3); background: #fff; font-size: 20px; font-weight: 800; cursor: pointer; color: #181818">−</button>
+                  <span style="font-weight: 800; font-size: 18px; min-width: 40px; text-align: center">{{sp.l}} d</span>
+                  <button type="button" onClick="{{sp.mais}}" aria-label="Mais um dia" style="width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid rgba(24,24,24,.3); background: #fff; font-size: 20px; font-weight: 800; cursor: pointer; color: #181818">+</button>
+                  <span style="font-size: 14px; color: #464646">antes de começar</span>
+                </div>
+              </div>
+            </sc-for>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px">
+              <sc-for list="{{tiposAdd}}" as="ta" hint-placeholder-count="3">
+                <button type="button" onClick="{{ta.add}}" style="min-height: 88px; border-radius: 16px; border: 2px dashed rgba(24,24,24,.35); background: #fff; cursor: pointer; color: #181818; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-weight: 800; font-size: 14px">
+                  <span style="width: 32px; height: 32px; border-radius: 50%; background: {{ta.bg}}; color: {{ta.fg}}; display: inline-flex; align-items: center; justify-content: center; font-size: 20px">+</span>{{ta.t}}
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{p5}}" hint-placeholder-val="{{false}}">
+          <div class="fade" style="display: flex; flex-direction: column; gap: 12px">
+            <h2 style="margin: 0; font-size: 26px; line-height: 1.15; font-weight: 800">{{revTit}}</h2>
+            <div style="background: #181818; color: #fff; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; justify-content: space-between; font-size: 14px; color: rgba(255,255,255,.8)"><span>D{{pIni}} → D{{pFim}}</span><span>{{critTxt}}</span></div>
+              <div style="position: relative; height: 10px; background: rgba(255,255,255,.15); border-radius: 5px"><span style="position: absolute; top: 0; bottom: 0; left: {{pLeft}}; width: {{pWidth}}; background: #54B4B0; border-radius: 5px"></span></div>
+            </div>
+            <sc-for list="{{resumo}}" as="rs" hint-placeholder-count="4">
+              <button type="button" onClick="{{rs.ir}}" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 1px solid rgba(24,24,24,.12); background: #fff; text-align: left; cursor: pointer; color: #181818">
+                <span style="flex-grow: 1; min-width: 0"><span style="display: block; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #696969">{{rs.rot}}</span><span style="display: block; font-weight: 700; font-size: 16px">{{rs.val}}</span></span>
+                <span style="font-size: 14px; font-weight: 800; text-decoration: underline; flex-shrink: 0">Alterar</span>
+              </button>
+            </sc-for>
+            <sc-if value="{{editando}}" hint-placeholder-val="{{false}}">
+              <button type="button" onClick="{{remover}}" style="min-height: 52px; margin-top: 6px; border-radius: 14px; border: 1.5px solid #181818; background: #fff; font-weight: 800; cursor: pointer; color: #181818">Remover atividade</button>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="padding: 12px 16px 24px; border-top: 1px solid rgba(24,24,24,.08); display: flex; gap: 10px; flex-shrink: 0; background: #fff">
+        <sc-if value="{{temPular}}" hint-placeholder-val="{{false}}">
+          <button type="button" onClick="{{pular}}" style="min-height: 56px; padding: 0 18px; border-radius: 16px; border: 1.5px solid rgba(24,24,24,.3); background: #fff; font-weight: 800; font-size: 16px; cursor: pointer; color: #181818">{{pularTxt}}</button>
+        </sc-if>
+        <button type="button" onClick="{{avancar}}" style="flex-grow: 1; min-height: 56px; border-radius: 16px; border: 0; background: {{avBg}}; color: {{avFg}}; font-weight: 800; font-size: 17px; cursor: pointer">{{avancarTxt}}</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ FOLHA: nome do modelo ============ -->
+  <sc-if value="{{opcModelo}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: rgba(24,24,24,.45); display: flex; flex-direction: column; justify-content: flex-end">
+      <button type="button" onClick="{{fecharOpcModelo}}" aria-label="Fechar" style="flex-grow: 1; border: 0; background: transparent; cursor: pointer"></button>
+      <div class="sheet" style="background: #fff; border-radius: 24px 24px 0 0; padding: 10px 16px 28px; display: flex; flex-direction: column; gap: 14px">
+        <span style="align-self: center; width: 44px; height: 5px; border-radius: 3px; background: rgba(24,24,24,.2)"></span>
+        <label style="font-weight: 800">Nome do modelo
+          <input class="fld" style="margin-top: 6px" value="{{mNome}}" onChange="{{setMNome}}" placeholder="Ex.: Modelo 2">
+        </label>
+        <label style="font-weight: 800">Subtítulo
+          <input class="fld" style="margin-top: 6px; font-weight: 600" value="{{mSub}}" onChange="{{setMSub}}" placeholder="Ex.: CDC sem vestiários">
+        </label>
+        <button type="button" onClick="{{excluirModelo}}" style="min-height: 52px; border-radius: 14px; border: 1.5px solid #181818; background: {{exMBg}}; color: {{exMFg}}; font-weight: 800; cursor: pointer">{{exMTxt}}</button>
+        <button type="button" onClick="{{fecharOpcModelo}}" style="min-height: 56px; border-radius: 16px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 17px; cursor: pointer">Salvar</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ FOLHA: novo modelo ============ -->
+  <sc-if value="{{novoModelo}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: rgba(24,24,24,.45); display: flex; flex-direction: column; justify-content: flex-end">
+      <button type="button" onClick="{{fecharNovoModelo}}" aria-label="Fechar" style="flex-grow: 1; border: 0; background: transparent; cursor: pointer"></button>
+      <div class="sheet" style="background: #fff; border-radius: 24px 24px 0 0; padding: 10px 16px 28px; display: flex; flex-direction: column; gap: 10px">
+        <span style="align-self: center; width: 44px; height: 5px; border-radius: 3px; background: rgba(24,24,24,.2)"></span>
+        <div style="font-size: 22px; font-weight: 800">Começar o novo modelo a partir de</div>
+        <sc-for list="{{basesNovo}}" as="b" hint-placeholder-count="3">
+          <button type="button" onClick="{{b.usar}}" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 64px; padding: 10px 14px; border-radius: 14px; border: 1.5px solid rgba(24,24,24,.16); background: #fff; text-align: left; cursor: pointer; color: #181818">
+            <span><span style="display: block; font-weight: 800">Cópia de {{b.nome}}</span><span style="font-size: 14px; color: #464646">{{b.sub}}</span></span>
+            <span style="font-size: 13px; font-weight: 800; flex-shrink: 0">{{b.dias}} d</span>
+          </button>
+        </sc-for>
+        <button type="button" onClick="{{novoEmBranco}}" style="min-height: 60px; padding: 10px 14px; border-radius: 14px; border: 2px dashed rgba(24,24,24,.35); background: #fff; text-align: left; cursor: pointer; color: #181818"><span style="display: block; font-weight: 800">Em branco</span><span style="font-size: 14px; color: #464646">Só as 6 fases, sem atividades</span></button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ FOLHA: opções da fase ============ -->
+  <sc-if value="{{opcFase}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; background: rgba(24,24,24,.45); display: flex; flex-direction: column; justify-content: flex-end">
+      <button type="button" onClick="{{fecharOpcFase}}" aria-label="Fechar" style="flex-grow: 1; border: 0; background: transparent; cursor: pointer"></button>
+      <div class="sheet" style="background: #fff; border-radius: 24px 24px 0 0; padding: 10px 16px 28px; display: flex; flex-direction: column; gap: 12px">
+        <span style="align-self: center; width: 44px; height: 5px; border-radius: 3px; background: rgba(24,24,24,.2)"></span>
+        <label style="font-weight: 800">Nome da fase
+          <input class="fld" style="margin-top: 6px" value="{{fase.t}}" onChange="{{renomearFase}}">
+        </label>
+        <button type="button" onClick="{{excluirFase}}" style="min-height: 52px; border-radius: 14px; border: 1.5px solid #181818; background: {{exBg}}; color: {{exFg}}; font-weight: 800; cursor: pointer">{{exTxt}}</button>
+        <button type="button" onClick="{{fecharOpcFase}}" style="min-height: 56px; border-radius: 16px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 17px; cursor: pointer">Pronto</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div class="fade" role="status" style="position: absolute; left: 16px; right: 16px; bottom: 96px; background: #181818; color: #fff; border-radius: 14px; padding: 14px 16px; font-size: 15px; font-weight: 700; display: flex; gap: 12px; align-items: center; box-shadow: 0 8px 24px rgba(24,24,24,.3)">
+      <span style="flex-grow: 1">{{toast}}</span>
+      <sc-if value="{{hasUndo}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{desfazer}}" style="border: 0; background: transparent; color: #54B4B0; font-weight: 800; font-size: 15px; cursor: pointer; min-height: 44px">Desfazer</button></sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const b = this.padrao();
+    const ms = this.modelosIniciais(b);
+    this.state = { modelos: ms, cur: 1, fases: ms[0].fases, acts: ms[0].acts, tela: 'modelos', opcModelo: false, novoModelo: false, delMConf: false, fase: null, passo: 1, edit: null, draft: null, opcFase: false, delConf: false, toast: '', undo: null };
+  }
+  padrao() {
+    const S = (t, d, l) => ({ t, d, l });
+    const K = (n, d, seq) => ({ n, d, seq });
+    const A = (id, n, f, d, p, s, k) => ({ id, n, f, d, p, s: s || [], k: k || [] });
+    return {
+      fases: [{ id: 1, t: 'Mobilização' }, { id: 2, t: 'Infraestrutura' }, { id: 3, t: 'Fechamentos' }, { id: 4, t: 'Acabamentos' }, { id: 5, t: 'Instalações finais' }, { id: 6, t: 'Entrega' }],
+      acts: [
+        A(1, 'Mobilização e tapumes', 1, 2, [], [S('L', 'Tapumes e container de obra', 3)]),
+        A(2, 'Demolições e retiradas', 1, 5, [1], [S('L', 'Caçambas de entulho', 2), S('C', 'Equipe de demolição', 5)], [K('Demolição de alvenaria', 2, true), K('Demolição de forro', 2, false), K('Demolição de piso', 3, true)]),
+        A(3, 'Limpeza e bota-fora', 1, 2, [2]),
+        A(4, 'Alvenarias e novos fechamentos', 2, 6, [3], [S('C', 'Pedreiro (alvenaria)', 5), S('P', 'Blocos e argamassa', 5)]),
+        A(5, 'Infra de elétrica', 2, 8, [3], [S('C', 'Eletricista', 7), S('P', 'Cabos, eletrodutos e quadros', 7)]),
+        A(6, 'Infra de ar-condicionado', 2, 6, [3], [S('C', 'Instaladora de ar-condicionado', 10), S('P', 'Tubulação frigorígena e drenos', 7)]),
+        A(7, 'Água fria e esgoto', 2, 6, [3], [S('C', 'Encanador', 5), S('P', 'Tubos e conexões', 5)]),
+        A(8, 'Infra de dados, CFTV e som', 2, 4, [5]),
+        A(9, 'Infra de incêndio', 2, 5, [3], [S('C', 'Empresa de incêndio (sprinkler)', 10)]),
+        A(10, 'Impermeabilização dos vestiários', 3, 3, [7]),
+        A(11, 'Contrapiso e regularização', 3, 4, [7, 10]),
+        A(12, 'Forro de gesso', 3, 8, [5, 6, 8, 9], [S('C', 'Empreiteiro de forro', 7), S('P', 'Placas de gesso, perfis e tirantes', 7)]),
+        A(13, 'Revestimento cerâmico vestiários', 3, 6, [11], [S('C', 'Azulejista', 5), S('P', 'Porcelanato e argamassa', 10)]),
+        A(14, 'Fechamento em drywall', 3, 4, [4, 5], [S('P', 'Placas de drywall', 7)]),
+        A(15, 'Emassamento', 4, 6, [12, 14], [S('C', 'Pintor (massa e pintura)', 7), S('P', 'Massa corrida e lixas', 3)]),
+        A(16, 'Pintura', 4, 6, [15], [S('P', 'Tintas', 5)]),
+        A(17, 'Piso emborrachado e vinílico', 4, 5, [11, 16], [S('C', 'Instalador de piso', 7), S('P', 'Piso emborrachado e vinílico', 15)]),
+        A(18, 'Louças e metais', 4, 3, [13]),
+        A(19, 'Bancadas e divisórias', 4, 3, [13]),
+        A(20, 'Esquadrias, vidros e espelhos', 4, 4, [16]),
+        A(21, 'Luminárias e acabamento elétrico', 5, 4, [16], [S('P', 'Luminárias', 15)]),
+        A(22, 'Evaporadoras e start-up do ar', 5, 3, [12, 16], [S('P', 'Evaporadoras', 15)]),
+        A(23, 'Comunicação visual e fachada', 5, 4, [16], [S('C', 'Comunicação visual', 15)]),
+        A(24, 'Catraca, CFTV e som', 5, 3, [21]),
+        A(25, 'Equipamentos de academia', 6, 3, [17], [S('L', 'Caminhão munck', 5)]),
+        A(26, 'Limpeza fina', 6, 2, [18, 19, 20, 21, 22, 23, 24, 25]),
+        A(27, 'Vistoria e punch list', 6, 2, [26]),
+        A(28, 'Entrega à operação', 6, 1, [27])
+      ]
+    };
+  }
+  // remove atividades e herda as ligações delas (quem dependia passa a depender das predecessoras)
+  semAtiv(acts, ids) {
+    const rm = new Set(ids); const byId = {}; acts.forEach(a => byId[a.id] = a);
+    const herda = p => rm.has(p) ? [].concat(...byId[p].p.map(herda)) : [p];
+    return acts.filter(a => !rm.has(a.id)).map(a => Object.assign({}, a, { p: Array.from(new Set([].concat(...a.p.map(herda)))) }));
+  }
+  modelosIniciais(b) {
+    const cl = acts => acts.map(a => Object.assign({ id: a.id, f: a.f }, this.cp(a)));
+    const f = () => b.fases.map(x => Object.assign({}, x));
+    const m3 = this.semAtiv(cl(b.acts), [4, 9, 10, 11, 13, 18, 19]).map(a => a.id === 2 ? Object.assign(a, { n: 'Retiradas pontuais', d: 2, k: [], s: [{ t: 'L', d: 'Caçamba de entulho', l: 2 }] }) : a);
+    return [
+      { id: 1, nome: 'Modelo 1', sub: 'CDC completo · reforma pesada', uso: 7, fases: f(), acts: cl(b.acts) },
+      { id: 2, nome: 'Modelo 2', sub: 'CDC sem vestiários', uso: 3, fases: f(), acts: this.semAtiv(cl(b.acts), [10, 13, 18, 19]) },
+      { id: 3, nome: 'Modelo 3', sub: 'Retrofit leve · ponto já era academia', uso: 1, fases: f(), acts: m3 }
+    ];
+  }
+  // grava a cópia de trabalho no modelo atual
+  comAtual(st) { return st.modelos.map(m => m.id === st.cur ? Object.assign({}, m, { fases: st.fases, acts: st.acts }) : m); }
+  biblioteca() {
+    const S = (t, d, l) => ({ t, d, l });
+    return [
+      { n: 'Forro de gesso', d: 8, s: [S('C', 'Empreiteiro de forro', 7), S('P', 'Placas de gesso, perfis e tirantes', 7)], u: 14 },
+      { n: 'Fechamento em drywall', d: 4, s: [S('P', 'Placas de drywall', 7)], u: 12 },
+      { n: 'Impermeabilização', d: 3, s: [S('P', 'Manta e primer', 5)], u: 11 },
+      { n: 'Contrapiso e regularização', d: 4, s: [S('P', 'Cimento e areia', 3)], u: 11 },
+      { n: 'Infra de incêndio', d: 5, s: [S('C', 'Empresa de incêndio (sprinkler)', 10)], u: 9 },
+      { n: 'Porta de vidro da fachada', d: 2, s: [S('P', 'Porta de vidro temperado', 15)], u: 6 },
+      { n: 'Isolamento acústico da sala de bike', d: 3, s: [S('P', 'Lã de rocha e placas acústicas', 10)], u: 4 },
+      { n: 'Pintura de fachada', d: 4, s: [S('L', 'Plataforma elevatória', 3), S('P', 'Tinta acrílica externa', 5)], u: 4 }
+    ];
+  }
+  dur(a) { if (!a.k.length) return a.d; let fa = 0, mx = 0; a.k.forEach((k, i) => { const ini = (i && k.seq) ? fa : 0; fa = ini + k.d; mx = Math.max(mx, fa); }); return Math.max(1, mx); }
+  ord(fases, acts) { const o = []; fases.forEach(f => acts.filter(a => a.f === f.id).forEach(a => o.push(a))); return o; }
+  calc(fases, acts) {
+    const ord = this.ord(fases, acts);
+    // ordem de cálculo topológica: permite ligar atividades de qualquer fase (sem ciclos)
+    const es = {}, ef = {}; let total = 1; const feitos = new Set(); const topo = []; let resto = ord.slice();
+    while (resto.length) {
+      const prontos = resto.filter(a => a.p.every(p => feitos.has(p) || !ord.some(x => x.id === p)));
+      const lote = prontos.length ? prontos : [resto[0]];
+      lote.forEach(a => { const s = Math.max(0, ...a.p.map(p => ef[p] || 0)); es[a.id] = s; ef[a.id] = s + this.dur(a); total = Math.max(total, ef[a.id]); feitos.add(a.id); topo.push(a); });
+      resto = resto.filter(a => !feitos.has(a.id));
+    }
+    const succ = {}; ord.forEach(a => a.p.forEach(p => (succ[p] = succ[p] || []).push(a.id)));
+    const ls = {};
+    for (let i = topo.length - 1; i >= 0; i--) { const a = topo[i]; const ss = succ[a.id] || []; const lf = ss.length ? Math.min(...ss.map(x => ls[x])) : total; ls[a.id] = lf - this.dur(a); }
+    return { ord, es, ef, ls, total, succ };
+  }
+  say(m, u) { this.setState({ toast: m, undo: u || null }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: '', undo: null }), u ? 6000 : 3200); }
+  cp(a) { return { n: a.n, d: a.d, p: a.p.slice(), s: a.s.map(x => Object.assign({}, x)), k: a.k.map(x => Object.assign({}, x)) }; }
+  D(fn) { const c = this.cp(this.state.draft); fn(c); this.setState({ draft: c }); }
+  snap() { return { fases: this.state.fases.map(f => Object.assign({}, f)), acts: this.state.acts.map(a => Object.assign({ id: a.id, f: a.f }, this.cp(a))) }; }
+
+  renderVals() {
+    const s = this.state, TQ = '#54B4B0', BK = '#181818';
+    const C = this.calc(s.fases, s.acts);
+    const idx = {}; C.ord.forEach((a, i) => idx[a.id] = i + 1);
+    const pct = x => (x / C.total * 100) + '%';
+    const tipoN = { C: 'Contratação', L: 'Locação', P: 'Compra' };
+    const tagBg = { C: BK, L: 'rgba(24,24,24,.10)', P: 'rgba(84,180,176,.35)' };
+    const plural = (n, a, b) => n + ' ' + (n === 1 ? a : b);
+    const faseInfo = (f, i) => {
+      const list = C.ord.filter(a => a.f === f.id);
+      const es = list.length ? Math.min(...list.map(a => C.es[a.id])) : 0, ef = list.length ? Math.max(...list.map(a => C.ef[a.id])) : 0;
+      return { n: i + 1, t: f.t, list, es, ef, resumo: list.length ? plural(list.length, 'atividade', 'atividades') + ' · D' + (es + 1) + ' a D' + ef : 'sem atividades' };
+    };
+    const fasesList = s.fases.map((f, i) => { const fi = faseInfo(f, i); return Object.assign(fi, { left: pct(fi.es), width: pct(Math.max(fi.ef - fi.es, 0)), abrir: () => this.setState({ tela: 'fase', fase: f.id, delConf: false }) }); });
+
+    const out = {
+      telaModelos: s.tela === 'modelos', telaFases: s.tela === 'fases', telaFase: s.tela === 'fase', telaWiz: s.tela === 'wiz',
+      nAtiv: s.acts.length, total: C.total, fasesList,
+      addFase: () => { const id = Math.max(0, ...s.fases.map(f => f.id)) + 1; this.setState({ fases: s.fases.concat([{ id, t: 'Nova fase' }]), tela: 'fase', fase: id, opcFase: true }); },
+      hasToast: !!s.toast, toast: s.toast, hasUndo: !!s.undo, desfazer: () => s.undo && s.undo(),
+      opcFase: s.opcFase, fase: { n: 0, t: '', resumo: '', rows: [], vazia: false }
+    };
+
+    // ---------- modelos ----------
+    const todos = this.comAtual(s);
+    const mAtual = todos.find(m => m.id === s.cur) || todos[0];
+    const abrirM = (m, extra) => { const ms = this.comAtual(this.state); const alvo = ms.find(x => x.id === m.id) || m; this.setState(Object.assign({ modelos: ms, cur: alvo.id, fases: alvo.fases, acts: alvo.acts, tela: 'fases', fase: null }, extra || {})); };
+    const novoId = () => Math.max(0, ...this.state.modelos.map(m => m.id)) + 1;
+    const criarM = (base) => {
+      const ms = this.comAtual(this.state); const id = novoId();
+      const nm = { id, nome: 'Modelo ' + id, sub: base ? 'Cópia de ' + base.nome : 'Novo padrão de obra', uso: 0, fases: (base ? base.fases : s.fases).map(x => Object.assign({}, x)), acts: base ? base.acts.map(a => Object.assign({ id: a.id, f: a.f }, this.cp(a))) : [] };
+      this.setState({ modelos: ms.concat([nm]), cur: id, fases: nm.fases, acts: nm.acts, tela: 'fases', novoModelo: false, opcModelo: true, delMConf: false });
+    };
+    Object.assign(out, {
+      modelosList: todos.map((m, i) => ({ num: i + 1, nome: m.nome, sub: m.sub || 'sem subtítulo', ativ: m.acts.length, dias: m.acts.length ? this.calc(m.fases, m.acts).total : 0, uso: m.uso ? 'usado em ' + plural(m.uso, 'obra', 'obras') : 'ainda não usado', abrir: () => abrirM(m) })),
+      mNome: mAtual.nome, mSub: mAtual.sub,
+      voltarModelos: () => this.setState({ modelos: this.comAtual(this.state), tela: 'modelos' }),
+      abrirOpcModelo: () => this.setState({ opcModelo: true, delMConf: false }), fecharOpcModelo: () => this.setState({ opcModelo: false, delMConf: false }),
+      setMNome: e => { const v = e.target.value; this.setState({ modelos: this.state.modelos.map(m => m.id === s.cur ? Object.assign({}, m, { nome: v }) : m) }); },
+      setMSub: e => { const v = e.target.value; this.setState({ modelos: this.state.modelos.map(m => m.id === s.cur ? Object.assign({}, m, { sub: v }) : m) }); },
+      opcModelo: s.opcModelo, novoModelo: s.novoModelo,
+      abrirNovoModelo: () => this.setState({ novoModelo: true }), fecharNovoModelo: () => this.setState({ novoModelo: false }),
+      basesNovo: todos.map(m => ({ nome: m.nome, sub: m.sub, dias: m.acts.length ? this.calc(m.fases, m.acts).total : 0, usar: () => criarM(m) })),
+      novoEmBranco: () => criarM(null),
+      duplicar: () => { criarM(mAtual); this.say('Cópia criada. Dê um nome e um subtítulo.'); },
+      exMTxt: todos.length < 2 ? 'Único modelo · não pode excluir' : (s.delMConf ? 'Toque de novo para excluir' : 'Excluir modelo'),
+      exMBg: s.delMConf ? BK : '#fff', exMFg: s.delMConf ? '#fff' : BK,
+      excluirModelo: () => {
+        if (todos.length < 2) return;
+        if (!s.delMConf) { this.setState({ delMConf: true }); return; }
+        const antes = todos; const resto = todos.filter(m => m.id !== s.cur);
+        this.setState({ modelos: resto, cur: resto[0].id, fases: resto[0].fases, acts: resto[0].acts, tela: 'modelos', opcModelo: false, delMConf: false });
+        this.say('"' + mAtual.nome + '" excluído · obras que já usam continuam iguais', () => this.setState({ modelos: antes, toast: '', undo: null }));
+      }
+    });
+
+    // ---------- fase ----------
+    const fIdx = s.fases.findIndex(f => f.id === s.fase);
+    if (fIdx >= 0) {
+      const fi = faseInfo(s.fases[fIdx], fIdx);
+      out.fase = {
+        n: fi.n, t: fi.t, resumo: fi.resumo, vazia: fi.list.length === 0,
+        rows: fi.list.map(a => ({
+          idx: idx[a.id], n: a.n, d: this.dur(a), ini: C.es[a.id] + 1, fim: C.ef[a.id],
+          bg: '#fff', crit: C.ls[a.id] - C.es[a.id] === 0,
+          dep: a.p.length ? 'depois de ' + a.p.map(p => '#' + idx[p]).join(', ') : 'começa no início da obra',
+          tags: [].concat(a.k.length ? [plural(a.k.length, 'subitem', 'subitens')] : [], a.s.length ? [plural(a.s.length, 'lembrete', 'lembretes')] : []),
+          abrir: () => this.setState({ tela: 'wiz', edit: a.id, passo: 5, draft: this.cp(a), predTab: null, predQ: '' })
+        }))
+      };
+    }
+    out.voltarFases = () => this.setState({ tela: 'fases' });
+    out.novaAtiv = () => this.setState({ tela: 'wiz', edit: null, passo: 1, predTab: null, predQ: '', draft: { n: '', d: 3, p: [], s: [], k: [] } });
+    out.abrirOpcFase = () => this.setState({ opcFase: true, delConf: false });
+    out.fecharOpcFase = () => this.setState({ opcFase: false, delConf: false });
+    out.renomearFase = e => { const v = e.target.value; this.setState({ fases: this.state.fases.map(f => f.id === s.fase ? Object.assign({}, f, { t: v }) : f) }); };
+    const nNaFase = s.acts.filter(a => a.f === s.fase).length;
+    out.exTxt = s.delConf ? 'Toque de novo para excluir' + (nNaFase ? ' (' + plural(nNaFase, 'atividade', 'atividades') + ')' : '') : 'Excluir fase';
+    out.exBg = s.delConf ? BK : '#fff'; out.exFg = s.delConf ? '#fff' : BK;
+    out.excluirFase = () => {
+      if (!s.delConf) { this.setState({ delConf: true }); return; }
+      const antes = this.snap(); const ids = new Set(s.acts.filter(a => a.f === s.fase).map(a => a.id)); const nome = (s.fases[fIdx] || {}).t;
+      this.setState({ opcFase: false, delConf: false, tela: 'fases', fases: s.fases.filter(f => f.id !== s.fase), acts: s.acts.filter(a => !ids.has(a.id)).map(a => Object.assign({}, a, { p: a.p.filter(q => !ids.has(q)) })) });
+      this.say('Fase "' + nome + '" excluída', () => this.setState({ fases: antes.fases, acts: antes.acts, toast: '', undo: null }));
+    };
+
+    // ---------- assistente ----------
+    const d = s.draft || { n: '', d: 3, p: [], s: [], k: [] };
+    const editA = s.acts.find(a => a.id === s.edit);
+    const faseAtual = editA ? editA.f : s.fase;
+    const dd = this.dur(d);
+    const pIni = Math.max(0, ...d.p.map(p => C.ef[p] || 0));
+    const pFim = pIni + dd;
+    const tot2 = Math.max(C.total, pFim);
+    const P = s.passo;
+    Object.assign(out, {
+      p1: P === 1, p2: P === 2, p3: P === 3, p4: P === 4, p5: P === 5, editando: !!s.edit,
+      mostraPassos: !s.edit,
+      passos: [1, 2, 3, 4, 5].map(n => ({ cor: n <= P ? TQ : 'rgba(24,24,24,.12)' })),
+      wizSup: s.edit ? 'Editar #' + idx[s.edit] : 'Nova atividade · passo ' + P + ' de 5',
+      wizTit: (s.fases.find(f => f.id === faseAtual) || {}).t ? 'Fase ' + (s.fases.findIndex(f => f.id === faseAtual) + 1) + ' · ' + s.fases.find(f => f.id === faseAtual).t : '',
+      wizVoltarAria: P > 1 && !(s.edit && P === 5) ? 'Passo anterior' : 'Voltar à fase',
+      wizVoltar: () => { if (s.edit) { if (P === 5) this.setState({ tela: 'fase' }); else this.setState({ passo: 5 }); } else if (P > 1) this.setState({ passo: P - 1 }); else this.setState({ tela: 'fase' }); },
+      wizFechar: () => this.setState({ tela: 'fase' }),
+      dNome: d.n, setNome: e => { const v = e.target.value; this.D(c => { c.n = v; }); }
+    });
+    const q = d.n.trim().toLowerCase();
+    const sugs = this.biblioteca().filter(x => !q || x.n.toLowerCase().includes(q)).slice(0, 6).map(x => ({
+      n: x.n, d: x.d, bg: x.n.toLowerCase() === q ? 'rgba(84,180,176,.18)' : '#fff',
+      info: 'usada em ' + x.u + ' obras' + (x.s.length ? ' · ' + plural(x.s.length, 'lembrete', 'lembretes') : ''),
+      usar: () => { this.D(c => { c.n = x.n; c.d = x.d; c.k = []; c.s = x.s.map(y => Object.assign({}, y)); }); this.setState({ passo: s.edit ? 5 : 2 }); }
+    }));
+    out.temSug = sugs.length > 0 && !s.edit; out.sugs = sugs;
+    out.semKids = d.k.length === 0; out.temKids = d.k.length > 0; out.dDur = dd;
+    out.menos = () => this.D(c => { c.d = Math.max(1, c.d - 1); });
+    out.mais = () => this.D(c => { c.d++; });
+    out.prazos = [1, 2, 3, 5, 8, 10].map(n => ({ d: n, set: () => this.D(c => { c.d = n; }), bg: dd === n ? 'rgba(84,180,176,.35)' : '#fff', bd: dd === n ? BK : 'rgba(24,24,24,.18)' }));
+    out.kidsAria = d.k.length ? 'true' : 'false'; out.swBg = d.k.length ? TQ : 'rgba(24,24,24,.25)'; out.swLeft = d.k.length ? '26px' : '4px';
+    out.togKids = () => this.D(c => { if (c.k.length) { c.k = []; } else c.k = [{ n: (c.n || 'Subitem') + ' · parte 1', d: c.d, seq: true }, { n: 'Parte 2', d: 1, seq: true }]; });
+    out.addKid = () => this.D(c => { c.k.push({ n: 'Parte ' + (c.k.length + 1), d: 1, seq: true }); });
+    out.kids = d.k.map((k, i) => ({
+      n: k.n, d: k.d, podeSeq: i > 0, primeiro: i === 0,
+      bgSeq: k.seq ? '#fff' : 'transparent', bgPar: k.seq ? 'transparent' : '#fff',
+      seqOn: () => this.D(c => { c.k[i].seq = true; }), seqOff: () => this.D(c => { c.k[i].seq = false; }),
+      rename: e => { const v = e.target.value; this.D(c => { c.k[i].n = v; }); },
+      menos: () => this.D(c => { c.k[i].d = Math.max(1, c.k[i].d - 1); }), mais: () => this.D(c => { c.k[i].d++; }),
+      rm: () => this.D(c => { c.k.splice(i, 1); if (!c.k.length) c.d = dd; })
+    }));
+    // predecessoras: qualquer atividade de qualquer fase, menos ela mesma e quem depende dela (evita ciclo)
+    const bloq = new Set();
+    if (s.edit) { const st = [s.edit]; while (st.length) { const x = st.pop(); if (bloq.has(x)) continue; bloq.add(x); (C.succ[x] || []).forEach(y => st.push(y)); } }
+    const cands = C.ord.filter(a => !bloq.has(a.id));
+    const faseN = id => s.fases.findIndex(f => f.id === id) + 1;
+    const tab = s.predTab == null ? faseAtual : s.predTab;
+    const pq = (s.predQ || '').trim().toLowerCase();
+    const lista = pq ? cands.filter(a => a.n.toLowerCase().includes(pq) || String(idx[a.id]) === pq.replace('#', '')) : cands.filter(a => tab === 'sel' ? d.p.includes(a.id) : a.f === tab);
+    out.predQ = s.predQ || ''; out.setPredQ = e => this.setState({ predQ: e.target.value });
+    out.semBusca = !pq;
+    out.temSelPred = d.p.length > 0;
+    out.selPreds = d.p.map(p => ({ t: '#' + idx[p] + ' ' + (s.acts.find(a => a.id === p) || {}).n, rm: () => this.D(c => { c.p = c.p.filter(x => x !== p); }) }));
+    out.predTabs = s.fases.map(f => { const n = d.p.filter(p => (s.acts.find(a => a.id === p) || {}).f === f.id).length; const on = !pq && tab === f.id; return { t: 'Fase ' + faseN(f.id) + (f.id === faseAtual ? ' · esta' : ''), n, temN: n > 0, bg: on ? BK : '#fff', fg: on ? '#fff' : BK, bd: on ? BK : 'rgba(24,24,24,.2)', set: () => this.setState({ predTab: f.id }) }; });
+    const ft = s.fases.find(f => f.id === tab);
+    out.predListaTit = pq ? lista.length + ' encontradas' : (ft ? 'Fase ' + faseN(ft.id) + ' · ' + ft.t : '');
+    out.predVazia = lista.length === 0;
+    out.predItens = lista.map(a => {
+      const on = d.p.includes(a.id);
+      const outra = a.f !== faseAtual ? 'Fase ' + faseN(a.f) + ' · ' : '';
+      return { idx: idx[a.id], n: a.n, on, info: outra + 'termina no D' + C.ef[a.id], aria: on ? 'true' : 'false', bg: on ? 'rgba(84,180,176,.14)' : '#fff', bd: on ? BK : 'rgba(24,24,24,.14)', box: on ? BK : '#fff', tog: () => this.D(c => { c.p = on ? c.p.filter(x => x !== a.id) : c.p.concat([a.id]); }) };
+    });
+    const nBloq = bloq.size - (s.edit ? 1 : 0);
+    out.temBloq = !!s.edit && nBloq > 0;
+    out.bloqTxt = 'Não aparecem ' + plural(nBloq, 'atividade que depende', 'atividades que dependem') + ' desta, para não criar um ciclo.';
+    const ph = { C: 'Ex.: eletricista', L: 'Ex.: plataforma elevatória', P: 'Ex.: porcelanato' };
+    out.sups = d.s.map((x, i) => ({
+      tipo: tipoN[x.t], d: x.d, l: x.l, ph: ph[x.t], tagBg: tagBg[x.t], tagFg: x.t === 'C' ? '#fff' : BK,
+      rename: e => { const v = e.target.value; this.D(c => { c.s[i].d = v; }); },
+      menos: () => this.D(c => { c.s[i].l = Math.max(0, c.s[i].l - 1); }), mais: () => this.D(c => { c.s[i].l++; }),
+      rm: () => this.D(c => { c.s.splice(i, 1); })
+    }));
+    out.tiposAdd = ['C', 'L', 'P'].map(t => ({ t: tipoN[t], bg: tagBg[t], fg: t === 'C' ? '#fff' : BK, add: () => this.D(c => { c.s.push({ t, d: '', l: t === 'L' ? 3 : 7 }); }) }));
+    out.pIni = pIni + 1; out.pFim = pFim;
+    out.pLeft = (pIni / tot2 * 100) + '%'; out.pWidth = (dd / tot2 * 100) + '%';
+    const folga = C.total - pFim;
+    out.critTxt = pFim > C.total ? 'aumenta a obra em ' + (pFim - C.total) + ' d' : (s.edit ? (C.ls[s.edit] - C.es[s.edit] === 0 ? 'caminho crítico' : 'com folga') : (folga === 0 ? 'caminho crítico' : folga + ' d de folga'));
+    out.revTit = s.edit ? (d.n || 'Atividade') : 'Confere e salva';
+    out.resumo = [
+      { rot: 'Atividade', val: d.n || 'sem nome', ir: () => this.setState({ passo: 1 }) },
+      { rot: 'Prazo', val: dd + ' dias úteis' + (d.k.length ? ' · ' + plural(d.k.length, 'subitem', 'subitens') : ''), ir: () => this.setState({ passo: 2 }) },
+      { rot: 'Começa depois de', val: d.p.length ? d.p.map(p => '#' + idx[p] + ' ' + (s.acts.find(a => a.id === p) || {}).n).join(', ') : 'início da obra', ir: () => this.setState({ passo: 3 }) },
+      { rot: 'Providências', val: d.s.length ? d.s.map(x => tipoN[x.t] + (x.d ? ': ' + x.d : '')).join(' · ') : 'nenhuma', ir: () => this.setState({ passo: 4 }) }
+    ];
+    out.temPular = !s.edit && (P === 3 || P === 4);
+    out.pularTxt = 'Pular';
+    out.pular = () => this.setState({ passo: P + 1 });
+    const podeAv = P !== 1 || d.n.trim().length > 0;
+    out.avBg = podeAv ? TQ : 'rgba(24,24,24,.10)'; out.avFg = podeAv ? BK : '#696969';
+    out.avancarTxt = s.edit ? (P === 5 ? 'Salvar alterações' : 'Ok') : (P === 5 ? 'Salvar atividade' : 'Continuar');
+    out.avancar = () => {
+      if (!podeAv) { this.say('Dê um nome para a atividade'); return; }
+      if (P < 5) { this.setState({ passo: s.edit ? 5 : P + 1 }); return; }
+      const antes = this.snap(); const nome = d.n.trim();
+      if (s.edit) this.setState({ acts: s.acts.map(a => a.id === s.edit ? Object.assign({ id: a.id, f: a.f }, this.cp(d), { n: nome }) : a), tela: 'fase' });
+      else { const id = Math.max(0, ...s.acts.map(a => a.id)) + 1; this.setState({ acts: s.acts.concat([Object.assign({ id, f: s.fase }, this.cp(d), { n: nome })]), tela: 'fase' }); }
+      this.say((s.edit ? 'Salvo: ' : 'Adicionada: ') + nome + ' · ' + dd + ' d', () => this.setState({ fases: antes.fases, acts: antes.acts, toast: '', undo: null }));
+    };
+    out.remover = () => {
+      const antes = this.snap(); const id = s.edit; const nome = editA ? editA.n : '';
+      this.setState({ tela: 'fase', acts: s.acts.filter(a => a.id !== id).map(a => Object.assign({}, a, { p: a.p.filter(q => q !== id) })) });
+      this.say('Removida: ' + nome, () => this.setState({ fases: antes.fases, acts: antes.acts, toast: '', undo: null }));
+    };
+    return out;
+  }
+}
+</script>
+</body>
+</html>

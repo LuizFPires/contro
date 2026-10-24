@@ -1,0 +1,1956 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>obdc · app de campo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#181818}a:hover{color:#000}
+.ph{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.10) 0 2px,transparent 2px 14px)}
+@keyframes pop{0%{transform:scale(.85);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes up{0%{transform:translateY(16px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.pop{animation:pop .32s cubic-bezier(.2,1.4,.4,1)}
+.up{animation:up .25s ease-out}
+button,input{font-family:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #54B4B0;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F6F6F6; color: #181818; font-family: 'Nunito Sans', system-ui, sans-serif; font-size: 16px; line-height: 1.4; box-sizing: border-box">
+
+<!-- ===================== INÍCIO / CARTEIRA ===================== -->
+<sc-if value="{{isHome}}" hint-placeholder-val="{{true}}">
+<div style="height: 100%; display: flex; flex-direction: column">
+  <div style="padding: 20px 20px 12px; background: #181818; color: #fff; display: flex; justify-content: space-between; align-items: center">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <div aria-hidden="true" style="width: 40px; height: 40px; border-radius: 10px; background: #fff; display: flex; align-items: center; justify-content: center">
+        <div style="width: 20px; height: 20px; border-radius: 50%; border: 4px solid #181818; border-right-color: #54B4B0; box-sizing: border-box"></div>
+      </div>
+      <div style="line-height: 1.1">
+        <div style="font-weight: 800; font-size: 24px; letter-spacing: -.01em">obdc<span style="color: #54B4B0">.</span></div>
+        <div style="font-size: 12px; color: rgba(255,255,255,.72)">obras da contorno</div>
+      </div>
+    </div>
+    <sc-if value="{{isGestor}}" hint-placeholder-val="{{true}}">
+    <a href="ModeloCel.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 1.5px solid rgba(255,255,255,.4); border-radius: 12px; font-weight: 700; font-size: 14px; text-decoration: none; color: #fff">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 9h6M7 13h10M7 17h4"></path></svg>
+      Modelos
+    </a>
+    </sc-if>
+  </div>
+
+  <div style="padding: 10px 20px 0; display: flex; align-items: center; gap: 8px">
+    <span style="font-size: 13px; color: #464646; font-weight: 700">Perfil</span>
+    <div role="group" aria-label="Perfil do usuário" style="display: flex; background: rgba(24,24,24,.07); border-radius: 12px; padding: 3px; flex-grow: 1">
+      <sc-for list="{{perfis}}" as="pf" hint-placeholder-count="2">
+        <button type="button" onClick="{{pf.set}}" aria-pressed="{{pf.on}}" style="flex: 1; min-height: 38px; border: 0; border-radius: 10px; background: {{pf.bg}}; color: #181818; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: {{pf.sh}}">{{pf.t}}</button>
+      </sc-for>
+    </div>
+  </div>
+  <div style="padding: 10px 20px 0; display: flex; justify-content: space-between; align-items: center">
+    <h1 style="margin: 0; font-size: 24px; line-height: 30px; font-weight: 800">Minhas obras</h1>
+    <button type="button" onClick="{{goNova}}" aria-label="Nova obra a partir do modelo" title="Nova obra a partir do modelo" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: #54B4B0; color: #181818; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    </button>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 14px 20px 4px">
+    <button type="button" onClick="{{goReu}}" style="text-align: left; border: 0; border-radius: 16px; background: #181818; color: #fff; padding: 12px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; min-height: 76px">
+      <span style="display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#54B4B0" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>Reunião</span>
+      <span style="font-size: 13px; color: rgba(255,255,255,.75)">seg 26/10 · 16h</span>
+      <span style="font-size: 12px; font-weight: 700; color: #54B4B0">{{reuStatus}}</span>
+    </button>
+    <button type="button" onClick="{{goTar}}" style="text-align: left; border: 1px solid rgba(24,24,24,.10); border-radius: 16px; background: #fff; color: #181818; padding: 12px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; min-height: 76px">
+      <span style="display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M8.5 12.5l2.5 2.5 4.5-5"></path></svg>Tarefas</span>
+      <span style="font-size: 13px; color: #696969">{{tarAbertasTxt}}</span>
+      <span style="font-size: 12px; font-weight: 800; color: {{tarAtrCor}}">{{tarAtrTxt}}</span>
+    </button>
+  </div>
+
+  <div style="flex-grow: 1; overflow-y: auto; padding: 8px 20px 12px; display: flex; flex-direction: column; gap: 10px">
+    <sc-for list="{{obraCards}}" as="o" hint-placeholder-count="3">
+      <button type="button" onClick="{{o.open}}" style="text-align: left; background: #fff; border: 1px solid rgba(24,24,24,.10); border-left: {{o.bordaAtraso}}; border-radius: 16px; padding: 14px 16px; cursor: pointer; display: flex; flex-direction: column; gap: 8px; color: #181818">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px">
+          <div style="min-width: 0">
+            <div style="font-weight: 800; font-size: 17px; line-height: 24px">{{o.nome}}</div>
+            <div style="font-size: 14px; color: #696969">{{o.faseTxt}}</div>
+          </div>
+          <div style="font-size: 28px; font-weight: 800; line-height: 1">{{o.pct}}<span style="font-size: 15px">%</span></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px">
+          <sc-for list="{{o.segs}}" as="sg" hint-placeholder-count="6">
+            <div style="height: 8px; border-radius: 3px; background: {{sg.bg}}"></div>
+          </sc-for>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; align-items: center; gap: 8px">
+          <span style="font-weight: 700; padding: 3px 9px; border-radius: 99px; background: {{o.ritmoBg}}; color: {{o.ritmoCor}}">{{o.ritmo}}</span>
+          <span style="color: #696969">{{o.entrega}}</span>
+        </div>
+        <sc-if value="{{o.temAtraso}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: #C62828">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9.5 17h-19z"></path><path d="M12 10v4M12 17.5v.5"></path></svg>
+            {{o.atrasoTxt}}
+          </div>
+        </sc-if>
+      </button>
+    </sc-for>
+  </div>
+
+</div>
+</sc-if>
+
+<!-- ===================== NOVA OBRA ===================== -->
+<sc-if value="{{isNova}}" hint-placeholder-val="{{false}}">
+<div style="height: 100%; display: flex; flex-direction: column">
+  <div style="padding: 12px 12px 10px; display: flex; align-items: center; gap: 4px; background: #181818; color: #fff">
+    <button type="button" onClick="{{goHome}}" aria-label="Voltar" style="width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+    <h1 style="margin: 0; font-size: 24px; font-weight: 800">Nova obra</h1>
+  </div>
+  <div style="flex-grow: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <label for="nomeUn" style="font-size: 14px; font-weight: 700">Unidade</label>
+      <input id="nomeUn" value="{{novoNome}}" onChange="{{onNome}}" style="min-height: 48px; border: 1.5px solid rgba(24,24,24,.30); border-radius: 12px; padding: 0 14px; font-size: 17px; background: #fff; color: #181818">
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 14px; font-weight: 700">Início da obra</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{inicios}}" as="d" hint-placeholder-count="4">
+          <button type="button" onClick="{{d.pick}}" aria-pressed="{{d.on}}" style="min-height: 52px; border-radius: 12px; border: 1.5px solid {{d.bd}}; background: {{d.bg}}; color: #181818; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1">
+            <span style="font-size: 12px">{{d.dow}}</span><strong style="font-size: 17px; font-weight: 800">{{d.txt}}</strong>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 14px; font-weight: 700">Modelo a seguir</div>
+      <sc-for list="{{modsNova}}" as="md" hint-placeholder-count="3">
+        <button type="button" onClick="{{md.pick}}" role="radio" aria-checked="{{md.aria}}" style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; border-radius: 14px; border: 2px solid {{md.bd}}; background: {{md.bg}}; text-align: left; cursor: pointer; color: #181818">
+          <span style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid #181818; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0"><span style="width: 12px; height: 12px; border-radius: 50%; background: {{md.dot}}"></span></span>
+          <span style="flex-grow: 1; min-width: 0"><span style="display: block; font-weight: 800">{{md.nome}}</span><span style="display: block; font-size: 14px; color: #464646">{{md.sub}}</span></span>
+          <span style="font-size: 13px; font-weight: 800; flex-shrink: 0; text-align: right">{{md.dias}} d<span style="display: block; font-weight: 600; color: #696969">{{md.ativ}} ativ.</span></span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="background: #fff; border: 1px solid rgba(24,24,24,.10); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <div>
+          <div style="font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #696969">Como a obra vai nascer</div>
+          <div style="font-weight: 800; font-size: 17px">{{modNovaTit}}</div>
+        </div>
+        <sc-if value="{{isGestor}}" hint-placeholder-val="{{true}}">
+          <a href="ModeloCel.dc.html" style="font-size: 14px; font-weight: 700; min-height: 44px; display: inline-flex; align-items: center">Editar modelos</a>
+        </sc-if>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center">
+        <div style="background: rgba(24,24,24,.05); border-radius: 12px; padding: 8px 4px"><div style="font-size: 22px; font-weight: 800; line-height: 1">{{nAtiv}}</div><div style="font-size: 12px; color: #696969">atividades</div></div>
+        <div style="background: rgba(24,24,24,.05); border-radius: 12px; padding: 8px 4px"><div style="font-size: 22px; font-weight: 800; line-height: 1">{{nSupModelo}}</div><div style="font-size: 12px; color: #696969">suprimentos</div></div>
+        <div style="background: rgba(24,24,24,.05); border-radius: 12px; padding: 8px 4px"><div style="font-size: 22px; font-weight: 800; line-height: 1">{{totalDias}}</div><div style="font-size: 12px; color: #696969">dias úteis</div></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px; margin-top: 2px">
+        <sc-for list="{{novoFases}}" as="f" hint-placeholder-count="6">
+          <div style="display: grid; grid-template-columns: 116px 1fr 90px; gap: 8px; align-items: center; font-size: 13px">
+            <span style="font-weight: 700">{{f.n}}. {{f.t}}</span>
+            <div style="height: 10px; background: rgba(24,24,24,.12); border-radius: 4px; position: relative"><div style="position: absolute; top: 0; bottom: 0; left: {{f.left}}; width: {{f.width}}; background: {{f.cor}}; border-radius: 4px"></div></div>
+            <span style="color: #696969; text-align: right">{{f.datas}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size: 13px; color: #696969; border-top: 1px solid rgba(24,24,24,.10); padding-top: 10px">A obra nasce com prazos, conexões e a lista de contratações, locações e compras de cada atividade, com a data limite para pedir.</div>
+    </div>
+    <div style="background: #181818; color: #fff; border-radius: 16px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center">
+      <div><div style="font-size: 13px; color: rgba(255,255,255,.72)">Entrega prevista</div><div style="font-size: 30px; font-weight: 800; line-height: 1.1">{{novoFim}}</div></div>
+      <div style="text-align: right; font-size: 13px; color: rgba(255,255,255,.72)">{{novoSemanas}}</div>
+    </div>
+  </div>
+  <div style="padding: 10px 20px 22px; background: #fff; border-top: 1px solid rgba(24,24,24,.14)">
+    <button type="button" onClick="{{criar}}" style="width: 100%; min-height: 52px; border: 0; border-radius: 12px; background: #54B4B0; color: #181818; font-size: 17px; font-weight: 800; cursor: pointer">Gerar cronograma e abrir obra</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== OBRA ===================== -->
+<sc-if value="{{isObra}}" hint-placeholder-val="{{false}}">
+<div style="height: 100%; display: flex; flex-direction: column">
+  <div style="padding: 10px 12px 12px; background: #181818; color: #fff">
+    <div style="display: flex; align-items: center; gap: 2px">
+      <button type="button" onClick="{{goHome}}" aria-label="Voltar para obras" style="width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+      <div style="min-width: 0; flex-grow: 1">
+        <div style="font-weight: 800; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ob.nome}}</div>
+        <div style="font-size: 13px; color: rgba(255,255,255,.72)">{{ob.sub}}</div>
+      </div>
+      <div style="font-size: 28px; font-weight: 800; padding-right: 4px">{{ob.pct}}<span style="font-size: 15px">%</span></div>
+      <a href="Maquete.dc.html" aria-label="Maquete 3D da obra" title="Maquete 3D da obra" style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,.12); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M4 7.5l8 4.5 8-4.5M12 12v9"></path></svg>
+      </a>
+      <button type="button" onClick="{{goBol}}" aria-label="Boletim da semana" title="Boletim da semana" style="width: 44px; height: 44px; border: 0; border-radius: 12px; background: {{bolBtnBg}}; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6M9 12h6M9 16h3"></path></svg>
+      </button>
+    </div>
+    <div role="progressbar" aria-label="Avanço da obra" style="height: 6px; background: rgba(255,255,255,.18); border-radius: 99px; margin: 8px 8px 0; overflow: hidden"><div style="height: 100%; width: {{ob.pctW}}; background: #54B4B0"></div></div>
+  </div>
+
+  <!-- ---------- MAPA DE FASES ---------- -->
+  <sc-if value="{{isMapa}}" hint-placeholder-val="{{true}}">
+  <div style="flex-grow: 1; overflow-y: auto; padding: 14px 16px 20px">
+    <a href="Maquete.dc.html" style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding: 12px 14px; border-radius: 18px; background: #181818; color: #fff; text-decoration: none; min-height: 72px">
+      <svg width="64" height="56" viewBox="0 0 64 56" aria-hidden="true" style="flex-shrink: 0"><path d="M32 4 60 18 32 32 4 18z" fill="#3A3D40"></path><path d="M4 18v18l28 14V32z" fill="#54B4B0"></path><path d="M60 18v18L32 50V32z" fill="#8C939A"></path><path d="M32 4 60 18 32 32 4 18z" fill="none" stroke="#54B4B0" stroke-width="1.5" stroke-dasharray="3 3"></path><path d="M14 23l18 9 18-9" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"></path></svg>
+      <span style="flex-grow: 1; min-width: 0; line-height: 1.25">
+        <span style="display: block; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #54B4B0">Maquete 3D</span>
+        <span style="display: block; font-size: 17px; font-weight: 800">A unidade está {{ob.pct}}% construída</span>
+        <span style="display: block; font-size: 13px; color: rgba(255,255,255,.75)">Cada atividade concluída colore uma peça</span>
+      </span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M9 5l7 7-7 7"></path></svg>
+    </a>
+    <sc-for list="{{fases}}" as="ph" hint-placeholder-count="6">
+      <div style="display: flex; gap: 12px">
+        <div style="display: flex; flex-direction: column; align-items: center; width: 44px; flex-shrink: 0">
+          <div style="width: {{ph.size}}; height: {{ph.size}}; border-radius: 50%; background: {{ph.nodeBg}}; color: {{ph.nodeFg}}; border: {{ph.nodeBd}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; box-shadow: {{ph.ring}}; flex-shrink: 0">
+            <sc-if value="{{ph.isDone}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+            <sc-if value="{{ph.isCur}}" hint-placeholder-val="{{false}}"><span>{{ph.n}}</span></sc-if>
+            <sc-if value="{{ph.isNext}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 018 0v3"></path></svg></sc-if>
+          </div>
+          <div style="width: 3px; flex-grow: 1; min-height: 14px; background: {{ph.line}}; border-radius: 2px; margin: 4px 0"></div>
+        </div>
+        <div style="flex-grow: 1; min-width: 0; padding-bottom: 14px">
+          <button type="button" onClick="{{ph.toggle}}" aria-expanded="{{ph.open}}" style="width: 100%; text-align: left; border: 0; background: transparent; padding: 4px 0; cursor: pointer; color: #181818; min-height: 44px">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap">
+              <span style="font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; background: {{ph.tagBg}}; color: {{ph.tagFg}}">Fase {{ph.n}} · {{ph.status}}</span>
+              <sc-if value="{{ph.temAtraso}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: #C62828; color: #fff">{{ph.atrasoTxt}}</span></sc-if>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-top: 4px">
+              <span style="font-size: 20px; font-weight: 800; line-height: 26px">{{ph.t}}</span>
+              <span style="font-size: 14px; font-weight: 700; color: #696969">{{ph.prog}}</span>
+            </div>
+            <div style="font-size: 14px; color: #696969">{{ph.info}}</div>
+          </button>
+          <sc-if value="{{ph.open}}" hint-placeholder-val="{{false}}">
+          <div class="up" style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px">
+            <sc-for list="{{ph.acts}}" as="a" hint-placeholder-count="4">
+              <div style="background: {{a.bg}}; border: 1.5px solid {{a.bd}}; border-radius: 12px; padding: 6px 8px 6px 10px; display: flex; align-items: center; gap: 8px">
+                <div style="width: 28px; height: 28px; border-radius: 8px; background: {{a.icBg}}; color: {{a.icFg}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+                  <sc-if value="{{a.isDone}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+                  <sc-if value="{{a.isLate}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></sc-if>
+                  <sc-if value="{{a.isReadyOk}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 5l8 7-8 7"></path></svg></sc-if>
+                  <sc-if value="{{a.isSupOk}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8L12 3.5 20.5 8v8L12 20.5 3.5 16z"></path><path d="M3.5 8L12 12.5 20.5 8M12 12.5v8"></path></svg></sc-if>
+                  <sc-if value="{{a.isPlanOk}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 018 0v3"></path></svg></sc-if>
+                </div>
+                <button type="button" onClick="{{a.abrir}}" style="flex-grow: 1; min-width: 0; text-align: left; border: 0; background: transparent; cursor: pointer; padding: 4px 0; min-height: 44px; color: #181818">
+                  <div style="font-weight: 700; font-size: 15px; color: {{a.fg}}">{{a.nome}}</div>
+                  <div style="font-size: 13px; color: {{a.subCor}}; font-weight: {{a.subPeso}}">{{a.sub}}</div>
+                  <sc-if value="{{a.temPrest}}" hint-placeholder-val="{{false}}">
+                    <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; margin-top: 3px; padding: 2px 8px; border-radius: 99px; background: rgba(24,24,24,.06)">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c1-4 4-6 7-6s6 2 7 6"></path></svg>
+                      {{a.prest}}
+                    </div>
+                  </sc-if>
+                </button>
+                <sc-if value="{{a.isReady}}" hint-placeholder-val="{{true}}">
+                  <button type="button" onClick="{{a.go}}" aria-label="Concluir com foto" style="min-height: 44px; min-width: 44px; padding: 0 10px; border: 0; border-radius: 12px; background: #54B4B0; color: #181818; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; flex-shrink: 0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+                  </button>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-for>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0 0 56px">
+      <sc-for list="{{badges}}" as="b" hint-placeholder-count="3">
+        <span style="font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 99px; background: {{b.bg}}; color: {{b.fg}}; border: 1px solid {{b.bd}}">{{b.t}}</span>
+      </sc-for>
+    </div>
+    <div style="margin: 16px 0 4px; background: #181818; color: #fff; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: #54B4B0; color: #181818; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4"></path><path d="M5 4h11l-2 4 2 4H5"></path></svg>
+      </div>
+      <div style="flex-grow: 1; min-width: 0">
+        <div style="font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #54B4B0">Inauguração</div>
+        <div style="font-size: 22px; font-weight: 800; line-height: 1.15">{{ob.inaug}}</div>
+        <div style="font-size: 13px; color: {{ob.inaugSubCor}}; font-weight: 700">{{ob.inaugSub}}</div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ---------- PENDÊNCIAS ---------- -->
+  <sc-if value="{{isPend}}" hint-placeholder-val="{{false}}">
+  <div style="flex-grow: 1; display: flex; flex-direction: column; padding: 10px 16px 10px; min-height: 0">
+    <div style="display: flex; gap: 8px; align-items: center">
+      <div role="tablist" aria-label="Modo de visualização" style="flex-grow: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: rgba(24,24,24,.06); border-radius: 12px; padding: 4px; gap: 4px">
+        <button type="button" role="tab" aria-selected="{{isFila}}" onClick="{{verFila}}" style="min-height: 40px; border: 0; border-radius: 9px; background: {{filaBg}}; color: #181818; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: {{filaSh}}">Fila · {{nAbertas}}</button>
+        <button type="button" role="tab" aria-selected="{{isLista}}" onClick="{{verLista}}" style="min-height: 40px; border: 0; border-radius: 9px; background: {{listaBg}}; color: #181818; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: {{listaSh}}">Lista completa · {{nTotalPend}}</button>
+      </div>
+      <button type="button" onClick="{{novaPend}}" aria-label="Apontar nova pendência" title="Apontar nova pendência" style="width: 48px; height: 48px; border-radius: 12px; border: 0; background: #181818; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+      </button>
+    </div>
+
+    <sc-if value="{{isFila}}" hint-placeholder-val="{{true}}">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0">
+    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 8px 0 8px">
+      <span style="font-size: 13px; color: #696969">{{deckTxt}}</span>
+      <sc-if value="{{temAdiadas}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{verLista}}" style="min-height: 32px; padding: 0 10px; border-radius: 99px; border: 1.5px solid rgba(24,24,24,.3); background: #fff; font-size: 12px; font-weight: 800; cursor: pointer; color: #181818">{{nAdiadasTxt}}</button></sc-if>
+      <sc-if value="{{temValid}}" hint-placeholder-val="{{true}}"><button type="button" onClick="{{goValid}}" style="min-height: 32px; padding: 0 10px; border-radius: 99px; border: 0; background: #181818; color: #fff; font-size: 12px; font-weight: 800; cursor: pointer">{{nValid}} em vistoria</button></sc-if>
+    </div>
+    <div style="position: relative; flex-grow: 1; min-height: 0">
+      <sc-if value="{{hasNext}}" hint-placeholder-val="{{true}}">
+        <div style="position: absolute; inset: 14px 10px 0; background: #fff; border: 1px solid rgba(24,24,24,.10); border-radius: 20px; transform: scale(.96) translateY(10px); opacity: .7"></div>
+      </sc-if>
+      <sc-if value="{{hasTop}}" hint-placeholder-val="{{true}}">
+        <div onPointerDown="{{pDown}}" onPointerMove="{{pMove}}" onPointerUp="{{pUp}}" onPointerCancel="{{pUp}}" style="position: absolute; inset: 0; background: #fff; border: 1px solid rgba(24,24,24,.10); border-radius: 20px; overflow: hidden; touch-action: none; cursor: grab; user-select: none; box-shadow: 0 10px 30px rgba(24,24,24,.12); transform: {{topTf}}; transition: {{topTr}}; display: flex; flex-direction: column">
+          <div class="ph" style="height: 58%; background-color: {{top.tone}}; position: relative; flex-shrink: 0">
+            <div style="position: absolute; left: 12px; top: 12px; font-size: 12px; font-weight: 800; background: rgba(24,24,24,.82); color: #fff; padding: 5px 9px; border-radius: 8px">ANTES · {{top.quando}}</div>
+            <div style="position: absolute; right: 12px; top: 12px; font-size: 12px; font-weight: 800; background: {{top.prioBg}}; color: {{top.prioFg}}; padding: 5px 9px; border-radius: 8px">Criticidade {{top.prio}}</div>
+            <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 12px; font-size: 12px; color: #fff; background: rgba(24,24,24,.6)">[foto do apontamento · {{top.local}}]</div>
+            <div style="position: absolute; left: 18px; top: 50%; transform: translateY(-50%) rotate(-12deg); border: 3px solid #181818; color: #181818; background: #54B4B0; font-weight: 800; font-size: 22px; padding: 2px 10px; border-radius: 8px; opacity: {{okOp}}">RESOLVIDA</div>
+            <div style="position: absolute; right: 18px; top: 50%; transform: translateY(-50%) rotate(12deg); border: 3px solid #181818; color: #181818; background: #fff; font-weight: 800; font-size: 22px; padding: 2px 10px; border-radius: 8px; opacity: {{adOp}}">ADIAR</div>
+          </div>
+          <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 4px">
+            <div style="font-weight: 800; font-size: 19px; line-height: 1.25">{{top.t}}</div>
+            <div style="font-size: 15px; color: #464646">{{top.local}} · {{top.ativ}}</div>
+            <div style="font-size: 13px; color: #696969">Apontado por {{top.autor}} · pendente há {{top.dias}}</div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{deckVazio}}" hint-placeholder-val="{{false}}">
+        <div class="pop" style="position: absolute; inset: 0; border: 2px dashed rgba(24,24,24,.25); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 24px">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: #54B4B0; color: #181818; display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div>
+          <div style="font-size: 22px; font-weight: 800">Fila zerada</div>
+          <div style="font-size: 15px; color: #696969">Nenhuma pendência aberta nesta obra. Use Apontar para registrar uma nova com foto.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px">
+      <button type="button" onClick="{{btnAdiar}}" disabled="{{deckVazio}}" style="min-height: 52px; border-radius: 12px; border: 1.5px solid rgba(24,24,24,.30); background: #fff; color: #181818; font-weight: 800; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+        Adiar
+      </button>
+      <button type="button" onClick="{{btnResolver}}" disabled="{{deckVazio}}" style="min-height: 52px; border-radius: 12px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px">
+        Resolvida
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+    </div>
+    <div style="font-size: 12px; color: #696969; text-align: center; margin-top: 6px">Arraste: direita resolve com foto · esquerda adia com data e motivo</div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{isLista}}" hint-placeholder-val="{{false}}">
+    <div style="flex-grow: 1; overflow-y: auto; margin-top: 10px; display: flex; flex-direction: column; gap: 14px; min-height: 0">
+      <sc-for list="{{pendGrupos}}" as="g" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #696969">{{g.t}} · {{g.n}}</div>
+          <sc-for list="{{g.itens}}" as="c" hint-placeholder-count="2">
+            <div style="background: #fff; border: 1px solid rgba(24,24,24,.10); border-radius: 12px; padding: 8px; display: flex; gap: 10px; align-items: center">
+              <div class="ph" style="width: 52px; height: 52px; border-radius: 10px; background-color: {{c.tone}}; flex-shrink: 0; opacity: {{c.op}}"></div>
+              <div style="flex-grow: 1; min-width: 0">
+                <div style="font-weight: 800; font-size: 14px; line-height: 1.25; color: {{c.cor}}; text-decoration: {{c.risco}}">{{c.t}}</div>
+                <div style="font-size: 12px; color: #696969">{{c.local}} · criticidade {{c.prio}}</div>
+                <div style="font-size: 12px; font-weight: 800; color: #181818">{{c.sub}}</div>
+              </div>
+              <sc-if value="{{c.temAcao}}" hint-placeholder-val="{{true}}">
+                <button type="button" onClick="{{c.acao}}" style="min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1.5px solid #181818; background: {{c.acaoBg}}; color: {{c.acaoFg}}; font-weight: 800; font-size: 12px; cursor: pointer; flex-shrink: 0; max-width: 104px; line-height: 1.15">{{c.acaoTxt}}</button>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+      <sc-if value="{{pendVazio}}" hint-placeholder-val="{{false}}"><div style="border: 2px dashed rgba(24,24,24,.25); border-radius: 16px; padding: 24px 16px; text-align: center; color: #696969">Nenhuma pendência registrada nesta obra.</div></sc-if>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ---------- VISTORIA ---------- -->
+  <sc-if value="{{isValid}}" hint-placeholder-val="{{false}}">
+  <div style="flex-grow: 1; overflow-y: auto; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Vistoria: antes e depois</h2>
+      <button type="button" onClick="{{goPend}}" style="min-height: 44px; border: 0; background: transparent; font-weight: 700; font-size: 14px; cursor: pointer; color: #181818; text-decoration: underline">Voltar à fila</button>
+    </div>
+    <div style="font-size: 14px; color: #696969; margin-top: -6px">Quem vistoria não é quem executou. Só fecha com a foto de depois aprovada.</div>
+    <sc-for list="{{validList}}" as="v" hint-placeholder-count="2">
+      <div class="up" style="background: #fff; border: 1px solid rgba(24,24,24,.10); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+        <div><div style="font-weight: 800; font-size: 16px">{{v.t}}</div><div style="font-size: 13px; color: #696969">{{v.local}} · {{v.ativ}}</div></div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <div class="ph" style="height: 120px; border-radius: 12px; background-color: {{v.tone}}; position: relative"><span style="position: absolute; left: 8px; top: 8px; font-size: 12px; font-weight: 800; background: rgba(24,24,24,.82); color: #fff; padding: 3px 7px; border-radius: 6px">ANTES</span></div>
+          <div class="ph" style="height: 120px; border-radius: 12px; background-color: {{v.after}}; position: relative"><span style="position: absolute; left: 8px; top: 8px; font-size: 12px; font-weight: 800; background: #54B4B0; color: #181818; padding: 3px 7px; border-radius: 6px">DEPOIS · {{v.quandoDepois}}</span></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <button type="button" onClick="{{v.reabrir}}" style="min-height: 48px; border-radius: 12px; border: 1.5px solid rgba(24,24,24,.30); background: #fff; color: #181818; font-weight: 800; cursor: pointer">Reabrir</button>
+          <button type="button" onClick="{{v.aprovar}}" style="min-height: 48px; border-radius: 12px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; cursor: pointer">Aprovar e fechar</button>
+        </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{validVazio}}" hint-placeholder-val="{{false}}">
+      <div style="border: 2px dashed rgba(24,24,24,.25); border-radius: 16px; padding: 28px 16px; text-align: center; color: #696969">Nada em vistoria.</div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ---------- SUPRIMENTOS ---------- -->
+  <sc-if value="{{isSup}}" hint-placeholder-val="{{false}}">
+  <div style="flex-grow: 1; overflow-y: auto; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 14px">
+    <div>
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Providências da obra</h2>
+      <div style="font-size: 14px; color: #696969">Lembretes de contratação, locação e compra: o que precisa estar na obra e até quando providenciar para cada atividade começar.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+      <button type="button" onClick="{{novoC}}" style="min-height: 48px; border-radius: 12px; border: 1.5px solid rgba(24,24,24,.30); background: #fff; color: #181818; font-weight: 800; font-size: 13px; cursor: pointer">+ Contratação</button>
+      <button type="button" onClick="{{novoL}}" style="min-height: 48px; border-radius: 12px; border: 1.5px solid rgba(24,24,24,.30); background: #fff; color: #181818; font-weight: 800; font-size: 13px; cursor: pointer">+ Locação</button>
+      <button type="button" onClick="{{novoP}}" style="min-height: 48px; border-radius: 12px; border: 1.5px solid rgba(24,24,24,.30); background: #fff; color: #181818; font-weight: 800; font-size: 13px; cursor: pointer">+ Compra</button>
+    </div>
+    <sc-for list="{{supGrupos}}" as="g" hint-placeholder-count="3">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: {{g.cor}}">{{g.t}} · {{g.n}}</div>
+        <sc-for list="{{g.rows}}" as="it" hint-placeholder-count="3">
+          <div style="background: #fff; border: 1.5px solid {{it.bd}}; border-left: 6px solid {{it.barra}}; border-radius: 12px; padding: 4px 8px 8px 10px">
+            <button type="button" onClick="{{it.edit}}" style="width: 100%; text-align: left; border: 0; background: transparent; cursor: pointer; color: #181818; padding: 6px 0 2px; min-height: 44px; display: flex; flex-direction: column; gap: 3px">
+              <div style="display: flex; justify-content: space-between; gap: 8px; align-items: center">
+                <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em">{{it.tipoTxt}}</span>
+                <span style="font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: {{it.sitBg}}; color: {{it.sitFg}}; border: 1px solid {{it.sitBd}}">{{it.sitTxt}}</span>
+              </div>
+              <div style="font-weight: 800; font-size: 15px">{{it.desc}}</div>
+              <div style="font-size: 13px; color: #464646">Para: {{it.ativ}}</div>
+              <div style="font-size: 13px; color: #181818; font-weight: 700">{{it.naObraTxt}}</div>
+              <div style="font-size: 13px; color: {{it.quandoCor}}; font-weight: {{it.quandoPeso}}">{{it.quando}}</div>
+            </button>
+            <sc-if value="{{it.canDone}}" hint-placeholder-val="{{false}}">
+              <button type="button" onClick="{{it.marcar}}" style="min-height: 44px; width: 100%; border-radius: 10px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 4px">Marcar como providenciado</button>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+    <div style="font-size: 13px; color: #696969; text-align: center">{{supResolvTxt}}</div>
+  </div>
+  </sc-if>
+
+  <!-- ---------- CRONOGRAMA ---------- -->
+  <sc-if value="{{isCrono}}" hint-placeholder-val="{{false}}">
+  <div style="flex-grow: 1; overflow-y: auto; padding: 10px 16px 20px">
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #464646; padding: 2px 0 10px">
+      <span style="display: inline-flex; align-items: center; gap: 5px"><i style="width: 14px; height: 9px; border-radius: 2px; background: #54B4B0; display: inline-block"></i>Concluída</span>
+      <span style="display: inline-flex; align-items: center; gap: 5px"><i style="width: 14px; height: 9px; border-radius: 2px; background: #181818; display: inline-block"></i>Liberada</span>
+      <span style="display: inline-flex; align-items: center; gap: 5px; color: #C62828; font-weight: 800"><i style="width: 14px; height: 9px; border-radius: 2px; background: #C62828; display: inline-block"></i>Atrasada</span>
+      <span style="display: inline-flex; align-items: center; gap: 5px"><i style="width: 14px; height: 9px; border-radius: 2px; background: rgba(24,24,24,.22); display: inline-block"></i>Planejada</span>
+      <span style="display: inline-flex; align-items: center; gap: 5px"><i style="width: 2px; height: 12px; background: #54B4B0; display: inline-block"></i>Hoje</span>
+    </div>
+    <sc-for list="{{crono}}" as="g" hint-placeholder-count="6">
+      <div style="margin-bottom: 10px">
+        <div style="font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #696969; padding: 6px 0 4px">Fase {{g.n}} · {{g.t}}</div>
+        <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="4">
+          <button type="button" onClick="{{r.toggle}}" aria-expanded="{{r.sel}}" style="width: 100%; border: 0; background: {{r.rowBg}}; border-radius: 12px; padding: 6px 8px; cursor: pointer; text-align: left; color: #181818; display: block; min-height: 44px">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; gap: 8px"><span style="font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: {{r.nomeCor}}">{{r.nome}}</span><span style="color: {{r.datasCor}}; font-weight: {{r.datasPeso}}; flex-shrink: 0">{{r.datas}}</span></div>
+            <div style="height: 10px; position: relative; margin-top: 5px; background: rgba(24,24,24,.08); border-radius: 3px">
+              <div style="position: absolute; top: 0; bottom: 0; left: {{r.left}}; width: {{r.width}}; background-color: {{r.cor}}; border-radius: 3px"></div>
+              <div style="position: absolute; top: -3px; bottom: -3px; width: 2px; left: {{hojeLeft}}; background: #54B4B0"></div>
+            </div>
+            <sc-if value="{{r.sel}}" hint-placeholder-val="{{false}}">
+              <div class="up" style="font-size: 13px; color: #464646; margin-top: 8px; display: flex; flex-direction: column; gap: 3px">
+                <div><strong>Situação:</strong> {{r.situacao}}</div>
+                <div><strong>Prestador:</strong> {{r.prest}}</div>
+                <div><strong>Suprimentos:</strong> {{r.supTxt}}</div>
+                <div><strong>Depende de:</strong> {{r.deps}}</div>
+                <div><strong>Libera:</strong> {{r.libera}}</div>
+              </div>
+            </sc-if>
+          </button>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <!-- ---------- BOLETIM DA SEMANA ---------- -->
+  <sc-if value="{{isBol}}" hint-placeholder-val="{{false}}">
+  <div style="flex-grow: 1; overflow-y: auto; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px">
+    <div>
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Boletim da semana</h2>
+      <div style="font-size: 14px; color: #696969">{{bol.periodo}} · sai toda segunda às 7h para o grupo da obra</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <a href="{{bol.wa}}" target="_blank" rel="noopener" style="min-height: 52px; border-radius: 12px; background: #54B4B0; color: #181818; font-weight: 800; font-size: 15px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1112 20a8 8 0 01-4-1z"></path></svg>
+        WhatsApp
+      </a>
+      <button type="button" onClick="{{baixarBol}}" style="min-height: 52px; border-radius: 12px; border: 0; background: #181818; color: #fff; font-weight: 800; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 20h14"></path></svg>
+        Baixar PDF
+      </button>
+    </div>
+
+    <sc-if value="{{bol.temAtencao}}" hint-placeholder-val="{{true}}">
+      <div style="border: 2px solid #C62828; border-radius: 14px; overflow: hidden">
+        <div style="background: #C62828; color: #fff; font-weight: 800; padding: 8px 12px; display: flex; align-items: center; gap: 6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l9 16H3z"></path><path d="M12 10v4.2M12 17.2v.3"></path></svg>Atenção · {{bol.nAtencao}} em atraso</div>
+        <div style="padding: 6px 12px 10px; background: rgba(198,40,40,.05)">
+          <sc-for list="{{bol.atencao}}" as="x" hint-placeholder-count="2"><div style="font-size: 14px; padding: 5px 0; border-bottom: 1px solid rgba(198,40,40,.15)"><b>{{x.t}}</b><div style="font-size: 12px; color: #696969">{{x.s}}</div></div></sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="background: #fff; border: 1px solid rgba(24,24,24,.10); border-radius: 14px; padding: 10px 12px">
+      <div style="font-weight: 800; font-size: 15px; margin-bottom: 4px">Quem faz o quê nesta semana</div>
+      <sc-for list="{{bol.pessoas}}" as="p" hint-placeholder-count="3">
+        <div style="padding: 6px 0 4px; border-top: 1px solid rgba(24,24,24,.08)">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px">
+            <span style="width: 26px; height: 26px; border-radius: 50%; background: #181818; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px">{{p.ini}}</span>
+            <b style="font-size: 14px">{{p.nome}}</b><span style="font-size: 12px; color: #696969">{{p.papel}}</span>
+          </div>
+          <sc-for list="{{p.itens}}" as="t" hint-placeholder-count="2">
+            <div style="display: grid; grid-template-columns: 68px 1fr; gap: 8px; font-size: 13px; padding: 3px 0 3px 34px">
+              <span style="font-weight: 800; color: {{t.cor}}">{{t.quando}}</span>
+              <span style="color: {{t.cor}}; font-weight: {{t.peso}}; text-decoration: {{t.risco}}">{{t.txt}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="background: #fff; border: 1px solid rgba(24,24,24,.10); border-radius: 14px; padding: 10px 12px">
+      <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #696969; margin-bottom: 6px">Prévia da mensagem no WhatsApp</div>
+      <div style="background: rgba(84,180,176,.12); border-radius: 12px 12px 12px 4px; padding: 10px 12px; font-size: 13px; white-space: pre-line; line-height: 1.45">{{bol.texto}}</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ---------- BARRA INFERIOR ---------- -->
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; border-top: 1px solid rgba(24,24,24,.14); background: #fff; padding: 6px 8px 18px">
+    <button type="button" onClick="{{goMapa}}" style="min-height: 52px; border: 0; border-radius: 12px; background: {{tabMapaBg}}; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 800; color: #181818">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><path d="M8.5 18H15a3 3 0 000-6H9a3 3 0 010-6h6.5"></path></svg>
+      Fases
+    </button>
+    <button type="button" onClick="{{goPend}}" style="min-height: 52px; border: 0; border-radius: 12px; background: {{tabPendBg}}; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 800; color: #181818; position: relative">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3" width="13" height="16" rx="2"></rect><path d="M4 7v12a2 2 0 002 2h10"></path></svg>
+      Pendências
+      <sc-if value="{{hasAbertas}}" hint-placeholder-val="{{true}}"><span style="position: absolute; top: 3px; left: 58%; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 99px; background: #181818; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center">{{nAbertas}}</span></sc-if>
+    </button>
+    <button type="button" onClick="{{goSup}}" style="min-height: 52px; border: 0; border-radius: 12px; background: {{tabSupBg}}; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 800; color: #181818; position: relative">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8L12 3.5 20.5 8v8L12 20.5 3.5 16z"></path><path d="M3.5 8L12 12.5 20.5 8M12 12.5v8"></path></svg>
+      Suprimentos
+      <sc-if value="{{hasSupAtraso}}" hint-placeholder-val="{{true}}"><span style="position: absolute; top: 3px; left: 58%; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 99px; background: #C62828; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center">{{nSupAtraso}}</span></sc-if>
+    </button>
+    <button type="button" onClick="{{goCrono}}" style="min-height: 52px; border: 0; border-radius: 12px; background: {{tabCronoBg}}; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 800; color: #181818">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M4 6h8M7 12h9M11 18h9"></path></svg>
+      Cronograma
+    </button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== REUNIÃO SEMANAL ===================== -->
+<sc-if value="{{isReu}}" hint-placeholder-val="{{false}}">
+<div style="height: 100%; display: flex; flex-direction: column">
+  <div style="padding: 10px 12px 12px; background: #181818; color: #fff">
+    <div style="display: flex; align-items: center; gap: 4px">
+      <button type="button" onClick="{{goHome}}" aria-label="Voltar" style="width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+      <div style="flex-grow: 1">
+        <div style="font-weight: 800; font-size: 18px">Reunião semanal</div>
+        <div style="font-size: 13px; color: rgba(255,255,255,.72)">Segunda 26/10 · 16h · ata em construção</div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 10px 8px 0">
+      <div style="border-radius: 10px; background: rgba(255,255,255,.08); padding: 6px 8px"><div style="font-size: 20px; font-weight: 800; line-height: 1.1">{{reu.cumpridas}}</div><div style="font-size: 11px; color: rgba(255,255,255,.72)">providências cumpridas</div></div>
+      <div style="border-radius: 10px; background: {{reu.atrBg}}; padding: 6px 8px"><div style="font-size: 20px; font-weight: 800; line-height: 1.1">{{reu.atrasadas}}</div><div style="font-size: 11px">providências atrasadas</div></div>
+      <div style="border-radius: 10px; background: #54B4B0; color: #181818; padding: 6px 8px"><div style="font-size: 20px; font-weight: 800; line-height: 1.1">{{reu.novas}}</div><div style="font-size: 11px; font-weight: 700">novas nesta reunião</div></div>
+    </div>
+  </div>
+  <div style="flex-grow: 1; overflow-y: auto; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px">
+    <sc-for list="{{reu.obras}}" as="r" hint-placeholder-count="3">
+      <div style="background: #fff; border: 1px solid rgba(24,24,24,.10); border-left: {{r.borda}}; border-radius: 16px; overflow: hidden">
+        <button type="button" onClick="{{r.toggle}}" aria-expanded="{{r.open}}" style="width: 100%; border: 0; background: transparent; text-align: left; padding: 12px 14px; cursor: pointer; color: #181818; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 56px">
+          <div style="min-width: 0">
+            <div style="font-weight: 800; font-size: 16px">{{r.nome}}</div>
+            <div style="font-size: 13px; color: #696969">Real {{r.real}} · previsto {{r.prev}} · {{r.fase}}</div>
+          </div>
+          <span style="font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 99px; background: {{r.ritmoBg}}; color: {{r.ritmoCor}}; flex-shrink: 0">{{r.ritmo}}</span>
+        </button>
+        <sc-if value="{{r.open}}" hint-placeholder-val="{{true}}">
+        <div class="up" style="padding: 0 14px 14px; display: flex; flex-direction: column; gap: 12px">
+          <div>
+            <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #696969; margin-bottom: 4px">Semana passada · previsto x realizado</div>
+            <sc-for list="{{r.passada}}" as="x" hint-placeholder-count="3">
+              <div style="display: flex; gap: 8px; align-items: flex-start; font-size: 14px; padding: 4px 0">
+                <span style="width: 20px; height: 20px; border-radius: 6px; background: {{x.icBg}}; color: {{x.icFg}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; font-weight: 800">{{x.ic}}</span>
+                <div><span style="font-weight: 700; color: {{x.cor}}">{{x.t}}</span><div style="font-size: 12px; color: #696969">{{x.s}}</div></div>
+              </div>
+            </sc-for>
+            <sc-if value="{{r.passadaVazia}}" hint-placeholder-val="{{false}}"><div style="font-size: 13px; color: #696969">Nada previsto para concluir ou começar na semana passada.</div></sc-if>
+          </div>
+          <div>
+            <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #696969; margin-bottom: 4px">Providências da reunião anterior</div>
+            <sc-for list="{{r.anteriores}}" as="t" hint-placeholder-count="2">
+              <div style="display: flex; justify-content: space-between; gap: 8px; align-items: center; font-size: 14px; padding: 4px 0; border-bottom: 1px solid rgba(24,24,24,.06)">
+                <div style="min-width: 0"><span style="font-weight: 700; color: {{t.cor}}; text-decoration: {{t.risco}}">{{t.txt}}</span><div style="font-size: 12px; color: #696969">{{t.resp}} · prazo {{t.prazo}}</div></div>
+                <span style="font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: {{t.tagBg}}; color: {{t.tagFg}}; border: 1px solid {{t.tagBd}}; flex-shrink: 0">{{t.tag}}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{r.semAnteriores}}" hint-placeholder-val="{{false}}"><div style="font-size: 13px; color: #696969">Nenhuma providência anterior.</div></sc-if>
+          </div>
+          <div>
+            <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #696969; margin-bottom: 4px">Esta semana</div>
+            <div style="font-size: 14px; display: flex; flex-direction: column; gap: 3px">
+              <div><b>Concluir:</b> {{r.concluir}}</div>
+              <div><b>Começar:</b> {{r.comecar}}</div>
+              <div><b>Contratar/comprar:</b> {{r.pedir}}</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <label for="{{r.obsId}}" style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #696969">Avanços e observações da reunião</label>
+            <textarea id="{{r.obsId}}" value="{{r.obs}}" onChange="{{r.onObs}}" rows="3" placeholder="Ex.: forro avançou 60%; azulejista mobilizado na quinta" style="border: 1.5px solid rgba(24,24,24,.30); border-radius: 12px; padding: 10px 12px; font-size: 15px; font-family: inherit; color: #181818; resize: vertical"></textarea>
+          </div>
+          <div>
+            <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #696969; margin-bottom: 4px">Novas providências</div>
+            <sc-for list="{{r.novas}}" as="t" hint-placeholder-count="1">
+              <div style="display: flex; gap: 8px; align-items: center; font-size: 14px; padding: 5px 0; border-bottom: 1px solid rgba(24,24,24,.06)">
+                <span style="width: 26px; height: 26px; border-radius: 50%; background: #181818; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0">{{t.ini}}</span>
+                <button type="button" onClick="{{t.editar}}" aria-label="Editar providência" style="min-width: 0; flex-grow: 1; text-align: left; border: 0; background: transparent; cursor: pointer; color: #181818; padding: 0"><b>{{t.txt}}</b><div style="font-size: 12px; color: #696969">{{t.resp}} · até {{t.prazo}}</div></button>
+              </div>
+            </sc-for>
+            <button type="button" onClick="{{r.addProv}}" style="margin-top: 6px; width: 100%; min-height: 48px; border-radius: 12px; border: 1.5px dashed rgba(24,24,24,.4); background: #fff; color: #181818; font-weight: 800; font-size: 14px; cursor: pointer">+ Providência com responsável e prazo</button>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+  <div style="padding: 10px 16px 22px; background: #fff; border-top: 1px solid rgba(24,24,24,.14)">
+    <button type="button" onClick="{{goAta}}" style="width: 100%; min-height: 52px; border: 0; border-radius: 12px; background: #54B4B0; color: #181818; font-size: 17px; font-weight: 800; cursor: pointer">Gerar ata da reunião</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== ATA ===================== -->
+<sc-if value="{{isAta}}" hint-placeholder-val="{{false}}">
+<div style="height: 100%; display: flex; flex-direction: column">
+  <div style="padding: 10px 12px 10px; background: #181818; color: #fff; display: flex; align-items: center; gap: 4px">
+    <button type="button" onClick="{{goReu}}" aria-label="Voltar para a reunião" style="width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+    <div><div style="font-weight: 800; font-size: 18px">Ata da reunião</div><div style="font-size: 13px; color: rgba(255,255,255,.72)">Segunda 26/10/2026 · 16h</div></div>
+  </div>
+  <div style="flex-grow: 1; overflow-y: auto; padding: 12px 14px 16px">
+    <div style="background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(24,24,24,.10); padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="border-bottom: 2.5px solid #181818; padding-bottom: 8px">
+        <div style="font-weight: 800; font-size: 14px">obdc<span style="color: #54B4B0">.</span> · ata da reunião semanal de obras</div>
+        <div style="font-size: 13px; color: #464646">Participantes: {{ata.participantes}}</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; text-align: center">
+        <div style="background: rgba(24,24,24,.05); border-radius: 10px; padding: 6px"><div style="font-size: 20px; font-weight: 800">{{ata.cumpridas}}</div><div style="font-size: 11px; color: #696969">cumpridas</div></div>
+        <div style="background: {{ata.atrBg}}; color: {{ata.atrFg}}; border-radius: 10px; padding: 6px"><div style="font-size: 20px; font-weight: 800">{{ata.atrasadas}}</div><div style="font-size: 11px">atrasadas</div></div>
+        <div style="background: rgba(84,180,176,.22); border-radius: 10px; padding: 6px"><div style="font-size: 20px; font-weight: 800">{{ata.novas}}</div><div style="font-size: 11px">novas</div></div>
+      </div>
+      <sc-for list="{{ata.obras}}" as="a" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="font-weight: 800; font-size: 15px; display: flex; justify-content: space-between; gap: 6px"><span>{{a.nome}}</span><span style="font-size: 12px; color: {{a.ritmoTxtCor}}">{{a.ritmo}}</span></div>
+          <div style="font-size: 13px; color: #464646">{{a.situacao}}</div>
+          <div style="font-size: 13px; color: {{a.passadaCor}}">{{a.passada}}</div>
+          <div style="font-size: 13px"><b>Observações:</b> {{a.obs}}</div>
+          <sc-for list="{{a.provs}}" as="t" hint-placeholder-count="1"><div style="font-size: 13px; padding-left: 10px; border-left: 3px solid {{t.barra}}; color: {{t.cor}}">{{t.txt}} — <b>{{t.resp}}</b>, até {{t.prazo}}{{t.extra}}</div></sc-for>
+        </div>
+      </sc-for>
+      <div style="border-top: 2.5px solid #181818; padding-top: 8px">
+        <div style="font-weight: 800; font-size: 15px; margin-bottom: 4px">Providências por responsável</div>
+        <sc-for list="{{ata.pessoas}}" as="p" hint-placeholder-count="3">
+          <div style="padding: 4px 0 6px">
+            <div style="font-weight: 800; font-size: 14px">{{p.nome}} <span style="font-weight: 600; color: #696969; font-size: 12px">· {{p.resumo}}</span></div>
+            <sc-for list="{{p.itens}}" as="t" hint-placeholder-count="2"><div style="font-size: 13px; color: {{t.cor}}; font-weight: {{t.peso}}">• {{t.prazo}} · {{t.txt}} ({{t.obra}})</div></sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 10px 16px 22px; background: #fff; border-top: 1px solid rgba(24,24,24,.14)">
+    <a href="{{ata.wa}}" target="_blank" rel="noopener" style="min-height: 52px; border-radius: 12px; background: #54B4B0; color: #181818; font-weight: 800; font-size: 15px; text-decoration: none; display: flex; align-items: center; justify-content: center">WhatsApp</a>
+    <button type="button" onClick="{{baixarAta}}" style="min-height: 52px; border-radius: 12px; border: 0; background: #181818; color: #fff; font-weight: 800; font-size: 15px; cursor: pointer">Baixar PDF</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== TAREFAS ===================== -->
+<sc-if value="{{isTar}}" hint-placeholder-val="{{false}}">
+<div style="height: 100%; display: flex; flex-direction: column">
+  <div style="padding: 10px 12px 10px; background: #181818; color: #fff">
+    <div style="display: flex; align-items: center; gap: 4px">
+      <button type="button" onClick="{{goHome}}" aria-label="Voltar" style="width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+      <div><div style="font-weight: 800; font-size: 18px">Tarefas da equipe</div><div style="font-size: 13px; color: rgba(255,255,255,.72)">Providências das reuniões · dê baixa ao longo da semana</div></div>
+    </div>
+    <div style="display: flex; gap: 6px; overflow-x: auto; padding: 10px 4px 2px">
+      <sc-for list="{{tar.chips}}" as="c" hint-placeholder-count="6">
+        <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="flex-shrink: 0; min-height: 44px; padding: 0 12px; border-radius: 99px; border: 1.5px solid {{c.bd}}; background: {{c.bg}}; color: {{c.fg}}; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px">
+          {{c.t}}
+          <sc-if value="{{c.temAtr}}" hint-placeholder-val="{{false}}"><span style="min-width: 18px; height: 18px; border-radius: 99px; background: #C62828; color: #fff; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; padding: 0 4px">{{c.atr}}</span></sc-if>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+  <div style="padding: 10px 16px 0; font-size: 13px; color: #464646; font-weight: 700">{{tar.resumo}}</div>
+  <div style="flex-grow: 1; overflow-y: auto; padding: 8px 16px 20px; display: flex; flex-direction: column; gap: 12px">
+    <sc-for list="{{tar.grupos}}" as="g" hint-placeholder-count="3">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: {{g.cor}}">{{g.t}} · {{g.n}}</div>
+        <sc-for list="{{g.itens}}" as="t" hint-placeholder-count="2">
+          <div style="background: #fff; border: 1.5px solid {{t.bd}}; border-left: 6px solid {{t.barra}}; border-radius: 12px; padding: 8px 10px; display: flex; gap: 10px; align-items: center">
+            <sc-if value="{{t.aberta}}" hint-placeholder-val="{{true}}">
+              <button type="button" onClick="{{t.concluir}}" aria-label="Concluir tarefa" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #181818; background: #fff; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #181818"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: .25"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></button>
+            </sc-if>
+            <sc-if value="{{t.feita}}" hint-placeholder-val="{{false}}">
+              <button type="button" onClick="{{t.reabrir}}" aria-label="Reabrir tarefa" title="Reabrir tarefa" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: #54B4B0; color: #181818; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></button>
+            </sc-if>
+            <button type="button" onClick="{{t.editar}}" aria-label="Editar tarefa" style="min-width: 0; flex-grow: 1; text-align: left; border: 0; background: transparent; padding: 2px 0; cursor: pointer; color: #181818">
+              <div style="font-weight: 800; font-size: 15px; color: {{t.cor}}; text-decoration: {{t.risco}}">{{t.txt}}</div>
+              <div style="font-size: 12px; color: #696969">{{t.obra}} · {{t.resp}} · {{t.origem}}</div>
+              <div style="font-size: 12px; font-weight: 800; color: {{t.prazoCor}}">{{t.prazo}}</div>
+              <sc-if value="{{t.replan}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; font-weight: 700; color: #464646">{{t.replanTxt}}</div></sc-if>
+              <sc-if value="{{t.temLink}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; font-weight: 700; margin-top: 2px; padding: 2px 8px; border-radius: 99px; background: rgba(84,180,176,.18); display: inline-block">{{t.link}}</div></sc-if>
+            </button>
+            <sc-if value="{{t.feita}}" hint-placeholder-val="{{false}}">
+              <button type="button" onClick="{{t.reabrir}}" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1.5px solid rgba(24,24,24,.35); background: #fff; color: #181818; font-weight: 800; font-size: 13px; cursor: pointer; flex-shrink: 0">Reabrir</button>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+    <sc-if value="{{tar.vazio}}" hint-placeholder-val="{{false}}"><div style="border: 2px dashed rgba(24,24,24,.25); border-radius: 16px; padding: 24px 16px; text-align: center; color: #696969">Nenhuma tarefa para esta pessoa.</div></sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== FORM: NOVA PROVIDÊNCIA ===================== -->
+<sc-if value="{{hasTf}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; background: rgba(24,24,24,.55); z-index: 6; display: flex; flex-direction: column; justify-content: flex-end">
+  <div class="up" role="dialog" aria-label="{{tf.titulo}}" style="background: #fff; border-radius: 20px 20px 0 0; max-height: 92%; overflow-y: auto; padding: 14px 16px 22px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div><h2 style="margin: 0; font-size: 20px; font-weight: 800">{{tf.titulo}}</h2><div style="font-size: 13px; color: #696969">{{tf.sub}}</div></div>
+      <button type="button" onClick="{{fecharTf}}" aria-label="Cancelar" style="width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #181818"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <sc-if value="{{tf.temReplan}}" hint-placeholder-val="{{false}}">
+      <div style="font-size: 13px; font-weight: 700; padding: 8px 10px; border-radius: 10px; background: rgba(24,24,24,.06)">{{tf.replanTxt}}</div>
+    </sc-if>
+    <sc-if value="{{tf.temSug}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="font-size: 14px; font-weight: 700">Sugestões a partir da obra</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px">
+          <sc-for list="{{tf.sugs}}" as="g" hint-placeholder-count="3">
+            <button type="button" onClick="{{g.pick}}" aria-pressed="{{g.on}}" style="min-height: 40px; padding: 4px 10px; border-radius: 10px; border: 1.5px solid {{g.bd}}; background: {{g.bg}}; color: #181818; font-weight: 700; font-size: 13px; cursor: pointer; text-align: left">{{g.t}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <label for="tfTxt" style="font-size: 14px; font-weight: 700">O que precisa ser feito</label>
+      <input id="tfTxt" value="{{tf.txt}}" onChange="{{tf.onTxt}}" placeholder="Ex.: fechar contratação do pintor" style="min-height: 48px; border: 1.5px solid rgba(24,24,24,.30); border-radius: 12px; padding: 0 14px; font-size: 16px; color: #181818">
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 14px; font-weight: 700">Responsável</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px">
+        <sc-for list="{{tf.pessoas}}" as="p" hint-placeholder-count="5">
+          <button type="button" onClick="{{p.pick}}" aria-pressed="{{p.on}}" style="min-height: 44px; padding: 0 12px; border-radius: 99px; border: 1.5px solid {{p.bd}}; background: {{p.bg}}; color: {{p.fg}}; font-weight: 800; font-size: 13px; cursor: pointer">{{p.t}}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 14px; font-weight: 700">Prazo</div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{tf.prazos}}" as="d" hint-placeholder-count="5">
+          <button type="button" onClick="{{d.pick}}" aria-pressed="{{d.on}}" style="min-height: 48px; border-radius: 10px; border: 1.5px solid {{d.bd}}; background: {{d.bg}}; color: #181818; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><span style="font-size: 11px">{{d.dow}}</span><b style="font-size: 14px">{{d.txt}}</b></button>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px">
+        <label for="tfData" style="font-size: 13px; font-weight: 700; flex-shrink: 0">Outra data</label>
+        <input id="tfData" value="{{tf.prazoTxt}}" onChange="{{tf.onData}}" placeholder="dd/mm" inputmode="numeric" style="min-height: 44px; width: 110px; border: 1.5px solid {{tf.dataBd}}; border-radius: 10px; padding: 0 12px; font-size: 16px; color: #181818">
+        <span style="font-size: 13px; color: #696969">{{tf.dataInfo}}</span>
+      </div>
+    </div>
+    <sc-if value="{{tf.edit}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="font-size: 14px; font-weight: 700">Situação</div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{tf.sits}}" as="st" hint-placeholder-count="2">
+            <button type="button" onClick="{{st.pick}}" aria-pressed="{{st.on}}" style="min-height: 44px; border-radius: 10px; border: 1.5px solid {{st.bd}}; background: {{st.bg}}; color: {{st.fg}}; font-weight: 800; font-size: 14px; cursor: pointer">{{st.t}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{tf.temErro}}" hint-placeholder-val="{{false}}"><div role="alert" style="font-size: 14px; font-weight: 800; color: #C62828">{{tf.erro}}</div></sc-if>
+    <button type="button" onClick="{{salvarTf}}" style="min-height: 52px; border-radius: 12px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 16px; cursor: pointer">{{tf.salvarTxt}}</button>
+    <sc-if value="{{tf.edit}}" hint-placeholder-val="{{false}}">
+      <button type="button" onClick="{{excluirTf}}" style="min-height: 44px; border-radius: 12px; border: 0; background: transparent; color: #181818; font-weight: 800; font-size: 14px; cursor: pointer; text-decoration: underline">Excluir tarefa</button>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== ADIAR PENDÊNCIA ===================== -->
+<sc-if value="{{hasAdiar}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; background: rgba(24,24,24,.55); z-index: 6; display: flex; flex-direction: column; justify-content: flex-end">
+  <button type="button" onClick="{{fecharAdiar}}" aria-label="Cancelar" style="flex-grow: 1; border: 0; background: transparent; cursor: pointer"></button>
+  <div class="up" role="dialog" aria-label="Adiar pendência" style="background: #fff; border-radius: 20px 20px 0 0; padding: 14px 16px 22px; display: flex; flex-direction: column; gap: 14px">
+    <div>
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800">Adiar pendência</h2>
+      <div style="font-size: 14px; color: #464646">{{ad.titulo}}</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 14px; font-weight: 700">Volta para a fila em</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{ad.datas}}" as="d" hint-placeholder-count="4">
+          <button type="button" onClick="{{d.pick}}" aria-pressed="{{d.on}}" style="min-height: 52px; border-radius: 10px; border: 1.5px solid {{d.bd}}; background: {{d.bg}}; color: #181818; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1"><span style="font-size: 11px">{{d.dow}}</span><b style="font-size: 15px">{{d.txt}}</b></button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 14px; font-weight: 700">Motivo</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px">
+        <sc-for list="{{ad.motivos}}" as="m" hint-placeholder-count="4">
+          <button type="button" onClick="{{m.pick}}" aria-pressed="{{m.on}}" style="min-height: 40px; padding: 0 12px; border-radius: 99px; border: 1.5px solid {{m.bd}}; background: {{m.bg}}; color: {{m.fg}}; font-weight: 700; font-size: 13px; cursor: pointer">{{m.t}}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="font-size: 13px; color: #696969">Ela sai da fila agora e volta sozinha no dia escolhido. Fica visível em Lista completa › Adiadas.</div>
+    <button type="button" onClick="{{confirmarAdiar}}" style="min-height: 52px; border-radius: 12px; border: 0; background: #181818; color: #fff; font-weight: 800; font-size: 16px; cursor: pointer">Adiar até {{ad.ateTxt}}</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== FICHA DA ATIVIDADE ===================== -->
+<sc-if value="{{hasAct}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; background: rgba(24,24,24,.55); z-index: 5; display: flex; flex-direction: column; justify-content: flex-end">
+  <button type="button" onClick="{{fecharAct}}" aria-label="Fechar ficha" style="flex-grow: 1; border: 0; background: transparent; cursor: pointer"></button>
+  <div class="up" role="dialog" aria-label="Ficha da atividade" style="background: #fff; border-radius: 20px 20px 0 0; max-height: 86%; overflow-y: auto; padding: 8px 16px 22px; display: flex; flex-direction: column; gap: 12px">
+    <div style="width: 40px; height: 4px; border-radius: 4px; background: rgba(24,24,24,.2); align-self: center"></div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px">
+      <div>
+        <span style="font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; background: {{act.tagBg}}; color: {{act.tagFg}}">{{act.status}}</span>
+        <h2 style="margin: 6px 0 0; font-size: 22px; font-weight: 800; line-height: 28px">{{act.nome}}</h2>
+        <div style="font-size: 14px; color: {{act.datasCor}}; font-weight: {{act.datasPeso}}">{{act.datas}}</div>
+      </div>
+      <button type="button" onClick="{{fecharAct}}" aria-label="Fechar" style="width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #181818; flex-shrink: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+
+    <div style="border-radius: 14px; padding: 12px 14px; background: {{act.prestBg}}; color: {{act.prestFg}}; display: flex; gap: 10px; align-items: center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c1-4 4-6 7-6s6 2 7 6"></path></svg>
+      <div style="flex-grow: 1; min-width: 0">
+        <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; opacity: .8">Prestador da atividade</div>
+        <input aria-label="Nome do prestador de serviço" value="{{act.prestVal}}" onChange="{{act.onPrest}}" placeholder="Opcional · nome de quem executa" style="width: 100%; box-sizing: border-box; min-height: 40px; margin-top: 2px; border: 1.5px solid rgba(24,24,24,.25); border-radius: 10px; padding: 0 10px; font-size: 16px; font-weight: 700; background: #fff; color: #181818">
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #696969">Para começar · {{act.supResumo}}</div>
+      <sc-for list="{{act.sups}}" as="it" hint-placeholder-count="2">
+        <button type="button" onClick="{{it.edit}}" style="width: 100%; text-align: left; border: 1.5px solid {{it.bd}}; border-left: 6px solid {{it.barra}}; background: #fff; border-radius: 12px; padding: 8px 10px; cursor: pointer; color: #181818; display: flex; flex-direction: column; gap: 2px; min-height: 44px">
+          <div style="display: flex; justify-content: space-between; gap: 8px; align-items: center">
+            <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em">{{it.tipoTxt}}</span>
+            <span style="font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: {{it.sitBg}}; color: {{it.sitFg}}; border: 1px solid {{it.sitBd}}">{{it.sitTxt}}</span>
+          </div>
+          <div style="font-weight: 800; font-size: 15px">{{it.desc}}</div>
+          <div style="font-size: 13px; color: #181818; font-weight: 700">{{it.naObraTxt}}</div>
+          <div style="font-size: 13px; color: {{it.quandoCor}}; font-weight: {{it.quandoPeso}}">{{it.quando}}</div>
+        </button>
+      </sc-for>
+      <sc-if value="{{act.semSup}}" hint-placeholder-val="{{false}}"><div style="font-size: 14px; color: #696969">Nenhuma contratação, locação ou compra lançada para esta atividade.</div></sc-if>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 2px">
+        <button type="button" onClick="{{act.addC}}" style="min-height: 44px; border-radius: 10px; border: 1.5px solid rgba(24,24,24,.30); background: #fff; color: #181818; font-weight: 800; font-size: 13px; cursor: pointer">+ Contratação</button>
+        <button type="button" onClick="{{act.addL}}" style="min-height: 44px; border-radius: 10px; border: 1.5px solid rgba(24,24,24,.30); background: #fff; color: #181818; font-weight: 800; font-size: 13px; cursor: pointer">+ Locação</button>
+        <button type="button" onClick="{{act.addP}}" style="min-height: 44px; border-radius: 10px; border: 1.5px solid rgba(24,24,24,.30); background: #fff; color: #181818; font-weight: 800; font-size: 13px; cursor: pointer">+ Compra</button>
+      </div>
+    </div>
+
+    <div style="font-size: 13px; color: #464646; display: flex; flex-direction: column; gap: 2px">
+      <div><strong>Depende de:</strong> {{act.deps}}</div>
+      <div><strong>Libera:</strong> {{act.libera}}</div>
+    </div>
+
+    <sc-if value="{{act.podeConcluir}}" hint-placeholder-val="{{false}}">
+      <button type="button" onClick="{{act.concluir}}" style="min-height: 52px; border-radius: 12px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        Concluir com foto
+      </button>
+    </sc-if>
+    <sc-if value="{{act.bloqueioTxtOn}}" hint-placeholder-val="{{false}}">
+      <div style="font-size: 14px; font-weight: 700; padding: 10px 12px; border-radius: 12px; background: rgba(24,24,24,.06)">{{act.bloqueioTxt}}</div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== FORMULÁRIO: CONTRATAÇÃO / LOCAÇÃO / COMPRA ===================== -->
+<sc-if value="{{hasForm}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; background: rgba(24,24,24,.55); z-index: 6; display: flex; flex-direction: column; justify-content: flex-end">
+  <div class="up" role="dialog" aria-label="{{fm.titulo}}" style="background: #fff; border-radius: 20px 20px 0 0; max-height: 92%; overflow-y: auto; padding: 14px 16px 22px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 800">{{fm.titulo}}</h2>
+        <div style="font-size: 13px; color: #696969">Para: {{fm.ativ}}</div>
+      </div>
+      <button type="button" onClick="{{fecharForm}}" aria-label="Cancelar" style="width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #181818"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+
+    <sc-if value="{{fm.novo}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="font-size: 14px; font-weight: 700">Tipo</div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{fm.tipos}}" as="tp" hint-placeholder-count="3">
+            <button type="button" onClick="{{tp.pick}}" aria-pressed="{{tp.on}}" style="min-height: 44px; border-radius: 10px; border: 1.5px solid {{tp.bd}}; background: {{tp.bg}}; color: #181818; font-weight: 800; font-size: 13px; cursor: pointer">{{tp.t}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <label for="fDesc" style="font-size: 14px; font-weight: 700">{{fm.descLabel}}</label>
+      <input id="fDesc" value="{{fm.desc}}" onChange="{{fm.onDesc}}" placeholder="{{fm.descPh}}" style="min-height: 48px; border: 1.5px solid rgba(24,24,24,.30); border-radius: 12px; padding: 0 14px; font-size: 16px; background: #fff; color: #181818">
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <label for="fPrev" style="font-size: 14px; font-weight: 700">Precisa estar na obra em</label>
+      <input id="fPrev" value="{{fm.prev}}" onChange="{{fm.onPrev}}" placeholder="dd/mm" style="min-height: 48px; border: 1.5px solid rgba(24,24,24,.30); border-radius: 12px; padding: 0 14px; font-size: 16px; background: #fff; color: #181818">
+      <div style="font-size: 12px; color: #696969">{{fm.prevPh}}</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 14px; font-weight: 700">Situação</div>
+      <div style="display: flex; gap: 6px">
+        <sc-for list="{{fm.sits}}" as="st" hint-placeholder-count="3">
+          <button type="button" onClick="{{st.pick}}" aria-pressed="{{st.on}}" style="flex: 1 1 0; min-height: 44px; border-radius: 10px; border: 1.5px solid {{st.bd}}; background: {{st.bg}}; color: {{st.fg}}; font-weight: 800; font-size: 13px; cursor: pointer">{{st.t}}</button>
+        </sc-for>
+      </div>
+      <div style="font-size: 12px; color: #696969">A atividade é liberada quando todos os lembretes dela estiverem providenciados.</div>
+    </div>
+    <sc-if value="{{fm.temErro}}" hint-placeholder-val="{{false}}">
+      <div role="alert" style="display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 800; color: #C62828">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.5"></path></svg>
+        {{fm.erro}}
+      </div>
+    </sc-if>
+    <button type="button" onClick="{{salvarForm}}" style="min-height: 52px; border-radius: 12px; border: 0; background: #54B4B0; color: #181818; font-weight: 800; font-size: 16px; cursor: pointer">Salvar lembrete</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== CÂMERA ===================== -->
+<sc-if value="{{hasSheet}}" hint-placeholder-val="{{false}}">
+<div class="up" style="position: absolute; inset: 0; background: #181818; color: #fff; display: flex; flex-direction: column; z-index: 7">
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 8px 16px">
+    <div style="min-width: 0">
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #54B4B0">{{cam.kicker}}</div>
+      <div style="font-weight: 800; font-size: 17px">{{cam.titulo}}</div>
+    </div>
+    <button type="button" onClick="{{fecharCam}}" aria-label="Fechar câmera" style="width: 44px; height: 44px; border: 0; background: transparent; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+  </div>
+  <div style="flex-grow: 1; margin: 6px 12px; border-radius: 20px; background: #2B2B2B; position: relative; overflow: hidden">
+    <sc-if value="{{cam.ghost}}" hint-placeholder-val="{{true}}">
+      <div class="ph" style="position: absolute; inset: 0; background-color: {{cam.tone}}; opacity: .4"></div>
+      <div style="position: absolute; inset: 22px; border: 2px dashed #54B4B0; border-radius: 12px"></div>
+    </sc-if>
+    <div style="position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr))">
+      <div style="border-right: 1px solid rgba(255,255,255,.15); border-bottom: 1px solid rgba(255,255,255,.15)"></div><div style="border-right: 1px solid rgba(255,255,255,.15); border-bottom: 1px solid rgba(255,255,255,.15)"></div><div style="border-bottom: 1px solid rgba(255,255,255,.15)"></div>
+      <div style="border-right: 1px solid rgba(255,255,255,.15); border-bottom: 1px solid rgba(255,255,255,.15)"></div><div style="border-right: 1px solid rgba(255,255,255,.15); border-bottom: 1px solid rgba(255,255,255,.15)"></div><div style="border-bottom: 1px solid rgba(255,255,255,.15)"></div>
+      <div style="border-right: 1px solid rgba(255,255,255,.15)"></div><div style="border-right: 1px solid rgba(255,255,255,.15)"></div><div></div>
+    </div>
+    <div style="position: absolute; left: 12px; right: 12px; bottom: 12px; font-size: 14px; background: rgba(24,24,24,.8); padding: 8px 10px; border-radius: 12px">{{cam.dica}}</div>
+  </div>
+  <div style="display: flex; align-items: center; justify-content: center; padding: 16px 0 30px">
+    <button type="button" onClick="{{capturar}}" aria-label="Tirar foto" style="width: 76px; height: 76px; border-radius: 50%; border: 5px solid #fff; background: #54B4B0; cursor: pointer"></button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== CELEBRAÇÃO DE FASE ===================== -->
+<sc-if value="{{hasCelebra}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; background: rgba(24,24,24,.78); display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 8">
+  <div class="pop" role="dialog" aria-label="Fase concluída" style="background: #fff; border-radius: 20px; padding: 24px 20px 20px; width: 100%; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center">
+    <div style="width: 72px; height: 72px; border-radius: 50%; background: #54B4B0; color: #181818; display: flex; align-items: center; justify-content: center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div>
+    <div style="font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase">Fase {{cel.n}} concluída</div>
+    <div style="font-size: 32px; font-weight: 800; line-height: 38px">{{cel.t}}</div>
+    <div style="font-size: 17px; font-weight: 800; background: #54B4B0; color: #181818; padding: 4px 12px; border-radius: 99px">+200 XP para a equipe</div>
+    <div style="background: rgba(24,24,24,.05); border-radius: 12px; padding: 10px 12px; width: 100%; box-sizing: border-box; text-align: left">
+      <div style="font-size: 12px; font-weight: 800; color: #696969; text-transform: uppercase; letter-spacing: .06em">Liberado agora</div>
+      <sc-for list="{{cel.libera}}" as="l" hint-placeholder-count="2"><div style="font-weight: 700; font-size: 15px; margin-top: 4px">{{l.n}}</div></sc-for>
+    </div>
+    <button type="button" onClick="{{fecharCel}}" style="width: 100%; min-height: 52px; border: 0; border-radius: 12px; background: #181818; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; margin-top: 4px">Ir para a Fase {{cel.prox}}</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ===================== TOAST ===================== -->
+<sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+  <div class="up" role="status" style="position: absolute; left: 16px; right: 16px; bottom: 92px; background: #181818; color: #fff; border-radius: 12px; padding: 12px 14px; font-size: 14px; font-weight: 700; z-index: 9; box-shadow: 0 8px 24px rgba(24,24,24,.25); display: flex; gap: 10px; align-items: flex-start">
+    <span style="width: 22px; height: 22px; border-radius: 50%; background: #54B4B0; color: #181818; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+    <span style="flex-grow: 1">{{toast}}</span>
+    <sc-if value="{{hasUndo}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{desfazer}}" style="border: 0; background: transparent; color: #54B4B0; font-weight: 800; font-size: 14px; cursor: pointer; min-height: 32px; padding: 0 4px; flex-shrink: 0">Desfazer</button></sc-if>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const D = (y, m, d) => new Date(y, m - 1, d);
+    const rng = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); return r; };
+    const card = (id, t, local, ativ, prio, tone, dias, quando, ord) => ({ id, obra: 'eld', t, local, ativ, prio, tone, dias, quando, autor: 'Mestre de obras', status: 'aberta', ord, after: null, quandoDepois: '' });
+    const c7 = card(7, 'Eletroduto aparente na fachada', 'Fachada', 'Infra de elétrica', 'média', '#777777', '5 dias', '19/10 16:05', 7);
+    c7.status = 'validacao'; c7.after = '#5C5C5C'; c7.quandoDepois = '23/10 11:40';
+    const eldDone = rng(1, 11).concat([14]);
+    const pamDone = rng(1, 20).concat([22]);
+    const betDone = [1, 2];
+    this.state = {
+      screen: 'home', obraId: 'eld', xp: 1840, dx: 0, dragging: false, sheet: null, celebra: null, toast: '', selAct: null, openPh: null,
+      actSheet: null, form: null, tf: null, pendView: 'fila', adiar: null, undo: null, reuOpen: null, reuObs: {}, tarPessoa: 'Todos',
+      tasks: [
+        { id: 1, obra: 'eld', txt: 'Fechar contratação do pintor (massa e pintura)', resp: 'Paulo', prazo: D(2026, 10, 21), st: 'aberta', feitaEm: null, origem: 'Reunião 19/10', link: { kind: 'sup', id: 'eld-17' } },
+        { id: 2, obra: 'eld', txt: 'Garantir porcelanato e argamassa na obra', resp: 'Paulo', prazo: D(2026, 10, 23), st: 'aberta', feitaEm: null, origem: 'Reunião 19/10', link: { kind: 'sup', id: 'eld-15' } },
+        { id: 3, obra: 'eld', txt: 'Liberar frente do forro na sala de musculação', resp: 'Rafael', prazo: D(2026, 10, 20), st: 'feita', feitaEm: D(2026, 10, 20), origem: 'Reunião 19/10', link: null },
+        { id: 4, obra: 'eld', txt: 'Corrigir dreno do ar sobre o forro (pendência alta)', resp: 'Rafael', prazo: D(2026, 10, 27), st: 'aberta', feitaEm: null, origem: 'Reunião 19/10', link: null },
+        { id: 5, obra: 'pam', txt: 'Contratar comunicação visual', resp: 'Paulo', prazo: D(2026, 10, 20), st: 'aberta', feitaEm: null, origem: 'Reunião 19/10', link: { kind: 'sup', id: 'pam-24' } },
+        { id: 6, obra: 'pam', txt: 'Confirmar data de entrega das luminárias com a Lumi Center', resp: 'Marina', prazo: D(2026, 10, 22), st: 'feita', feitaEm: D(2026, 10, 22), origem: 'Reunião 19/10', link: null },
+        { id: 7, obra: 'pam', txt: 'Replanejar a entrega à operação com a gestão da unidade', resp: 'Diretoria', prazo: D(2026, 10, 28), st: 'aberta', feitaEm: null, origem: 'Reunião 19/10', link: null },
+        { id: 8, obra: 'bet', txt: 'Fechar instaladora de ar-condicionado', resp: 'Paulo', prazo: D(2026, 10, 23), st: 'aberta', feitaEm: null, origem: 'Reunião 19/10', link: { kind: 'sup', id: 'bet-7' } },
+        { id: 9, obra: 'bet', txt: 'Concluir limpeza e bota-fora', resp: 'Júlia', prazo: D(2026, 10, 22), st: 'aberta', feitaEm: null, origem: 'Reunião 19/10', link: { kind: 'act', id: 3 } },
+        { id: 10, obra: 'bet', txt: 'Contratar empresa de incêndio (sprinkler)', resp: 'Paulo', prazo: D(2026, 10, 27), st: 'aberta', feitaEm: null, origem: 'Reunião 19/10', link: { kind: 'sup', id: 'bet-11' } }
+      ],
+      novoNome: 'CDC Sete Lagoas', novoIdx: 0, novoMod: 1, perfil: 'gestor',
+      obras: [
+        { id: 'eld', nome: 'CDC Contagem · Eldorado', start: D(2026, 9, 21), done: eldDone,
+          prest: { 12: 'Gesso Forte Instalações', 13: 'Equipe J. Almeida' },
+          sup: this.mkSup('eld', eldDone, [[12, 'contratacao', 'feito'], [12, 'compra', 'feito'], [13, 'contratacao', 'feito']]) },
+        { id: 'pam', nome: 'CDC BH · Pampulha', start: D(2026, 8, 17), done: pamDone, prest: {},
+          sup: this.mkSup('pam', pamDone, []) },
+        { id: 'bet', nome: 'CDC Betim · Centro', start: D(2026, 10, 13), done: betDone, prest: { 4: 'Construtora Parceira MG', 5: 'Elétrica Horizonte' },
+          sup: this.mkSup('bet', betDone, [[4, 'contratacao', 'feito'], [4, 'compra', 'feito'], [5, 'contratacao', 'feito'], [7, 'contratacao', 'feito'], [7, 'compra', 'feito']]) }
+      ],
+      cards: [
+        card(1, 'Dreno do ar pingando sobre o forro', 'Sala de musculação', 'Infra de ar-condicionado', 'alta', '#6A6A6A', '2 dias', '22/10 09:14', 1),
+        card(2, 'Caixa elétrica sem espelho e sem identificação', 'Sala de bike', 'Infra de elétrica', 'média', '#8A8A8A', '3 dias', '21/10 15:30', 2),
+        card(3, 'Contrapiso com desnível junto ao ralo', 'Vestiário feminino', 'Contrapiso e regularização', 'alta', '#7A7A7A', '1 dia', '23/10 10:02', 3),
+        card(4, 'Junta do drywall sem fita', 'Corredor de acesso', 'Fechamento em drywall', 'média', '#909090', '4 dias', '20/10 08:47', 4),
+        card(5, 'Sprinkler fora da modulação do forro', 'Recepção', 'Infra de incêndio', 'média', '#808080', '1 dia', '23/10 14:21', 5),
+        card(6, 'Ralo do box sem caimento', 'Vestiário masculino', 'Água fria e esgoto', 'alta', '#626262', '2 dias', '22/10 17:55', 6),
+        c7
+      ]
+    };
+    const c4 = this.state.cards.find(c => c.id === 4); c4.adiadaAte = D(2026, 10, 27); c4.motivo = 'Aguardando outra equipe';
+    this.TODAY = D(2026, 10, 24);
+    this.SEG = D(2026, 10, 26);
+  }
+
+  // ---------- equipe, semana, atribuições, tarefas ----------
+  PESSOAS() { return [['Rafael', 'Engenheiro · Eldorado'], ['Marina', 'Engenheira · Pampulha'], ['Júlia', 'Engenheira · Betim'], ['Paulo', 'Compras e contratos'], ['Diretoria', 'Diretoria de obras']]; }
+  papel(n) { const p = this.PESSOAS().find(x => x[0] === n); return p ? p[1] : ''; }
+  eng(oid) { return { eld: 'Rafael', pam: 'Marina', bet: 'Júlia' }[oid] || 'Rafael'; }
+  dow(d) { return ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][d.getDay()] + ' ' + this.fmt(d); }
+  curto(oid) { const o = this.state.obras.find(x => x.id === oid); return o ? o.nome.split(' · ').slice(-1)[0] : ''; }
+  motivo(o, done, a) {
+    const falta = a.p.filter(p => !done.has(p));
+    if (falta.length) return 'aguarda ' + falta.map(p => this.nome(p)).join(', ');
+    const it = (o.sup || []).find(x => x.actId === a.id && !this.supOk(x));
+    return it ? 'aguarda ' + this.tipoTxt(it.tipo).toLowerCase() + ' de ' + it.desc.toLowerCase() : 'liberada';
+  }
+  semana(o) {
+    const S = this.sched(), T = this.T(); const an = this.analisa(o); const el = an.elapsed, done = an.done;
+    const pend = T.filter(a => !done.has(a.id));
+    const dI = a => this.addWD(o.start, S.es[a.id]), dF = a => this.addWD(o.start, S.ef[a.id] - 1);
+    const concluir = pend.filter(a => el < S.ef[a.id] && S.ef[a.id] <= el + 5).sort((x, y) => S.ef[x.id] - S.ef[y.id]);
+    const comecar = pend.filter(a => el <= S.es[a.id] && S.es[a.id] < el + 5).sort((x, y) => S.es[x.id] - S.es[y.id]);
+    const pedir = (o.sup || []).filter(it => !done.has(it.actId) && it.sit === 'pendente' && !this.supLate(o, done, el, an.started, it) && (S.es[it.actId] - it.lead) < el + 5);
+    const passConc = an.started ? T.filter(a => el - 5 < S.ef[a.id] && S.ef[a.id] <= el) : [];
+    const passCom = an.started ? T.filter(a => el - 5 <= S.es[a.id] && S.es[a.id] < el) : [];
+    const sumD = T.reduce((s, a) => s + a.d, 0);
+    const planSex = T.reduce((s, a) => s + Math.min(Math.max((el + 5 - S.es[a.id]) / a.d, 0), 1) * a.d, 0) / sumD;
+    return { an, concluir, comecar, pedir, passConc, passCom, planSex, dI, dF };
+  }
+  atribuicoes(o, w) {
+    const S = this.sched(); const eng = this.eng(o.id); const an = w.an;
+    const ts = this.state.tasks.filter(t => t.obra === o.id);
+    const out = ts.map(t => ({ resp: t.resp, txt: t.txt, prazo: t.prazo, origem: t.origem, st: t.st, feitaEm: t.feitaEm }));
+    const linked = new Set(ts.filter(t => t.link && t.link.kind === 'sup').map(t => t.link.id));
+    an.lateActs.forEach(a => out.push({ resp: eng, txt: 'Recuperar atraso: ' + a.n, prazo: w.dF(a), origem: 'Cronograma', st: 'aberta' }));
+    w.concluir.forEach(a => { const p = this.prestador(o, a.id); out.push({ resp: eng, txt: 'Garantir conclusão: ' + a.n + (p ? ' (' + p + ')' : ''), prazo: w.dF(a), origem: 'Cronograma', st: 'aberta' }); });
+    w.comecar.forEach(a => { const p = this.prestador(o, a.id); out.push({ resp: eng, txt: 'Mobilizar início: ' + a.n + (p ? ' (' + p + ')' : ' · sem prestador'), prazo: w.dI(a), origem: 'Cronograma', st: 'aberta' }); });
+    const verbo = { contratacao: 'Contratar', locacao: 'Alugar', compra: 'Comprar' };
+    an.lateSups.filter(it => !linked.has(it.id)).forEach(it => out.push({ resp: 'Paulo', txt: 'Destravar ' + this.tipoTxt(it.tipo).toLowerCase() + ': ' + it.desc, prazo: this.addWD(o.start, Math.max(S.es[it.actId] - it.lead, 0)), origem: 'Suprimentos', st: 'aberta' }));
+    w.pedir.filter(it => !linked.has(it.id)).forEach(it => out.push({ resp: 'Paulo', txt: verbo[it.tipo] + ': ' + it.desc + ' (na obra ' + this.naObra(o, it) + ')', prazo: this.addWD(o.start, Math.max(S.es[it.actId] - it.lead, 0)), origem: 'Suprimentos', st: 'aberta' }));
+    return out;
+  }
+  agrupaPessoas(itens, eng) {
+    const ordem = [eng, 'Paulo', 'Diretoria'].concat(this.PESSOAS().map(p => p[0]));
+    const vistos = []; ordem.forEach(n => { if (!vistos.includes(n)) vistos.push(n); });
+    return vistos.map(n => ({ nome: n, itens: itens.filter(t => t.resp === n).sort((a, b) => (a.st === 'feita') - (b.st === 'feita') || a.prazo - b.prazo) })).filter(g => g.itens.length);
+  }
+  concluirTarefa(id) {
+    const t = this.state.tasks.find(x => x.id === id); if (!t) return;
+    const prev = { tasks: this.state.tasks, obras: this.state.obras, xp: this.state.xp };
+    const undo = () => this.setState({ tasks: prev.tasks, obras: prev.obras, xp: prev.xp, sheet: null, form: null, toast: '', undo: null });
+    let tasks = this.state.tasks.map(x => x.id === id ? Object.assign({}, x, { st: 'feita', feitaEm: this.TODAY }) : x);
+    const patch = { tasks, xp: this.state.xp + 15 };
+    const o = this.state.obras.find(x => x.id === t.obra);
+    if (t.link && t.link.kind === 'sup' && o) {
+      const it = o.sup.find(x => x.id === t.link.id);
+      if (it && !this.supOk(it)) {
+        const o2 = Object.assign({}, o, { sup: o.sup.map(x => x.id === it.id ? Object.assign({}, x, { sit: 'feito' }) : x) });
+        const lib = this.novasLiberadas(o, o2);
+        patch.obras = this.state.obras.map(x => x.id === o.id ? o2 : x);
+        patch.tasks = tasks.map(x => x.id === id ? Object.assign({}, x, { efeitoSup: it.id }) : x);
+        this.setState(patch); this.say('Tarefa concluída · ' + this.tipoTxt(it.tipo).toLowerCase() + ' providenciada' + (lib.length ? ' · liberou ' + lib.map(a => a.n).join(', ') : ''), undo); return;
+      }
+    }
+    if (t.link && t.link.kind === 'act' && o) {
+      const a = this.T().find(x => x.id === t.link.id);
+      if (this.ready(o, new Set(o.done), a)) { patch.obraId = t.obra; patch.sheet = { kind: 'ativ', id: a.id }; this.setState(patch); this.say('Tarefa concluída · tire a foto de conclusão', undo); return; }
+    }
+    this.setState(patch); this.say('Tarefa concluída · +15 XP', undo);
+  }
+  reabrirTarefa(id) {
+    const t = this.state.tasks.find(x => x.id === id); if (!t) return;
+    const tasks = this.state.tasks.map(x => x.id === id ? Object.assign({}, x, { st: 'aberta', feitaEm: null, efeitoSup: null }) : x);
+    let obras = this.state.obras, extra = '';
+    if (t.efeitoSup) {
+      const o = obras.find(x => x.id === t.obra);
+      const it = o && o.sup.find(x => x.id === t.efeitoSup);
+      if (it && it.sit === 'feito' && !o.done.includes(it.actId)) {
+        obras = obras.map(x => x.id === o.id ? Object.assign({}, x, { sup: x.sup.map(y => y.id === it.id ? Object.assign({}, y, { sit: 'pendente' }) : y) }) : x);
+        extra = ' · lembrete voltou para "a providenciar"';
+      }
+    }
+    this.setState({ tasks, obras, xp: Math.max(0, this.state.xp - 15) });
+    this.say('Tarefa reaberta' + extra);
+  }
+  parseData(txt) {
+    const m = /^\s*(\d{1,2})\s*\/\s*(\d{1,2})(?:\s*\/\s*(\d{2,4}))?\s*$/.exec(txt || '');
+    if (!m) return null;
+    const d = +m[1], mo = +m[2]; let y = m[3] ? +m[3] : (mo < 8 ? 2027 : 2026); if (y < 100) y += 2000;
+    const dt = new Date(y, mo - 1, d);
+    return (dt.getMonth() === mo - 1 && dt.getDate() === d) ? dt : null;
+  }
+  abrirTarefa(id) {
+    const t = this.state.tasks.find(x => x.id === id); if (!t) return;
+    const idx = this.prazosTf().findIndex(d => d.getTime() === t.prazo.getTime());
+    this.setState({ tf: { editId: id, obra: t.obra, txt: t.txt, resp: t.resp, prazoIdx: idx, prazoTxt: idx < 0 ? this.fmt(t.prazo) : '', st: t.st, link: t.link, sug: -1, erro: '' } });
+  }
+  prazoDoForm(f) { return f.prazoIdx >= 0 ? this.prazosTf()[f.prazoIdx] : this.parseData(f.prazoTxt); }
+  salvarTf() {
+    const f = this.state.tf; if (!f) return;
+    if (!f.txt.trim()) { this.setState({ tf: Object.assign({}, f, { erro: 'Descreva o que precisa ser feito.' }) }); return; }
+    const prazo = this.prazoDoForm(f);
+    if (!prazo) { this.setState({ tf: Object.assign({}, f, { erro: 'Escolha um prazo ou digite a data no formato dd/mm.' }) }); return; }
+    if (f.editId) {
+      const prevTasks = this.state.tasks;
+      const t = prevTasks.find(x => x.id === f.editId);
+      const mudouPrazo = t.prazo.getTime() !== prazo.getTime();
+      const upd = { txt: f.txt.trim(), resp: f.resp, prazo, st: f.st, feitaEm: f.st === 'feita' ? (t.feitaEm || this.TODAY) : null };
+      if (mudouPrazo && f.st !== 'feita') { upd.prazoOrig = t.prazoOrig || t.prazo; upd.replans = (t.replans || 0) + 1; }
+      this.setState({ tasks: prevTasks.map(x => x.id === f.editId ? Object.assign({}, x, upd) : x), tf: null });
+      this.say(mudouPrazo && f.st !== 'feita' ? 'Tarefa replanejada para ' + this.dow(prazo) : 'Tarefa atualizada', () => this.setState({ tasks: prevTasks, toast: '', undo: null }));
+      return;
+    }
+    const id = Math.max(0, ...this.state.tasks.map(t => t.id)) + 1;
+    const nova = { id, obra: f.obra, txt: f.txt.trim(), resp: f.resp, prazo, st: 'aberta', feitaEm: null, origem: 'Reunião 26/10', link: f.link };
+    this.setState({ tasks: this.state.tasks.concat([nova]), tf: null });
+    this.say('Providência registrada na ata · ' + f.resp + ' até ' + this.dow(prazo));
+  }
+  excluirTf() {
+    const f = this.state.tf; if (!f || !f.editId) return;
+    const prevTasks = this.state.tasks;
+    this.setState({ tasks: prevTasks.filter(x => x.id !== f.editId), tf: null });
+    this.say('Tarefa excluída', () => this.setState({ tasks: prevTasks, toast: '', undo: null }));
+  }
+  prazosTf() { return [new Date(2026, 9, 27), new Date(2026, 9, 28), new Date(2026, 9, 29), new Date(2026, 9, 30), new Date(2026, 10, 2)]; }
+
+  T() {
+    if (this._T) return this._T;
+    this._T = [
+      { id: 1, n: 'Mobilização e tapumes', f: 1, d: 2, p: [] },
+      { id: 2, n: 'Demolições e retiradas', f: 1, d: 5, p: [1] },
+      { id: 3, n: 'Limpeza e bota-fora', f: 1, d: 2, p: [2] },
+      { id: 4, n: 'Alvenarias e novos fechamentos', f: 2, d: 6, p: [3] },
+      { id: 5, n: 'Infra de elétrica', f: 2, d: 8, p: [3] },
+      { id: 6, n: 'Infra de ar-condicionado', f: 2, d: 6, p: [3] },
+      { id: 7, n: 'Água fria e esgoto', f: 2, d: 6, p: [3] },
+      { id: 8, n: 'Infra de dados, CFTV e som', f: 2, d: 4, p: [5] },
+      { id: 9, n: 'Infra de incêndio', f: 2, d: 5, p: [3] },
+      { id: 10, n: 'Impermeabilização dos vestiários', f: 3, d: 3, p: [7] },
+      { id: 11, n: 'Contrapiso e regularização', f: 3, d: 4, p: [7, 10] },
+      { id: 12, n: 'Forro de gesso', f: 3, d: 8, p: [5, 6, 8, 9] },
+      { id: 13, n: 'Revestimento cerâmico vestiários', f: 3, d: 6, p: [11] },
+      { id: 14, n: 'Fechamento em drywall', f: 3, d: 4, p: [4, 5] },
+      { id: 15, n: 'Emassamento', f: 4, d: 6, p: [12, 14] },
+      { id: 16, n: 'Pintura', f: 4, d: 6, p: [15] },
+      { id: 17, n: 'Piso emborrachado e vinílico', f: 4, d: 5, p: [11, 16] },
+      { id: 18, n: 'Louças e metais', f: 4, d: 3, p: [13] },
+      { id: 19, n: 'Bancadas e divisórias', f: 4, d: 3, p: [13] },
+      { id: 20, n: 'Esquadrias, vidros e espelhos', f: 4, d: 4, p: [16] },
+      { id: 21, n: 'Luminárias e acabamento elétrico', f: 5, d: 4, p: [16] },
+      { id: 22, n: 'Evaporadoras e start-up do ar', f: 5, d: 3, p: [12, 16] },
+      { id: 23, n: 'Comunicação visual e fachada', f: 5, d: 4, p: [16] },
+      { id: 24, n: 'Catraca, CFTV e som', f: 5, d: 3, p: [21] },
+      { id: 25, n: 'Equipamentos de academia', f: 6, d: 3, p: [17] },
+      { id: 26, n: 'Limpeza fina', f: 6, d: 2, p: [18, 19, 20, 21, 22, 23, 24, 25] },
+      { id: 27, n: 'Vistoria e punch list', f: 6, d: 2, p: [26] },
+      { id: 28, n: 'Entrega à operação', f: 6, d: 1, p: [27] }
+    ];
+    return this._T;
+  }
+  // Modelos de obra salvos (espelham a tela de modelos do gestor)
+  modelosObra() {
+    return [
+      { id: 1, nome: 'Modelo 1', sub: 'CDC completo · reforma pesada', excl: [] },
+      { id: 2, nome: 'Modelo 2', sub: 'CDC sem vestiários', excl: [10, 13, 18, 19] },
+      { id: 3, nome: 'Modelo 3', sub: 'Retrofit leve · ponto já era academia', excl: [4, 9, 10, 11, 13, 18, 19], ren: { 2: { n: 'Retiradas pontuais', d: 2 } } }
+    ];
+  }
+  semAtiv(acts, ids) {
+    const rm = new Set(ids); const byId = {}; acts.forEach(a => byId[a.id] = a);
+    const herda = p => rm.has(p) ? [].concat(...byId[p].p.map(herda)) : [p];
+    return acts.filter(a => !rm.has(a.id)).map(a => Object.assign({}, a, { p: Array.from(new Set([].concat(...a.p.map(herda)))) }));
+  }
+  // Suprimentos padrão do modelo: [atividade, tipo, descrição, antecedência em dias úteis]
+  SUPD() {
+    return [
+      [1, 'locacao', 'Tapumes e container de obra', 3],
+      [2, 'locacao', 'Caçambas de entulho', 2],
+      [2, 'contratacao', 'Equipe de demolição', 5],
+      [4, 'contratacao', 'Pedreiro (alvenaria)', 5],
+      [4, 'compra', 'Blocos e argamassa', 5],
+      [5, 'contratacao', 'Eletricista', 7],
+      [5, 'compra', 'Cabos, eletrodutos e quadros', 7],
+      [6, 'contratacao', 'Instaladora de ar-condicionado', 10],
+      [6, 'compra', 'Tubulação frigorígena e drenos', 7],
+      [7, 'contratacao', 'Encanador', 5],
+      [7, 'compra', 'Tubos e conexões', 5],
+      [9, 'contratacao', 'Empresa de incêndio (sprinkler)', 10],
+      [12, 'contratacao', 'Empreiteiro de forro', 7],
+      [12, 'compra', 'Placas de gesso, perfis e tirantes', 7],
+      [13, 'contratacao', 'Azulejista', 5],
+      [13, 'compra', 'Porcelanato e argamassa', 10],
+      [14, 'compra', 'Placas de drywall', 7],
+      [15, 'contratacao', 'Pintor (massa e pintura)', 7],
+      [15, 'compra', 'Massa corrida e lixas', 3],
+      [16, 'compra', 'Tintas', 5],
+      [17, 'contratacao', 'Instalador de piso', 7],
+      [17, 'compra', 'Piso emborrachado e vinílico', 15],
+      [21, 'compra', 'Luminárias', 15],
+      [22, 'compra', 'Evaporadoras', 15],
+      [23, 'contratacao', 'Comunicação visual', 15],
+      [25, 'locacao', 'Caminhão munck', 5]
+    ];
+  }
+  // Lembretes de providência: só o quê e até quando precisa estar na obra (valor e fornecedor ficam em outro sistema)
+  mkSup(oid, doneArr, ov) {
+    const done = new Set(doneArr);
+    return this.SUPD().map((x, i) => {
+      const [actId, tipo, desc, lead] = x;
+      const it = { id: oid + '-' + i, actId, tipo, desc, lead, prev: '', sit: done.has(actId) ? 'feito' : 'pendente' };
+      const p = (ov || []).find(z => z[0] === actId && z[1] === tipo);
+      if (p) it.sit = p[2];
+      return it;
+    });
+  }
+  PH() {
+    return [
+      { n: 1, t: 'Mobilização' }, { n: 2, t: 'Infraestrutura' }, { n: 3, t: 'Fechamentos' },
+      { n: 4, t: 'Acabamentos' }, { n: 5, t: 'Instalações finais' }, { n: 6, t: 'Entrega' }
+    ];
+  }
+  sched() {
+    if (this._S) return this._S;
+    const es = {}, ef = {}; let total = 0;
+    for (const a of this.T()) { let s = 0; for (const p of a.p) s = Math.max(s, ef[p] || 0); es[a.id] = s; ef[a.id] = s + a.d; total = Math.max(total, ef[a.id]); }
+    this._S = { es, ef, total };
+    return this._S;
+  }
+  addWD(d, n) { const x = new Date(d.getTime()); let k = 0; while (k < n) { x.setDate(x.getDate() + 1); const w = x.getDay(); if (w !== 0 && w !== 6) k++; } return x; }
+  wdBetween(a, b) { let n = 0; const x = new Date(a.getTime()); while (x < b) { const w = x.getDay(); if (w !== 0 && w !== 6) n++; x.setDate(x.getDate() + 1); } return n; }
+  fmt(d) { return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'); }
+  nome(id) { const a = this.T().find(x => x.id === id); return a ? a.n : ''; }
+  tipoTxt(t) { return t === 'contratacao' ? 'Contratação' : t === 'locacao' ? 'Locação' : 'Compra'; }
+  supOk(it) { return it.sit === 'feito'; }
+  supsOk(o, actId) { return (o.sup || []).filter(it => it.actId === actId).every(it => this.supOk(it)); }
+  predsOk(done, a) { return a.p.every(p => done.has(p)); }
+  ready(o, done, a) { return !done.has(a.id) && this.predsOk(done, a) && this.supsOk(o, a.id); }
+  prestador(o, actId) { return ((o.prest || {})[actId] || '').trim(); }
+
+  say(m, undo) { this.setState({ toast: m, undo: undo || null }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '', undo: null }), undo ? 5000 : 2800); }
+
+  analisa(o) {
+    const T = this.T(), S = this.sched(), PH = this.PH();
+    const done = new Set(o.done);
+    const sumD = T.reduce((s, a) => s + a.d, 0);
+    const started = o.start <= this.TODAY;
+    const elapsed = started ? this.wdBetween(o.start, this.TODAY) : 0;
+    const real = T.filter(a => done.has(a.id)).reduce((s, a) => s + a.d, 0) / sumD;
+    const plan = T.reduce((s, a) => s + Math.min(Math.max((elapsed - S.es[a.id]) / a.d, 0), 1) * a.d, 0) / sumD;
+    const delta = Math.round((real - plan) * S.total);
+    const curPh = (PH.find(ph => T.some(a => a.f === ph.n && !done.has(a.id))) || { n: 7 }).n;
+    const ph = PH.find(p => p.n === curPh);
+    const lateActs = T.filter(a => !done.has(a.id) && started && S.ef[a.id] <= elapsed);
+    const lateSups = (o.sup || []).filter(it => this.supLate(o, done, elapsed, started, it));
+    let ritmo, ritmoCor, ritmoBg, ritmoCorDark, ritmoBgDark;
+    if (!started) { ritmo = 'Planejada · começa ' + this.fmt(o.start); ritmoCor = '#181818'; ritmoBg = 'rgba(24,24,24,.08)'; ritmoCorDark = '#fff'; ritmoBgDark = 'rgba(255,255,255,.14)'; }
+    else if (delta >= 1) { ritmo = delta + ' dias à frente do modelo'; ritmoCor = '#181818'; ritmoBg = 'rgba(84,180,176,.22)'; ritmoCorDark = '#181818'; ritmoBgDark = '#54B4B0'; }
+    else if (delta > -2) { ritmo = 'No ritmo do modelo'; ritmoCor = '#181818'; ritmoBg = 'rgba(84,180,176,.22)'; ritmoCorDark = '#181818'; ritmoBgDark = '#54B4B0'; }
+    else { ritmo = 'Atrasada · ' + (-delta) + ' dias'; ritmoCor = '#fff'; ritmoBg = '#C62828'; ritmoCorDark = '#fff'; ritmoBgDark = '#C62828'; }
+    const entrega = this.fmt(this.addWD(o.start, S.total - 1));
+    return { done, elapsed, real, plan, delta, curPh, phT: ph ? ph.t : 'Concluída', ritmo, ritmoCor, ritmoBg, ritmoCorDark, ritmoBgDark, entrega, started, lateActs, lateSups };
+  }
+  // Lembrete atrasado: passou do "providenciar até" (início da atividade menos a antecedência) e não foi providenciado
+  supLate(o, done, elapsed, started, it) {
+    if (!started || done.has(it.actId) || this.supOk(it)) return false;
+    return elapsed >= Math.max(this.sched().es[it.actId] - it.lead, 0);
+  }
+  naObra(o, it) { return it.prev ? it.prev : this.dow(this.addWD(o.start, this.sched().es[it.actId])); }
+  supVM(o, an, it) {
+    const S = this.sched();
+    const lim = S.es[it.actId] - it.lead;
+    const ate = this.dow(lim >= 0 ? this.addWD(o.start, lim) : o.start);
+    const late = this.supLate(o, an.done, an.elapsed, an.started, it);
+    const ok = this.supOk(it);
+    const R = '#C62828', BK = '#181818', TQ = '#54B4B0';
+    const quando = ok ? 'Providenciado' : late ? 'ATRASADO · era para providenciar até ' + ate : 'Providenciar até ' + ate + ' (' + it.lead + ' dias úteis antes)';
+    return Object.assign({}, it, {
+      tipoTxt: this.tipoTxt(it.tipo), ativ: this.nome(it.actId),
+      naObraTxt: 'Precisa estar na obra ' + this.naObra(o, it),
+      sitTxt: ok ? 'Providenciado' : late ? 'Atrasado' : 'A providenciar',
+      sitBg: ok ? TQ : late ? R : '#fff', sitFg: late ? '#fff' : BK, sitBd: ok ? TQ : late ? R : 'rgba(24,24,24,.35)',
+      quando, quandoCor: late ? R : '#696969', quandoPeso: late ? '800' : '400',
+      bd: late ? R : 'rgba(24,24,24,.10)', barra: late ? R : ok ? TQ : 'rgba(24,24,24,.18)',
+      late, ok, lim,
+      canDone: !ok, marcar: () => this.marcarFeito(it.id),
+      edit: () => this.abrirForm(it.actId, it.id)
+    });
+  }
+
+  updObra(fn) { this.setState({ obras: this.state.obras.map(o => o.id === this.state.obraId ? fn(o) : o) }); }
+  novasLiberadas(oAntes, oDepois) {
+    const T = this.T();
+    const d1 = new Set(oAntes.done), d2 = new Set(oDepois.done);
+    return T.filter(a => this.ready(oDepois, d2, a) && !this.ready(oAntes, d1, a));
+  }
+  marcarFeito(id, oid) {
+    const obraId = oid || this.state.obraId;
+    const o = this.state.obras.find(x => x.id === obraId);
+    const it = o.sup.find(x => x.id === id);
+    const o2 = Object.assign({}, o, { sup: o.sup.map(x => x.id === id ? Object.assign({}, x, { sit: 'feito' }) : x) });
+    const lib = this.novasLiberadas(o, o2);
+    this.setState({ obras: this.state.obras.map(x => x.id === o.id ? o2 : x) });
+    this.say(this.tipoTxt(it.tipo) + ' providenciada' + (lib.length ? ' · liberou ' + lib.map(a => a.n).join(', ') : ''));
+  }
+  abrirForm(actId, supId, tipo) {
+    const o = this.state.obras.find(x => x.id === this.state.obraId);
+    if (supId) {
+      const it = o.sup.find(x => x.id === supId);
+      this.setState({ form: { actId: it.actId, editId: supId, tipo: it.tipo, desc: it.desc, prev: it.prev, sit: it.sit, erro: '' } });
+    } else {
+      this.setState({ form: { actId, editId: null, tipo: tipo || 'contratacao', desc: '', prev: '', sit: 'pendente', erro: '' } });
+    }
+  }
+  salvarForm() {
+    const f = this.state.form; if (!f) return;
+    if (!f.desc.trim()) { this.setState({ form: Object.assign({}, f, { erro: 'Descreva o que precisa ser providenciado.' }) }); return; }
+    const o = this.state.obras.find(x => x.id === this.state.obraId);
+    let sup;
+    if (f.editId) sup = o.sup.map(it => it.id === f.editId ? Object.assign({}, it, { desc: f.desc.trim(), prev: f.prev.trim(), sit: f.sit }) : it);
+    else sup = o.sup.concat([{ id: o.id + '-x' + Date.now(), actId: f.actId, tipo: f.tipo, desc: f.desc.trim(), lead: 5, prev: f.prev.trim(), sit: f.sit }]);
+    const o2 = Object.assign({}, o, { sup });
+    const lib = this.novasLiberadas(o, o2);
+    this.setState({ form: null, obras: this.state.obras.map(x => x.id === o.id ? o2 : x) });
+    const base = 'Lembrete de ' + this.tipoTxt(f.tipo).toLowerCase() + ' salvo';
+    this.say(lib.length ? base + ' · liberou ' + lib.map(a => a.n).join(', ') : base);
+  }
+
+  capturar() {
+    const s = this.state, sh = s.sheet; if (!sh) return;
+    if (sh.kind === 'punch') {
+      const cards = s.cards.map(c => c.id === sh.id ? Object.assign({}, c, { status: 'validacao', after: '#5C5C5C', quandoDepois: '24/10 ' + new Date().toTimeString().slice(0, 5) }) : c);
+      this.setState({ cards, sheet: null, xp: s.xp + 20 });
+      this.say('Foto de depois enviada · +20 XP · em vistoria');
+      return;
+    }
+    if (sh.kind === 'novo') {
+      const o = s.obras.find(x => x.id === s.obraId);
+      const ord = Math.min(0, ...s.cards.map(c => c.ord)) - 1;
+      const nid = Math.max(...s.cards.map(c => c.id)) + 1;
+      const done = new Set(o.done);
+      const ref = this.T().find(x => this.ready(o, done, x));
+      const cards = s.cards.concat([{ id: nid, obra: o.id, t: 'Novo apontamento (descrever)', local: 'Local a definir', ativ: ref ? ref.n : 'Geral', prio: 'média', tone: '#858585', dias: 'agora', quando: '24/10 agora', autor: 'você', status: 'aberta', ord, after: null, quandoDepois: '' }]);
+      this.setState({ cards, sheet: null });
+      this.say('Pendência criada no topo da fila');
+      return;
+    }
+    const T = this.T();
+    const o = s.obras.find(x => x.id === s.obraId);
+    const o2 = Object.assign({}, o, { done: o.done.concat([sh.id]) });
+    const obras = s.obras.map(x => x.id === s.obraId ? o2 : x);
+    const after = new Set(o2.done);
+    const novas = this.novasLiberadas(o, o2);
+    const act = T.find(a => a.id === sh.id);
+    const faseOk = T.filter(a => a.f === act.f).every(a => after.has(a.id));
+    let xp = s.xp + 50;
+    if (faseOk && act.f < 6) {
+      xp += 200;
+      const prox = act.f + 1;
+      const lib = T.filter(a => this.ready(o2, after, a)).map(a => ({ n: a.n }));
+      const prontasPred = T.filter(a => !after.has(a.id) && this.predsOk(after, a) && !this.supsOk(o2, a.id)).map(a => ({ n: a.n + ' (aguarda providência)' }));
+      const lista = lib.concat(prontasPred);
+      this.setState({ obras, sheet: null, xp, openPh: prox, celebra: { n: act.f, t: this.PH()[act.f - 1].t, prox, libera: lista.length ? lista : [{ n: 'Nenhuma ainda' }] } });
+    } else {
+      this.setState({ obras, sheet: null, xp });
+      this.say(novas.length ? 'Concluída · +50 XP · liberou ' + novas.map(a => a.n).join(', ') : 'Concluída com foto · +50 XP');
+    }
+  }
+
+  DATAS_ADIAR() { return [new Date(2026, 9, 26), new Date(2026, 9, 27), new Date(2026, 9, 28), new Date(2026, 10, 2)]; }
+  MOTIVOS() { return ['Aguardando material', 'Aguardando outra equipe', 'Local sem acesso', 'Outro']; }
+  confirmarAdiar() {
+    const a = this.state.adiar; if (!a) return;
+    const ate = this.DATAS_ADIAR()[a.dIdx], mot = this.MOTIVOS()[a.mot];
+    const antes = this.state.cards.find(c => c.id === a.id);
+    this.setState({ adiar: null, cards: this.state.cards.map(c => c.id === a.id ? Object.assign({}, c, { adiadaAte: ate, motivo: mot }) : c) });
+    this.say('Adiada até ' + this.dow(ate) + ' · ' + mot.toLowerCase(), () => {
+      this.setState({ cards: this.state.cards.map(c => c.id === a.id ? Object.assign({}, c, { adiadaAte: antes.adiadaAte || null, motivo: antes.motivo || '' }) : c), toast: '', undo: null });
+    });
+  }
+  trazer(id) {
+    const mn = Math.min(...this.state.cards.map(c => c.ord)) - 1;
+    this.setState({ pendView: 'fila', cards: this.state.cards.map(c => c.id === id ? Object.assign({}, c, { adiadaAte: null, motivo: '', ord: mn }) : c) });
+    this.say('De volta à fila, no topo');
+  }
+  deck() {
+    const s = this.state;
+    return s.cards.filter(c => c.obra === s.obraId && c.status === 'aberta' && !(c.adiadaAte && c.adiadaAte > this.TODAY)).sort((a, b) => a.ord - b.ord);
+  }
+  swipe(dir) {
+    const top = this.deck()[0]; if (!top) return;
+    this.setState({ dx: dir > 0 ? 520 : -520, dragging: false });
+    setTimeout(() => {
+      if (dir > 0) { this.setState({ dx: 0, sheet: { kind: 'punch', id: top.id } }); }
+      else { this.setState({ dx: 0, adiar: { id: top.id, dIdx: 0, mot: 0 } }); }
+    }, 240);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const TQ = '#54B4B0', BK = '#181818', MUTED = '#696969', R = '#C62828';
+    const T = this.T(), PH = this.PH(), S = this.sched();
+    const go = (screen, extra) => () => this.setState(Object.assign({ screen }, extra || {}));
+    const lvl = Math.floor(s.xp / 400) + 1;
+    const nomes = ['Servente', 'Ajudante', 'Meio-oficial', 'Oficial', 'Encarregado', 'Mestre de obras', 'Mestre sênior', 'Gestor de campo'];
+
+    let nAtrasoTot = 0;
+    const obraCards = s.obras.map(o => {
+      const a = this.analisa(o);
+      const segs = PH.map(ph => {
+        const acts = T.filter(x => x.f === ph.n); const dn = acts.filter(x => a.done.has(x.id)).length;
+        const lateHere = a.lateActs.some(x => x.f === ph.n);
+        return { bg: dn === acts.length ? TQ : lateHere ? R : (dn > 0 || ph.n === a.curPh) ? BK : 'rgba(24,24,24,.12)' };
+      });
+      const nl = a.lateActs.length, ns = a.lateSups.length;
+      nAtrasoTot += nl + ns;
+      const partes = [];
+      if (nl) partes.push(nl + (nl > 1 ? ' atividades atrasadas' : ' atividade atrasada'));
+      if (ns) partes.push(ns + (ns > 1 ? ' pedidos atrasados' : ' pedido atrasado'));
+      return {
+        nome: o.nome, pct: Math.round(a.real * 100), segs,
+        faseTxt: a.curPh <= 6 ? 'Em execução · Fase ' + a.curPh + ' de 6 · ' + a.phT : 'Concluída',
+        ritmo: a.ritmo, ritmoCor: a.ritmoCor, ritmoBg: a.ritmoBg, entrega: 'Entrega ' + a.entrega,
+        temAtraso: partes.length > 0, atrasoTxt: partes.join(' · '),
+        bordaAtraso: partes.length ? '6px solid ' + R : '1px solid rgba(24,24,24,.10)',
+        open: () => this.setState({ screen: 'mapa', obraId: o.id, selAct: null, openPh: null })
+      };
+    });
+    const nAbertasTot = s.cards.filter(c => c.status === 'aberta').length;
+
+    // Nova obra
+    const segundas = [new Date(2026, 9, 26), new Date(2026, 10, 2), new Date(2026, 10, 9), new Date(2026, 10, 16)];
+    const ini = segundas[s.novoIdx];
+    const inicios = segundas.map((d, i) => {
+      const on = i === s.novoIdx;
+      return { dow: 'seg', txt: this.fmt(d), on, pick: () => this.setState({ novoIdx: i }), bg: on ? 'rgba(84,180,176,.22)' : '#fff', bd: on ? BK : 'rgba(24,24,24,.25)' };
+    });
+    const MODS = this.modelosObra();
+    const modOf = m => { const TM = this.semAtiv(T, m.excl).map(a => (m.ren && m.ren[a.id]) ? Object.assign({}, a, m.ren[a.id]) : a); const es = {}, ef = {}; let total = 0; TM.forEach(a => { const st = Math.max(0, ...a.p.map(p => ef[p] || 0)); es[a.id] = st; ef[a.id] = st + a.d; total = Math.max(total, ef[a.id]); }); return { TM, es, ef, total, nSup: this.SUPD().filter(x => TM.some(a => a.id === x[0])).length }; };
+    const modSel = MODS.find(m => m.id === s.novoMod) || MODS[0];
+    const SN = modOf(modSel);
+    const modsNova = MODS.map(m => { const on = m.id === modSel.id; const r = modOf(m); return { nome: m.nome, sub: m.sub, dias: r.total, ativ: r.TM.length, aria: on ? 'true' : 'false', dot: on ? BK : 'transparent', bg: on ? 'rgba(84,180,176,.14)' : '#fff', bd: on ? BK : 'rgba(24,24,24,.16)', pick: () => this.setState({ novoMod: m.id }) }; });
+    const fimNovo = this.addWD(ini, SN.total - 1);
+    const novoFases = PH.map(ph => {
+      const acts = SN.TM.filter(a => a.f === ph.n);
+      if (!acts.length) return { n: ph.n, t: ph.t, left: '0%', width: '0%', cor: TQ, datas: '—' };
+      const es = Math.min(...acts.map(a => SN.es[a.id])), ef = Math.max(...acts.map(a => SN.ef[a.id]));
+      return { n: ph.n, t: ph.t, left: (es / SN.total * 100) + '%', width: ((ef - es) / SN.total * 100) + '%', cor: ph.n % 2 ? TQ : BK, datas: this.fmt(this.addWD(ini, es)) + '–' + this.fmt(this.addWD(ini, ef - 1)) };
+    });
+
+    // Obra atual
+    const o = s.obras.find(x => x.id === s.obraId) || s.obras[0];
+    const an = this.analisa(o);
+    const isLateAct = a => !an.done.has(a.id) && an.started && S.ef[a.id] <= an.elapsed;
+    const openPh = s.openPh || an.curPh;
+    const fases = PH.map(ph => {
+      const acts = T.filter(a => a.f === ph.n);
+      const dn = acts.filter(a => an.done.has(a.id)).length;
+      const isDone = dn === acts.length, isCur = !isDone && ph.n === an.curPh, isNext = !isDone && !isCur;
+      const prontas = acts.filter(a => this.ready(o, an.done, a)).length;
+      const nLate = acts.filter(isLateAct).length;
+      let info;
+      if (isDone) info = 'Concluída com fotos de todas as etapas';
+      else if (prontas > 0) info = prontas + (prontas > 1 ? ' atividades liberadas' : ' atividade liberada') + ' para executar';
+      else {
+        const aguardSup = acts.filter(a => !an.done.has(a.id) && this.predsOk(an.done, a) && !this.supsOk(o, a.id));
+        if (aguardSup.length) info = aguardSup.length + ' aguardando contratação, locação ou compra';
+        else {
+          const first = acts.filter(a => !an.done.has(a.id)).sort((x, y) => S.es[x.id] - S.es[y.id])[0];
+          const falta = first ? first.p.filter(p => !an.done.has(p)).map(p => this.nome(p)) : [];
+          info = 'Libera quando concluir: ' + falta.join(', ');
+        }
+      }
+      return {
+        n: ph.n, t: ph.t, isDone, isCur, isNext, prog: dn + '/' + acts.length,
+        status: isDone ? 'concluída' : isCur ? 'em execução' : 'planejada',
+        temAtraso: nLate > 0, atrasoTxt: nLate + (nLate > 1 ? ' atrasadas' : ' atrasada'),
+        tagBg: isDone ? TQ : isCur ? BK : 'rgba(24,24,24,.08)',
+        tagFg: isCur ? '#fff' : BK,
+        size: isCur ? '44px' : '36px',
+        nodeBg: isDone ? TQ : nLate ? R : isCur ? BK : '#fff',
+        nodeFg: (isCur || nLate) ? '#fff' : isDone ? BK : MUTED,
+        nodeBd: (isNext && !nLate) ? '2px solid rgba(24,24,24,.25)' : '0',
+        ring: isCur ? (nLate ? '0 0 0 5px rgba(198,40,40,.25)' : '0 0 0 5px rgba(84,180,176,.55)') : 'none',
+        line: isDone ? TQ : 'rgba(24,24,24,.14)',
+        info, open: openPh === ph.n,
+        toggle: () => this.setState({ openPh: openPh === ph.n ? -1 : ph.n }),
+        acts: acts.map(a => {
+          const d = an.done.has(a.id), pOk = this.predsOk(an.done, a), sOk = this.supsOk(o, a.id);
+          const r = !d && pOk && sOk, aguardSup = !d && pOk && !sOk, late = isLateAct(a);
+          const prest = this.prestador(o, a.id);
+          const falta = a.p.filter(p => !an.done.has(p)).map(p => this.nome(p));
+          const ini2 = this.fmt(this.addWD(o.start, S.es[a.id])), fim2 = this.fmt(this.addWD(o.start, S.ef[a.id] - 1));
+          let sub;
+          if (d) sub = 'Concluída · foto arquivada';
+          else if (aguardSup) {
+            const it = o.sup.find(x => x.actId === a.id && !this.supOk(x));
+            sub = 'Aguardando ' + this.tipoTxt(it.tipo).toLowerCase() + ': ' + it.desc;
+          }
+          else if (r) sub = 'Liberada · ' + ini2 + '–' + fim2;
+          else sub = 'Planejada · aguarda ' + falta.join(', ');
+          if (late) sub = 'ATRASADA · devia terminar ' + fim2 + ' · ' + sub.split(' · ').slice(-1)[0];
+          return {
+            nome: a.n, isDone: d, isReady: r, isLate: late,
+            isReadyOk: r && !late, isSupOk: aguardSup && !late, isPlanOk: !d && !pOk && !late,
+            sub, subCor: late ? R : MUTED, subPeso: late ? '800' : '400',
+            temPrest: !!prest && !d, prest,
+            fg: d ? MUTED : late ? R : BK,
+            bg: late ? 'rgba(198,40,40,.06)' : r ? 'rgba(84,180,176,.12)' : '#fff',
+            bd: late ? R : r ? TQ : 'rgba(24,24,24,.10)',
+            icBg: d ? TQ : late ? R : r ? BK : 'rgba(24,24,24,.08)', icFg: d ? BK : (late || r) ? '#fff' : MUTED,
+            abrir: () => this.setState({ actSheet: a.id }),
+            go: () => this.setState({ sheet: { kind: 'ativ', id: a.id } })
+          };
+        })
+      };
+    });
+    const nFasesDone = fases.filter(f => f.isDone).length;
+    const badges = [
+      { t: nFasesDone + ' de 6 fases', bg: BK, fg: '#fff', bd: BK },
+      { t: 'Canteiro em 2 dias', bg: '#fff', fg: BK, bd: 'rgba(24,24,24,.14)' },
+      { t: 'Foto em 100% das etapas', bg: '#fff', fg: BK, bd: 'rgba(24,24,24,.14)' }
+    ];
+
+    // Ficha da atividade
+    let act = { nome: '', status: '', tagBg: BK, tagFg: '#fff', datas: '', datasCor: MUTED, datasPeso: '400', prest: '', semPrest: false, prestBg: '#fff', prestFg: BK, sups: [], semSup: true, supResumo: '', deps: '', libera: '', podeConcluir: false, bloqueioTxtOn: false, bloqueioTxt: '', addC: null, addL: null, addP: null, concluir: null };
+    const succ = {}; T.forEach(a => a.p.forEach(p => { (succ[p] = succ[p] || []).push(a.id); }));
+    if (s.actSheet) {
+      const a = T.find(x => x.id === s.actSheet);
+      const d = an.done.has(a.id), pOk = this.predsOk(an.done, a), sOk = this.supsOk(o, a.id), late = isLateAct(a);
+      const prest = this.prestador(o, a.id);
+      const sups = o.sup.filter(it => it.actId === a.id).map(it => this.supVM(o, an, it));
+      const nOk = sups.filter(x => x.ok).length;
+      const status = d ? 'Concluída' : late ? 'Atrasada' : (pOk && sOk) ? 'Liberada' : (pOk ? 'Aguardando providência' : 'Planejada');
+      const fim2 = this.fmt(this.addWD(o.start, S.ef[a.id] - 1));
+      let bloq = '';
+      if (!d && !pOk) bloq = 'Para começar, conclua antes: ' + a.p.filter(p => !an.done.has(p)).map(p => this.nome(p)).join(', ') + '.';
+      else if (!d && !sOk) bloq = 'Predecessoras prontas. Falta providenciar ' + (sups.length - nOk) + ' de ' + sups.length + ' itens acima para liberar.';
+      act = {
+        nome: a.n, status,
+        tagBg: d ? TQ : late ? R : (pOk && sOk) ? BK : 'rgba(24,24,24,.08)', tagFg: d ? BK : (late || (pOk && sOk)) ? '#fff' : BK,
+        datas: (late ? 'ATRASADA · ' : 'Previsto ') + this.fmt(this.addWD(o.start, S.es[a.id])) + ' a ' + fim2 + ' · ' + a.d + ' dias úteis',
+        datasCor: late ? R : MUTED, datasPeso: late ? '800' : '400',
+        prest: prest || 'Nenhum prestador contratado', semPrest: !prest && !d, prestVal: prest,
+        onPrest: e => { const v = e.target.value; this.setState({ obras: this.state.obras.map(x => x.id === o.id ? Object.assign({}, x, { prest: Object.assign({}, x.prest || {}, { [a.id]: v }) }) : x) }); },
+        prestBg: prest ? 'rgba(84,180,176,.18)' : 'rgba(24,24,24,.06)', prestFg: BK,
+        sups, semSup: sups.length === 0, supResumo: sups.length ? nOk + ' de ' + sups.length + ' providenciados' : 'nenhum lembrete',
+        deps: a.p.length ? a.p.map(p => this.nome(p)).join(', ') : 'início da obra',
+        libera: (succ[a.id] || []).map(x => this.nome(x)).join(', ') || 'entrega',
+        podeConcluir: !d && pOk && sOk,
+        bloqueioTxtOn: !!bloq, bloqueioTxt: bloq,
+        addC: () => this.abrirForm(a.id, null, 'contratacao'),
+        addL: () => this.abrirForm(a.id, null, 'locacao'),
+        addP: () => this.abrirForm(a.id, null, 'compra'),
+        concluir: () => this.setState({ actSheet: null, sheet: { kind: 'ativ', id: a.id } })
+      };
+    }
+
+    // Formulário
+    let fm = { titulo: '', ativ: '', novo: false, tipos: [], descLabel: '', descPh: '', desc: '', prev: '', prevPh: '', sits: [], temErro: false, erro: '' };
+    if (s.form) {
+      const f = s.form;
+      const set = patch => this.setState({ form: Object.assign({}, this.state.form, patch, { erro: '' }) });
+      const ob = s.obras.find(x => x.id === s.obraId);
+      fm = {
+        titulo: (f.editId ? 'Editar lembrete de ' : 'Lembrete de ') + this.tipoTxt(f.tipo).toLowerCase(),
+        ativ: this.nome(f.actId), novo: !f.editId,
+        tipos: [['contratacao', 'Contratação'], ['locacao', 'Locação'], ['compra', 'Compra']].map(([k, t]) => ({ t, on: f.tipo === k, bg: f.tipo === k ? 'rgba(84,180,176,.22)' : '#fff', bd: f.tipo === k ? BK : 'rgba(24,24,24,.25)', pick: () => set({ tipo: k }) })),
+        descLabel: f.tipo === 'contratacao' ? 'O que contratar' : f.tipo === 'locacao' ? 'O que alugar' : 'O que comprar',
+        descPh: f.tipo === 'contratacao' ? 'Ex.: mão de obra de forro' : f.tipo === 'locacao' ? 'Ex.: plataforma elevatória' : 'Ex.: porcelanato dos vestiários',
+        desc: f.desc, prev: f.prev, prevPh: 'Padrão: ' + this.dow(this.addWD(ob.start, S.es[f.actId])) + ' (início da atividade)',
+        onDesc: e => set({ desc: e.target.value }), onPrev: e => set({ prev: e.target.value }),
+        sits: [['pendente', 'A providenciar'], ['feito', 'Providenciado']].map(([k, t]) => ({ t, on: f.sit === k, bg: f.sit === k ? (k === 'feito' ? TQ : BK) : '#fff', fg: f.sit === k && k === 'pendente' ? '#fff' : BK, bd: f.sit === k ? BK : 'rgba(24,24,24,.25)', pick: () => set({ sit: k }) })),
+        temErro: !!f.erro, erro: f.erro
+      };
+    }
+
+    // Suprimentos da obra
+    const supsObra = o.sup.filter(it => !an.done.has(it.actId)).map(it => this.supVM(o, an, it));
+    const supAtraso = supsObra.filter(x => x.late);
+    const supPlanejar = supsObra.filter(x => !x.late && x.sit === 'pendente').sort((a, b) => a.lim - b.lim);
+    const supGrupos = [
+      { t: 'Atrasados', cor: R, rows: supAtraso },
+      { t: 'A providenciar', cor: BK, rows: supPlanejar }
+    ].filter(g => g.rows.length).map(g => Object.assign(g, { n: g.rows.length }));
+    const nResolv = supsObra.filter(x => x.ok).length + o.sup.filter(it => an.done.has(it.actId)).length;
+
+    // Pendências: fila x lista
+    const cardsObra = s.cards.filter(c => c.obra === o.id);
+    const adiadas = cardsObra.filter(c => c.status === 'aberta' && c.adiadaAte && c.adiadaAte > this.TODAY).sort((a, b) => a.adiadaAte - b.adiadaAte);
+    const linhaPend = (c, extra) => Object.assign({ t: c.t, local: c.local, prio: c.prio, tone: c.tone, op: 1, cor: BK, risco: 'none', temAcao: false, acao: null, acaoTxt: '', acaoBg: '#fff', acaoFg: BK, sub: '' }, extra);
+    const pendGrupos = [
+      { t: 'Na fila', itens: this.deck().map((c, i) => linhaPend(c, { sub: i === 0 ? 'Primeira da fila' : 'Aberta há ' + c.dias, temAcao: i > 0, acaoTxt: 'Resolver agora', acaoBg: '#54B4B0', acao: () => this.trazer(c.id) })) },
+      { t: 'Adiadas', itens: adiadas.map(c => linhaPend(c, { op: .6, sub: 'Volta ' + this.dow(c.adiadaAte) + ' · ' + (c.motivo || 'sem motivo'), temAcao: true, acaoTxt: 'Trazer para a fila', acao: () => this.trazer(c.id) })) },
+      { t: 'Em vistoria', itens: cardsObra.filter(c => c.status === 'validacao').map(c => linhaPend(c, { sub: 'Foto de depois enviada ' + c.quandoDepois, temAcao: true, acaoTxt: 'Vistoriar', acaoBg: '#181818', acaoFg: '#fff', acao: () => this.setState({ screen: 'valid' }) })) },
+      { t: 'Concluídas', itens: cardsObra.filter(c => c.status === 'fechada').map(c => linhaPend(c, { op: .5, cor: MUTED, risco: 'line-through', sub: 'Antes e depois arquivados' })) }
+    ].filter(g => g.itens.length).map(g => Object.assign(g, { n: g.itens.length }));
+    let ad = { titulo: '', datas: [], motivos: [], ateTxt: '' };
+    if (s.adiar) {
+      const c = s.cards.find(x => x.id === s.adiar.id);
+      const setA = p => this.setState({ adiar: Object.assign({}, this.state.adiar, p) });
+      ad = {
+        titulo: c ? c.t : '',
+        datas: this.DATAS_ADIAR().map((d, i) => ({ dow: ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][d.getDay()], txt: this.fmt(d), on: s.adiar.dIdx === i, bg: s.adiar.dIdx === i ? 'rgba(84,180,176,.22)' : '#fff', bd: s.adiar.dIdx === i ? BK : 'rgba(24,24,24,.25)', pick: () => setA({ dIdx: i }) })),
+        motivos: this.MOTIVOS().map((m, i) => ({ t: m, on: s.adiar.mot === i, bg: s.adiar.mot === i ? BK : '#fff', fg: s.adiar.mot === i ? '#fff' : BK, bd: s.adiar.mot === i ? BK : 'rgba(24,24,24,.25)', pick: () => setA({ mot: i }) })),
+        ateTxt: this.dow(this.DATAS_ADIAR()[s.adiar.dIdx])
+      };
+    }
+
+    // Pendências
+    const dk = this.deck();
+    const topRaw = dk[0] || null;
+    const top = topRaw ? Object.assign({}, topRaw, { prioBg: topRaw.prio === 'alta' ? BK : '#fff', prioFg: topRaw.prio === 'alta' ? '#fff' : BK }) : null;
+    const dx = s.dx;
+    const nValid = s.cards.filter(c => c.obra === o.id && c.status === 'validacao').length;
+    const nFech = s.cards.filter(c => c.obra === o.id && c.status === 'fechada').length;
+    const validList = s.cards.filter(c => c.obra === o.id && c.status === 'validacao').map(c => Object.assign({}, c, {
+      aprovar: () => { this.setState({ cards: this.state.cards.map(x => x.id === c.id ? Object.assign({}, x, { status: 'fechada' }) : x), xp: this.state.xp + 10 }); this.say('Concluída · antes e depois arquivados no histórico'); },
+      reabrir: () => { const mx = Math.max(...this.state.cards.map(x => x.ord)) + 1; this.setState({ cards: this.state.cards.map(x => x.id === c.id ? Object.assign({}, x, { status: 'aberta', ord: mx, after: null }) : x) }); this.say('Reaberta · voltou para a fila'); }
+    }));
+
+    // Cronograma
+    const hojeLeft = Math.min(Math.max(an.elapsed / S.total * 100, 0), 100) + '%';
+    const crono = PH.map(ph => ({
+      n: ph.n, t: ph.t,
+      rows: T.filter(a => a.f === ph.n).map(a => {
+        const d = an.done.has(a.id), r = this.ready(o, an.done, a), late = isLateAct(a);
+        const pOk = this.predsOk(an.done, a);
+        const sel = s.selAct === a.id;
+        const datas = this.fmt(this.addWD(o.start, S.es[a.id])) + '–' + this.fmt(this.addWD(o.start, S.ef[a.id] - 1));
+        const sups = o.sup.filter(it => it.actId === a.id);
+        const nOk = sups.filter(it => this.supOk(it)).length;
+        return {
+          nome: a.n, sel, nomeCor: late ? R : BK,
+          left: (S.es[a.id] / S.total * 100) + '%', width: (a.d / S.total * 100) + '%',
+          cor: d ? TQ : late ? R : r ? BK : 'rgba(24,24,24,.22)',
+          situacao: d ? 'Concluída' : late ? 'Atrasada em relação ao modelo' : r ? 'Liberada' : pOk ? 'Aguardando providência' : 'Planejada',
+          prest: this.prestador(o, a.id) || 'não informado',
+          supTxt: sups.length ? nOk + ' de ' + sups.length + ' providenciados' : 'nenhum lembrete',
+          rowBg: sel ? '#fff' : late ? 'rgba(198,40,40,.06)' : 'transparent',
+          datas: late ? 'ATRASADA · ' + datas : datas,
+          datasCor: late ? R : MUTED, datasPeso: late ? '800' : '400',
+          deps: a.p.length ? a.p.map(p => this.nome(p)).join(', ') : 'início da obra',
+          libera: (succ[a.id] || []).map(x => this.nome(x)).join(', ') || 'entrega',
+          toggle: () => this.setState({ selAct: sel ? null : a.id })
+        };
+      })
+    }));
+
+    // Câmera
+    let cam = { kicker: '', titulo: '', dica: '', ghost: false, tone: '#555' };
+    if (s.sheet && s.sheet.kind === 'punch') {
+      const c = s.cards.find(x => x.id === s.sheet.id);
+      cam = { kicker: 'Foto de depois', titulo: c.t, dica: 'A foto do apontamento aparece por trás. Alinhe o enquadramento para o antes e depois bater.', ghost: true, tone: c.tone };
+    } else if (s.sheet && s.sheet.kind === 'ativ') {
+      cam = { kicker: 'Foto de conclusão', titulo: this.nome(s.sheet.id), dica: 'Uma foto por ambiente. Ela vira o registro da etapa e libera as próximas atividades.', ghost: false, tone: '#555' };
+    } else if (s.sheet && s.sheet.kind === 'novo') {
+      cam = { kicker: 'Novo apontamento', titulo: 'Fotografe o problema', dica: 'Depois da foto você descreve, marca o local e a atividade responsável.', ghost: false, tone: '#555' };
+    }
+
+    // ---------- Boletim da obra atual ----------
+    const SEG = this.SEG;
+    const itemVM = t => {
+      const late = t.st !== 'feita' && t.prazo < SEG;
+      return { txt: t.txt, quando: t.st === 'feita' ? 'feita' : this.dow(t.prazo), cor: t.st === 'feita' ? MUTED : late ? R : BK, peso: late ? '800' : '600', risco: t.st === 'feita' ? 'line-through' : 'none' };
+    };
+    const wObra = this.semana(o);
+    const atribObra = this.atribuicoes(o, wObra);
+    const bolPessoas = this.agrupaPessoas(atribObra, this.eng(o.id)).map(g => ({ nome: g.nome, ini: g.nome[0], papel: this.papel(g.nome), itens: g.itens.map(itemVM) }));
+    const bolAtencao = an.lateActs.map(a => ({ t: 'Atividade atrasada: ' + a.n, s: 'devia terminar ' + this.dow(wObra.dF(a)) + ' · ' + this.motivo(o, an.done, a) }))
+      .concat(an.lateSups.map(it => ({ t: this.tipoTxt(it.tipo) + ' atrasada: ' + it.desc, s: 'para ' + this.nome(it.actId) + ' · precisa estar na obra ' + this.naObra(o, it) })));
+    const pct = x => Math.round(x * 100) + '%';
+    const linhas = [];
+    linhas.push('*obdc · Boletim da semana*');
+    linhas.push('*' + o.nome + '* · 26/10 a 30/10');
+    linhas.push('Avanço real ' + pct(an.real) + ' · previsto até sexta ' + pct(wObra.planSex) + ' · ' + an.ritmo);
+    if (bolAtencao.length) { linhas.push(''); linhas.push('*ATENÇÃO · ' + bolAtencao.length + ' em atraso*'); bolAtencao.forEach(x => linhas.push('• ' + x.t)); }
+    linhas.push(''); linhas.push('*Concluir nesta semana*');
+    (wObra.concluir.length ? wObra.concluir : []).forEach(a => linhas.push('• ' + this.dow(wObra.dF(a)) + ' · ' + a.n));
+    if (!wObra.concluir.length) linhas.push('• nada previsto');
+    linhas.push(''); linhas.push('*Começar nesta semana*');
+    wObra.comecar.forEach(a => linhas.push('• ' + this.dow(wObra.dI(a)) + ' · ' + a.n + (this.ready(o, an.done, a) ? '' : ' (' + this.motivo(o, an.done, a) + ')')));
+    if (!wObra.comecar.length) linhas.push('• nada previsto');
+    linhas.push(''); linhas.push('*Quem faz o quê*');
+    bolPessoas.forEach(p => { const ab = p.itens.filter(i => i.quando !== 'feita'); if (ab.length) { linhas.push('_' + p.nome + '_'); ab.forEach(i => linhas.push('• ' + i.quando + ' · ' + i.txt)); } });
+    linhas.push(''); linhas.push('PDF completo com fotos e cronograma no app obdc.');
+    const bolTexto = linhas.join('\n');
+
+    // ---------- Reunião semanal ----------
+    const prevTasks = s.tasks.filter(t => t.origem === 'Reunião 19/10');
+    const novasTasks = s.tasks.filter(t => t.origem === 'Reunião 26/10');
+    const lateTask = t => t.st !== 'feita' && t.prazo < SEG;
+    const reuOpen = s.reuOpen || s.obras[0].id;
+    const reuObras = s.obras.map(ob => {
+      const w = this.semana(ob); const a2 = w.an; const open = reuOpen === ob.id;
+      const passada = w.passConc.map(a => a2.done.has(a.id)
+        ? { ic: '✓', icBg: TQ, icFg: BK, t: 'Concluída: ' + a.n, s: 'previsto ' + this.dow(w.dF(a)), cor: BK }
+        : { ic: '✕', icBg: R, icFg: '#fff', t: 'Não concluída: ' + a.n, s: 'previsto ' + this.dow(w.dF(a)) + ' · ' + this.motivo(ob, a2.done, a), cor: R })
+        .concat(w.passCom.filter(a => !w.passConc.includes(a)).map(a => (a2.done.has(a.id) || this.ready(ob, a2.done, a))
+          ? { ic: '✓', icBg: TQ, icFg: BK, t: 'Começou: ' + a.n, s: 'previsto ' + this.dow(w.dI(a)), cor: BK }
+          : { ic: '✕', icBg: R, icFg: '#fff', t: 'Não começou: ' + a.n, s: 'previsto ' + this.dow(w.dI(a)) + ' · ' + this.motivo(ob, a2.done, a), cor: R }));
+      const anteriores = prevTasks.filter(t => t.obra === ob.id).map(t => {
+        const late = lateTask(t);
+        return { txt: t.txt, resp: t.resp, prazo: this.dow(t.prazo), cor: late ? R : t.st === 'feita' ? MUTED : BK, risco: t.st === 'feita' ? 'line-through' : 'none',
+          tag: t.st === 'feita' ? 'Feita' : late ? 'Atrasada' : 'No prazo', tagBg: t.st === 'feita' ? TQ : late ? R : '#fff', tagFg: late ? '#fff' : BK, tagBd: t.st === 'feita' ? TQ : late ? R : 'rgba(24,24,24,.35)' };
+      });
+      const nAtr = a2.lateActs.length + a2.lateSups.length;
+      const nomes = arr => arr.length ? arr.map(a => a.n).join(', ') : 'nada previsto';
+      return {
+        nome: ob.nome, open, real: pct(a2.real), prev: pct(w.planSex), fase: a2.curPh <= 6 ? 'Fase ' + a2.curPh : 'concluída',
+        ritmo: a2.ritmo, ritmoBg: a2.ritmoBg, ritmoCor: a2.ritmoCor,
+        borda: '6px solid #4A4A4A',
+        passada, passadaVazia: passada.length === 0, anteriores, semAnteriores: anteriores.length === 0,
+        concluir: nomes(w.concluir), comecar: nomes(w.comecar),
+        pedir: w.pedir.length ? w.pedir.map(it => it.desc).join(', ') : 'nada a fechar',
+        obs: (s.reuObs || {})[ob.id] || '', obsId: 'obs-' + ob.id,
+        onObs: e => { const v = e.target.value; this.setState({ reuObs: Object.assign({}, this.state.reuObs, { [ob.id]: v }) }); },
+        novas: novasTasks.filter(t => t.obra === ob.id).map(t => ({ txt: t.txt, resp: t.resp, ini: t.resp[0], prazo: this.dow(t.prazo), editar: () => this.abrirTarefa(t.id) })),
+        addProv: () => this.setState({ tf: { editId: null, obra: ob.id, txt: '', resp: this.eng(ob.id), prazoIdx: 4, prazoTxt: '', st: 'aberta', link: null, sug: -1, erro: '' } }),
+        toggle: () => this.setState({ reuOpen: open ? '-' : ob.id })
+      };
+    });
+    const reu = {
+      obras: reuObras,
+      cumpridas: prevTasks.filter(t => t.st === 'feita').length + '/' + prevTasks.length,
+      atrasadas: prevTasks.filter(lateTask).length, atrBg: prevTasks.some(lateTask) ? R : 'rgba(255,255,255,.08)',
+      novas: novasTasks.length
+    };
+
+    // ---------- Form de providência ----------
+    let tf = { titulo: '', sub: '', edit: false, sugs: [], temSug: false, txt: '', pessoas: [], prazos: [], prazoTxt: '', dataBd: 'rgba(24,24,24,.30)', dataInfo: '', sits: [], temReplan: false, replanTxt: '', salvarTxt: '', temErro: false, erro: '', onTxt: null, onData: null };
+    if (s.tf) {
+      const f = s.tf; const ob = s.obras.find(x => x.id === f.obra); const w = this.semana(ob);
+      const set = p => this.setState({ tf: Object.assign({}, this.state.tf, p, { erro: '' }) });
+      const edit = !!f.editId;
+      const tOrig = edit ? s.tasks.find(x => x.id === f.editId) : null;
+      let cands = [];
+      if (!edit) {
+        const linkedIds = new Set(s.tasks.filter(t => t.obra === ob.id && t.link && t.st !== 'feita').map(t => t.link.kind + t.link.id));
+        const verbo = { contratacao: 'Contratar', locacao: 'Alugar', compra: 'Comprar' };
+        cands = w.an.lateSups.concat(w.pedir).filter(it => !linkedIds.has('sup' + it.id)).map(it => ({ t: verbo[it.tipo] + ': ' + it.desc, resp: 'Paulo', link: { kind: 'sup', id: it.id } }))
+          .concat(w.an.lateActs.filter(a => !linkedIds.has('act' + a.id)).map(a => ({ t: 'Recuperar atraso: ' + a.n, resp: this.eng(ob.id), link: { kind: 'act', id: a.id } }))).slice(0, 5);
+      }
+      const dataDigitada = f.prazoIdx < 0 && f.prazoTxt ? this.parseData(f.prazoTxt) : null;
+      const prazoAtual = this.prazoDoForm(f);
+      tf = {
+        titulo: edit ? 'Editar tarefa' : 'Nova providência',
+        sub: ob.nome + (edit ? ' · ' + tOrig.origem : ' · reunião 26/10'),
+        edit, temSug: cands.length > 0,
+        sugs: cands.map((c, i) => ({ t: c.t, on: f.sug === i, bg: f.sug === i ? 'rgba(84,180,176,.22)' : '#fff', bd: f.sug === i ? BK : 'rgba(24,24,24,.25)', pick: () => set({ sug: i, txt: c.t, resp: c.resp, link: c.link }) })),
+        txt: f.txt, onTxt: e => set({ txt: e.target.value }),
+        pessoas: this.PESSOAS().map(([n]) => ({ t: n, on: f.resp === n, bg: f.resp === n ? BK : '#fff', fg: f.resp === n ? '#fff' : BK, bd: f.resp === n ? BK : 'rgba(24,24,24,.25)', pick: () => set({ resp: n }) })),
+        prazos: this.prazosTf().map((d, i) => ({ dow: ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][d.getDay()], txt: this.fmt(d), on: f.prazoIdx === i, bg: f.prazoIdx === i ? 'rgba(84,180,176,.22)' : '#fff', bd: f.prazoIdx === i ? BK : 'rgba(24,24,24,.25)', pick: () => set({ prazoIdx: i, prazoTxt: '' }) })),
+        prazoTxt: f.prazoTxt || '', onData: e => set({ prazoTxt: e.target.value, prazoIdx: -1 }),
+        dataBd: f.prazoIdx < 0 && f.prazoTxt ? (dataDigitada ? BK : R) : 'rgba(24,24,24,.30)',
+        dataInfo: f.prazoIdx < 0 && f.prazoTxt ? (dataDigitada ? this.dow(dataDigitada) : 'data inválida') : '',
+        sits: [['aberta', 'Aberta'], ['feita', 'Concluída']].map(([k, t]) => ({ t, on: f.st === k, bg: f.st === k ? (k === 'feita' ? TQ : BK) : '#fff', fg: f.st === k && k === 'aberta' ? '#fff' : BK, bd: f.st === k ? BK : 'rgba(24,24,24,.25)', pick: () => set({ st: k }) })),
+        temReplan: edit && !!(tOrig.replans || (prazoAtual && prazoAtual.getTime() !== tOrig.prazo.getTime() && f.st !== 'feita')),
+        replanTxt: edit ? ('Prazo original ' + this.dow(tOrig.prazoOrig || tOrig.prazo) + (tOrig.replans ? ' · já replanejada ' + tOrig.replans + 'x' : '') + (prazoAtual && prazoAtual.getTime() !== tOrig.prazo.getTime() && f.st !== 'feita' ? ' · vai virar replanejamento ' + ((tOrig.replans || 0) + 1) : '')) : '',
+        salvarTxt: edit ? 'Salvar alterações' : 'Registrar na ata',
+        temErro: !!f.erro, erro: f.erro
+      };
+    }
+
+    // ---------- Ata ----------
+    const abertasTodas = s.tasks.filter(t => t.st !== 'feita');
+    const ataObras = s.obras.map(ob => {
+      const w = this.semana(ob); const a2 = w.an;
+      const nPrev = w.passConc.length, nOk = w.passConc.filter(a => a2.done.has(a.id)).length;
+      const provs = s.tasks.filter(t => t.obra === ob.id && t.st !== 'feita').map(t => {
+        const late = lateTask(t);
+        return { txt: t.txt, resp: t.resp, prazo: this.dow(t.prazo), extra: (t.replans ? ' · replanejada ' + t.replans + 'x (era ' + this.dow(t.prazoOrig) + ')' : '') + (t.origem === 'Reunião 19/10' ? (late ? ' · ATRASADA, vem da reunião 19/10' : ' · vem da reunião 19/10') : ''), cor: late ? R : BK, barra: late ? R : t.origem === 'Reunião 26/10' ? TQ : 'rgba(24,24,24,.25)' };
+      });
+      return {
+        nome: ob.nome, ritmo: a2.ritmo, ritmoTxtCor: a2.delta <= -2 ? R : BK,
+        situacao: 'Real ' + pct(a2.real) + ' · previsto até sexta ' + pct(w.planSex) + ' · ' + (a2.curPh <= 6 ? 'Fase ' + a2.curPh + ' · ' + a2.phT : 'concluída'),
+        passada: nPrev ? 'Semana passada: ' + nOk + ' de ' + nPrev + ' atividades previstas concluídas' : 'Semana passada: nenhuma conclusão prevista',
+        passadaCor: nPrev && nOk < nPrev ? R : '#464646',
+        obs: ((s.reuObs || {})[ob.id] || '').trim() || 'sem observações registradas', provs
+      };
+    });
+    const ataPessoas = this.PESSOAS().map(([n]) => {
+      const its = abertasTodas.filter(t => t.resp === n).sort((a, b) => a.prazo - b.prazo);
+      const nl = its.filter(lateTask).length;
+      return { nome: n, resumo: its.length + (its.length === 1 ? ' aberta' : ' abertas') + (nl ? ' · ' + nl + ' atrasada' + (nl > 1 ? 's' : '') : ''), itens: its.map(t => ({ prazo: this.dow(t.prazo), txt: t.txt, obra: this.curto(t.obra), cor: lateTask(t) ? R : BK, peso: lateTask(t) ? '800' : '400' })) };
+    }).filter(p => p.itens.length);
+    const ataLinhas = ['*obdc · Ata da reunião semanal · 26/10 16h*', 'Providências anteriores: ' + reu.cumpridas + ' cumpridas · ' + reu.atrasadas + ' atrasadas · ' + reu.novas + ' novas', ''];
+    ataObras.forEach(a => { ataLinhas.push('*' + a.nome + '* · ' + a.ritmo); ataLinhas.push(a.situacao); ataLinhas.push('Obs.: ' + a.obs); ataLinhas.push(''); });
+    ataLinhas.push('*Providências por responsável*');
+    ataPessoas.forEach(p => { ataLinhas.push('_' + p.nome + '_'); p.itens.forEach(i => ataLinhas.push('• ' + i.prazo + ' · ' + i.txt + ' (' + i.obra + ')')); });
+    const ata = {
+      participantes: 'Diretoria, Rafael, Marina, Júlia e Paulo',
+      cumpridas: reu.cumpridas, atrasadas: reu.atrasadas, novas: reu.novas,
+      atrBg: reu.atrasadas ? R : 'rgba(24,24,24,.05)', atrFg: reu.atrasadas ? '#fff' : BK,
+      obras: ataObras, pessoas: ataPessoas,
+      wa: 'https://wa.me/?text=' + encodeURIComponent(ataLinhas.join('\n'))
+    };
+
+    // ---------- Tarefas ----------
+    const tp = s.tarPessoa;
+    const tarChips = ['Todos'].concat(this.PESSOAS().map(p => p[0])).map(n => {
+      const its = s.tasks.filter(t => n === 'Todos' || t.resp === n); const nl = its.filter(lateTask).length; const on = tp === n;
+      return { t: n, on, atr: nl, temAtr: nl > 0, bg: on ? '#54B4B0' : 'transparent', fg: on ? BK : '#fff', bd: on ? '#54B4B0' : 'rgba(255,255,255,.4)', pick: () => this.setState({ tarPessoa: n }) };
+    });
+    const tarList = s.tasks.filter(t => tp === 'Todos' || t.resp === tp);
+    const tarVM = t => {
+      const late = lateTask(t); const feita = t.st === 'feita';
+      let link = '';
+      if (t.link && t.link.kind === 'sup') { const ob = s.obras.find(x => x.id === t.obra); const it = ob && ob.sup.find(x => x.id === t.link.id); if (it) link = 'Vinculada: ' + this.tipoTxt(it.tipo).toLowerCase() + ' de ' + it.desc.toLowerCase() + ' · libera ' + this.nome(it.actId); }
+      if (t.link && t.link.kind === 'act') link = 'Vinculada à atividade: ' + this.nome(t.link.id);
+      return {
+        txt: t.txt, obra: this.curto(t.obra), resp: t.resp, origem: t.origem, aberta: !feita, feita,
+        cor: feita ? MUTED : late ? R : BK, risco: feita ? 'line-through' : 'none',
+        prazo: feita ? 'Concluída em ' + this.dow(t.feitaEm) : late ? 'ATRASADA · prazo era ' + this.dow(t.prazo) : 'Prazo ' + this.dow(t.prazo),
+        prazoCor: feita ? MUTED : late ? R : BK,
+        bd: late ? R : 'rgba(24,24,24,.10)', barra: feita ? TQ : late ? R : BK,
+        temLink: !!link && !feita, link,
+        concluir: () => this.concluirTarefa(t.id), editar: () => this.abrirTarefa(t.id),
+        replan: !!t.replans && !feita, replanTxt: 'Replanejada ' + (t.replans || 0) + 'x · prazo original ' + (t.prazoOrig ? this.dow(t.prazoOrig) : ''),
+        reabrir: () => this.reabrirTarefa(t.id)
+      };
+    };
+    const gAtr = tarList.filter(lateTask).sort((a, b) => a.prazo - b.prazo);
+    const gAb = tarList.filter(t => t.st !== 'feita' && !lateTask(t)).sort((a, b) => a.prazo - b.prazo);
+    const gF = tarList.filter(t => t.st === 'feita');
+    const tar = {
+      chips: tarChips,
+      grupos: [{ t: 'Atrasadas', cor: R, list: gAtr }, { t: 'Abertas', cor: BK, list: gAb }, { t: 'Concluídas', cor: MUTED, list: gF }].filter(g => g.list.length).map(g => ({ t: g.t, cor: g.cor, n: g.list.length, itens: g.list.map(tarVM) })),
+      vazio: tarList.length === 0,
+      resumo: (tp === 'Todos' ? 'Equipe' : tp + ' · ' + this.papel(tp)) + ': ' + (gAtr.length + gAb.length) + ' abertas · ' + gAtr.length + ' atrasadas · ' + gF.length + ' concluídas'
+    };
+    const nTarAb = s.tasks.filter(t => t.st !== 'feita').length, nTarAtr = s.tasks.filter(lateTask).length;
+
+    const isObra = ['mapa', 'pend', 'crono', 'valid', 'sup', 'bol'].includes(s.screen);
+    const nAbertas = dk.length;
+    const tab = on => on ? 'rgba(84,180,176,.22)' : 'transparent';
+    const curFirstReady = T.find(a => this.ready(o, an.done, a)) || T.find(a => !an.done.has(a.id)) || T[0];
+
+    return {
+      isFila: s.pendView !== 'lista', isLista: s.pendView === 'lista',
+      verFila: () => this.setState({ pendView: 'fila' }), verLista: () => this.setState({ pendView: 'lista' }),
+      filaBg: s.pendView !== 'lista' ? '#fff' : 'transparent', listaBg: s.pendView === 'lista' ? '#fff' : 'transparent',
+      filaSh: s.pendView !== 'lista' ? '0 1px 4px rgba(24,24,24,.15)' : 'none', listaSh: s.pendView === 'lista' ? '0 1px 4px rgba(24,24,24,.15)' : 'none',
+      nTotalPend: cardsObra.length, pendGrupos, pendVazio: cardsObra.length === 0,
+      temAdiadas: adiadas.length > 0, nAdiadasTxt: adiadas.length + (adiadas.length > 1 ? ' adiadas' : ' adiada'),
+      temValid: cardsObra.some(c => c.status === 'validacao'),
+      hasAdiar: !!s.adiar, ad, fecharAdiar: () => this.setState({ adiar: null }), confirmarAdiar: () => this.confirmarAdiar(),
+      hasUndo: !!s.undo, desfazer: () => { const u = this.state.undo; if (u) u(); },
+      isBol: s.screen === 'bol', isReu: s.screen === 'reu', isAta: s.screen === 'ata', isTar: s.screen === 'tar',
+      goBol: go('bol'), bolBtnBg: s.screen === 'bol' ? '#54B4B0' : 'rgba(255,255,255,.12)', goReu: go('reu'), goAta: go('ata'), goTar: go('tar'),
+      bol: { periodo: 'Semana de 26/10 a 30/10', wa: 'https://wa.me/?text=' + encodeURIComponent(bolTexto), texto: bolTexto, temAtencao: bolAtencao.length > 0, nAtencao: bolAtencao.length, atencao: bolAtencao, pessoas: bolPessoas },
+      baixarBol: () => this.say('PDF do boletim gerado: ' + o.nome + ' · semana 26/10'),
+      baixarAta: () => this.say('PDF da ata de 26/10 gerado com o compilado por responsável'),
+      reu, ata, tar, hasTf: !!s.tf, tf, fecharTf: () => this.setState({ tf: null }), salvarTf: () => this.salvarTf(), excluirTf: () => this.excluirTf(),
+      reuStatus: novasTasks.length ? novasTasks.length + ' providências registradas' : 'Abrir pauta da semana',
+      tarAbertasTxt: nTarAb + ' abertas na equipe',
+      tarAtrTxt: nTarAtr ? nTarAtr + (nTarAtr > 1 ? ' atrasadas' : ' atrasada') : 'nenhuma atrasada', tarAtrCor: nTarAtr ? R : MUTED,
+      isHome: s.screen === 'home', isNova: s.screen === 'nova', isObra,
+      isMapa: s.screen === 'mapa', isPend: s.screen === 'pend', isCrono: s.screen === 'crono', isValid: s.screen === 'valid', isSup: s.screen === 'sup',
+      lvl, lvlNome: 'Nível ' + lvl + ' · ' + nomes[Math.min(lvl - 1, nomes.length - 1)],
+      xpTxt: (s.xp % 400) + ' / 400 XP', xpW: ((s.xp % 400) / 400 * 100) + '%',
+      nObras: s.obras.length, nAbertasTot, nAtrasoTot, obraCards,
+      atrasoCardBg: nAtrasoTot ? R : '#fff', atrasoCardFg: nAtrasoTot ? '#fff' : BK,
+      goNova: go('nova'), goHome: go('home'), goMapa: go('mapa'), goPend: go('pend'), goCrono: go('crono'), goValid: go('valid'), goSup: go('sup'),
+      novoNome: s.novoNome, onNome: e => this.setState({ novoNome: e.target.value }),
+      inicios, novoFases, nAtiv: SN.TM.length, totalDias: SN.total, nSupModelo: SN.nSup,
+      modsNova, modNovaTit: modSel.nome + ' · ' + modSel.sub,
+      isGestor: s.perfil === 'gestor',
+      perfis: [['gestor', 'Gestor'], ['equipe', 'Equipe de obra']].map(([k, t]) => { const on = s.perfil === k; return { t, on: on ? 'true' : 'false', bg: on ? '#fff' : 'transparent', sh: on ? '0 1px 3px rgba(24,24,24,.18)' : 'none', set: () => { this.setState({ perfil: k }); this.say(k === 'gestor' ? 'Gestor: vê tudo e edita os modelos de obra' : 'Equipe de obra: usa todas as telas, menos a edição de modelos'); } }; }),
+      novoFim: this.fmt(fimNovo) + '/' + fimNovo.getFullYear(),
+      novoSemanas: 'cerca de ' + Math.ceil(SN.total / 5) + ' semanas',
+      criar: () => {
+        const id = 'n' + Date.now();
+        const nome = (this.state.novoNome || 'Nova unidade').trim();
+        this.setState({ obras: this.state.obras.concat([{ id, nome, start: ini, done: [], modelo: modSel.nome + ' · ' + modSel.sub, sup: this.mkSup(id, [], []) }]), screen: 'mapa', obraId: id, openPh: 1, selAct: null });
+        this.say('Cronograma gerado do ' + modSel.nome + ' (' + modSel.sub + ') · ' + SN.TM.length + ' atividades e ' + SN.nSup + ' lembretes');
+      },
+      ob: {
+        nome: o.nome, pct: Math.round(an.real * 100), pctW: Math.round(an.real * 100) + '%',
+        ritmo: an.ritmo, ritmoCorDark: an.ritmoCorDark, ritmoBgDark: an.ritmoBgDark, entrega: an.entrega,
+        faseTxt: an.curPh <= 6 ? 'Fase ' + an.curPh + ' · ' + an.phT : 'Concluída',
+        sub: an.started ? 'Dia ' + an.elapsed + ' de ' + S.total + ' do modelo' : 'Início em ' + this.fmt(o.start),
+        inaug: (() => { const d = this.addWD(o.start, S.total - 1); return ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'][d.getDay()] + ', ' + this.fmt(d) + '/' + d.getFullYear(); })(),
+        inaugSub: (() => { const f = S.total - an.elapsed; const late = an.delta <= -2; return (f > 0 ? 'Faltam ' + f + ' dias úteis' : 'Prazo do modelo encerrado') + (late ? ' · ritmo atual atrasa ' + (-an.delta) + ' dias' : ''); })(),
+        inaugSubCor: an.delta <= -2 ? '#FF8A80' : 'rgba(255,255,255,.72)'
+      },
+      fases, badges,
+      hasAct: !!s.actSheet, act, fecharAct: () => this.setState({ actSheet: null }),
+      hasForm: !!s.form, fm, fecharForm: () => this.setState({ form: null }), salvarForm: () => this.salvarForm(),
+      supGrupos, supResolvTxt: nResolv + ' lembretes já providenciados',
+      nSupAtraso: supAtraso.length, hasSupAtraso: supAtraso.length > 0,
+      novoC: () => this.abrirForm(curFirstReady.id, null, 'contratacao'),
+      novoL: () => this.abrirForm(curFirstReady.id, null, 'locacao'),
+      novoP: () => this.abrirForm(curFirstReady.id, null, 'compra'),
+      hasTop: !!top, hasNext: dk.length > 1, deckVazio: !top,
+      top: top || { t: '', local: '', ativ: '', tone: '#888', prio: '', prioBg: '#fff', prioFg: BK, autor: '', dias: '', quando: '' },
+      topTf: 'translateX(' + dx + 'px) rotate(' + (dx / 22) + 'deg)',
+      topTr: s.dragging ? 'none' : 'transform .26s ease',
+      okOp: Math.min(Math.max(dx / 110, 0), 1), adOp: Math.min(Math.max(-dx / 110, 0), 1),
+      deckTxt: nAbertas + (nAbertas === 1 ? ' na fila' : ' na fila'), fechadasTxt: nFech + ' concluídas hoje',
+      nValid, validList, validVazio: validList.length === 0,
+      nAbertas, hasAbertas: nAbertas > 0,
+      pDown: e => { this._sx = e.clientX; this.setState({ dragging: true }); try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {} },
+      pMove: e => { if (!this.state.dragging) return; this.setState({ dx: e.clientX - this._sx }); },
+      pUp: () => { if (!this.state.dragging) return; const d = this.state.dx; if (d > 100) this.swipe(1); else if (d < -100) this.swipe(-1); else this.setState({ dx: 0, dragging: false }); },
+      btnAdiar: () => this.swipe(-1), btnResolver: () => this.swipe(1),
+      novaPend: () => this.setState({ sheet: { kind: 'novo' } }),
+      crono, hojeLeft,
+      hasSheet: !!s.sheet, cam, capturar: () => this.capturar(), fecharCam: () => this.setState({ sheet: null }),
+      hasCelebra: !!s.celebra, cel: s.celebra || { n: 0, t: '', prox: 0, libera: [] },
+      fecharCel: () => this.setState({ celebra: null, screen: 'mapa' }),
+      hasToast: !!s.toast, toast: s.toast,
+      tabMapaBg: tab(s.screen === 'mapa'), tabPendBg: tab(s.screen === 'pend' || s.screen === 'valid'), tabSupBg: tab(s.screen === 'sup'), tabCronoBg: tab(s.screen === 'crono')
+    };
+  }
+}
+</script>
+</body>
+</html>
