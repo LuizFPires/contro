@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Card, Icon, useToast } from '@obdc/ui';
+import { Button, Card, Icon, useToast } from '@obdc/ui';
 import { AssistenteAtividade } from './AssistenteAtividade';
+import { ModeloEditor } from './ModeloEditor';
 import { useModeloCompleto, useSalvarAtividade } from './useModeloDetalhe';
 import styles from './ModeloDetalhe.module.css';
 
@@ -9,6 +10,11 @@ export function ModeloDetalhe({ id, onVoltar }: { id: string; onVoltar: () => vo
   const salvar = useSalvarAtividade(id);
   const { showToast } = useToast();
   const [assistente, setAssistente] = useState(false);
+  const [editor, setEditor] = useState(false);
+
+  if (editor) {
+    return <ModeloEditor id={id} onVoltar={() => setEditor(false)} />;
+  }
 
   if (isLoading || !modelo) {
     return (
@@ -38,6 +44,9 @@ export function ModeloDetalhe({ id, onVoltar }: { id: string; onVoltar: () => vo
             {modelo.cronograma.total} dias úteis · {topo.length} atividades
           </p>
         </div>
+        <Button variant="tertiary" onClick={() => setEditor(true)}>
+          Editor
+        </Button>
         <button
           type="button"
           className={styles.novo}
