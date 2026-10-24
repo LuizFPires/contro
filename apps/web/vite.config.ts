@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['brand/OBDC_icone_app.svg'],
+      includeAssets: ['icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'],
       manifest: {
         name: 'obdc · obras da contorno',
         short_name: 'obdc',
@@ -31,7 +31,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2}'],
+        // Não precachear os SVGs de marca (PNG embutido pesado). Só o essencial.
+        globPatterns: ['**/*.{js,css,html,woff,woff2}', 'icons/*.png'],
       },
     }),
   ],

@@ -1,4 +1,4 @@
-import iconeApp from '../brand/OBDC_icone_app.svg';
+import simbolo from '../brand/simbolo-192.png';
 import logoPreto from '../brand/OBDC_logo_fundo_preto.svg';
 import logoBranco from '../brand/OBDC_logo_fundo_branco.svg';
 
@@ -14,7 +14,7 @@ export interface MonogramaProps {
 export function Monograma({ size = 40, className }: MonogramaProps) {
   return (
     <img
-      src={iconeApp}
+      src={simbolo}
       width={size}
       height={size}
       className={className}

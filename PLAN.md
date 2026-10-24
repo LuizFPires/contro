@@ -37,7 +37,12 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 
 **Aceite:** login no celular, PWA instalável, tela vazia "Minhas obras" no padrão OBDC, CI verde.
 
-> **Pendências de credencial (só o usuário):** criar projetos Supabase (dev + homologação), ligar a Vercel ao repo para preview por PR, e fornecer o DSN do Sentry. O restante do M0 está implementado e verde. O símbolo ainda é raster embutido em SVG; vetorizar e otimizar os assets é refinamento previsto.
+> **Pendências de credencial (só o usuário):** criar projetos Supabase (dev + homologação), ligar a Vercel ao repo para preview por PR, e fornecer o DSN do Sentry. O restante do M0 está implementado e verde.
+>
+> **Débitos técnicos do M0 (resolver antes do M1):**
+> - Rodar o teste de RLS (pgTAP) no CI — exige subir o Supabase local (Docker) na pipeline; por ora o teste roda localmente com `supabase test db`.
+> - BottomSheet: focus-trap completo (hoje há foco inicial, retorno e trava de scroll; falta prender o Tab dentro do sheet).
+> - Vetorizar o símbolo aprovado (hoje é raster embutido em SVG) e unificar a fonte dos assets de marca.
 
 ## M1 · Modelos de obra e motor de cronograma
 **Objetivo:** o gestor mantém vários modelos de obra, e o core calcula o cronograma de qualquer obra.

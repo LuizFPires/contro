@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import type { InputHTMLAttributes } from 'react';
+import { Icon } from './Icon';
 import styles from './Input.module.css';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -29,6 +30,7 @@ export function Input({ label, hint, error, id, className, ...rest }: InputProps
       />
       {error ? (
         <span id={`${inputId}-error`} className={styles.error}>
+          <Icon name="alert" size={14} />
           {error}
         </span>
       ) : hint ? (

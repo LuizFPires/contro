@@ -45,7 +45,7 @@
   display: flex;
   align-items: center;
   gap: var(--obdc-space-2);
-  color: var(--obdc-late);
+  color: var(--obdc-text);
   font-size: var(--obdc-fs-body-sm);
   font-weight: 700;
 }
