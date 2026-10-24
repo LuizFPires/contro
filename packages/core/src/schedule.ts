@@ -147,10 +147,7 @@ export function calcularCronograma(entrada: EntradaCronograma): Cronograma {
   const es = new Map<string, number>();
   const ef = new Map<string, number>();
   for (const a of topo) {
-    const maxPred = Math.max(
-      0,
-      ...(a.predecessoras ?? []).map((p) => ef.get(p) ?? 0),
-    );
+    const maxPred = Math.max(0, ...(a.predecessoras ?? []).map((p) => ef.get(p) ?? 0));
     const offsetManual = a.inicio_manual ? duEntre(entrada.inicio, a.inicio_manual) : 0;
     const esA = Math.max(maxPred, offsetManual);
     es.set(a.id, esA);
