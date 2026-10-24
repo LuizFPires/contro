@@ -1,0 +1,21 @@
+# Config mínima do Supabase. Rode `supabase init` para regenerar completa,
+# e `supabase link --project-ref <ref>` para apontar dev/homologação.
+project_id = "obdc"
+
+[db]
+major_version = 15
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+# Login por e-mail e senha (decisão M0); confirmação desligada só no dev.
+# Em produção/homologação: usar convite ou confirmação. A RLS já exige que o
+# usuário seja um membro (pessoa ativa) para ler/escrever, então um cadastro
+# avulso no Auth não acessa dado algum até ser promovido a pessoa.
+enable_confirmations = false

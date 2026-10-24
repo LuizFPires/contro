@@ -1,0 +1,36 @@
+{
+  "name": "obdc",
+  "private": true,
+  "version": "0.0.0",
+  "description": "obdc · app de obras da Contorno do Corpo (PWA mobile-first)",
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @obdc/web dev",
+    "build": "pnpm --filter @obdc/web build",
+    "preview": "pnpm --filter @obdc/web preview",
+    "pdf:dev": "pnpm --filter @obdc/pdf-service dev",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "pnpm --filter @obdc/web test:e2e",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r typecheck",
+    "db:reset": "supabase db reset"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.37.0",
+    "eslint": "9.37.0",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "eslint-plugin-react-refresh": "0.4.20",
+    "globals": "15.15.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.46.0",
+    "vitest": "3.2.4"
+  }
+}

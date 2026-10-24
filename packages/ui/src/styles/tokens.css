@@ -1,0 +1,69 @@
+:root {
+  /* Cores oficiais — somente turquesa, preto e branco (+ opacidades) */
+  --obdc-turquoise: #54b4b0;
+  --obdc-black: #181818;
+  --obdc-white: #ffffff;
+
+  /* Exceção aprovada: vermelho só para ATRASO */
+  --obdc-late: #c62828;
+  /* Faixa separadora de obra na ata (cinza, não vermelha) */
+  --obdc-ata-separator: #4a4a4a;
+
+  /* Semânticos */
+  --obdc-bg-app: #f6f6f6;
+  --obdc-surface: var(--obdc-white);
+  --obdc-surface-inverse: var(--obdc-black);
+  --obdc-text: var(--obdc-black);
+  --obdc-text-inverse: var(--obdc-white);
+  --obdc-muted: rgb(24 24 24 / 60%);
+  --obdc-border: rgb(24 24 24 / 14%);
+  --obdc-selected: rgb(84 180 176 / 12%);
+
+  --obdc-action-primary-bg: var(--obdc-turquoise);
+  --obdc-action-primary-text: var(--obdc-black);
+  --obdc-action-inverse-bg: var(--obdc-black);
+  --obdc-action-inverse-text: var(--obdc-white);
+
+  --obdc-disabled-bg: rgb(24 24 24 / 8%);
+  --obdc-disabled-text: rgb(24 24 24 / 35%);
+
+  --obdc-progress-track: rgb(24 24 24 / 12%);
+  --obdc-progress-fill: var(--obdc-turquoise);
+  --obdc-focus: var(--obdc-turquoise);
+
+  /* Raios */
+  --obdc-radius-field: 12px;
+  --obdc-radius-card: 16px;
+  --obdc-radius-modal: 20px;
+  --obdc-radius-pill: 999px;
+
+  /* Espaçamento — base 4px */
+  --obdc-space-1: 4px;
+  --obdc-space-2: 8px;
+  --obdc-space-3: 12px;
+  --obdc-space-4: 16px;
+  --obdc-space-5: 20px;
+  --obdc-space-6: 24px;
+  --obdc-space-8: 32px;
+  --obdc-space-10: 40px;
+  --obdc-space-12: 48px;
+
+  /* Alvos de toque / alturas de controle */
+  --obdc-touch: 44px;
+  --obdc-control-h: 48px;
+
+  /* Tipografia — Nunito Sans self-hosted (@fontsource) */
+  --obdc-font: 'Nunito Sans', system-ui, -apple-system, sans-serif;
+  --obdc-fs-display: 32px;
+  --obdc-fs-h1: 24px;
+  --obdc-fs-h2: 20px;
+  --obdc-fs-h3: 17px;
+  --obdc-fs-body: 16px;
+  --obdc-fs-body-sm: 14px;
+  --obdc-fs-caption: 12px;
+
+  /* Sombras — só preto translúcido */
+  --obdc-shadow-1: 0 1px 2px rgb(24 24 24 / 8%);
+  --obdc-shadow-2: 0 2px 10px rgb(24 24 24 / 12%);
+  --obdc-shadow-sheet: 0 -8px 28px rgb(24 24 24 / 18%);
+}
