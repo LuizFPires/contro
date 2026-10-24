@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BottomSheet, Button, Card, Icon, Input, useToast } from '@obdc/ui';
 import { useModelos, useModelosMutations } from './useModelos';
+import { ModeloDetalhe } from './ModeloDetalhe';
 import type { ModeloResumo } from './api';
 import styles from './ModelosScreen.module.css';
 
@@ -11,6 +12,11 @@ export function ModelosScreen() {
   const { duplicar, renomear, excluir, restaurar } = useModelosMutations();
   const { showToast } = useToast();
   const [sheet, setSheet] = useState<Sheet>(null);
+  const [aberto, setAberto] = useState<string | null>(null);
+
+  if (aberto) {
+    return <ModeloDetalhe id={aberto} onVoltar={() => setAberto(null)} />;
+  }
 
   function apagar(m: ModeloResumo) {
     excluir.mutate(m.id, {
@@ -44,7 +50,16 @@ export function ModelosScreen() {
           {(modelos ?? []).map((m) => (
             <Card key={m.id}>
               <div className={styles.card}>
-                <div className={styles.info}>
+                <div
+                  className={styles.info}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setAberto(m.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') setAberto(m.id);
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
                   <h2 className={styles.nome}>{m.nome}</h2>
                   {m.subtitulo ? <p className={styles.sub}>{m.subtitulo}</p> : null}
                   <p className={styles.meta}>
