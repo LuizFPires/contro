@@ -14,5 +14,8 @@ enable_signup = true
 
 [auth.email]
 enable_signup = true
-# Login por e-mail e senha (decisão M0); confirmação por e-mail desligada no dev.
+# Login por e-mail e senha (decisão M0); confirmação desligada só no dev.
+# Em produção/homologação: usar convite ou confirmação. A RLS já exige que o
+# usuário seja um membro (pessoa ativa) para ler/escrever, então um cadastro
+# avulso no Auth não acessa dado algum até ser promovido a pessoa.
 enable_confirmations = false

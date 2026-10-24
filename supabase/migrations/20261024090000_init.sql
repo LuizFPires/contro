@@ -59,12 +59,26 @@ returns perfil
 language sql
 stable
 security definer
-set search_path = public
+set search_path = 'public, pg_temp'
 as $$
   select p.perfil
-  from pessoa p
-  where p.user_id = auth.uid() and p.deleted_at is null
+  from public.pessoa p
+  where p.user_id = auth.uid() and p.deleted_at is null and p.ativo
   limit 1;
+$$;
+
+-- Membro ativo = tem pessoa não excluída e ativa (gestor ou equipe).
+create or replace function obdc_e_membro()
+returns boolean
+language sql
+stable
+security definer
+set search_path = 'public, pg_temp'
+as $$
+  select exists (
+    select 1 from public.pessoa p
+    where p.user_id = auth.uid() and p.deleted_at is null and p.ativo
+  );
 $$;
 
 -- RLS: dois perfis (gestor escreve cadastros; equipe lê)
@@ -72,9 +86,9 @@ alter table pessoa enable row level security;
 alter table unidade enable row level security;
 alter table sugestao enable row level security;
 
--- pessoa
+-- pessoa (só membros ativos leem; só gestor escreve)
 create policy pessoa_sel on pessoa
-  for select to authenticated using (deleted_at is null);
+  for select to authenticated using (deleted_at is null and obdc_e_membro());
 create policy pessoa_ins on pessoa
   for insert to authenticated with check (obdc_perfil() = 'gestor');
 create policy pessoa_upd on pessoa
@@ -83,20 +97,20 @@ create policy pessoa_upd on pessoa
 
 -- unidade
 create policy unidade_sel on unidade
-  for select to authenticated using (deleted_at is null);
+  for select to authenticated using (deleted_at is null and obdc_e_membro());
 create policy unidade_ins on unidade
   for insert to authenticated with check (obdc_perfil() = 'gestor');
 create policy unidade_upd on unidade
   for update to authenticated
   using (obdc_perfil() = 'gestor') with check (obdc_perfil() = 'gestor');
 
--- sugestao: qualquer autenticado lê e escreve (cadastro pelo uso); sem exclusão
+-- sugestao: membro ativo lê e escreve (cadastro pelo uso); sem exclusão
 create policy sugestao_sel on sugestao
-  for select to authenticated using (true);
+  for select to authenticated using (obdc_e_membro());
 create policy sugestao_ins on sugestao
-  for insert to authenticated with check (true);
+  for insert to authenticated with check (obdc_e_membro());
 create policy sugestao_upd on sugestao
-  for update to authenticated using (true) with check (true);
+  for update to authenticated using (obdc_e_membro()) with check (obdc_e_membro());
 
 -- Nota: o primeiro gestor é criado fora da RLS (service role / seed de homologação),
 -- pois nenhum gestor existe ainda para satisfazer obdc_perfil() = 'gestor'.
