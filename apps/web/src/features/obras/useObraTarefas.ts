@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
-import { excluirTarefa, restaurarTarefa, salvarTarefa, type EntradaTarefa } from './campo';
+import { excluirTarefa, restaurarTarefa, type EntradaTarefa } from './campo';
 import { loadTarefas, type TarefaObra } from './tarefasObra';
 
 export function useObraTarefas(obraId: string) {
@@ -18,9 +18,52 @@ export function useObraTarefas(obraId: string) {
     queryFn: () => loadTarefas(obraId),
   });
 
+  // Salvar (criar/editar): otimista, offline e idempotente. Para nova tarefa o
+  // id é gerado no cliente — o MESMO no card otimista e na op (onMutate roda
+  // antes do mutationFn, com o mesmo objeto). Edição faz patch dos campos.
   const salvar = useMutation({
-    mutationFn: (t: EntradaTarefa) => salvarTarefa(obraId, t),
-    onSuccess: inval,
+    mutationFn: async (t: EntradaTarefa) => {
+      const id = t.id ?? crypto.randomUUID();
+      await enfileirar('salvar_tarefa', { obraId, entrada: { ...t, id } });
+      return id;
+    },
+    onMutate: async (t: EntradaTarefa) => {
+      const id = t.id ?? crypto.randomUUID();
+      t.id = id;
+      await qc.cancelQueries({ queryKey: ['tarefas', obraId] });
+      const prev = qc.getQueryData<TarefaObra[]>(['tarefas', obraId]);
+      if (prev) {
+        const existe = prev.some((x) => x.id === id);
+        if (existe) {
+          qc.setQueryData<TarefaObra[]>(
+            ['tarefas', obraId],
+            prev.map((x) =>
+              x.id === id
+                ? { ...x, texto: t.texto, responsavel_id: t.responsavelId, prazo: t.prazo }
+                : x,
+            ),
+          );
+        } else {
+          const nova: TarefaObra = {
+            id,
+            obra_id: obraId,
+            texto: t.texto,
+            responsavel_id: t.responsavelId,
+            responsavelNome: null,
+            prazo: t.prazo,
+            prazo_original: null,
+            replanejamentos: 0,
+            status: 'aberta',
+            vinculo_tipo: t.vinculoTipo ?? null,
+            vinculo_id: t.vinculoId ?? null,
+            origem_texto: t.origemTexto ?? null,
+          };
+          qc.setQueryData<TarefaObra[]>(['tarefas', obraId], [...prev, nova]);
+        }
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => reverter(ctx),
   });
   // Patch otimista do status de uma tarefa no cache da lista.
   const patchStatus = async (id: string, status: 'aberta' | 'feita') => {

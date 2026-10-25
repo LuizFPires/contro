@@ -201,7 +201,11 @@ export interface EntradaTarefa {
   origemTexto?: string | null;
 }
 
-export async function salvarTarefa(obraId: string, t: EntradaTarefa): Promise<string> {
+export async function salvarTarefa(
+  obraId: string,
+  t: EntradaTarefa,
+  clientOpId?: string,
+): Promise<string> {
   if (!supabase) throw new Error('Sem conexão');
   const { data, error } = await supabase.rpc('salvar_tarefa', {
     p_id: t.id ?? null,
@@ -212,6 +216,7 @@ export async function salvarTarefa(obraId: string, t: EntradaTarefa): Promise<st
     p_vinculo_tipo: t.vinculoTipo ?? null,
     p_vinculo_id: t.vinculoId ?? null,
     p_origem_texto: t.origemTexto ?? null,
+    p_client_op_id: clientOpId ?? null,
   });
   if (error) throw error;
   return data as string;

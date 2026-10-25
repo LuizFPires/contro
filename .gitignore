@@ -4,6 +4,7 @@ node_modules/
 
 # Build
 dist/
+dev-dist/
 build/
 *.tsbuildinfo
 .vite/
