@@ -176,7 +176,7 @@ const MODELO_1 = [
     nome: 'Luminárias e acabamento elétrico',
     dur: 4,
     preds: ['16'],
-    provs: [P('Luminárias', 15)],
+    provs: [P('Luminárias', 20)],
   },
   {
     id: '22',
@@ -184,7 +184,7 @@ const MODELO_1 = [
     nome: 'Evaporadoras e start-up do ar',
     dur: 3,
     preds: ['12', '16'],
-    provs: [P('Evaporadoras', 15)],
+    provs: [C('Start-up e instalação do ar-condicionado', 7)],
   },
   {
     id: '23',
@@ -192,7 +192,7 @@ const MODELO_1 = [
     nome: 'Comunicação visual e fachada',
     dur: 4,
     preds: ['16'],
-    provs: [C('Comunicação visual', 15)],
+    provs: [C('Comunicação visual', 15), C('Paisagismo', 10)],
   },
   { id: '24', fase: 5, nome: 'Catraca, CFTV e som', dur: 3, preds: ['21'] },
   {
@@ -201,7 +201,7 @@ const MODELO_1 = [
     nome: 'Equipamentos de academia',
     dur: 3,
     preds: ['17'],
-    provs: [L('Caminhão munck', 5)],
+    provs: [L('Caminhão munck', 5), P('Enxoval CDC — equipamentos e mobiliário', 30)],
   },
   {
     id: '26',
