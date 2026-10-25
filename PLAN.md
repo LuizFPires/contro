@@ -166,20 +166,22 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## M7 · Reunião semanal e ata
 **Objetivo:** a reunião de segunda às 16h acontece dentro do app e gera a ata.
 
-- [ ] Migrations `reuniao`, `reuniao_obra` + cron (segunda 15:30 cria a pauta)
-- [ ] `core/semana.ts`: semana passada previsto x realizado (com motivo), esta semana (concluir, começar, providenciar)
-- [ ] Tela **Reunião:** KPIs (cumpridas, atrasadas, novas). Card por obra com:
+- [x] Migrations `reuniao`, `reuniao_obra` + cron (segunda 15:30 cria a pauta)
+- [x] `core/semana.ts`: semana passada previsto x realizado (com motivo), esta semana (concluir, começar, providenciar)
+- [x] Tela **Reunião:** KPIs. Card por obra com:
   - faixa **cinza #4A4A4A**;
   - semana passada;
-  - providências anteriores;
+  - ~~providências anteriores~~ (débito: precisa da reunião anterior);
   - esta semana;
   - observações;
   - novas providências
-- [ ] **Nova providência:** sugestões automáticas da obra (lembretes atrasados e da semana, atividades atrasadas) com vínculo; responsável; prazo; editar e excluir pelas mesmas regras do M6
-- [ ] **Fechar reunião** → snapshot por obra → **Ata** (obra a obra + compilado por responsável)
-- [ ] Ata no WhatsApp (`wa.me`) e PDF (pdf-service, template do SPEC 8.3)
+- [x] **Nova providência:** sugestões automáticas da obra (lembretes atrasados e da semana, atividades atrasadas) com vínculo; responsável; prazo; editar e excluir pelas mesmas regras do M6
+- [x] **Fechar reunião** → snapshot por obra → **Ata** (obra a obra + compilado por responsável)
+- [x] Ata no WhatsApp (`wa.me`) e ~~PDF (pdf-service)~~ → **PDF via HTML imprimível** (decisão do usuário; pdf-service como débito de infra)
 
 **Aceite:** com 3 obras, a pauta abre pronta; registrar 6 providências em menos de 15 minutos; fechar gera a ata em PDF idêntica ao modelo aprovado (cinza na faixa, vermelho só no que está atrasado).
+
+> **M7 concluído e mergeado em 25/10/2026 (PR #9).** core/semana + core/atribuicoes + core/ata (76 testes). Reunião (abrir/observação/fechar só gestor → snapshot), nova providência/tarefa com sugestões e vínculo, ata HTML imprimível + WhatsApp + "Quem faz o quê" por responsável. Revisão: sem críticos/altos; 4 rounds de segurança na migration (reunião fechada imutável, FOR UPDATE/TOCTOU, abrir_reuniao idempotente e sem mutar ata fechada). Débitos: pdf-service Playwright; "providências anteriores" (reunião anterior). CI verde.
 
 ## M8 · Boletim semanal
 **Objetivo:** todo grupo de obra recebe o resumo da semana em um toque.
