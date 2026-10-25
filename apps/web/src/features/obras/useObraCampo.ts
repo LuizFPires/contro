@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  adicionarProvidencia,
   ajustarInicio,
   concluirComFoto,
   editarPrestador,
   marcarProvidencia,
   marcarSubitem,
+  removerProvidencia,
 } from './campo';
 
 export function useObraCampo(obraId: string) {
@@ -24,8 +26,19 @@ export function useObraCampo(obraId: string) {
     onSuccess: inval,
   });
   const providencia = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'pendente' | 'feito' }) =>
-      marcarProvidencia(id, status),
+    mutationFn: ({ id, feito }: { id: string; feito: boolean }) => marcarProvidencia(id, feito),
+    onSuccess: inval,
+  });
+  const addProvidencia = useMutation({
+    mutationFn: (p: {
+      atividadeId: string;
+      tipo: 'contratacao' | 'locacao' | 'compra';
+      descricao: string;
+    }) => adicionarProvidencia(obraId, p.atividadeId, p.tipo, p.descricao),
+    onSuccess: inval,
+  });
+  const removerProv = useMutation({
+    mutationFn: (id: string) => removerProvidencia(id),
     onSuccess: inval,
   });
   const inicio = useMutation({
@@ -38,5 +51,5 @@ export function useObraCampo(obraId: string) {
     onSuccess: inval,
   });
 
-  return { subitem, prestador, providencia, inicio, concluir };
+  return { subitem, prestador, providencia, addProvidencia, removerProv, inicio, concluir };
 }

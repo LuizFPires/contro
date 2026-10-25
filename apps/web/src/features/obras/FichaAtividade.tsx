@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { BottomSheet, Button, Chip, Input } from '@obdc/ui';
+import { BottomSheet, Button, Chip, Icon, Input, useToast } from '@obdc/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import type { ObraCompleta } from './detalhe';
 import { useObraCampo } from './useObraCampo';
@@ -24,8 +24,11 @@ export function FichaAtividade({
   onConcluida: (r: { xp: number; fase_fechada: boolean }, nome: string, libera: string[]) => void;
 }) {
   const campo = useObraCampo(obra.id);
+  const { showToast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [inicioData, setInicioData] = useState('');
+  const [novoTipo, setNovoTipo] = useState<'contratacao' | 'locacao' | 'compra'>('compra');
+  const [novaDesc, setNovaDesc] = useState('');
 
   const dados = useMemo(() => {
     if (!atividadeId) return null;
@@ -102,7 +105,7 @@ export function FichaAtividade({
         />
       </div>
 
-      {a.providencias.length > 0 ? (
+      {!a.concluida_em ? (
         <div className={styles.secao}>
           <p className={styles.rotulo}>Para começar</p>
           {a.providencias.map((p) => (
@@ -110,20 +113,74 @@ export function FichaAtividade({
               <span className={p.status === 'feito' ? styles.feito : ''}>
                 {TIPO_ROTULO[p.tipo]}: {p.descricao}
               </span>
-              <button
-                type="button"
-                className={`${styles.provToggle} ${p.status === 'feito' ? styles.provFeito : ''}`}
-                onClick={() =>
-                  campo.providencia.mutate({
-                    id: p.id,
-                    status: p.status === 'feito' ? 'pendente' : 'feito',
-                  })
-                }
-              >
-                {p.status === 'feito' ? 'Providenciado' : 'Marcar'}
-              </button>
+              <span style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                <button
+                  type="button"
+                  className={`${styles.provToggle} ${p.status === 'feito' ? styles.provFeito : ''}`}
+                  onClick={() =>
+                    campo.providencia.mutate({ id: p.id, feito: p.status !== 'feito' })
+                  }
+                >
+                  {p.status === 'feito' ? 'Providenciado' : 'Marcar'}
+                </button>
+                {p.manual ? (
+                  <button
+                    type="button"
+                    className={styles.remover}
+                    aria-label="Remover lembrete"
+                    onClick={() =>
+                      campo.removerProv.mutate(p.id, {
+                        onSuccess: () =>
+                          showToast({
+                            message: 'Lembrete removido',
+                            onUndo: () =>
+                              campo.addProvidencia.mutate({
+                                atividadeId: a.id,
+                                tipo: p.tipo,
+                                descricao: p.descricao,
+                              }),
+                          }),
+                      })
+                    }
+                  >
+                    <Icon name="close" size={16} />
+                  </button>
+                ) : null}
+              </span>
             </div>
           ))}
+          <div className={styles.ajuste} style={{ marginTop: 8 }}>
+            <select
+              className={styles.input}
+              style={{ flex: '0 0 40%' }}
+              value={novoTipo}
+              onChange={(e) => setNovoTipo(e.target.value as typeof novoTipo)}
+              aria-label="Tipo do lembrete"
+            >
+              <option value="contratacao">Contratação</option>
+              <option value="locacao">Locação</option>
+              <option value="compra">Compra</option>
+            </select>
+            <input
+              className={styles.input}
+              placeholder="O que"
+              value={novaDesc}
+              onChange={(e) => setNovaDesc(e.target.value)}
+              aria-label="Descrição do lembrete"
+            />
+            <Button
+              variant="tertiary"
+              disabled={!novaDesc.trim()}
+              onClick={() =>
+                campo.addProvidencia.mutate(
+                  { atividadeId: a.id, tipo: novoTipo, descricao: novaDesc.trim() },
+                  { onSuccess: () => setNovaDesc('') },
+                )
+              }
+            >
+              + Lembrete
+            </Button>
+          </div>
         </div>
       ) : null}
 
