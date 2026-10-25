@@ -122,14 +122,16 @@ export function FichaAtividade({
                 >
                   {p.status === 'feito' ? 'Providenciado' : 'Marcar'}
                 </button>
-                <button
-                  type="button"
-                  className={styles.remover}
-                  aria-label="Remover lembrete"
-                  onClick={() => campo.removerProv.mutate(p.id)}
-                >
-                  ×
-                </button>
+                {p.manual ? (
+                  <button
+                    type="button"
+                    className={styles.remover}
+                    aria-label="Remover lembrete"
+                    onClick={() => campo.removerProv.mutate(p.id)}
+                  >
+                    ×
+                  </button>
+                ) : null}
               </span>
             </div>
           ))}

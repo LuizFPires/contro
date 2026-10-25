@@ -38,6 +38,7 @@ export async function adicionarProvidencia(
     tipo,
     descricao,
     antecedencia_du: 0,
+    manual: true,
   });
   if (error) throw error;
 }

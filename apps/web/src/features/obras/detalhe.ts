@@ -22,6 +22,7 @@ export interface ObraProv {
   status: 'pendente' | 'feito';
   antecedencia_du: number;
   na_obra_em: string | null;
+  manual: boolean;
 }
 export interface ObraAtv {
   id: string;
@@ -79,7 +80,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     supabase.from('obra_dependencia').select('atividade_id,predecessora_id').eq('obra_id', id),
     supabase
       .from('obra_providencia')
-      .select('id,atividade_id,tipo,descricao,status,antecedencia_du,na_obra_em')
+      .select('id,atividade_id,tipo,descricao,status,antecedencia_du,na_obra_em,manual')
       .eq('obra_id', id),
   ]);
 
