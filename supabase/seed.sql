@@ -1,11 +1,6 @@
 -- Seed de HOMOLOGAÇÃO (nunca produção). Nomes fictícios só aqui.
 -- Rodado por `pnpm db:reset`. Modelos 1, 2 e 3 entram no M1.
 
-insert into unidade (nome, cidade) values
-  ('Contorno do Corpo · Sete Lagoas', 'Sete Lagoas'),
-  ('Contorno do Corpo · Betim', 'Betim')
-on conflict do nothing;
-
 insert into sugestao (tipo, texto, usos) values
   ('prestador', 'Elétrica Silva', 3),
   ('prestador', 'Hidráulica Souza', 2),
