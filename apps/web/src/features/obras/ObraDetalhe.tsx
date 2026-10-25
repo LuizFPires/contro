@@ -3,6 +3,7 @@ import { Icon, Segmented, useToast } from '@obdc/ui';
 import { formatarDataCompleta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { FichaAtividade } from './FichaAtividade';
+import { PendenciasAba } from './PendenciasAba';
 import { ProvidenciasAba } from './ProvidenciasAba';
 import { classificarProvidencias } from './providenciasObra';
 import { useObraDetalhe } from './useObraDetalhe';
@@ -22,7 +23,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
   const { showToast } = useToast();
   const [faseAberta, setFaseAberta] = useState<string | null>(null);
   const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
-  const [aba, setAba] = useState<'fases' | 'providencias'>('fases');
+  const [aba, setAba] = useState<'fases' | 'pendencias' | 'providencias'>('fases');
 
   const dados = useMemo(() => (obra ? derivar(obra) : null), [obra]);
 
@@ -79,6 +80,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
             onChange={setAba}
             options={[
               { value: 'fases', label: 'Fases' },
+              { value: 'pendencias', label: 'Pendências' },
               {
                 value: 'providencias',
                 label: atrasados > 0 ? `Providências (${atrasados})` : 'Providências',
@@ -88,6 +90,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
         </div>
       </div>
 
+      {aba === 'pendencias' ? <PendenciasAba obra={obra} /> : null}
       {aba === 'providencias' ? <ProvidenciasAba obra={obra} /> : null}
 
       <div className={styles.trilha} hidden={aba !== 'fases'}>
