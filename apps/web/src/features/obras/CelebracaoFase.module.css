@@ -1,0 +1,89 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(24, 24, 24, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--obdc-space-4);
+  padding-bottom: calc(var(--obdc-space-4) + env(safe-area-inset-bottom));
+}
+.pop {
+  background: var(--obdc-surface);
+  border-radius: var(--obdc-radius-card);
+  padding: var(--obdc-space-5) var(--obdc-space-4) var(--obdc-space-4);
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-2);
+  align-items: center;
+}
+.ring {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--obdc-turquoise, #54b4b0);
+  color: var(--obdc-black, #181818);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kick {
+  font-size: var(--obdc-fs-caption);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--obdc-text);
+  margin: 0;
+}
+.titulo {
+  font-size: var(--obdc-fs-h1, 32px);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--obdc-text);
+  margin: 0;
+}
+.pill {
+  font-size: var(--obdc-fs-body);
+  font-weight: 800;
+  background: var(--obdc-turquoise, #54b4b0);
+  color: var(--obdc-black, #181818);
+  padding: 4px 12px;
+  border-radius: var(--obdc-radius-pill);
+}
+.lib {
+  background: rgba(24, 24, 24, 0.05);
+  border-radius: var(--obdc-radius-md, 12px);
+  padding: 10px 12px;
+  width: 100%;
+  text-align: left;
+}
+.libTitulo {
+  font-size: var(--obdc-fs-caption);
+  font-weight: 800;
+  color: var(--obdc-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+.libItem {
+  font-weight: 700;
+  font-size: var(--obdc-fs-body-sm);
+  margin: 4px 0 0;
+  color: var(--obdc-text);
+}
+.cta {
+  width: 100%;
+  min-height: 52px;
+  border: 0;
+  border-radius: var(--obdc-radius-md, 12px);
+  background: var(--obdc-action-inverse-bg);
+  color: var(--obdc-action-inverse-text);
+  font-size: var(--obdc-fs-body);
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: var(--obdc-space-1);
+}

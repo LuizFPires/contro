@@ -21,7 +21,16 @@ export function FichaAtividade({
   obra: ObraCompleta;
   atividadeId: string | null;
   onClose: () => void;
-  onConcluida: (r: { xp: number; fase_fechada: boolean }, nome: string, libera: string[]) => void;
+  onConcluida: (
+    r: { xp: number; fase_fechada: boolean },
+    det: {
+      nome: string;
+      libera: string[];
+      faseOrdem: number | null;
+      faseTitulo: string;
+      proxOrdem: number | null;
+    },
+  ) => void;
 }) {
   const campo = useObraCampo(obra.id);
   const { showToast } = useToast();
@@ -73,7 +82,17 @@ export function FichaAtividade({
     campo.concluir.mutate(
       { atividadeId: a.id, file },
       {
-        onSuccess: (r) => onConcluida(r, a.nome, libera),
+        onSuccess: (r) => {
+          const fase = obra.fases.find((f) => f.id === a.fase_id);
+          const prox = obra.fases.find((f) => f.ordem === (fase?.ordem ?? 0) + 1);
+          onConcluida(r, {
+            nome: a.nome,
+            libera,
+            faseOrdem: fase?.ordem ?? null,
+            faseTitulo: fase?.titulo ?? '',
+            proxOrdem: prox?.ordem ?? null,
+          });
+        },
       },
     );
   }
