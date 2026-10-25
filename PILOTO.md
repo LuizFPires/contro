@@ -38,7 +38,7 @@ Dependem de acesso do usuário (Supabase/Vercel) — ver **DEPLOY.md**:
 - **"Providências anteriores"** na reunião (requer a reunião anterior).
 - **Paginar "Concluídas"** nas pendências; **E2E** (SPEC §12) e **testes de RLS por perfil**
   no CI (precisa de Docker/Supabase local); auditoria **Lighthouse ≥ 90**.
-- Protótipos em `prototipo/*.html` ainda citam "obdc" (snapshot aprovado, não alterado).
+- Protótipos em `prototipo/*.html` ainda citam "contro" (snapshot aprovado, não alterado).
 
 ## Piloto (M10)
 - [ ] Criar a obra piloto (equipe se cadastra pelo uso, com sugestões).

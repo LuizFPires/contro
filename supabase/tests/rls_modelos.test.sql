@@ -11,9 +11,9 @@ select row_security_is_active('public', 'modelo_dependencia', 'RLS em modelo_dep
 select row_security_is_active('public', 'modelo_providencia', 'RLS em modelo_providencia');
 
 insert into auth.users (id, email) values
-  ('00000000-0000-0000-0000-0000000000a1', 'gestor@m1.obdc'),
-  ('00000000-0000-0000-0000-0000000000a2', 'equipe@m1.obdc'),
-  ('00000000-0000-0000-0000-0000000000a3', 'avulso@m1.obdc');
+  ('00000000-0000-0000-0000-0000000000a1', 'gestor@m1.contro'),
+  ('00000000-0000-0000-0000-0000000000a2', 'equipe@m1.contro'),
+  ('00000000-0000-0000-0000-0000000000a3', 'avulso@m1.contro');
 insert into pessoa (user_id, nome, perfil) values
   ('00000000-0000-0000-0000-0000000000a1', 'Gestor M1', 'gestor'),
   ('00000000-0000-0000-0000-0000000000a2', 'Equipe M1', 'equipe');

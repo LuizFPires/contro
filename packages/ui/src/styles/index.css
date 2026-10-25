@@ -19,11 +19,11 @@ body {
 }
 
 body {
-  font-family: var(--obdc-font);
-  font-size: var(--obdc-fs-body);
+  font-family: var(--contro-font);
+  font-size: var(--contro-fs-body);
   line-height: 1.5;
-  color: var(--obdc-text);
-  background: var(--obdc-bg-app);
+  color: var(--contro-text);
+  background: var(--contro-bg-app);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -34,6 +34,6 @@ button {
 
 /* Foco sempre visível (acessibilidade) */
 :focus-visible {
-  outline: 2px solid var(--obdc-focus);
+  outline: 2px solid var(--contro-focus);
   outline-offset: 2px;
 }

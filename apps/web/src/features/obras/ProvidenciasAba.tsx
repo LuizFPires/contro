@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Card } from '@obdc/ui';
+import { Card } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import type { ObraCompleta } from './detalhe';

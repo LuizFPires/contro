@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { aguardando as contar, rejeitadas as filtrar } from '@obdc/core';
+import { aguardando as contar, rejeitadas as filtrar } from '@contro/core';
 import { liveQuery } from 'dexie';
 import { db, type OpDB } from '../../lib/db';
 import { supabase } from '../../lib/supabase';

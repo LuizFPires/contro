@@ -24,10 +24,10 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_status text;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  if not public.obdc_op_nova(p_client_op_id) then return; end if;
+  if not public.contro_op_nova(p_client_op_id) then return; end if;
   select status into v_status from public.pendencia where id = p_id and deleted_at is null;
   if v_status is null then
     raise exception 'Pendência inválida' using errcode = '23503';
@@ -38,7 +38,7 @@ begin
   if p_data is null or p_data <= current_date then
     raise exception 'Data de retorno deve ser futura' using errcode = '23514';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   update public.pendencia
   set adiada_ate = p_data, motivo_adiamento = p_motivo
   where id = p_id;
@@ -55,10 +55,10 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_obra uuid; v_status text; v_topo numeric;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  if not public.obdc_op_nova(p_client_op_id) then return; end if;
+  if not public.contro_op_nova(p_client_op_id) then return; end if;
   select obra_id, status into v_obra, v_status
   from public.pendencia where id = p_id and deleted_at is null;
   if v_obra is null then
@@ -67,7 +67,7 @@ begin
   if v_status <> 'aberta' then
     raise exception 'Só traz pendência aberta' using errcode = '42501';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   select coalesce(min(ordem_fila), 0) - 1 into v_topo from public.pendencia where obra_id = v_obra;
   update public.pendencia
   set adiada_ate = null, motivo_adiamento = null, ordem_fila = v_topo
@@ -90,10 +90,10 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_obra uuid; v_status text; v_resolvida_por uuid; v_topo numeric;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  if not public.obdc_op_nova(p_client_op_id) then return; end if;
+  if not public.contro_op_nova(p_client_op_id) then return; end if;
   select obra_id, status, resolvida_por into v_obra, v_status, v_resolvida_por
   from public.pendencia where id = p_id and deleted_at is null;
   if v_obra is null then
@@ -102,7 +102,7 @@ begin
   if v_status <> 'em_vistoria' then
     raise exception 'Só vistoria pendência em vistoria' using errcode = '42501';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   if v_pessoa = v_resolvida_por then
     raise exception 'Quem resolveu não pode vistoriar a própria pendência' using errcode = '42501';
   end if;

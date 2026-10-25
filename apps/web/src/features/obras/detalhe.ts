@@ -5,7 +5,7 @@ import {
   type AtividadeCronograma,
   type AtividadeEntrada,
   type AtividadeEstado,
-} from '@obdc/core';
+} from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { hojeISO } from './api';
 

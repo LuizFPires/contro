@@ -1,7 +1,7 @@
 .par {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--obdc-space-2);
+  gap: var(--contro-space-2);
 }
 .lado {
   margin: 0;
@@ -10,18 +10,18 @@
   gap: 4px;
 }
 .lado figcaption {
-  font-size: var(--obdc-fs-caption);
+  font-size: var(--contro-fs-caption);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--obdc-muted);
+  color: var(--contro-muted);
 }
 .lado img {
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
-  border-radius: var(--obdc-radius-md, 12px);
-  background: var(--obdc-bg-app);
+  border-radius: var(--contro-radius-md, 12px);
+  background: var(--contro-bg-app);
 }
 .semFoto {
   width: 100%;
@@ -29,47 +29,47 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--obdc-radius-md, 12px);
-  background: var(--obdc-bg-app);
-  color: var(--obdc-muted);
-  font-size: var(--obdc-fs-caption);
+  border-radius: var(--contro-radius-md, 12px);
+  background: var(--contro-bg-app);
+  color: var(--contro-muted);
+  font-size: var(--contro-fs-caption);
 }
 .titulo {
   font-weight: 800;
-  font-size: var(--obdc-fs-body);
-  margin: var(--obdc-space-3) 0 2px;
+  font-size: var(--contro-fs-body);
+  margin: var(--contro-space-3) 0 2px;
 }
 .meta {
-  font-size: var(--obdc-fs-caption);
-  color: var(--obdc-muted);
+  font-size: var(--contro-fs-caption);
+  color: var(--contro-muted);
   margin: 0;
 }
 .bloqueio {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: var(--obdc-space-3);
-  padding: var(--obdc-space-2) var(--obdc-space-3);
-  border-radius: var(--obdc-radius-md, 12px);
-  background: var(--obdc-bg-app);
-  color: var(--obdc-late);
+  margin-top: var(--contro-space-3);
+  padding: var(--contro-space-2) var(--contro-space-3);
+  border-radius: var(--contro-radius-md, 12px);
+  background: var(--contro-bg-app);
+  color: var(--contro-late);
   font-weight: 700;
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
 }
 .motivo {
   width: 100%;
-  min-height: var(--obdc-touch);
-  margin-top: var(--obdc-space-3);
-  padding: 0 var(--obdc-space-3);
-  border-radius: var(--obdc-radius-md, 12px);
-  border: 1px solid var(--obdc-border);
-  background: var(--obdc-surface);
-  color: var(--obdc-text);
-  font-size: var(--obdc-fs-body-sm);
+  min-height: var(--contro-touch);
+  margin-top: var(--contro-space-3);
+  padding: 0 var(--contro-space-3);
+  border-radius: var(--contro-radius-md, 12px);
+  border: 1px solid var(--contro-border);
+  background: var(--contro-surface);
+  color: var(--contro-text);
+  font-size: var(--contro-fs-body-sm);
 }
 .acoes {
   display: flex;
-  gap: var(--obdc-space-2);
-  margin-top: var(--obdc-space-3);
+  gap: var(--contro-space-2);
+  margin-top: var(--contro-space-3);
   align-items: center;
 }

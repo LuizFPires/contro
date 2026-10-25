@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { podeVistoriar } from '@obdc/core';
-import { BottomSheet, Button, Icon } from '@obdc/ui';
+import { podeVistoriar } from '@contro/core';
+import { BottomSheet, Button, Icon } from '@contro/ui';
 import type { PendenciaObra } from './pendenciasObra';
 import styles from './VistoriaSheet.module.css';
 

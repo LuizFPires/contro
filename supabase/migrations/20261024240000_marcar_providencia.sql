@@ -8,7 +8,7 @@ set search_path = ''
 as $$
 declare v_pessoa uuid;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   select id into v_pessoa from public.pessoa where user_id = auth.uid() and deleted_at is null;
@@ -21,4 +21,4 @@ end;
 $$;
 
 create policy obra_providencia_del on obra_providencia
-  for delete to authenticated using (obdc_e_membro());
+  for delete to authenticated using (contro_e_membro());

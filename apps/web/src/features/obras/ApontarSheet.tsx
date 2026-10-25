@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BottomSheet, Button, Input } from '@obdc/ui';
+import { BottomSheet, Button, Input } from '@contro/ui';
 import { Camera } from './Camera';
 import type { NovaPendencia } from './campo';
 import styles from './AdiarSheet.module.css';

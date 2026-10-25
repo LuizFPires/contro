@@ -3,7 +3,7 @@
 --   - p_id nulo        → nova tarefa com id do servidor (como antes).
 --   - p_id inexistente → nova tarefa com o id do cliente (insert idempotente).
 --   - p_id existente   → edição (replaneja/edita), como antes.
--- O guard obdc_op_nova no topo corta o reenvio da MESMA op (sem evento nem
+-- O guard contro_op_nova no topo corta o reenvio da MESMA op (sem evento nem
 -- replanejamento duplicados); com p_client_op_id nulo (reunião) ele não atua.
 --
 -- O novo parâmetro muda a assinatura: removemos a versão antiga de 8 args.
@@ -28,17 +28,17 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_id uuid; v_old public.tarefa;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  if not public.obdc_op_nova(p_client_op_id) then return p_id; end if;
+  if not public.contro_op_nova(p_client_op_id) then return p_id; end if;
   if coalesce(trim(p_texto), '') = '' then
     raise exception 'Texto obrigatório' using errcode = '23514';
   end if;
   if p_prazo is null then
     raise exception 'Prazo obrigatório' using errcode = '23514';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
 
   -- Tarefa já existente? (quando p_id é nulo, é sempre nova)
   if p_id is not null then

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Icon } from '@obdc/ui';
+import { Icon } from '@contro/ui';
 import { db } from '../../lib/db';
 import { useOutbox } from './useOutbox';
 import styles from './SyncIndicator.module.css';

@@ -9,20 +9,20 @@
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: var(--obdc-space-2);
-  padding: var(--obdc-space-2) var(--obdc-space-3);
-  background: var(--obdc-surface);
-  box-shadow: 0 1px 0 var(--obdc-border);
+  gap: var(--contro-space-2);
+  padding: var(--contro-space-2) var(--contro-space-3);
+  background: var(--contro-surface);
+  box-shadow: 0 1px 0 var(--contro-border);
 }
 .voltar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--obdc-touch);
-  height: var(--obdc-touch);
+  width: var(--contro-touch);
+  height: var(--contro-touch);
   border: none;
   background: transparent;
-  color: var(--obdc-text);
+  color: var(--contro-text);
   transform: scaleX(-1);
   cursor: pointer;
 }
@@ -32,89 +32,89 @@
 }
 .acoes {
   display: flex;
-  gap: var(--obdc-space-2);
+  gap: var(--contro-space-2);
 }
 .wa,
 .print {
-  min-height: var(--obdc-touch);
+  min-height: var(--contro-touch);
   display: inline-flex;
   align-items: center;
-  padding: 0 var(--obdc-space-3);
-  border-radius: var(--obdc-radius-pill);
+  padding: 0 var(--contro-space-3);
+  border-radius: var(--contro-radius-pill);
   font-weight: 700;
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
   cursor: pointer;
   text-decoration: none;
 }
 .wa {
-  background: var(--obdc-action-primary-bg);
-  color: var(--obdc-action-primary-text);
+  background: var(--contro-action-primary-bg);
+  color: var(--contro-action-primary-text);
 }
 .print {
-  border: 1px solid var(--obdc-text);
+  border: 1px solid var(--contro-text);
   background: transparent;
-  color: var(--obdc-text);
+  color: var(--contro-text);
 }
 .corpo {
-  padding: var(--obdc-space-4);
+  padding: var(--contro-space-4);
   max-width: 720px;
   margin: 0 auto;
   width: 100%;
 }
 .titulo {
-  font-size: var(--obdc-fs-h2);
+  font-size: var(--contro-fs-h2);
   font-weight: 800;
   margin: 0;
 }
 .semana {
-  color: var(--obdc-muted);
-  font-size: var(--obdc-fs-body-sm);
+  color: var(--contro-muted);
+  font-size: var(--contro-fs-body-sm);
   margin: 2px 0;
 }
 .ind {
   font-weight: 700;
-  font-size: var(--obdc-fs-body-sm);
-  margin: var(--obdc-space-2) 0;
+  font-size: var(--contro-fs-body-sm);
+  margin: var(--contro-space-2) 0;
 }
 .atraso {
-  color: var(--obdc-late);
+  color: var(--contro-late);
 }
 .bloco {
-  margin: var(--obdc-space-3) 0;
+  margin: var(--contro-space-3) 0;
 }
 .blocoTitulo {
-  font-size: var(--obdc-fs-caption);
+  font-size: var(--contro-fs-caption);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--obdc-muted);
+  color: var(--contro-muted);
   margin: 0 0 2px;
 }
 .bloco ul {
   margin: 0;
-  padding-left: var(--obdc-space-4);
-  font-size: var(--obdc-fs-body-sm);
+  padding-left: var(--contro-space-4);
+  font-size: var(--contro-fs-body-sm);
 }
 .bloco ul ul {
   margin: 2px 0;
 }
 .rotulo {
-  font-size: var(--obdc-fs-caption);
+  font-size: var(--contro-fs-caption);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--obdc-muted);
-  margin: var(--obdc-space-4) 0 var(--obdc-space-1);
+  color: var(--contro-muted);
+  margin: var(--contro-space-4) 0 var(--contro-space-1);
 }
 .previa {
   white-space: pre-wrap;
   word-break: break-word;
-  background: var(--obdc-bg-app);
-  border: 1px solid var(--obdc-border);
-  border-radius: var(--obdc-radius-md, 12px);
-  padding: var(--obdc-space-3);
+  background: var(--contro-bg-app);
+  border: 1px solid var(--contro-border);
+  border-radius: var(--contro-radius-md, 12px);
+  padding: var(--contro-space-3);
   font: inherit;
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
   margin: 0;
 }
 

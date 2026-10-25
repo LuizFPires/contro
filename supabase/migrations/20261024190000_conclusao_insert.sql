@@ -1,6 +1,6 @@
 -- M2 · Fecha o caminho de INSERT na proteção de conclusão (review):
 -- pelo INSERT direto o cliente poderia criar a atividade já concluída.
-create or replace function obdc_protege_conclusao()
+create or replace function contro_protege_conclusao()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -27,4 +27,4 @@ $$;
 
 drop trigger if exists obra_atividade_protege_conclusao on obra_atividade;
 create trigger obra_atividade_protege_conclusao before insert or update on obra_atividade
-  for each row execute function obdc_protege_conclusao();
+  for each row execute function contro_protege_conclusao();

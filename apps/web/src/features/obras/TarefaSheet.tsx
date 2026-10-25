@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { textoReplanejamento } from '@obdc/core';
-import { BottomSheet, Button, Input } from '@obdc/ui';
+import { textoReplanejamento } from '@contro/core';
+import { BottomSheet, Button, Input } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import type { PessoaResumo } from '../perfil/usePessoas';
 import type { EntradaTarefa } from './campo';

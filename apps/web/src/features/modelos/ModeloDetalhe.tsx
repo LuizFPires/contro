@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Card, Icon, useToast } from '@obdc/ui';
+import { Button, Card, Icon, useToast } from '@contro/ui';
 import { AssistenteAtividade } from './AssistenteAtividade';
 import { ModeloEditor } from './ModeloEditor';
 import { useModeloCompleto, useSalvarAtividade } from './useModeloDetalhe';

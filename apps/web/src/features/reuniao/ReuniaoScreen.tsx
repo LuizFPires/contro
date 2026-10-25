@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { ritmoTexto } from '@obdc/core';
-import { Icon, useToast } from '@obdc/ui';
+import { ritmoTexto } from '@contro/core';
+import { Icon, useToast } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
 import { usePessoas } from '../perfil/usePessoas';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';

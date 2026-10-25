@@ -16,7 +16,7 @@ declare
   v_xp int := 50;
   v_fase_fechada boolean := false;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
 
@@ -81,7 +81,7 @@ set search_path = ''
 as $$
 declare v_pessoa uuid;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   select id into v_pessoa from public.pessoa where user_id = auth.uid() and deleted_at is null;
@@ -101,7 +101,7 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_antes date;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   select inicio_manual into v_antes from public.obra_atividade where id = p_atividade_id;

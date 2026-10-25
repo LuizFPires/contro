@@ -1,4 +1,4 @@
-import { Icon } from '@obdc/ui';
+import { Icon } from '@contro/ui';
 import styles from './CelebracaoFase.module.css';
 
 export interface CelebracaoFaseDados {

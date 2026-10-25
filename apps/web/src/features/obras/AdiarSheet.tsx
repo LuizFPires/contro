@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BottomSheet, Button } from '@obdc/ui';
+import { BottomSheet, Button } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import styles from './AdiarSheet.module.css';
 

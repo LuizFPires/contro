@@ -1,4 +1,4 @@
-// @obdc/core — REGRAS DE DOMÍNIO puras e testadas.
+// @contro/core — REGRAS DE DOMÍNIO puras e testadas.
 // Telas e pdf-service importam daqui e nunca recalculam por conta própria.
 // O motor de cronograma (calendar, schedule) entra no M1.
 

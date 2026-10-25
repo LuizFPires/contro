@@ -21,10 +21,10 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_obra uuid; v_status text;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  if not public.obdc_op_nova(p_client_op_id) then return; end if;
+  if not public.contro_op_nova(p_client_op_id) then return; end if;
   select obra_id, status into v_obra, v_status
   from public.pendencia where id = p_id and deleted_at is null;
   if v_obra is null then
@@ -38,7 +38,7 @@ begin
   ) then
     raise exception 'Resolver exige foto de depois da obra' using errcode = '23503';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   update public.pendencia
   set status = 'em_vistoria', foto_depois_id = p_foto_depois_id,
       resolvida_por = v_pessoa, resolvida_em = now()

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { classificarTarefas, tarefaAtrasada, textoReplanejamento } from '@obdc/core';
-import { Card, Icon, useToast } from '@obdc/ui';
+import { classificarTarefas, tarefaAtrasada, textoReplanejamento } from '@contro/core';
+import { Card, Icon, useToast } from '@contro/ui';
 import { usePessoas } from '../perfil/usePessoas';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';

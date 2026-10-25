@@ -4,8 +4,8 @@ import {
   ritmoTexto,
   textoAtaWhatsapp,
   type ObraAta,
-} from '@obdc/core';
-import { Icon } from '@obdc/ui';
+} from '@contro/core';
+import { Icon } from '@contro/ui';
 import { hojeISO } from '../obras/api';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import type { ReuniaoCompleta } from './reuniaoApi';

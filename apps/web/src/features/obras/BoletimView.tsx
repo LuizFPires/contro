@@ -9,8 +9,8 @@ import {
   textoBoletimWhatsapp,
   type AtividadeSemana,
   type BoletimDados,
-} from '@obdc/core';
-import { Icon } from '@obdc/ui';
+} from '@contro/core';
+import { Icon } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import type { ObraCompleta } from './detalhe';

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { durSubitens, type AtividadeEntrada } from '@obdc/core';
-import { Button, Icon, Input } from '@obdc/ui';
+import { durSubitens, type AtividadeEntrada } from '@contro/core';
+import { Button, Icon, Input } from '@contro/ui';
 import type { Fase, NovaAtividade } from './detalhe';
 import { useSugestoesAtividade } from './useModeloDetalhe';
 import styles from './AssistenteAtividade.module.css';

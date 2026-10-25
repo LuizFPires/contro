@@ -5,7 +5,7 @@
 
 -- Trigger anti-ciclo: rejeita a dependência que fecharia um ciclo na obra.
 -- (self-dependência também é rejeitada, pois a cadeia parte da predecessora.)
-create or replace function obdc_checa_ciclo_obra_dependencia()
+create or replace function contro_checa_ciclo_obra_dependencia()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -35,8 +35,8 @@ begin
 end;
 $$;
 create trigger obra_dependencia_anti_ciclo before insert or update on obra_dependencia
-  for each row execute function obdc_checa_ciclo_obra_dependencia();
+  for each row execute function contro_checa_ciclo_obra_dependencia();
 
 -- Remover predecessora (editar cronograma): membro pode apagar a dependência.
 create policy obra_dependencia_del on obra_dependencia
-  for delete to authenticated using (obdc_e_membro());
+  for delete to authenticated using (contro_e_membro());

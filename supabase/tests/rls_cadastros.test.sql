@@ -11,9 +11,9 @@ select row_security_is_active('public', 'sugestao', 'RLS ligada em sugestao');
 
 -- Usuários de teste (gestor, equipe e um autenticado SEM pessoa)
 insert into auth.users (id, email) values
-  ('00000000-0000-0000-0000-000000000001', 'gestor@teste.obdc'),
-  ('00000000-0000-0000-0000-000000000002', 'equipe@teste.obdc'),
-  ('00000000-0000-0000-0000-000000000003', 'avulso@teste.obdc');
+  ('00000000-0000-0000-0000-000000000001', 'gestor@teste.contro'),
+  ('00000000-0000-0000-0000-000000000002', 'equipe@teste.contro'),
+  ('00000000-0000-0000-0000-000000000003', 'avulso@teste.contro');
 
 insert into pessoa (user_id, nome, perfil) values
   ('00000000-0000-0000-0000-000000000001', 'Gestor Teste', 'gestor'),

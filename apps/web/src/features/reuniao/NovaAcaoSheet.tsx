@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BottomSheet, Button, Input } from '@obdc/ui';
+import { BottomSheet, Button, Input } from '@contro/ui';
 import type { PessoaResumo } from '../perfil/usePessoas';
 import type { EntradaTarefa } from '../obras/campo';
 import type { ReuniaoObraDados } from './reuniaoApi';
@@ -117,7 +117,7 @@ export function NovaAcaoSheet({
         </>
       ) : null}
 
-      <div className={styles.rodape} style={{ marginTop: 'var(--obdc-space-3)' }}>
+      <div className={styles.rodape} style={{ marginTop: 'var(--contro-space-3)' }}>
         <Input
           label="O que"
           value={texto}

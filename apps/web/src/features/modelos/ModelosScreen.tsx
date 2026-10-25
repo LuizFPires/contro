@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BottomSheet, Button, Card, Icon, Input, useToast } from '@obdc/ui';
+import { BottomSheet, Button, Card, Icon, Input, useToast } from '@contro/ui';
 import { useModelos, useModelosMutations } from './useModelos';
 import { ModeloDetalhe } from './ModeloDetalhe';
 import type { ModeloResumo } from './api';

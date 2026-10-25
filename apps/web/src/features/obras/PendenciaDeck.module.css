@@ -1,18 +1,18 @@
 .deck {
   position: relative;
-  padding: var(--obdc-space-2) 0 var(--obdc-space-4);
+  padding: var(--contro-space-2) 0 var(--contro-space-4);
 }
 .cardTopo,
 .cardAtras {
-  background: var(--obdc-surface);
-  border: 1px solid var(--obdc-border);
-  border-radius: var(--obdc-radius-lg, 16px);
+  background: var(--contro-surface);
+  border: 1px solid var(--contro-border);
+  border-radius: var(--contro-radius-lg, 16px);
   overflow: hidden;
   box-shadow: 0 2px 10px rgb(24 24 24 / 8%);
 }
 .cardAtras {
   position: absolute;
-  inset: var(--obdc-space-2) 0 auto 0;
+  inset: var(--contro-space-2) 0 auto 0;
   transform-origin: top center;
 }
 .cardTopo {
@@ -26,7 +26,7 @@
   height: 220px;
   object-fit: cover;
   display: block;
-  background: var(--obdc-bg-app);
+  background: var(--contro-bg-app);
 }
 .fotoVazia {
   width: 100%;
@@ -34,11 +34,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--obdc-muted);
-  background: var(--obdc-bg-app);
+  color: var(--contro-muted);
+  background: var(--contro-bg-app);
 }
 .corpo {
-  padding: var(--obdc-space-3);
+  padding: var(--contro-space-3);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -46,64 +46,64 @@
 .linha {
   display: flex;
   align-items: center;
-  gap: var(--obdc-space-2);
+  gap: var(--contro-space-2);
 }
 .crit {
-  font-size: var(--obdc-fs-caption);
+  font-size: var(--contro-fs-caption);
   font-weight: 800;
   padding: 2px 8px;
-  border-radius: var(--obdc-radius-pill);
+  border-radius: var(--contro-radius-pill);
 }
 .crit_alta {
-  background: var(--obdc-black, #181818);
+  background: var(--contro-black, #181818);
   color: #fff;
 }
 .crit_media {
-  background: var(--obdc-selected, rgb(84 180 176 / 22%));
-  color: var(--obdc-text);
+  background: var(--contro-selected, rgb(84 180 176 / 22%));
+  color: var(--contro-text);
 }
 .crit_baixa {
-  border: 1px solid var(--obdc-border);
-  color: var(--obdc-muted);
+  border: 1px solid var(--contro-border);
+  color: var(--contro-muted);
 }
 .local {
-  font-size: var(--obdc-fs-caption);
-  color: var(--obdc-muted);
+  font-size: var(--contro-fs-caption);
+  color: var(--contro-muted);
 }
 .titulo {
   font-weight: 800;
-  font-size: var(--obdc-fs-body);
+  font-size: var(--contro-fs-body);
   margin: 0;
 }
 .meta {
-  font-size: var(--obdc-fs-caption);
-  color: var(--obdc-muted);
+  font-size: var(--contro-fs-caption);
+  color: var(--contro-muted);
   margin: 0;
 }
 .selo {
   position: absolute;
-  top: var(--obdc-space-3);
+  top: var(--contro-space-3);
   z-index: 2;
   font-weight: 800;
-  font-size: var(--obdc-fs-body);
+  font-size: var(--contro-fs-body);
   padding: 4px 10px;
-  border-radius: var(--obdc-radius-pill);
+  border-radius: var(--contro-radius-pill);
   border: 2px solid currentColor;
 }
 .seloOk {
-  right: var(--obdc-space-3);
-  color: var(--obdc-turquoise, #54b4b0);
+  right: var(--contro-space-3);
+  color: var(--contro-turquoise, #54b4b0);
   background: #fff;
 }
 .seloAdiar {
-  left: var(--obdc-space-3);
-  color: var(--obdc-text);
+  left: var(--contro-space-3);
+  color: var(--contro-text);
   background: #fff;
 }
 .botoes {
   display: flex;
-  gap: var(--obdc-space-2);
-  margin-top: var(--obdc-space-3);
+  gap: var(--contro-space-2);
+  margin-top: var(--contro-space-3);
 }
 .btnAdiar,
 .btnResolver {
@@ -112,28 +112,28 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: var(--obdc-touch);
-  border-radius: var(--obdc-radius-pill);
+  min-height: var(--contro-touch);
+  border-radius: var(--contro-radius-pill);
   font-weight: 700;
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
   cursor: pointer;
 }
 .btnAdiar {
-  border: 1px solid var(--obdc-text);
+  border: 1px solid var(--contro-text);
   background: transparent;
-  color: var(--obdc-text);
+  color: var(--contro-text);
 }
 .btnResolver {
   border: none;
-  background: var(--obdc-action-primary-bg);
-  color: var(--obdc-action-primary-text);
+  background: var(--contro-action-primary-bg);
+  color: var(--contro-action-primary-text);
 }
 .vazio {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--obdc-space-2);
-  color: var(--obdc-muted);
+  gap: var(--contro-space-2);
+  color: var(--contro-muted);
   text-align: center;
-  padding: var(--obdc-space-6) var(--obdc-space-4);
+  padding: var(--contro-space-6) var(--contro-space-4);
 }

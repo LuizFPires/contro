@@ -61,7 +61,7 @@ Local: copie `apps/web/.env.example` para `apps/web/.env` e preencha.
 ## 3. Vercel — PWA
 1. **Import** do repositório `LuizFPires/contro`. O `vercel.json` na raiz já define:
    - Install: `pnpm install --frozen-lockfile`
-   - Build: `pnpm build` (filtra `@obdc/web`)
+   - Build: `pnpm build` (filtra `@contro/web`)
    - Output: `apps/web/dist`
 2. **Environment Variables**: adicione `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`
    (e `VITE_SENTRY_DSN` se usar) em Production e Preview.

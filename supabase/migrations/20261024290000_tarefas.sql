@@ -40,8 +40,8 @@ create index on tarefa_evento (tarefa_id, em);
 
 alter table tarefa enable row level security;
 alter table tarefa_evento enable row level security;
-create policy tarefa_sel on tarefa for select to authenticated using (obdc_e_membro());
-create policy tarefa_evento_sel on tarefa_evento for select to authenticated using (obdc_e_membro());
+create policy tarefa_sel on tarefa for select to authenticated using (contro_e_membro());
+create policy tarefa_evento_sel on tarefa_evento for select to authenticated using (contro_e_membro());
 
 -- Cria ou edita. p_id nulo = nova. Editar o prazo de tarefa aberta replaneja
 -- (preserva prazo_original e incrementa replanejamentos) — regra 8.
@@ -62,7 +62,7 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_id uuid; v_old public.tarefa;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   if coalesce(trim(p_texto), '') = '' then
@@ -71,7 +71,7 @@ begin
   if p_prazo is null then
     raise exception 'Prazo obrigatório' using errcode = '23514';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
 
   if p_id is null then
     -- O vínculo tem de ser da MESMA obra (evita efeito cruzado entre obras).
@@ -127,14 +127,14 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_t public.tarefa;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   select * into v_t from public.tarefa where id = p_id and deleted_at is null;
   if v_t.id is null then
     raise exception 'Tarefa inválida' using errcode = '23503';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
 
   if v_t.vinculo_tipo = 'providencia' and v_t.vinculo_id is not null then
     update public.obra_providencia
@@ -159,14 +159,14 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_t public.tarefa; v_atv_concluida boolean;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   select * into v_t from public.tarefa where id = p_id and deleted_at is null;
   if v_t.id is null then
     raise exception 'Tarefa inválida' using errcode = '23503';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
 
   if v_t.efeito_providencia_id is not null then
     select oa.concluida_em is not null into v_atv_concluida
@@ -195,10 +195,10 @@ set search_path = ''
 as $$
 declare v_pessoa uuid;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   update public.tarefa set deleted_at = now() where id = p_id and deleted_at is null;
   insert into public.tarefa_evento (tarefa_id, tipo, por) values (p_id, 'excluida', v_pessoa);
 end;
@@ -212,10 +212,10 @@ set search_path = ''
 as $$
 declare v_pessoa uuid;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   update public.tarefa set deleted_at = null where id = p_id;
   insert into public.tarefa_evento (tarefa_id, tipo, por) values (p_id, 'restaurada', v_pessoa);
 end;

@@ -25,8 +25,8 @@ create table reuniao_obra (
 
 alter table reuniao enable row level security;
 alter table reuniao_obra enable row level security;
-create policy reuniao_sel on reuniao for select to authenticated using (obdc_e_membro());
-create policy reuniao_obra_sel on reuniao_obra for select to authenticated using (obdc_e_membro());
+create policy reuniao_sel on reuniao for select to authenticated using (contro_e_membro());
+create policy reuniao_obra_sel on reuniao_obra for select to authenticated using (contro_e_membro());
 
 -- Abre (ou retorna) a pauta da data: cria a reunião e uma linha por obra ativa.
 create or replace function abrir_reuniao(p_data date)
@@ -37,7 +37,7 @@ set search_path = ''
 as $$
 declare v_id uuid; v_status text;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   -- Idempotente e à prova de corrida (dois membros abrindo a tela ao mesmo tempo).
@@ -66,7 +66,7 @@ set search_path = ''
 as $$
 declare v_status text; v_n int;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   -- Trava a linha da reunião (fechar_reuniao também a trava no UPDATE), evitando
@@ -96,11 +96,11 @@ set search_path = ''
 as $$
 declare v_n int;
 begin
-  if public.obdc_perfil() is distinct from 'gestor' then
+  if public.contro_perfil() is distinct from 'gestor' then
     raise exception 'Só o gestor fecha a reunião' using errcode = '42501';
   end if;
   update public.reuniao
-  set status = 'fechada', fechada_em = now(), fechada_por = public.obdc_pessoa_atual()
+  set status = 'fechada', fechada_em = now(), fechada_por = public.contro_pessoa_atual()
   where id = p_id and status <> 'fechada';
   get diagnostics v_n = row_count;
   if v_n = 0 then

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Icon, Monograma, useToast } from '@obdc/ui';
+import { Icon, Monograma, useToast } from '@contro/ui';
 import { ObraCard } from '../features/obras/ObraCard';
 import { ObraDetalhe } from '../features/obras/ObraDetalhe';
 import { NovaObraScreen } from '../features/obras/NovaObraScreen';
