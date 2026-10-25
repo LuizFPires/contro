@@ -56,6 +56,7 @@ export interface ObraCompleta {
   dia: { n: number; m: number };
   entrega: string;
   pct: number;
+  previstoSexta: number;
   ritmoDias: number;
   decorridos: number;
 }
@@ -163,6 +164,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     dia: diaDaObra(o.inicio, hoje, cron.total),
     entrega: est.indicadores.entrega,
     pct: est.indicadores.real,
+    previstoSexta: est.indicadores.previstoSexta,
     ritmoDias: est.indicadores.ritmoDias,
     decorridos: est.indicadores.decorridos,
   };
