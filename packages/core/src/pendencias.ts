@@ -45,12 +45,22 @@ export function classificarPendencias<T extends Pendencia>(
   return { fila, adiadas, emVistoria, concluidas };
 }
 
-/** Regra 5: só vistoria quem está em vistoria e não foi quem resolveu. */
+/**
+ * Regra 5: só vistoria quem está em vistoria e não foi quem resolveu. Exige um
+ * resolvedor conhecido: se `resolvida_por` for null (ex.: patch otimista offline
+ * antes de o perfil carregar), ninguém vistoria até o servidor confirmar — assim
+ * o próprio resolvedor não fecha a própria pendência na janela offline.
+ */
 export function podeVistoriar(
   p: Pick<Pendencia, 'status' | 'resolvida_por'>,
   pessoaId: string | null,
 ): boolean {
-  return p.status === 'em_vistoria' && pessoaId !== null && p.resolvida_por !== pessoaId;
+  return (
+    p.status === 'em_vistoria' &&
+    pessoaId !== null &&
+    p.resolvida_por !== null &&
+    p.resolvida_por !== pessoaId
+  );
 }
 
 /**

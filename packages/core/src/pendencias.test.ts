@@ -61,6 +61,9 @@ describe('podeVistoriar (regra 5)', () => {
   it('sem pessoa identificada, bloqueia', () => {
     expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: 'p1' }, null)).toBe(false);
   });
+  it('resolvedor desconhecido (null, patch otimista offline) não libera vistoria', () => {
+    expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: null }, 'p1')).toBe(false);
+  });
 });
 
 describe('topoFila', () => {
