@@ -26,7 +26,12 @@ const MODELO_1 = [
     nome: 'Mobilização e tapumes',
     dur: 2,
     preds: [],
-    provs: [L('Tapumes e container de obra', 3)],
+    provs: [
+      L('Tapumes e container de obra', 3),
+      C('Empreiteiro civil (contrato global MO+material)', 20),
+      L('Banheiro químico', 3),
+      L('Betoneira', 3),
+    ],
   },
   {
     id: '2',
@@ -39,7 +44,11 @@ const MODELO_1 = [
       { id: '2.2', nome: 'Demolição de forro', dur: 2, seq: false },
       { id: '2.3', nome: 'Demolição de piso', dur: 3, seq: true },
     ],
-    provs: [L('Caçambas de entulho', 2), C('Equipe de demolição', 5)],
+    provs: [
+      L('Caçambas de entulho', 2),
+      C('Equipe de demolição', 5),
+      L('Martelete / rompedor', 2),
+    ],
   },
   { id: '3', fase: 1, nome: 'Limpeza e bota-fora', dur: 2, preds: ['2'] },
   {
@@ -48,7 +57,11 @@ const MODELO_1 = [
     nome: 'Alvenarias e novos fechamentos',
     dur: 6,
     preds: ['3'],
-    provs: [C('Pedreiro (alvenaria)', 5), P('Blocos e argamassa', 5)],
+    provs: [
+      C('Pedreiro (alvenaria)', 5),
+      P('Blocos e argamassa', 5),
+      L('Caçamba (limpeza permanente)', 2),
+    ],
   },
   {
     id: '5',
