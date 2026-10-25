@@ -4,6 +4,7 @@ import { Icon, Segmented, useToast } from '@obdc/ui';
 import { formatarDataCompleta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { BoletimView } from './BoletimView';
+import { CelebracaoFase, type CelebracaoFaseDados } from './CelebracaoFase';
 import { FichaAtividade } from './FichaAtividade';
 import { GanttAba } from './GanttAba';
 import { PendenciasAba } from './PendenciasAba';
@@ -39,6 +40,7 @@ export function ObraDetalhe({
   const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
   const [aba, setAba] = useState<AbaObra>(abaInicial ?? 'fases');
   const [boletimAberto, setBoletimAberto] = useState(false);
+  const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
 
   const dados = useMemo(() => (obra ? derivar(obra) : null), [obra]);
 
@@ -202,17 +204,25 @@ export function ObraDetalhe({
         obra={obra}
         atividadeId={fichaAtvId}
         onClose={() => setFichaAtvId(null)}
-        onConcluida={(r, nome, libera) => {
+        onConcluida={(r, det) => {
           setFichaAtvId(null);
           if (r.fase_fechada) {
-            showToast({ message: `Fase concluída! +${r.xp} XP` });
-          } else if (libera.length) {
-            showToast({ message: `"${nome}" concluída · liberou ${libera.join(', ')}` });
+            setCelebra({
+              ordem: det.faseOrdem ?? 0,
+              titulo: det.faseTitulo,
+              xp: r.xp,
+              libera: det.libera,
+              proxOrdem: det.proxOrdem,
+            });
+          } else if (det.libera.length) {
+            showToast({ message: `"${det.nome}" concluída · liberou ${det.libera.join(', ')}` });
           } else {
-            showToast({ message: `"${nome}" concluída · +${r.xp} XP` });
+            showToast({ message: `"${det.nome}" concluída · +${r.xp} XP` });
           }
         }}
       />
+
+      {celebra ? <CelebracaoFase dados={celebra} onFechar={() => setCelebra(null)} /> : null}
     </div>
   );
 }
