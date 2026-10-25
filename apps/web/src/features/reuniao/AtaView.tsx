@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   compilarPorPessoa,
   derivarAtribuicoes,
@@ -5,9 +6,11 @@ import {
   textoAtaWhatsapp,
   type ObraAta,
 } from '@contro/core';
-import { Icon } from '@contro/ui';
+import { Icon, useToast } from '@contro/ui';
 import { hojeISO } from '../obras/api';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
+import { pdfServiceConfigurado } from '../../lib/env';
+import { baixarPdf } from '../../lib/pdf';
 import type { ReuniaoCompleta } from './reuniaoApi';
 import styles from './AtaView.module.css';
 
@@ -30,6 +33,24 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
     observacoes: o.observacoes,
   }));
   const wa = `https://wa.me/?text=${encodeURIComponent(textoAtaWhatsapp(dataFmt, obrasAta))}`;
+  const { showToast } = useToast();
+  const [baixando, setBaixando] = useState(false);
+
+  async function baixar() {
+    if (!pdfServiceConfigurado) {
+      window.print();
+      return;
+    }
+    setBaixando(true);
+    try {
+      await baixarPdf('ata', { dataFmt, obras: obrasAta }, `ata-${reuniao.data}.pdf`);
+    } catch {
+      showToast({ message: 'Não foi possível gerar o PDF. Abrindo a impressão.' });
+      window.print();
+    } finally {
+      setBaixando(false);
+    }
+  }
 
   const porPessoa = compilarPorPessoa(
     derivarAtribuicoes(
@@ -58,8 +79,8 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
           <a className={styles.wa} href={wa} target="_blank" rel="noreferrer">
             WhatsApp
           </a>
-          <button type="button" className={styles.print} onClick={() => window.print()}>
-            Imprimir / PDF
+          <button type="button" className={styles.print} onClick={baixar} disabled={baixando}>
+            {baixando ? 'Gerando…' : 'Baixar PDF'}
           </button>
         </div>
       </div>
