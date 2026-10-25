@@ -1,8 +1,29 @@
-import simbolo from '../brand/simbolo-192.png';
+import simboloPng from '../brand/simbolo-192.png';
+import simboloSvg from '../brand/simbolo.svg';
 import logoEscuro from '../brand/CONTRO_logo_escuro.svg';
 import logoClaro from '../brand/CONTRO_logo_claro.svg';
 
 // Símbolo e lettering APROVADOS (não redesenhar). Artwork vindo da pasta do projeto.
+
+export interface SimboloProps {
+  /** Lado em px. */
+  size?: number;
+  className?: string;
+}
+
+/** Símbolo da marca (chevron) SEM o quadrado preto — fundo transparente. */
+export function Simbolo({ size = 40, className }: SimboloProps) {
+  return (
+    <img
+      src={simboloSvg}
+      width={size}
+      height={size}
+      className={className}
+      alt="CONTRO"
+      style={{ display: 'block', objectFit: 'contain' }}
+    />
+  );
+}
 
 export interface MonogramaProps {
   /** Lado do ícone em px. */
@@ -14,7 +35,7 @@ export interface MonogramaProps {
 export function Monograma({ size = 40, className }: MonogramaProps) {
   return (
     <img
-      src={simbolo}
+      src={simboloPng}
       width={size}
       height={size}
       className={className}

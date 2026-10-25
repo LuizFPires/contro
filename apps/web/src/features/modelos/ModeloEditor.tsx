@@ -118,135 +118,138 @@ export function ModeloEditor({ id, onVoltar }: { id: string; onVoltar: () => voi
                   if (v && v !== f.titulo) ed.renomearFase.mutate({ id: f.id, titulo: v });
                 }}
               />
-              <table className={styles.tabela}>
-                <thead>
-                  <tr>
-                    <th>Atividade</th>
-                    <th>Duração</th>
-                    <th>Depende de</th>
-                    <th>Providências</th>
-                    <th aria-label="Ações" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {daFase.map((a) => {
-                    const c = modelo.cronograma.porId[a.id];
-                    const subs = modelo.atividades.filter((x) => x.pai_id === a.id);
-                    const temSubs = subs.length > 0;
-                    return (
-                      <tr key={a.id}>
-                        <td>
-                          <span className={c?.critico ? styles.critico : styles.nome}>
-                            {a.nome}
-                          </span>
-                          {subs.map((s) => (
-                            <div key={s.id} className={styles.subitem}>
-                              ↳ {s.nome} · {s.duracao_du} du {s.em_sequencia ? '' : '(paralelo)'}
-                            </div>
-                          ))}
-                        </td>
-                        <td>
-                          {temSubs ? (
-                            <span>{c?.dur} du</span>
-                          ) : (
-                            <span className={styles.stepper}>
-                              <button
-                                type="button"
-                                className={styles.stepBtn}
-                                aria-label="Menos"
-                                onClick={() =>
-                                  ed.duracao.mutate({
-                                    id: a.id,
-                                    dur: Math.max(1, a.duracao_du - 1),
-                                  })
-                                }
-                              >
-                                −
-                              </button>
-                              {a.duracao_du}
-                              <button
-                                type="button"
-                                className={styles.stepBtn}
-                                aria-label="Mais"
-                                onClick={() =>
-                                  ed.duracao.mutate({ id: a.id, dur: a.duracao_du + 1 })
-                                }
-                              >
-                                +
-                              </button>
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          <div className={styles.chips}>
-                            {a.predecessoras.map((p) => (
-                              <span key={p} className={styles.chip}>
-                                {nomes[p] ?? '—'}
+              <div className={styles.tabelaWrap}>
+                <table className={styles.tabela}>
+                  <thead>
+                    <tr>
+                      <th>Atividade</th>
+                      <th>Duração</th>
+                      <th>Depende de</th>
+                      <th>Providências</th>
+                      <th aria-label="Ações" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {daFase.map((a) => {
+                      const c = modelo.cronograma.porId[a.id];
+                      const subs = modelo.atividades.filter((x) => x.pai_id === a.id);
+                      const temSubs = subs.length > 0;
+                      return (
+                        <tr key={a.id}>
+                          <td>
+                            <span className={styles.nome}>{a.nome}</span>
+                            {c?.critico ? (
+                              <span className={styles.critChip}>caminho crítico</span>
+                            ) : null}
+                            {subs.map((s) => (
+                              <div key={s.id} className={styles.subitem}>
+                                ↳ {s.nome} · {s.duracao_du} du {s.em_sequencia ? '' : '(paralelo)'}
+                              </div>
+                            ))}
+                          </td>
+                          <td>
+                            {temSubs ? (
+                              <span>{c?.dur} du</span>
+                            ) : (
+                              <span className={styles.stepper}>
                                 <button
                                   type="button"
-                                  className={styles.chipX}
-                                  aria-label={`Remover ${nomes[p]}`}
+                                  className={styles.stepBtn}
+                                  aria-label="Menos"
                                   onClick={() =>
-                                    ed.desligarDep.mutate({ atividadeId: a.id, predId: p })
+                                    ed.duracao.mutate({
+                                      id: a.id,
+                                      dur: Math.max(1, a.duracao_du - 1),
+                                    })
                                   }
                                 >
-                                  ×
+                                  −
+                                </button>
+                                {a.duracao_du}
+                                <button
+                                  type="button"
+                                  className={styles.stepBtn}
+                                  aria-label="Mais"
+                                  onClick={() =>
+                                    ed.duracao.mutate({ id: a.id, dur: a.duracao_du + 1 })
+                                  }
+                                >
+                                  +
                                 </button>
                               </span>
-                            ))}
-                            <select
-                              className={styles.addSelect}
-                              aria-label="Adicionar predecessora"
-                              value=""
-                              onChange={(e) => {
-                                if (e.target.value)
-                                  ed.ligarDep.mutate(
-                                    { atividadeId: a.id, predId: e.target.value },
-                                    {
-                                      onError: (err) =>
-                                        showToast({ message: (err as Error).message }),
-                                    },
-                                  );
-                              }}
+                            )}
+                          </td>
+                          <td>
+                            <div className={styles.chips}>
+                              {a.predecessoras.map((p) => (
+                                <span key={p} className={styles.chip}>
+                                  {nomes[p] ?? '—'}
+                                  <button
+                                    type="button"
+                                    className={styles.chipX}
+                                    aria-label={`Remover ${nomes[p]}`}
+                                    onClick={() =>
+                                      ed.desligarDep.mutate({ atividadeId: a.id, predId: p })
+                                    }
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                              <select
+                                className={styles.addSelect}
+                                aria-label="Adicionar predecessora"
+                                value=""
+                                onChange={(e) => {
+                                  if (e.target.value)
+                                    ed.ligarDep.mutate(
+                                      { atividadeId: a.id, predId: e.target.value },
+                                      {
+                                        onError: (err) =>
+                                          showToast({ message: (err as Error).message }),
+                                      },
+                                    );
+                                }}
+                              >
+                                <option value="">+ depende de…</option>
+                                {candidatosPred(a.id).map((c2) => (
+                                  <option key={c2.id} value={c2.id}>
+                                    {c2.nome}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </td>
+                          <td>
+                            {a.providencias.length === 0
+                              ? '—'
+                              : a.providencias.map((pr) => (
+                                  <div key={pr.id}>
+                                    {TIPO_ROTULO[pr.tipo]}: {pr.descricao}
+                                  </div>
+                                ))}
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className={styles.lixo}
+                              aria-label={`Excluir ${a.nome}`}
+                              onClick={() =>
+                                ed.excluirAtv.mutate(a.id, {
+                                  onSuccess: () => showToast({ message: `"${a.nome}" excluída.` }),
+                                  onError: (err) => showToast({ message: (err as Error).message }),
+                                })
+                              }
                             >
-                              <option value="">+ depende de…</option>
-                              {candidatosPred(a.id).map((c2) => (
-                                <option key={c2.id} value={c2.id}>
-                                  {c2.nome}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </td>
-                        <td>
-                          {a.providencias.length === 0
-                            ? '—'
-                            : a.providencias.map((pr) => (
-                                <div key={pr.id}>
-                                  {TIPO_ROTULO[pr.tipo]}: {pr.descricao}
-                                </div>
-                              ))}
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            className={styles.lixo}
-                            aria-label={`Excluir ${a.nome}`}
-                            onClick={() =>
-                              ed.excluirAtv.mutate(a.id, {
-                                onSuccess: () => showToast({ message: `"${a.nome}" excluída.` }),
-                                onError: (err) => showToast({ message: (err as Error).message }),
-                              })
-                            }
-                          >
-                            <Icon name="lixeira" size={18} />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                              <Icon name="lixeira" size={18} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </Card>
         );

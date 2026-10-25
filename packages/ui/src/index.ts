@@ -25,5 +25,5 @@ export type { ToastOptions } from './components/Toast';
 export { Icon } from './components/Icon';
 export type { IconName, IconProps } from './components/Icon';
 
-export { Logo, Monograma } from './components/Logo';
-export type { LogoProps, MonogramaProps } from './components/Logo';
+export { Logo, Monograma, Simbolo } from './components/Logo';
+export type { LogoProps, MonogramaProps, SimboloProps } from './components/Logo';
