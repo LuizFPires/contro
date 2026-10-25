@@ -36,7 +36,14 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/pdf-service/**/*.ts', 'supabase/functions/**/*.ts', '**/*.mjs', '**/scripts/**'],
+    files: [
+      'apps/pdf-service/**/*.ts',
+      'supabase/functions/**/*.ts',
+      'apps/web/e2e/**/*.ts',
+      'apps/web/playwright.config.ts',
+      '**/*.mjs',
+      '**/scripts/**',
+    ],
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.node,

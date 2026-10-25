@@ -21,6 +21,7 @@ export function useObraCampo(obraId: string) {
 
   // Marcar subitem: otimista e offline (patch na obra, enfileira a op idempotente).
   const subitem = useMutation({
+    networkMode: 'always',
     mutationFn: ({ id, feito }: { id: string; feito: boolean }) =>
       enfileirar('marcar_subitem', { obraId, subitemId: id, feito }),
     onMutate: async ({ id, feito }: { id: string; feito: boolean }) => {
@@ -48,6 +49,9 @@ export function useObraCampo(obraId: string) {
   // Ação de campo OTIMISTA e offline (regra 9): atualiza o cache na hora, enfileira
   // a op (client_op_id idempotente) e o sync envia ao servidor quando houver sinal.
   const providencia = useMutation({
+    // 'always': a ação offline grava só no Dexie (enfileirar); sem isso o
+    // TanStack Query PAUSA o mutationFn quando offline e a op nunca é enfileirada.
+    networkMode: 'always',
     mutationFn: ({ id, feito }: { id: string; feito: boolean }) =>
       enfileirar('marcar_providencia', { obraId, id, feito }),
     onMutate: async ({ id, feito }: { id: string; feito: boolean }) => {
@@ -104,6 +108,7 @@ export function useObraCampo(obraId: string) {
   // enfileira a op (idempotente) e marca a atividade concluída na hora. A fase/XP
   // são calculados no cliente e devolvidos para a celebração.
   const concluir = useMutation({
+    networkMode: 'always',
     mutationFn: async (v: {
       atividadeId: string;
       file: File;

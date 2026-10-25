@@ -40,6 +40,7 @@ export function useObraPendencias(obraId: string) {
   // real), guarda a foto do antes no Dexie (sobe em 2º plano) e enfileira.
   type ApontarVars = { dados: NovaPendencia; file: File; pendenciaId?: string };
   const apontar = useMutation({
+    networkMode: 'always',
     mutationFn: async (v: ApontarVars) => {
       const pendenciaId = v.pendenciaId ?? crypto.randomUUID();
       const fotoLocalId = await guardarFotoLocal(obraId, v.file);
@@ -84,6 +85,7 @@ export function useObraPendencias(obraId: string) {
   // Resolver: otimista e offline. Guarda a foto de depois no Dexie (sobe em 2º
   // plano) e enfileira; manda a pendência para vistoria na hora.
   const resolver = useMutation({
+    networkMode: 'always',
     mutationFn: async (v: { id: string; file: File; pessoaId: string | null }) => {
       const fotoLocalId = await guardarFotoLocal(obraId, v.file);
       await enfileirar('resolver_pendencia', { obraId, id: v.id, fotoLocalId });
@@ -99,6 +101,7 @@ export function useObraPendencias(obraId: string) {
 
   // Ações de campo otimistas, offline e idempotentes.
   const adiar = useMutation({
+    networkMode: 'always',
     mutationFn: (v: { id: string; data: string; motivo: string }) =>
       enfileirar('adiar_pendencia', { obraId, id: v.id, data: v.data, motivo: v.motivo }),
     onMutate: (v: { id: string; data: string; motivo: string }) =>
@@ -106,6 +109,7 @@ export function useObraPendencias(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
   const trazer = useMutation({
+    networkMode: 'always',
     mutationFn: (id: string) => enfileirar('trazer_pendencia', { obraId, id }),
     onMutate: (id: string) => {
       const topo = topoDaFila();
@@ -119,6 +123,7 @@ export function useObraPendencias(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
   const vistoriar = useMutation({
+    networkMode: 'always',
     mutationFn: (v: { id: string; aprovado: boolean; motivo?: string }) =>
       enfileirar('vistoriar_pendencia', {
         obraId,

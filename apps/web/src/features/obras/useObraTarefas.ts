@@ -20,6 +20,7 @@ export function useObraTarefas(obraId: string) {
   // id é gerado no cliente — o MESMO no card otimista e na op (onMutate roda
   // antes do mutationFn, com o mesmo objeto). Edição faz patch dos campos.
   const salvar = useMutation({
+    networkMode: 'always',
     mutationFn: async (t: EntradaTarefa) => {
       const id = t.id ?? crypto.randomUUID();
       await enfileirar('salvar_tarefa', { obraId, entrada: { ...t, id } });
@@ -81,11 +82,13 @@ export function useObraTarefas(obraId: string) {
 
   // Concluir/reabrir são ações de campo: otimistas, offline e idempotentes.
   const concluir = useMutation({
+    networkMode: 'always',
     mutationFn: (id: string) => enfileirar('concluir_tarefa', { obraId, id }),
     onMutate: (id: string) => patchStatus(id, 'feita'),
     onError: (_e, _v, ctx) => reverter(ctx),
   });
   const reabrir = useMutation({
+    networkMode: 'always',
     mutationFn: (id: string) => enfileirar('reabrir_tarefa', { obraId, id }),
     onMutate: (id: string) => patchStatus(id, 'aberta'),
     onError: (_e, _v, ctx) => reverter(ctx),
@@ -93,6 +96,7 @@ export function useObraTarefas(obraId: string) {
   // Excluir/restaurar: otimistas, offline e idempotentes. Guarda a tarefa
   // removida para o "Desfazer" (regra 10) re-adicionar na hora, mesmo offline.
   const excluir = useMutation({
+    networkMode: 'always',
     mutationFn: (id: string) => enfileirar('excluir_tarefa', { obraId, id }),
     onMutate: async (id: string) => {
       await qc.cancelQueries({ queryKey: ['tarefas', obraId] });
@@ -114,6 +118,7 @@ export function useObraTarefas(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
   const restaurar = useMutation({
+    networkMode: 'always',
     mutationFn: (id: string) => enfileirar('restaurar_tarefa', { obraId, id }),
     onMutate: async (id: string) => {
       await qc.cancelQueries({ queryKey: ['tarefas', obraId] });
