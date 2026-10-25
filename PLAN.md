@@ -116,16 +116,18 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## M4 · Pendências
 **Objetivo:** pendência registrada com foto, resolvida com antes e depois, sem nada se perder.
 
-- [ ] Migrations `pendencia`, `pendencia_evento` + RLS
-- [ ] Apontar (ícone de câmera): foto → título, local, criticidade e atividade
-- [ ] **Fila:** deck com swipe (limiar de 100 px, rotação, selos RESOLVIDA/ADIAR) e botões equivalentes
-- [ ] **Resolver:** câmera com o **ghost do antes** (40%) → em vistoria
-- [ ] **Adiar:** sheet com data de retorno (4 opções) e motivo (4 opções) → sai da fila; toast com "Desfazer"
-- [ ] **Lista completa:** Na fila ("Resolver agora"), Adiadas ("Trazer para a fila"), Em vistoria, Concluídas
-- [ ] **Vistoria:** antes e depois lado a lado, Aprovar / Reabrir; bloquear quando o vistoriador é quem resolveu
-- [ ] Cron diário: devolver adiadas vencidas à fila
+- [x] Migrations `pendencia`, `pendencia_evento` + RLS
+- [x] Apontar (ícone de câmera): foto → título, local, criticidade e atividade
+- [x] **Fila:** deck com swipe (limiar de 100 px, rotação, selos RESOLVIDA/ADIAR) e botões equivalentes
+- [x] **Resolver:** câmera com o **ghost do antes** (40%) → em vistoria
+- [x] **Adiar:** sheet com data de retorno (4 opções) e motivo (4 opções) → sai da fila; toast com "Desfazer"
+- [x] **Lista completa:** Na fila ("Resolver agora"), Adiadas ("Trazer para a fila"), Em vistoria, Concluídas
+- [x] **Vistoria:** antes e depois lado a lado, Aprovar / Reabrir; bloquear quando o vistoriador é quem resolveu
+- [x] Cron diário: devolver adiadas vencidas à fila
 
 **Aceite:** adiar até ter 27/10 com "aguardando material" → a pendência some da fila e aparece em Adiadas; Desfazer devolve. Quem resolveu não consegue aprovar a própria vistoria.
+
+> **M4 concluído e mergeado em 24/10/2026 (PR #6).** Escrita só por RPC (regra 5 no servidor), core/pendencias testado, UI completa (deck de swipe, câmera com ghost + fallback, adiar com Desfazer, vistoria). Revisão independente: sem achados críticos/altos; aplicados ajustes baixos (valida atividade da obra, limpa motivo stale, reseta motivo na vistoria). Desvio aceito: ações não-otimistas (otimismo/offline no M9). Débito: paginar "Concluídas"; E2E real da câmera; aplicar a migration no Supabase. CI verde.
 
 ## M5 · Cronograma, indicadores e inauguração
 **Objetivo:** ler a saúde da obra num olhar.
