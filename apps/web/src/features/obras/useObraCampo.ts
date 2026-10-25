@@ -6,7 +6,6 @@ import {
   ajustarInicio,
   editarDuracao,
   editarPrestador,
-  marcarSubitem,
   removerPredecessora,
   removerProvidencia,
 } from './campo';
@@ -20,9 +19,26 @@ export function useObraCampo(obraId: string) {
     qc.invalidateQueries({ queryKey: ['obras'] });
   };
 
+  // Marcar subitem: otimista e offline (patch na obra, enfileira a op idempotente).
   const subitem = useMutation({
-    mutationFn: ({ id, feito }: { id: string; feito: boolean }) => marcarSubitem(id, feito),
-    onSuccess: inval,
+    mutationFn: ({ id, feito }: { id: string; feito: boolean }) =>
+      enfileirar('marcar_subitem', { obraId, subitemId: id, feito }),
+    onMutate: async ({ id, feito }: { id: string; feito: boolean }) => {
+      await qc.cancelQueries({ queryKey: ['obra', obraId] });
+      const prev = qc.getQueryData<ObraCompleta>(['obra', obraId]);
+      if (prev) {
+        qc.setQueryData<ObraCompleta>(['obra', obraId], {
+          ...prev,
+          atividades: prev.atividades.map((a) =>
+            a.id === id ? { ...a, concluida_em: feito ? new Date().toISOString() : null } : a,
+          ),
+        });
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['obra', obraId], ctx.prev);
+    },
   });
   const prestador = useMutation({
     mutationFn: ({ id, prestador }: { id: string; prestador: string | null }) =>
