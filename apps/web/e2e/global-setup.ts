@@ -28,9 +28,11 @@ export default async function globalSetup(): Promise<void> {
   // Se o usuário já existia (rerun local), o Auth devolve erro e não há id:
   // a pessoa já foi criada numa execução anterior, então apenas seguimos.
   if (!userId) return;
-  await fetch(`${API}/rest/v1/pessoa`, {
+  // Upsert: o trigger de signup já criou a pessoa pendente (ativo=false); aqui
+  // promovemos a gestor e ativamos (senão o gestor de E2E ficaria "aguardando").
+  await fetch(`${API}/rest/v1/pessoa?on_conflict=user_id`, {
     method: 'POST',
-    headers: { ...headers, Prefer: 'return=representation' },
-    body: JSON.stringify({ user_id: userId, nome: 'Gestor E2E', perfil: 'gestor' }),
+    headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({ user_id: userId, nome: 'Gestor E2E', perfil: 'gestor', ativo: true }),
   });
 }

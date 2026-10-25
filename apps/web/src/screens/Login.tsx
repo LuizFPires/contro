@@ -5,26 +5,87 @@ import { supabase } from '../lib/supabase';
 import { supabaseConfigurado } from '../lib/env';
 import styles from './Login.module.css';
 
+type Modo = 'login' | 'signup' | 'forgot';
+
+const TITULO: Record<Modo, string> = {
+  login: 'Entrar',
+  signup: 'Criar conta',
+  forgot: 'Recuperar senha',
+};
+
 export function Login() {
+  const [modo, setModo] = useState<Modo>('login');
+  const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
-  async function entrar(e: FormEvent) {
+  function trocar(m: Modo) {
+    setModo(m);
+    setErro(null);
+    setMsg(null);
+  }
+
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErro(null);
+    setMsg(null);
     if (!supabase) {
       setErro('Supabase ainda não configurado neste ambiente.');
       return;
     }
     setEnviando(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-    setEnviando(false);
-    if (error) {
-      setErro('Não foi possível entrar. Confira e-mail e senha.');
+    try {
+      if (modo === 'login') {
+        const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+        if (error) setErro('Não foi possível entrar. Confira e-mail e senha.');
+      } else if (modo === 'signup') {
+        if (!nome.trim()) {
+          setErro('Informe seu nome.');
+          return;
+        }
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password: senha,
+          options: { data: { nome: nome.trim() }, emailRedirectTo: window.location.origin },
+        });
+        if (error) {
+          setErro(/registered/i.test(error.message) ? 'Esse e-mail já tem conta.' : error.message);
+        } else if (!data.session) {
+          // Confirmação de e-mail ligada: sem sessão até confirmar.
+          setMsg('Conta criada. Confirme seu e-mail e aguarde a liberação do gestor.');
+          setModo('login');
+        }
+        // Com sessão (confirmação desligada): o app assume e mostra "aguardando aprovação".
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin,
+        });
+        if (error) setErro(error.message);
+        else {
+          setMsg('Se o e-mail existir, enviamos um link para redefinir a senha.');
+          setModo('login');
+        }
+      }
+    } finally {
+      setEnviando(false);
     }
   }
+
+  const rotuloBotao =
+    modo === 'login'
+      ? enviando
+        ? 'Entrando…'
+        : 'Entrar'
+      : modo === 'signup'
+        ? enviando
+          ? 'Criando…'
+          : 'Criar conta'
+        : enviando
+          ? 'Enviando…'
+          : 'Enviar link';
 
   return (
     <div className={styles.wrap}>
@@ -43,7 +104,21 @@ export function Login() {
           </div>
         ) : null}
 
-        <form className={styles.form} onSubmit={entrar}>
+        {msg ? <p className={styles.msg}>{msg}</p> : null}
+
+        <form className={styles.form} onSubmit={onSubmit}>
+          <p className={styles.modoTitulo}>{TITULO[modo]}</p>
+
+          {modo === 'signup' ? (
+            <Input
+              label="Nome"
+              autoComplete="name"
+              required
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+          ) : null}
+
           <Input
             label="E-mail"
             type="email"
@@ -53,24 +128,46 @@ export function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <Input
-            label="Senha"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-          />
+
+          {modo !== 'forgot' ? (
+            <Input
+              label="Senha"
+              type="password"
+              autoComplete={modo === 'signup' ? 'new-password' : 'current-password'}
+              required
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+            />
+          ) : null}
+
           {erro ? (
             <p className={styles.erro}>
               <Icon name="alert" size={18} />
               {erro}
             </p>
           ) : null}
+
           <Button type="submit" full disabled={enviando}>
-            {enviando ? 'Entrando…' : 'Entrar'}
+            {rotuloBotao}
           </Button>
         </form>
+
+        <div className={styles.acoes}>
+          {modo === 'login' ? (
+            <>
+              <button type="button" className={styles.link} onClick={() => trocar('signup')}>
+                Criar conta
+              </button>
+              <button type="button" className={styles.link} onClick={() => trocar('forgot')}>
+                Esqueci a senha
+              </button>
+            </>
+          ) : (
+            <button type="button" className={styles.link} onClick={() => trocar('login')}>
+              Já tenho conta
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -9,7 +9,8 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000e2', 'e@rm.contro');
 insert into pessoa (user_id, nome, perfil) values
   ('00000000-0000-0000-0000-0000000000e1', 'Gestor RM', 'gestor'),
-  ('00000000-0000-0000-0000-0000000000e2', 'Equipe RM', 'equipe');
+  ('00000000-0000-0000-0000-0000000000e2', 'Equipe RM', 'equipe')
+  on conflict (user_id) do update set nome = excluded.nome, perfil = excluded.perfil, ativo = true, deleted_at = null;
 -- Modelos já excluídos (inseridos como owner, sem RLS).
 insert into modelo (id, nome, ordem, deleted_at) values
   ('00000000-0000-0000-0000-0000000000f1', 'Excluído 1', 101, now()),

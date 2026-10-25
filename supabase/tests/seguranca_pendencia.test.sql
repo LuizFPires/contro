@@ -13,7 +13,8 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000c2', 'equipe@r5.contro');
 insert into pessoa (user_id, nome, perfil) values
   ('00000000-0000-0000-0000-0000000000c1', 'Resolvedor R5', 'gestor'),
-  ('00000000-0000-0000-0000-0000000000c2', 'Vistoriador R5', 'equipe');
+  ('00000000-0000-0000-0000-0000000000c2', 'Vistoriador R5', 'equipe')
+  on conflict (user_id) do update set nome = excluded.nome, perfil = excluded.perfil, ativo = true, deleted_at = null;
 
 -- Obra de fixture (gestor gera do Modelo 1 do seed).
 set local role authenticated;

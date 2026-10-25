@@ -1,0 +1,91 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--contro-space-4);
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: var(--contro-space-2);
+}
+
+.voltar {
+  display: grid;
+  place-items: center;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: none;
+  background: transparent;
+  color: var(--contro-text);
+  cursor: pointer;
+  transform: rotate(180deg);
+}
+
+.titulo {
+  font-size: var(--contro-fs-h2);
+  font-weight: 800;
+}
+
+.vazio {
+  color: var(--contro-muted);
+  font-size: var(--contro-fs-body-sm);
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--contro-space-2);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--contro-space-3);
+  background: var(--contro-surface);
+  border-radius: var(--contro-radius-card);
+  box-shadow: inset 0 0 0 1px var(--contro-border);
+  padding: var(--contro-space-3) var(--contro-space-4);
+}
+
+.nome {
+  font-size: var(--contro-fs-body);
+  font-weight: 700;
+  color: var(--contro-text);
+  min-width: 0;
+}
+
+.acoes {
+  display: flex;
+  gap: var(--contro-space-2);
+  flex: none;
+}
+
+.recusar,
+.aprovar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--contro-space-1);
+  min-height: var(--contro-touch);
+  padding: 0 var(--contro-space-3);
+  border: none;
+  border-radius: var(--contro-radius-field);
+  font-size: var(--contro-fs-body-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.recusar {
+  background: transparent;
+  color: var(--contro-text);
+  box-shadow: inset 0 0 0 1.5px var(--contro-border);
+}
+
+.aprovar {
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
