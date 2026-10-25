@@ -16,28 +16,33 @@ Guia para subir o CONTRO num ambiente real (homologação ou produção): banco 
    ```bash
    supabase link --project-ref <PROJECT_REF>
    ```
-2. **Aplicar as migrations** (`supabase/migrations/`, M0→M8 — 21 arquivos):
+2. **Ligar a extensão pg_cron ANTES de aplicar as migrations.** Os blocos que agendam os
+   jobs são guardados por `if exists (... pg_cron)` — se a extensão não existir no momento
+   do `db push`, os jobs ficam **silenciosamente não agendados**. No SQL editor:
+   ```sql
+   create extension if not exists pg_cron;
+   ```
+3. **Aplicar as migrations** (`supabase/migrations/`, M0→M8 — 22 arquivos):
    ```bash
    supabase db push
    ```
    Isso cria: `pessoa/unidade/sugestao`, `modelo*`, `obra*`, `foto`, `obra_providencia`,
-   `pendencia*`, `tarefa*`, `reuniao*`, todas as **RPCs**, a **RLS** e os **triggers**.
-   O **bucket privado `fotos`** é criado pela migration `..._fotos_bucket.sql` (não precisa
-   criar na mão).
-3. **Extensão pg_cron** (para os jobs de pauta e de adiadas). No SQL editor:
-   ```sql
-   create extension if not exists pg_cron;
-   ```
-   Depois **reaplique** as migrations que agendam os jobs (ou rode os `cron.schedule`
-   manualmente), pois eles só agendam se `pg_cron` já existir:
-   - `reuniao-abrir-pauta` — segunda 15:30 (`abrir_reuniao(current_date)`);
-   - `pendencia-devolver-adiadas` — diário 00:10 (`pendencia_devolver_adiadas()`).
+   `pendencia*`, `tarefa*`, `reuniao*`, todas as **RPCs**, a **RLS**, os **triggers** e
+   agenda os crons. O **bucket privado `fotos`** é criado pela migration
+   `..._fotos_bucket.sql` (não precisa criar na mão).
+
+   Crons agendados (confirme em `cron.job`): `reuniao-abrir-pauta` — segunda 15:30
+   (`abrir_reuniao(current_date)`); `pendencia-devolver-adiadas` — diário 00:10
+   (`pendencia_devolver_adiadas()`). Se você já tinha feito o `db push` **antes** de ligar
+   o pg_cron, rode os dois `cron.schedule` à mão (o `db push` não re-executa migrations já
+   aplicadas).
 4. **Auth**: Authentication › Providers › **Email** ligado (e-mail + senha). Desligue
    "Confirm email" em homologação se quiser login imediato.
 5. **Seed de homologação** (nunca em produção): modelos 1/2/3 e dados fictícios.
    ```bash
-   pnpm db:reset   # supabase db reset: recria o schema + roda supabase/seed.sql
+   pnpm db:reset   # supabase db reset: recria o schema + roda os seeds do config.toml
    ```
+   (`supabase/seed.sql` + `supabase/seeds/modelos.sql` — os modelos 1/2/3 vêm do segundo.)
    Em produção, **não** rode o seed; crie os dados reais pelo app.
 6. **Promover o primeiro gestor** (depois que a pessoa se cadastrar pelo app). No SQL
    editor, com service role:
