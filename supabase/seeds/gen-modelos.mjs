@@ -104,7 +104,14 @@ const MODELO_1 = [
     ],
   },
   { id: '10', fase: 3, nome: 'Impermeabilização dos vestiários', dur: 3, preds: ['7'] },
-  { id: '11', fase: 3, nome: 'Contrapiso e regularização', dur: 4, preds: ['7', '10'] },
+  {
+    id: '11',
+    fase: 3,
+    nome: 'Contrapiso e regularização',
+    dur: 4,
+    preds: ['7', '10'],
+    provs: [P('Areia, brita e cimento', 3)],
+  },
   {
     id: '12',
     fase: 3,
