@@ -7,7 +7,6 @@ test('cria obra a partir do Modelo 1 e abre a trilha de fases', async ({ page })
 
   await page.getByRole('button', { name: 'Nova obra' }).click();
   await page.getByLabel('Nome da obra').fill(nome);
-  await page.getByLabel('Unidade').selectOption({ label: 'Contorno do Corpo · Betim' });
   await page.getByLabel('Modelo de obra').selectOption({ label: 'Modelo 1 · CDC completo' });
 
   // A prévia é calculada pelo core (ex.: 28 atividades).

@@ -4,7 +4,7 @@ import { Button, Icon, Input } from '@contro/ui';
 import { formatarDataCompleta } from '../../lib/datas';
 import { useModelos } from '../modelos/useModelos';
 import { useModeloCompleto } from '../modelos/useModeloDetalhe';
-import { proximasSegundas, useGerarObra, useUnidades } from './useObras';
+import { proximasSegundas, useGerarObra } from './useObras';
 import styles from './NovaObraScreen.module.css';
 
 export function NovaObraScreen({
@@ -14,13 +14,11 @@ export function NovaObraScreen({
   onVoltar: () => void;
   onCriada: () => void;
 }) {
-  const { data: unidades } = useUnidades();
   const { data: modelos } = useModelos();
   const gerar = useGerarObra();
 
   const segundas = useMemo(() => proximasSegundas(8), []);
   const [nome, setNome] = useState('');
-  const [unidadeId, setUnidadeId] = useState('');
   const [inicio, setInicio] = useState(segundas[0] ?? '');
   const [modeloId, setModeloId] = useState('');
 
@@ -49,7 +47,7 @@ export function NovaObraScreen({
     return { total, entrega, nAtividades, nLembretes };
   }, [modelo, inicio]);
 
-  const pronto = nome.trim() && unidadeId && inicio && modeloId;
+  const pronto = nome.trim() && inicio && modeloId;
 
   return (
     <div className={styles.screen}>
@@ -61,25 +59,6 @@ export function NovaObraScreen({
       </div>
 
       <Input label="Nome da obra" value={nome} onChange={(e) => setNome(e.target.value)} />
-
-      <div className={styles.campo}>
-        <label className={styles.label} htmlFor="nova-unidade">
-          Unidade
-        </label>
-        <select
-          id="nova-unidade"
-          className={styles.select}
-          value={unidadeId}
-          onChange={(e) => setUnidadeId(e.target.value)}
-        >
-          <option value="">Escolha a unidade</option>
-          {(unidades ?? []).map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.nome}
-            </option>
-          ))}
-        </select>
-      </div>
 
       <div className={styles.campo}>
         <label className={styles.label} htmlFor="nova-inicio">
@@ -144,7 +123,7 @@ export function NovaObraScreen({
         full
         disabled={!pronto || gerar.isPending}
         onClick={() =>
-          gerar.mutate({ unidadeId, inicio, nome: nome.trim(), modeloId }, { onSuccess: onCriada })
+          gerar.mutate({ inicio, nome: nome.trim(), modeloId }, { onSuccess: onCriada })
         }
       >
         {gerar.isPending ? 'Criando…' : 'Criar obra'}

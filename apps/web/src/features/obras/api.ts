@@ -194,15 +194,10 @@ export async function listarObras(): Promise<ObraResumo[]> {
   });
 }
 
-export async function gerarObra(
-  unidadeId: string,
-  inicio: string,
-  nome: string,
-  modeloId: string,
-): Promise<string> {
+export async function gerarObra(inicio: string, nome: string, modeloId: string): Promise<string> {
   if (!supabase) throw new Error('Sem conexão');
   const { data, error } = await supabase.rpc('gerar_obra', {
-    p_unidade_id: unidadeId,
+    p_unidade_id: null,
     p_inicio: inicio,
     p_nome: nome,
     p_modelo_id: modeloId,

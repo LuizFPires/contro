@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Icon, Monograma, useToast } from '@contro/ui';
+import { Icon, Simbolo, useToast } from '@contro/ui';
 import { ObraCard } from '../features/obras/ObraCard';
 import { ObraDetalhe } from '../features/obras/ObraDetalhe';
 import { NovaObraScreen } from '../features/obras/NovaObraScreen';
@@ -79,7 +79,7 @@ export function MinhasObras() {
         </div>
       ) : (
         <div className={styles.vazio}>
-          <Monograma size={56} />
+          <Simbolo size={56} />
           <h2>Nenhuma obra ainda</h2>
           <p>Toque no “+” para criar a primeira obra a partir de um modelo.</p>
         </div>

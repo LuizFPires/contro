@@ -35,7 +35,6 @@ test('providência offline: otimista, enfileira e sincroniza ao voltar (regra 9)
   const nome = `Obra Offline ${Date.now()}`;
   await page.getByRole('button', { name: 'Nova obra' }).click();
   await page.getByLabel('Nome da obra').fill(nome);
-  await page.getByLabel('Unidade').selectOption({ label: 'Contorno do Corpo · Betim' });
   await page.getByLabel('Modelo de obra').selectOption({ label: 'Modelo 1 · CDC completo' });
   await expect(page.getByText('Prévia')).toBeVisible();
   await page.getByRole('button', { name: 'Criar obra' }).click();

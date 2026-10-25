@@ -58,8 +58,14 @@
   padding: var(--contro-space-1) 0;
   width: 100%;
 }
+/* Rolagem horizontal contida: a tabela larga não estoura o container no celular. */
+.tabelaWrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .tabela {
   width: 100%;
+  min-width: 560px;
   border-collapse: collapse;
 }
 .tabela th {
@@ -78,9 +84,17 @@
 .nome {
   font-weight: 700;
 }
-.critico {
-  color: var(--contro-turquoise);
+/* Caminho crítico como chip (não cor no texto) — alinhado ao protótipo. */
+.critChip {
+  display: inline-block;
+  margin-top: var(--contro-space-1);
+  padding: 2px var(--contro-space-2);
+  border-radius: var(--contro-radius-pill);
+  background: rgb(84 180 176 / 30%);
+  font-size: var(--contro-fs-caption);
   font-weight: 800;
+  color: var(--contro-text);
+  white-space: nowrap;
 }
 .stepper {
   display: inline-flex;

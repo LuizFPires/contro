@@ -70,11 +70,12 @@ export function ModeloDetalhe({ id, onVoltar }: { id: string; onVoltar: () => vo
                 return (
                   <div key={a.id}>
                     <div className={styles.atv}>
-                      <span className={c?.critico ? styles.critico : styles.atvNome}>{a.nome}</span>
+                      <span className={styles.atvNome}>{a.nome}</span>
                       <span className={styles.atvMeta}>
                         {c?.dur ?? a.duracao_du} du{a.predecessoras.length ? ' · dep' : ''}
                       </span>
                     </div>
+                    {c?.critico ? <span className={styles.critChip}>caminho crítico</span> : null}
                     {subs.map((s) => (
                       <div key={s.id} className={styles.subitem}>
                         ↳ {s.nome} · {s.duracao_du} du {s.em_sequencia ? '' : '(paralelo)'}

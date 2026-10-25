@@ -5,7 +5,11 @@ import { ModeloDetalhe } from './ModeloDetalhe';
 import type { ModeloResumo } from './api';
 import styles from './ModelosScreen.module.css';
 
-type Sheet = null | { tipo: 'novo' } | { tipo: 'renomear'; modelo: ModeloResumo };
+type Sheet =
+  | null
+  | { tipo: 'novo' }
+  | { tipo: 'renomear'; modelo: ModeloResumo }
+  | { tipo: 'excluir'; modelo: ModeloResumo };
 
 export function ModelosScreen() {
   const { data: modelos, isLoading } = useModelos();
@@ -19,11 +23,15 @@ export function ModelosScreen() {
   }
 
   function apagar(m: ModeloResumo) {
+    setSheet(null);
     excluir.mutate(m.id, {
       onSuccess: () =>
         showToast({
-          message: `"${m.nome}" excluído.`,
-          onUndo: () => restaurar.mutate(m.id),
+          message: `"${m.nome}" excluído · obras que já usam continuam iguais`,
+          onUndo: () =>
+            restaurar.mutate(m.id, {
+              onError: (e) => showToast({ message: (e as Error).message }),
+            }),
         }),
       onError: (e) => showToast({ message: (e as Error).message }),
     });
@@ -92,7 +100,7 @@ export function ModelosScreen() {
                     type="button"
                     className={styles.acao}
                     aria-label={`Excluir ${m.nome}`}
-                    onClick={() => apagar(m)}
+                    onClick={() => setSheet({ tipo: 'excluir', modelo: m })}
                   >
                     <Icon name="lixeira" size={22} />
                   </button>
@@ -135,6 +143,27 @@ export function ModelosScreen() {
               )
             }
           />
+        ) : null}
+      </BottomSheet>
+
+      <BottomSheet
+        open={sheet?.tipo === 'excluir'}
+        title="Excluir modelo"
+        onClose={() => setSheet(null)}
+      >
+        {sheet?.tipo === 'excluir' ? (
+          <div className={styles.form}>
+            <p className={styles.confirmTexto}>
+              Excluir <strong>{sheet.modelo.nome}</strong>? As obras que já usam esse modelo
+              continuam iguais. Dá para desfazer logo depois.
+            </p>
+            <Button full onClick={() => apagar(sheet.modelo)}>
+              Excluir
+            </Button>
+            <Button variant="tertiary" full onClick={() => setSheet(null)}>
+              Cancelar
+            </Button>
+          </div>
         ) : null}
       </BottomSheet>
     </div>
