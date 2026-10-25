@@ -16,7 +16,8 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a3', 'avulso@m1.contro');
 insert into pessoa (user_id, nome, perfil) values
   ('00000000-0000-0000-0000-0000000000a1', 'Gestor M1', 'gestor'),
-  ('00000000-0000-0000-0000-0000000000a2', 'Equipe M1', 'equipe');
+  ('00000000-0000-0000-0000-0000000000a2', 'Equipe M1', 'equipe')
+  on conflict (user_id) do update set nome = excluded.nome, perfil = excluded.perfil, ativo = true, deleted_at = null;
 
 set local role authenticated;
 

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button, Logo, TabBar, type TabItem } from '@contro/ui';
 import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
@@ -6,26 +7,56 @@ import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
 import { ReuniaoScreen } from './features/reuniao/ReuniaoScreen';
 import { ConfigBoletimScreen } from './features/boletim-auto/ConfigBoletimScreen';
+import { AprovarMembros } from './features/membros/AprovarMembros';
 import { supabase } from './lib/supabase';
 import { Login } from './screens/Login';
+import { NovaSenha } from './screens/NovaSenha';
+import { AguardandoAprovacao } from './screens/AguardandoAprovacao';
 import { MinhasObras } from './screens/MinhasObras';
 
 export function App() {
-  const { carregando, session } = useSession();
-  const { data: pessoa } = usePerfil();
+  const { carregando, session, recovery, fecharRecovery } = useSession();
+  const { data: pessoa, isLoading: perfilCarregando } = usePerfil();
+  const qc = useQueryClient();
   const [tab, setTab] = useState('inicio');
-  const [maisTela, setMaisTela] = useState<'menu' | 'reuniao' | 'config'>('menu');
+  const [maisTela, setMaisTela] = useState<'menu' | 'reuniao' | 'config' | 'membros'>('menu');
+
+  // Recarrega o perfil quando a sessão muda (login/logout/recuperação), para o
+  // roteamento de membro/pendente usar sempre o perfil do usuário atual.
+  useEffect(() => {
+    if (!supabase) return;
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (['SIGNED_IN', 'SIGNED_OUT', 'USER_UPDATED', 'PASSWORD_RECOVERY'].includes(event)) {
+        void qc.resetQueries({ queryKey: ['perfil'] });
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [qc]);
 
   if (carregando) {
     return <div className="app-placeholder">Carregando…</div>;
   }
 
-  // Sem sessão (ou Supabase não configurado): tela de login.
+  // Sem sessão (ou Supabase não configurado): tela de login/cadastro.
   if (!session) {
     return <Login />;
   }
 
-  const ehGestor = pessoa?.perfil === 'gestor';
+  // Chegou por link de recuperação de senha.
+  if (recovery) {
+    return <NovaSenha onPronto={fecharRecovery} />;
+  }
+
+  if (perfilCarregando) {
+    return <div className="app-placeholder">Carregando…</div>;
+  }
+
+  // Logado, mas ainda não aprovado pelo gestor (ou sem pessoa).
+  if (pessoa?.ativo !== true) {
+    return <AguardandoAprovacao nome={pessoa?.nome} />;
+  }
+
+  const ehGestor = pessoa.perfil === 'gestor';
 
   const tabs: TabItem[] = [
     // "Início" já é a lista "Minhas obras" (não há aba "Obras" separada).
@@ -50,17 +81,22 @@ export function App() {
             <ReuniaoScreen onVoltar={() => setMaisTela('menu')} />
           ) : maisTela === 'config' && ehGestor ? (
             <ConfigBoletimScreen onVoltar={() => setMaisTela('menu')} />
+          ) : maisTela === 'membros' && ehGestor ? (
+            <AprovarMembros onVoltar={() => setMaisTela('menu')} />
           ) : (
             <div className="app-mais">
-              {pessoa ? (
-                <p className="app-placeholder" style={{ padding: 0, textAlign: 'left' }}>
-                  {pessoa.nome}
-                </p>
-              ) : null}
+              <p className="app-placeholder" style={{ padding: 0, textAlign: 'left' }}>
+                {pessoa.nome}
+              </p>
               <Button onClick={() => setMaisTela('reuniao')}>Reunião da semana</Button>
               {ehGestor ? (
                 <Button variant="tertiary" onClick={() => setMaisTela('config')}>
                   Boletim automático
+                </Button>
+              ) : null}
+              {ehGestor ? (
+                <Button variant="tertiary" onClick={() => setMaisTela('membros')}>
+                  Aprovar membros
                 </Button>
               ) : null}
               <Button variant="tertiary" onClick={() => supabase?.auth.signOut()}>

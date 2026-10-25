@@ -72,3 +72,42 @@
   font-size: var(--contro-fs-body-sm);
   font-weight: 700;
 }
+
+.modoTitulo {
+  margin: 0 0 var(--contro-space-1);
+  font-size: var(--contro-fs-body-sm);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--contro-text);
+}
+
+.msg {
+  margin: 0;
+  padding: var(--contro-space-3);
+  border-radius: var(--contro-radius-card);
+  background: rgb(84 180 176 / 18%);
+  color: var(--contro-text);
+  font-size: var(--contro-fs-body-sm);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.acoes {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--contro-space-3);
+  flex-wrap: wrap;
+}
+
+.link {
+  background: transparent;
+  border: none;
+  padding: var(--contro-space-2) 0;
+  min-height: var(--contro-touch);
+  color: var(--contro-text);
+  font-size: var(--contro-fs-body-sm);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
