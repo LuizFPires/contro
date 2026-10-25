@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Button, Icon, Input, Monograma } from '@contro/ui';
+import { Button, Icon, Input, Logo } from '@contro/ui';
 import { supabase } from '../lib/supabase';
 import { supabaseConfigurado } from '../lib/env';
 import styles from './Login.module.css';
@@ -28,47 +28,50 @@ export function Login() {
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.brand}>
-        <Monograma size={72} />
-        <p className={styles.tagline}>obras da contorno</p>
-      </div>
-
-      {!supabaseConfigurado ? (
-        <div className={styles.aviso}>
-          Para ativar o login, preencha <code>VITE_SUPABASE_URL</code> e{' '}
-          <code>VITE_SUPABASE_ANON_KEY</code> em <code>apps/web/.env</code> com o projeto de
-          desenvolvimento do Supabase.
+      <div className={styles.inner}>
+        <div className={styles.brand}>
+          <span className={styles.capsule}>
+            <Logo on="preto" height={40} />
+          </span>
         </div>
-      ) : null}
 
-      <form className={styles.form} onSubmit={entrar}>
-        <Input
-          label="E-mail"
-          type="email"
-          autoComplete="email"
-          inputMode="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Input
-          label="Senha"
-          type="password"
-          autoComplete="current-password"
-          required
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-        />
-        {erro ? (
-          <p className={styles.erro}>
-            <Icon name="alert" size={18} />
-            {erro}
-          </p>
+        {!supabaseConfigurado ? (
+          <div className={styles.aviso}>
+            Para ativar o login, preencha <code>VITE_SUPABASE_URL</code> e{' '}
+            <code>VITE_SUPABASE_ANON_KEY</code> em <code>apps/web/.env</code> com o projeto de
+            desenvolvimento do Supabase.
+          </div>
         ) : null}
-        <Button type="submit" full disabled={enviando}>
-          {enviando ? 'Entrando…' : 'Entrar'}
-        </Button>
-      </form>
+
+        <form className={styles.form} onSubmit={entrar}>
+          <Input
+            label="E-mail"
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            label="Senha"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+          />
+          {erro ? (
+            <p className={styles.erro}>
+              <Icon name="alert" size={18} />
+              {erro}
+            </p>
+          ) : null}
+          <Button type="submit" full disabled={enviando}>
+            {enviando ? 'Entrando…' : 'Entrar'}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
