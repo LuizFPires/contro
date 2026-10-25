@@ -122,12 +122,14 @@ export function BoletimView({ obra, onFechar }: { obra: ObraCompleta; onFechar: 
       })),
     }));
 
+    const ritmo = ritmoTexto(obra.ritmoDias);
     return {
       obra: obra.nome,
       semanaFmt: semanaFmt(),
       realPct: obra.pct,
       previstoSextaPct: obra.previstoSexta,
-      ritmoTexto: ritmoTexto(obra.ritmoDias).texto,
+      ritmoTexto: ritmo.texto,
+      ritmoAtrasado: ritmo.atrasada,
       atrasos,
       concluir,
       comecar,

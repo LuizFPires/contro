@@ -20,6 +20,7 @@ export interface BoletimDados {
   realPct: number; // 0..1
   previstoSextaPct: number; // 0..1
   ritmoTexto: string;
+  ritmoAtrasado: boolean; // ritmo em atraso (decide o vermelho; vem do core)
   atrasos: string[]; // tipo/atividade em atraso
   concluir: ItemData[];
   comecar: ItemData[];

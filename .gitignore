@@ -42,3 +42,6 @@ exemplos de projetos/
 .claude/roteiro.json
 .claude/scheduled_tasks.lock
 .claude/*.lock
+
+# PDFs gerados pelo pdf-service (smoke)
+apps/pdf-service/out/
