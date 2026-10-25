@@ -32,12 +32,20 @@ boletim automático, incluindo `20261025020000_push_subscription.sql`.
 
 ## 4. Edge Function — segredos e deploy
 
+Gere um segredo para autenticar o cron (ex.: `openssl rand -hex 32`) e defina os segredos:
+
 ```bash
-supabase secrets set VAPID_PUBLIC_KEY="<PUBLIC_KEY>" VAPID_PRIVATE_KEY="<PRIVATE_KEY>" VAPID_SUBJECT="mailto:voce@contorno.app"
+supabase secrets set \
+  VAPID_PUBLIC_KEY="<PUBLIC_KEY>" \
+  VAPID_PRIVATE_KEY="<PRIVATE_KEY>" \
+  VAPID_SUBJECT="mailto:voce@contorno.app" \
+  CRON_SECRET="<SEGREDO_ALEATORIO>"
 supabase functions deploy enviar-push-boletim --no-verify-jwt
 ```
 
 `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` são injetados automaticamente.
+A função exige `Authorization: Bearer <CRON_SECRET>` (compara em tempo constante);
+sem isso responde 401. É isso que protege o endpoint mesmo com `--no-verify-jwt`.
 
 ## 5. Agendar o envio (pg_cron + pg_net)
 
@@ -55,7 +63,7 @@ select cron.schedule(
     url := 'https://<REF>.supabase.co/functions/v1/enviar-push-boletim',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'Authorization', 'Bearer <SERVICE_ROLE_KEY>'
+      'Authorization', 'Bearer <CRON_SECRET>'
     ),
     body := '{}'::jsonb
   );
@@ -80,7 +88,7 @@ select cron.schedule(
 3. Chame a função uma vez (ou espere o cron) e confira a notificação:
    ```bash
    curl -X POST 'https://<REF>.supabase.co/functions/v1/enviar-push-boletim' \
-     -H 'Authorization: Bearer <SERVICE_ROLE_KEY>'
+     -H 'Authorization: Bearer <CRON_SECRET>'
    ```
 
 ## Como funciona

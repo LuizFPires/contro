@@ -7,12 +7,45 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3';
 
-Deno.serve(async () => {
+// Comparação de strings em tempo constante (evita vazar o segredo por timing).
+function safeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const ab = enc.encode(a);
+  const bb = enc.encode(b);
+  if (ab.length !== bb.length) return false;
+  let r = 0;
+  for (let i = 0; i < ab.length; i++) r |= ab[i] ^ bb[i];
+  return r === 0;
+}
+
+// Anti-SSRF: só hosts conhecidos de serviços de push (espelha o CHECK da tabela).
+const HOSTS = [
+  /(^|\.)fcm\.googleapis\.com$/,
+  /(^|\.)push\.services\.mozilla\.com$/,
+  /(^|\.)push\.apple\.com$/,
+  /(^|\.)notify\.windows\.com$/,
+];
+function hostPermitido(endpoint: string): boolean {
+  try {
+    const u = new URL(endpoint);
+    return u.protocol === 'https:' && HOSTS.some((re) => re.test(u.hostname));
+  } catch {
+    return false;
+  }
+}
+
+Deno.serve(async (req: Request) => {
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), {
       status,
       headers: { 'Content-Type': 'application/json' },
     });
+
+  // Autentica quem chama (o pg_cron passa Authorization: Bearer <CRON_SECRET>).
+  const cronSecret = Deno.env.get('CRON_SECRET');
+  if (!cronSecret) return json({ error: 'CRON_SECRET ausente' }, 500);
+  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+  if (!safeEqual(token, cronSecret)) return json({ error: 'não autorizado' }, 401);
 
   const url = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -57,6 +90,8 @@ Deno.serve(async () => {
       tag: `boletim-${d.id}`,
     });
     for (const s of (subs ?? []) as any[]) {
+      // Defesa em profundidade (além do CHECK na tabela): não faz POST fora da allowlist.
+      if (!hostPermitido(s.endpoint)) continue;
       try {
         await webpush.sendNotification(
           { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },

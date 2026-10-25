@@ -8,7 +8,12 @@ create table push_subscription (
   p256dh text not null,
   auth text not null,
   user_agent text,
-  criado_em timestamptz not null default now()
+  criado_em timestamptz not null default now(),
+  -- Anti-SSRF: só https e hosts conhecidos de serviços de push (a Edge Function
+  -- faz POST neste endpoint). Cobre Chrome/Edge, Firefox, Safari e Windows.
+  constraint push_endpoint_valido check (
+    endpoint ~ '^https://([a-z0-9-]+\.)*(fcm\.googleapis\.com|push\.services\.mozilla\.com|push\.apple\.com|notify\.windows\.com)/'
+  )
 );
 create index push_subscription_user_idx on push_subscription (user_id);
 
