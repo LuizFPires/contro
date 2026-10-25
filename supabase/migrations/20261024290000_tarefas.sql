@@ -74,6 +74,17 @@ begin
   v_pessoa := public.obdc_pessoa_atual();
 
   if p_id is null then
+    -- O vínculo tem de ser da MESMA obra (evita efeito cruzado entre obras).
+    if p_vinculo_tipo = 'providencia' and not exists (
+      select 1 from public.obra_providencia where id = p_vinculo_id and obra_id = p_obra_id
+    ) then
+      raise exception 'Vínculo (providência) não é desta obra' using errcode = '23503';
+    end if;
+    if p_vinculo_tipo = 'atividade' and not exists (
+      select 1 from public.obra_atividade where id = p_vinculo_id and obra_id = p_obra_id
+    ) then
+      raise exception 'Vínculo (atividade) não é desta obra' using errcode = '23503';
+    end if;
     insert into public.tarefa (obra_id, texto, responsavel_id, prazo, vinculo_tipo, vinculo_id, origem_texto)
     values (p_obra_id, p_texto, p_responsavel_id, p_prazo, p_vinculo_tipo, p_vinculo_id, p_origem_texto)
     returning id into v_id;
@@ -128,7 +139,7 @@ begin
   if v_t.vinculo_tipo = 'providencia' and v_t.vinculo_id is not null then
     update public.obra_providencia
     set status = 'feito', feito_em = now(), feito_por = v_pessoa
-    where id = v_t.vinculo_id and status = 'pendente';
+    where id = v_t.vinculo_id and obra_id = v_t.obra_id and status = 'pendente';
     if found then
       update public.tarefa set efeito_providencia_id = v_t.vinculo_id where id = p_id;
     end if;
@@ -161,11 +172,11 @@ begin
     select oa.concluida_em is not null into v_atv_concluida
     from public.obra_providencia op
     join public.obra_atividade oa on oa.id = op.atividade_id
-    where op.id = v_t.efeito_providencia_id;
+    where op.id = v_t.efeito_providencia_id and op.obra_id = v_t.obra_id;
     if not coalesce(v_atv_concluida, false) then
       update public.obra_providencia
       set status = 'pendente', feito_em = null, feito_por = null
-      where id = v_t.efeito_providencia_id;
+      where id = v_t.efeito_providencia_id and obra_id = v_t.obra_id;
       update public.tarefa set efeito_providencia_id = null where id = p_id;
     end if;
   end if;
