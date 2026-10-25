@@ -19,15 +19,32 @@ export async function editarPrestador(id: string, prestador: string | null): Pro
   if (error) throw error;
 }
 
-export async function marcarProvidencia(id: string, status: 'pendente' | 'feito'): Promise<void> {
+export async function marcarProvidencia(id: string, feito: boolean): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const { error } = await supabase
-    .from('obra_providencia')
-    .update({
-      status,
-      feito_em: status === 'feito' ? new Date().toISOString() : null,
-    })
-    .eq('id', id);
+  const { error } = await supabase.rpc('marcar_providencia', { p_id: id, p_feito: feito });
+  if (error) throw error;
+}
+
+export async function adicionarProvidencia(
+  obraId: string,
+  atividadeId: string,
+  tipo: 'contratacao' | 'locacao' | 'compra',
+  descricao: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.from('obra_providencia').insert({
+    obra_id: obraId,
+    atividade_id: atividadeId,
+    tipo,
+    descricao,
+    antecedencia_du: 0,
+  });
+  if (error) throw error;
+}
+
+export async function removerProvidencia(id: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.from('obra_providencia').delete().eq('id', id);
   if (error) throw error;
 }
 

@@ -1,0 +1,65 @@
+.aba {
+  padding: var(--obdc-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-4);
+}
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-2);
+}
+.grupoTitulo {
+  font-size: var(--obdc-fs-body-sm);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--obdc-muted);
+  margin: 0;
+}
+.atrasadoTitulo {
+  color: var(--obdc-late);
+}
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--obdc-space-2);
+}
+.info {
+  min-width: 0;
+}
+.desc {
+  font-weight: 700;
+  font-size: var(--obdc-fs-body-sm);
+}
+.meta {
+  font-size: var(--obdc-fs-caption);
+  color: var(--obdc-muted);
+}
+.metaAtraso {
+  color: var(--obdc-late);
+  font-weight: 700;
+}
+.marcar {
+  border: none;
+  background: var(--obdc-action-primary-bg);
+  color: var(--obdc-action-primary-text);
+  border-radius: var(--obdc-radius-pill);
+  padding: 0 var(--obdc-space-3);
+  min-height: var(--obdc-touch);
+  font-weight: 700;
+  font-size: var(--obdc-fs-body-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.contador {
+  color: var(--obdc-muted);
+  font-size: var(--obdc-fs-body-sm);
+  text-align: center;
+}
+.vazio {
+  color: var(--obdc-muted);
+  text-align: center;
+  margin-top: var(--obdc-space-6);
+}

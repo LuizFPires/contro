@@ -83,6 +83,16 @@
   color: var(--obdc-muted);
   margin: 0 0 var(--obdc-space-2);
 }
+.remover {
+  width: var(--obdc-touch);
+  height: var(--obdc-touch);
+  border: none;
+  background: transparent;
+  color: var(--obdc-text);
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
 .oculto {
   display: none;
 }

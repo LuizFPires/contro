@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Icon, useToast } from '@obdc/ui';
+import { duEntre, providenciaAtrasada } from '@obdc/core';
+import { Icon, Segmented, useToast } from '@obdc/ui';
 import { formatarDataCompleta } from '../../lib/datas';
+import { hojeISO } from './api';
 import { FichaAtividade } from './FichaAtividade';
+import { ProvidenciasAba } from './ProvidenciasAba';
 import { useObraDetalhe } from './useObraDetalhe';
 import type { ObraAtv, ObraCompleta } from './detalhe';
 import styles from './ObraDetalhe.module.css';
@@ -19,8 +22,35 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
   const { showToast } = useToast();
   const [faseAberta, setFaseAberta] = useState<string | null>(null);
   const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
+  const [aba, setAba] = useState<'fases' | 'providencias'>('fases');
 
   const dados = useMemo(() => (obra ? derivar(obra) : null), [obra]);
+
+  const atrasados = useMemo(() => {
+    if (!obra) return 0;
+    const hoje = hojeISO();
+    const decorridos = duEntre(obra.inicio, hoje);
+    const iniciada = hoje >= obra.inicio;
+    let n = 0;
+    for (const a of obra.atividades) {
+      if (a.pai_id) continue;
+      const es = obra.cron.porId[a.id]?.es ?? 0;
+      for (const p of a.providencias) {
+        if (
+          providenciaAtrasada({
+            status: p.status,
+            atividadeConcluida: Boolean(a.concluida_em),
+            obraIniciada: iniciada,
+            decorridos,
+            esAtividade: es,
+            antecedenciaDu: p.antecedencia_du,
+          })
+        )
+          n += 1;
+      }
+    }
+    return n;
+  }, [obra]);
 
   if (isLoading || !obra || !dados) {
     return (
@@ -63,9 +93,25 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
         <div className={styles.barra}>
           <div className={styles.barraFill} style={{ width: `${Math.round(obra.pct * 100)}%` }} />
         </div>
+        <div style={{ marginTop: 'var(--obdc-space-2)' }}>
+          <Segmented
+            ariaLabel="Seção da obra"
+            value={aba}
+            onChange={setAba}
+            options={[
+              { value: 'fases', label: 'Fases' },
+              {
+                value: 'providencias',
+                label: atrasados > 0 ? `Providências (${atrasados})` : 'Providências',
+              },
+            ]}
+          />
+        </div>
       </div>
 
-      <div className={styles.trilha}>
+      {aba === 'providencias' ? <ProvidenciasAba obra={obra} /> : null}
+
+      <div className={styles.trilha} hidden={aba !== 'fases'}>
         {obra.fases.map((f) => {
           const est = dados.faseEstado[f.id] ?? 'planejada';
           const aberta = faseAberta === f.id;
@@ -134,10 +180,12 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
         })}
       </div>
 
-      <div className={styles.inauguracao}>
-        <strong>Inauguração</strong>
-        <span>{formatarDataCompleta(obra.entrega)}</span>
-      </div>
+      {aba === 'fases' ? (
+        <div className={styles.inauguracao}>
+          <strong>Inauguração</strong>
+          <span>{formatarDataCompleta(obra.entrega)}</span>
+        </div>
+      ) : null}
 
       <FichaAtividade
         obra={obra}
