@@ -77,7 +77,11 @@ const MODELO_1 = [
     nome: 'Infra de ar-condicionado',
     dur: 6,
     preds: ['3'],
-    provs: [C('Instaladora de ar-condicionado', 10), P('Tubulação frigorígena e drenos', 7)],
+    provs: [
+      C('Instaladora de ar-condicionado', 10),
+      P('Tubulação frigorígena e drenos', 7),
+      P('Equipamentos de ar-condicionado (evaporadoras/condensadoras)', 30),
+    ],
   },
   {
     id: '7',
@@ -94,7 +98,10 @@ const MODELO_1 = [
     nome: 'Infra de incêndio',
     dur: 5,
     preds: ['3'],
-    provs: [C('Empresa de incêndio (sprinkler)', 10)],
+    provs: [
+      C('Empresa de incêndio (sprinkler)', 10),
+      P('Materiais de incêndio (sprinklers e tubulação)', 10),
+    ],
   },
   { id: '10', fase: 3, nome: 'Impermeabilização dos vestiários', dur: 3, preds: ['7'] },
   { id: '11', fase: 3, nome: 'Contrapiso e regularização', dur: 4, preds: ['7', '10'] },
