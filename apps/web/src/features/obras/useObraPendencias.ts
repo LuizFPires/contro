@@ -68,7 +68,9 @@ export function useObraPendencias(obraId: string) {
         resolvida_em: null,
         vistoriada_por: null,
         vistoriada_em: null,
-        fotoAntesUrl: URL.createObjectURL(v.file),
+        // A miniatura do antes aparece após o drain (a foto sobe em 2º plano);
+        // não usamos objectURL aqui para não vazar blob ao substituir o card.
+        fotoAntesUrl: null,
         fotoDepoisUrl: null,
         apontouNome: null,
         resolveuNome: null,
