@@ -3,6 +3,7 @@ import { diasUteisRestantes, ritmoTexto } from '@obdc/core';
 import { Icon, Segmented, useToast } from '@obdc/ui';
 import { formatarDataCompleta } from '../../lib/datas';
 import { hojeISO } from './api';
+import { BoletimView } from './BoletimView';
 import { FichaAtividade } from './FichaAtividade';
 import { GanttAba } from './GanttAba';
 import { PendenciasAba } from './PendenciasAba';
@@ -37,6 +38,7 @@ export function ObraDetalhe({
   const [faseAberta, setFaseAberta] = useState<string | null>(null);
   const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
   const [aba, setAba] = useState<AbaObra>(abaInicial ?? 'fases');
+  const [boletimAberto, setBoletimAberto] = useState(false);
 
   const dados = useMemo(() => (obra ? derivar(obra) : null), [obra]);
 
@@ -60,6 +62,10 @@ export function ObraDetalhe({
     );
   }
 
+  if (boletimAberto) {
+    return <BoletimView obra={obra} onFechar={() => setBoletimAberto(false)} />;
+  }
+
   const ritmo = ritmoTexto(obra.ritmoDias);
 
   return (
@@ -74,7 +80,7 @@ export function ObraDetalhe({
             type="button"
             className={styles.boletim}
             aria-label="Boletim"
-            onClick={() => showToast({ message: 'Boletim chega no M8.' })}
+            onClick={() => setBoletimAberto(true)}
           >
             <Icon name="boletim" size={22} />
           </button>

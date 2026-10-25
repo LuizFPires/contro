@@ -1,0 +1,130 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--obdc-space-2);
+  padding: var(--obdc-space-2) var(--obdc-space-3);
+  background: var(--obdc-surface);
+  box-shadow: 0 1px 0 var(--obdc-border);
+}
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--obdc-touch);
+  height: var(--obdc-touch);
+  border: none;
+  background: transparent;
+  color: var(--obdc-text);
+  transform: scaleX(-1);
+  cursor: pointer;
+}
+.barraTitulo {
+  font-weight: 800;
+  flex: 1;
+}
+.acoes {
+  display: flex;
+  gap: var(--obdc-space-2);
+}
+.wa,
+.print {
+  min-height: var(--obdc-touch);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--obdc-space-3);
+  border-radius: var(--obdc-radius-pill);
+  font-weight: 700;
+  font-size: var(--obdc-fs-body-sm);
+  cursor: pointer;
+  text-decoration: none;
+}
+.wa {
+  background: var(--obdc-action-primary-bg);
+  color: var(--obdc-action-primary-text);
+}
+.print {
+  border: 1px solid var(--obdc-text);
+  background: transparent;
+  color: var(--obdc-text);
+}
+.corpo {
+  padding: var(--obdc-space-4);
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+}
+.titulo {
+  font-size: var(--obdc-fs-h2);
+  font-weight: 800;
+  margin: 0;
+}
+.semana {
+  color: var(--obdc-muted);
+  font-size: var(--obdc-fs-body-sm);
+  margin: 2px 0;
+}
+.ind {
+  font-weight: 700;
+  font-size: var(--obdc-fs-body-sm);
+  margin: var(--obdc-space-2) 0;
+}
+.atraso {
+  color: var(--obdc-late);
+}
+.bloco {
+  margin: var(--obdc-space-3) 0;
+}
+.blocoTitulo {
+  font-size: var(--obdc-fs-caption);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--obdc-muted);
+  margin: 0 0 2px;
+}
+.bloco ul {
+  margin: 0;
+  padding-left: var(--obdc-space-4);
+  font-size: var(--obdc-fs-body-sm);
+}
+.bloco ul ul {
+  margin: 2px 0;
+}
+.rotulo {
+  font-size: var(--obdc-fs-caption);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--obdc-muted);
+  margin: var(--obdc-space-4) 0 var(--obdc-space-1);
+}
+.previa {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--obdc-bg-app);
+  border: 1px solid var(--obdc-border);
+  border-radius: var(--obdc-radius-md, 12px);
+  padding: var(--obdc-space-3);
+  font: inherit;
+  font-size: var(--obdc-fs-body-sm);
+  margin: 0;
+}
+
+@media print {
+  .barra,
+  .rotulo,
+  .previa {
+    display: none;
+  }
+  .corpo {
+    padding: 0;
+  }
+}
