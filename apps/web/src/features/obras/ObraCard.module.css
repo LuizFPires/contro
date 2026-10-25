@@ -1,0 +1,73 @@
+.card {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+.topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--obdc-space-2);
+}
+.nome {
+  font-size: var(--obdc-fs-h3);
+  font-weight: 800;
+  margin: 0;
+}
+.rotulo {
+  font-size: var(--obdc-fs-caption);
+  color: var(--obdc-muted);
+  margin: 2px 0 var(--obdc-space-3);
+}
+.linhaFase {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--obdc-space-2);
+  margin-bottom: var(--obdc-space-2);
+}
+.fase {
+  font-weight: 700;
+  font-size: var(--obdc-fs-body-sm);
+}
+.pct {
+  font-weight: 800;
+  font-size: var(--obdc-fs-body);
+}
+.segs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--obdc-space-3);
+}
+.seg {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--obdc-progress-track);
+}
+.concluida {
+  background: var(--obdc-turquoise);
+}
+.execucao {
+  background: var(--obdc-turquoise);
+  opacity: 0.5;
+}
+.atraso {
+  background: var(--obdc-late);
+}
+.rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--obdc-fs-body-sm);
+}
+.ritmo {
+  font-weight: 700;
+}
+.atrasada {
+  color: var(--obdc-late);
+  font-weight: 800;
+}
+.entrega {
+  color: var(--obdc-muted);
+}
