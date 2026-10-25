@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Icon, Monograma, useToast } from '@obdc/ui';
 import { ObraCard } from '../features/obras/ObraCard';
+import { ObraDetalhe } from '../features/obras/ObraDetalhe';
 import { NovaObraScreen } from '../features/obras/NovaObraScreen';
 import { useObras } from '../features/obras/useObras';
 import styles from './MinhasObras.module.css';
@@ -9,6 +10,11 @@ export function MinhasObras() {
   const { data: obras, isLoading } = useObras();
   const { showToast } = useToast();
   const [vista, setVista] = useState<'lista' | 'nova'>('lista');
+  const [obraAberta, setObraAberta] = useState<string | null>(null);
+
+  if (obraAberta) {
+    return <ObraDetalhe id={obraAberta} onVoltar={() => setObraAberta(null)} />;
+  }
 
   if (vista === 'nova') {
     return (
@@ -43,11 +49,7 @@ export function MinhasObras() {
       ) : temObras ? (
         <div className={styles.lista}>
           {(obras ?? []).map((o) => (
-            <ObraCard
-              key={o.id}
-              obra={o}
-              onAbrir={() => showToast({ message: 'A tela da obra chega na próxima etapa.' })}
-            />
+            <ObraCard key={o.id} obra={o} onAbrir={() => setObraAberta(o.id)} />
           ))}
         </div>
       ) : (
