@@ -229,6 +229,26 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 
 ---
 
+## Boletim automático (destrava o débito do M8)
+**Objetivo:** o gestor configura quando o boletim é gerado (dia, hora, recorrência) e é avisado por push para enviar com um toque. Decisões do usuário: envio = **gerar + avisar** (sem API de WhatsApp, sem e-mail); escopo = **global** (um agendamento para todas as obras); aviso = **push**; recorrência = semanal (dia + hora) com edição de fechamento opcional.
+
+**Fatia 1 · Configuração (base)**
+- [x] Migration `config_boletim` (linha única global) + RLS (membro lê, só gestor edita) + teste pgTAP
+- [x] `core/boletimAgenda.ts` — validação + `proximoDisparo` (puro, 9 testes)
+- [x] Tela **Boletim automático** (aba Mais, só gestor): liga/desliga, dia, hora, fechamento opcional, "próximo envio" e Desfazer
+- [ ] Aplicar a migration no Supabase remoto (ação do usuário) para o save funcionar no piloto
+
+**Fatia 2 · Geração agendada** (próxima)
+- [ ] Tabela `boletim` + RPC `gerar_boletim(obra, edicao)` (snapshot + texto) idempotente
+- [ ] Cron (pg_cron) lê `config_boletim` e dispara no horário; lista "prontos para enviar"
+
+**Fatia 3 · Push** (próxima; precisa de chaves VAPID + Edge Function)
+- [ ] Service worker com handler de push/notificationclick; permissão; tabela `push_subscription`
+- [ ] Edge Function de envio chamada pelo cron; avisos "Boletim pronto para enviar"
+- [ ] Ressalva iOS: push só com o PWA instalado na tela inicial (16.4+)
+
+**Aceite:** no dia/hora configurado pelo gestor, o boletim de cada obra ativa é gerado e o gestor recebe um push; ele toca e o WhatsApp abre com o texto pronto.
+
 ---
 
 ## Melhorias (fora do plano principal)
@@ -262,6 +282,8 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
+
+- 2026-10-25 · (boletim automático · fatia 1 · PR a abrir) **Agendamento do boletim deixa de ser fixo.** O gestor configura dia/hora (global, todas as obras) em `config_boletim` (linha única; RLS só gestor edita), com edição principal + fechamento opcional; os horários do SPEC §11 viram apenas o padrão. Envio = **gerar + avisar** por push (sem API de WhatsApp nem e-mail — a Cloud API não envia para grupos); escopo **global** e aviso por **push** escolhidos pelo usuário. Geração agendada (pg_cron) e push (VAPID/Edge Function) são as fatias 2 e 3.
 
 - 2026-10-25 · (pdf-service · PR a abrir) **Boletim e ata em PDF** (substitui o HTML imprimível): novo pacote `apps/pdf-service` (Node + Express + Playwright) que importa o `@contro/core` e renderiza templates HTML A4 (Nunito Sans, design system; vermelho só para atraso) para PDF via Chromium. Endpoints `POST /boletim` (BoletimDados) e `POST /ata` ({dataFmt, obras}); `GET /health`; `pnpm --filter @contro/pdf-service smoke` gera PDFs de exemplo. Os geradores de HTML são puros e testados no Vitest (roda no CI). **Follow-up (feito, PR a abrir)**: o botão "Baixar PDF" do web (boletim e ata) agora chama o pdf-service quando `VITE_PDF_SERVICE_URL` está configurado (helper `baixarPdf` → POST + download do blob), com fallback para `window.print()` quando não há URL; o serviço ganhou CORS (preflight + `Access-Control-Allow-Origin` por `PDF_CORS_ORIGIN`, default `*`; **em produção, fixar para a origem do app**). A URL é normalizada (sem barra final → evita `//endpoint` 404), o nome do arquivo é sanitizado e o botão desabilita durante o download. **Ainda pendente**: deploy do serviço (container) e o snapshot semanal (pg_cron) que materializa os dados do PDF
 - 2026-10-25 · (rename do nome antigo → contro · PR #21) Rename geral do projeto a pedido do usuário: zero referência ao nome antigo em todo o código (pacotes `@contro/*`, tokens `--contro-*`, funções SQL `contro_*`, `project_id` contro, marca/docs/testes, e os nomes internos do zip de logos reempacotados como `CONTRO_*`). Revisão independente: 0 crítico/alto/médio. O `config.toml` também passou a fixar portas próprias do Supabase local (api 54821, studio 54823, inbucket 54824, db 54822/shadow 54820) e desligar o analytics no dev, para não colidir com outros stacks locais — convenção de ambiente, decidida aqui. Pontos sem ação (não são referências de produto): a pasta do workspace no disco mantém o nome antigo (caminho do SO, fora do versionamento); e as imagens de logo contêm essas letras por coincidência dentro de um trecho de base64
