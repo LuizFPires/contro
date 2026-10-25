@@ -1,11 +1,14 @@
 import { aposTentativa, classificarErro, proximaOp } from '@obdc/core';
 import type { QueryClient } from '@tanstack/react-query';
 import {
+  adiarPendencia,
   concluirAtividade,
   concluirTarefa,
   marcarProvidencia,
   marcarSubitem,
   reabrirTarefa,
+  trazerPendencia,
+  vistoriarPendencia,
 } from '../features/obras/campo';
 import { removerFotoLocal, subirFotoLocal } from '../features/obras/foto';
 import { supabase } from './supabase';
@@ -27,6 +30,11 @@ const DISPATCH: Record<string, Handler> = {
   marcar_subitem: (p, opId) => marcarSubitem(p.subitemId as string, p.feito as boolean, opId),
   concluir_tarefa: (p, opId) => concluirTarefa(p.id as string, opId),
   reabrir_tarefa: (p, opId) => reabrirTarefa(p.id as string, opId),
+  adiar_pendencia: (p, opId) =>
+    adiarPendencia(p.id as string, p.data as string, p.motivo as string, opId),
+  trazer_pendencia: (p, opId) => trazerPendencia(p.id as string, opId),
+  vistoriar_pendencia: (p, opId) =>
+    vistoriarPendencia(p.id as string, p.aprovado as boolean, p.motivo as string | undefined, opId),
 };
 
 let qc: QueryClient | null = null;
@@ -48,6 +56,7 @@ function invalidar(payload: Record<string, unknown>) {
     qc.invalidateQueries({ queryKey: ['obra', obraId] });
     qc.invalidateQueries({ queryKey: ['obras'] });
     qc.invalidateQueries({ queryKey: ['tarefas', obraId] });
+    qc.invalidateQueries({ queryKey: ['pendencias', obraId] });
   }
 }
 
