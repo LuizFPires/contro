@@ -69,5 +69,7 @@ export function textoBoletimWhatsapp(d: BoletimDados): string {
   const completo = base + Q.join('\n') + RODAPE;
   if (completo.length <= LIMITE) return completo;
   // Trunca "Quem faz o quê" e remete ao PDF (SPEC §8.1).
-  return `${base}\n\n_Quem faz o quê_ e o restante no PDF completo.${RODAPE}`;
+  const truncado = `${base}\n\n_Quem faz o quê_ e o restante no PDF completo.${RODAPE}`;
+  // Caso-limite: se até as seções curtas já passam do limite, corta no limite.
+  return truncado.length <= LIMITE ? truncado : truncado.slice(0, LIMITE);
 }

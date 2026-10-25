@@ -24,10 +24,12 @@ const TIPO: Record<string, string> = {
 };
 
 function semanaFmt(): string {
-  const seg = new Date();
-  seg.setDate(seg.getDate() - ((seg.getDay() + 6) % 7));
+  // Tudo em UTC, consistente com hojeISO()/formatarDataCurta (evita deslocar o dia à noite).
+  const base = new Date(`${hojeISO()}T00:00:00Z`);
+  const seg = new Date(base);
+  seg.setUTCDate(base.getUTCDate() - ((base.getUTCDay() + 6) % 7));
   const sex = new Date(seg);
-  sex.setDate(seg.getDate() + 4);
+  sex.setUTCDate(seg.getUTCDate() + 4);
   return `${formatarDataCurta(seg.toISOString().slice(0, 10))} a ${formatarDataCurta(
     sex.toISOString().slice(0, 10),
   )}`;
