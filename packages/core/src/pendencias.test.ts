@@ -1,0 +1,58 @@
+import { describe, expect, it } from 'vitest';
+import { classificarPendencias, estaNaFila, podeVistoriar, type Pendencia } from './pendencias';
+
+const base = (p: Partial<Pendencia>): Pendencia => ({
+  id: p.id ?? 'x',
+  status: p.status ?? 'aberta',
+  ordem_fila: p.ordem_fila ?? 0,
+  adiada_ate: p.adiada_ate ?? null,
+  resolvida_por: p.resolvida_por ?? null,
+});
+
+describe('estaNaFila', () => {
+  it('aberta sem adiamento está na fila', () => {
+    expect(estaNaFila({ status: 'aberta', adiada_ate: null }, '2026-10-24')).toBe(true);
+  });
+  it('adiada para o futuro sai da fila', () => {
+    expect(estaNaFila({ status: 'aberta', adiada_ate: '2026-10-27' }, '2026-10-24')).toBe(false);
+  });
+  it('adiada vencida (<= hoje) volta à fila', () => {
+    expect(estaNaFila({ status: 'aberta', adiada_ate: '2026-10-24' }, '2026-10-24')).toBe(true);
+  });
+  it('em vistoria não está na fila', () => {
+    expect(estaNaFila({ status: 'em_vistoria', adiada_ate: null }, '2026-10-24')).toBe(false);
+  });
+});
+
+describe('classificarPendencias', () => {
+  it('separa nas quatro listas e ordena a fila por ordem_fila', () => {
+    const ps = [
+      base({ id: 'a', status: 'aberta', ordem_fila: 2 }),
+      base({ id: 'b', status: 'aberta', ordem_fila: -1 }),
+      base({ id: 'c', status: 'aberta', adiada_ate: '2026-10-30' }),
+      base({ id: 'd', status: 'em_vistoria' }),
+      base({ id: 'e', status: 'fechada' }),
+      base({ id: 'f', status: 'aberta', adiada_ate: '2026-10-24' }), // vencida → fila
+    ];
+    const r = classificarPendencias(ps, '2026-10-24');
+    expect(r.fila.map((p) => p.id)).toEqual(['b', 'f', 'a']);
+    expect(r.adiadas.map((p) => p.id)).toEqual(['c']);
+    expect(r.emVistoria.map((p) => p.id)).toEqual(['d']);
+    expect(r.concluidas.map((p) => p.id)).toEqual(['e']);
+  });
+});
+
+describe('podeVistoriar (regra 5)', () => {
+  it('bloqueia quem resolveu', () => {
+    expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: 'p1' }, 'p1')).toBe(false);
+  });
+  it('permite outra pessoa', () => {
+    expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: 'p1' }, 'p2')).toBe(true);
+  });
+  it('só em vistoria', () => {
+    expect(podeVistoriar({ status: 'aberta', resolvida_por: null }, 'p2')).toBe(false);
+  });
+  it('sem pessoa identificada, bloqueia', () => {
+    expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: 'p1' }, null)).toBe(false);
+  });
+});

@@ -3,6 +3,7 @@ import type { Perfil } from '@obdc/core';
 import { supabase } from '../../lib/supabase';
 
 export interface PessoaAtual {
+  id: string;
   perfil: Perfil;
   nome: string;
 }
@@ -19,7 +20,7 @@ export function usePerfil() {
       if (!user) return null;
       const { data } = await supabase
         .from('pessoa')
-        .select('perfil, nome')
+        .select('id, perfil, nome')
         .eq('user_id', user.id)
         .maybeSingle();
       return (data as PessoaAtual | null) ?? null;

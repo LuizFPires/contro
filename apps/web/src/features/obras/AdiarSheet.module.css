@@ -1,0 +1,49 @@
+.rotulo {
+  font-size: var(--obdc-fs-body-sm);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--obdc-muted);
+  margin: var(--obdc-space-3) 0 var(--obdc-space-2);
+}
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--obdc-space-2);
+}
+.pill {
+  min-height: var(--obdc-touch);
+  padding: 0 var(--obdc-space-3);
+  border-radius: var(--obdc-radius-pill);
+  border: 1px solid var(--obdc-border);
+  background: transparent;
+  color: var(--obdc-text);
+  font-weight: 700;
+  font-size: var(--obdc-fs-body-sm);
+  cursor: pointer;
+}
+.ativo {
+  background: var(--obdc-action-primary-bg);
+  color: var(--obdc-action-primary-text);
+  border-color: transparent;
+}
+.data {
+  min-height: var(--obdc-touch);
+  padding: 0 var(--obdc-space-3);
+  border-radius: var(--obdc-radius-md, 12px);
+  border: 1px solid var(--obdc-border);
+  background: var(--obdc-surface);
+  color: var(--obdc-text);
+  font-size: var(--obdc-fs-body-sm);
+}
+.rodape {
+  margin-top: var(--obdc-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-2);
+}
+.resumo {
+  font-size: var(--obdc-fs-body-sm);
+  color: var(--obdc-muted);
+  text-align: center;
+}

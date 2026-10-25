@@ -49,6 +49,76 @@ export async function removerProvidencia(id: string): Promise<void> {
   if (error) throw error;
 }
 
+// --- Pendências (M4) ---
+
+export interface NovaPendencia {
+  titulo: string;
+  local: string | null;
+  criticidade: 'alta' | 'media' | 'baixa';
+  atividadeId: string | null;
+}
+
+/** Envia a foto do antes e aponta a pendência. Retorna o id. */
+export async function apontarPendencia(
+  obraId: string,
+  dados: NovaPendencia,
+  file: File,
+): Promise<string> {
+  if (!supabase) throw new Error('Sem conexão');
+  const fotoId = await enviarFoto(obraId, file);
+  const { data, error } = await supabase.rpc('apontar_pendencia', {
+    p_obra_id: obraId,
+    p_titulo: dados.titulo,
+    p_local: dados.local,
+    p_criticidade: dados.criticidade,
+    p_foto_antes_id: fotoId,
+    p_atividade_id: dados.atividadeId,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+/** Envia a foto de depois e manda a pendência para vistoria. */
+export async function resolverPendencia(obraId: string, id: string, file: File): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const fotoId = await enviarFoto(obraId, file);
+  const { error } = await supabase.rpc('resolver_pendencia', {
+    p_id: id,
+    p_foto_depois_id: fotoId,
+  });
+  if (error) throw error;
+}
+
+export async function adiarPendencia(id: string, data: string, motivo: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('adiar_pendencia', {
+    p_id: id,
+    p_data: data,
+    p_motivo: motivo,
+  });
+  if (error) throw error;
+}
+
+export async function trazerPendencia(id: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('trazer_pendencia', { p_id: id });
+  if (error) throw error;
+}
+
+export async function vistoriarPendencia(
+  id: string,
+  aprovado: boolean,
+  motivo?: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('vistoriar_pendencia', {
+    p_id: id,
+    p_aprovado: aprovado,
+    p_motivo: motivo ?? null,
+  });
+  if (error) throw error;
+}
+
 export interface ResultadoConclusao {
   xp: number;
   fase_fechada: boolean;

@@ -6,6 +6,7 @@ export * from './calendar';
 export * from './schedule';
 export * from './obra';
 export * from './providencias';
+export * from './pendencias';
 
 export type Perfil = 'gestor' | 'equipe';
 
