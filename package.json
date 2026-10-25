@@ -20,7 +20,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
-    "db:reset": "supabase db reset"
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db"
   },
   "devDependencies": {
     "@eslint/js": "9.37.0",
