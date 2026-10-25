@@ -1,0 +1,102 @@
+.aba {
+  padding: var(--obdc-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-3);
+}
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--obdc-space-3);
+  font-size: var(--obdc-fs-caption);
+  color: var(--obdc-muted);
+}
+.legenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.legenda span::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.lgConcluida::before {
+  background: var(--obdc-turquoise, #54b4b0);
+}
+.lgLiberada::before {
+  background: var(--obdc-black, #181818);
+}
+.lgAtrasada::before {
+  background: var(--obdc-late);
+}
+.lgPlanejada::before {
+  background: var(--obdc-muted);
+}
+.faseTitulo {
+  font-weight: 800;
+  font-size: var(--obdc-fs-body-sm);
+  margin: 0 0 var(--obdc-space-2);
+}
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 40% 1fr;
+  align-items: center;
+  gap: var(--obdc-space-2);
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 4px 0;
+  min-height: 36px;
+  cursor: pointer;
+  text-align: left;
+}
+.nome {
+  font-size: var(--obdc-fs-caption);
+  color: var(--obdc-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trilho {
+  position: relative;
+  height: 16px;
+  background: var(--obdc-bg);
+  border-radius: var(--obdc-radius-pill);
+  overflow: hidden;
+}
+.barra {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--obdc-radius-pill);
+  min-width: 4px;
+}
+.concluida {
+  background: var(--obdc-turquoise, #54b4b0);
+}
+.liberada {
+  background: var(--obdc-black, #181818);
+}
+.atrasada {
+  background: var(--obdc-late);
+}
+.planejada {
+  background: var(--obdc-muted);
+}
+.hoje {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--obdc-text);
+  z-index: 2;
+  opacity: 0.6;
+}
