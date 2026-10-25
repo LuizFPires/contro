@@ -1,35 +1,58 @@
+/* Login · direção "Noturno": fundo escuro com brilho turquesa.
+   Os tokens de cor são sobrescritos SÓ aqui, então Input e Button
+   compartilhados se adaptam ao tema escuro (vidro + texto branco).
+   O botão primário continua turquesa com texto preto (tokens de ação
+   não são sobrescritos). */
 .wrap {
   min-height: 100dvh;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: var(--contro-space-6);
   padding: var(--contro-space-6);
-  max-width: 420px;
-  margin: 0 auto;
+  background:
+    radial-gradient(130% 80% at 50% -5%, rgb(84 180 176 / 28%), transparent 60%),
+    radial-gradient(90% 60% at 85% 8%, rgb(84 180 176 / 12%), transparent 55%), #141414;
+
+  --contro-surface: rgb(255 255 255 / 6%);
+  --contro-border: rgb(255 255 255 / 14%);
+  --contro-text: var(--contro-white);
+  --contro-muted: rgb(255 255 255 / 45%);
+}
+
+.inner {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--contro-space-8);
 }
 
 .brand {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--contro-space-3);
+  justify-content: center;
 }
 
-.tagline {
-  color: var(--contro-muted);
-  font-size: var(--contro-fs-body-sm);
-  margin: 0;
+/* Sem caixa: a logomarca fica direto sobre o gradiente contínuo,
+   só com um brilho turquesa suave atrás (sem borda, sem cara de botão). */
+.capsule {
+  display: grid;
+  place-items: center;
+  padding: var(--contro-space-6) 0;
+}
+
+.capsule img {
+  filter: drop-shadow(0 0 28px rgb(84 180 176 / 42%));
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--contro-space-4);
+  gap: var(--contro-space-5);
 }
 
 .aviso {
   background: var(--contro-selected);
+  color: var(--contro-white);
   border-radius: var(--contro-radius-card);
   padding: var(--contro-space-4);
   font-size: var(--contro-fs-body-sm);
