@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'],
       manifest: {
-        name: 'obdc · obras da contorno',
-        short_name: 'obdc',
+        name: 'CONTRO · obras da contorno',
+        short_name: 'CONTRO',
         description: 'Planeje e acompanhe as obras das unidades Contorno do Corpo.',
         lang: 'pt-BR',
         start_url: '/',

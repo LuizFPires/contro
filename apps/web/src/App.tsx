@@ -36,7 +36,7 @@ export function App() {
     <div className="app-shell">
       <header className="app-header">
         <Monograma size={28} />
-        <span className="app-wordmark">obdc</span>
+        <span className="app-wordmark">CONTRO</span>
       </header>
 
       <main className="app-main">

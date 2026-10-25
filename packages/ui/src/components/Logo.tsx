@@ -1,6 +1,6 @@
 import simbolo from '../brand/simbolo-192.png';
-import logoPreto from '../brand/OBDC_logo_fundo_preto.svg';
-import logoBranco from '../brand/OBDC_logo_fundo_branco.svg';
+import logoEscuro from '../brand/CONTRO_logo_escuro.svg';
+import logoClaro from '../brand/CONTRO_logo_claro.svg';
 
 // Símbolo e lettering APROVADOS (não redesenhar). Artwork vindo da pasta do projeto.
 
@@ -10,7 +10,7 @@ export interface MonogramaProps {
   className?: string;
 }
 
-/** Monograma / ícone do app obdc (quadrado preto, símbolo branco com segmento turquesa). */
+/** Monograma / ícone do app CONTRO (quadrado escuro, símbolo da marca). */
 export function Monograma({ size = 40, className }: MonogramaProps) {
   return (
     <img
@@ -18,7 +18,7 @@ export function Monograma({ size = 40, className }: MonogramaProps) {
       width={size}
       height={size}
       className={className}
-      alt="obdc"
+      alt="CONTRO"
       style={{ display: 'block', objectFit: 'contain' }}
     />
   );
@@ -32,14 +32,14 @@ export interface LogoProps {
   className?: string;
 }
 
-/** Lettering completo "obdc". */
+/** Lettering completo "CONTRO". */
 export function Logo({ on = 'branco', height = 28, className }: LogoProps) {
   return (
     <img
-      src={on === 'preto' ? logoPreto : logoBranco}
+      src={on === 'preto' ? logoEscuro : logoClaro}
       height={height}
       className={className}
-      alt="obdc · obras da contorno"
+      alt="CONTRO · obras da contorno"
       style={{ display: 'block', height, width: 'auto' }}
     />
   );

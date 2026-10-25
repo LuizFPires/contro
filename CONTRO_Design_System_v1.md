@@ -1,6 +1,6 @@
-# OBDC — Design System v1.0
+# CONTRO — Design System v1.0
 
-**Produto:** obdc — Obras da Contorno  
+**Produto:** CONTRO — Obras da Contorno  
 **Objetivo:** gestão e acompanhamento das obras das unidades Contorno do Corpo.  
 **Fonte visual:** captura de tela da marca Contorno do Corpo enviada pelo usuário em 24/10/2026.
 
@@ -38,8 +38,8 @@ As amostras abaixo foram extraídas diretamente dos pixels dominantes da imagem 
 - `progress.track`: preto com 12% de opacidade
 - `progress.fill`: turquesa
 
-## 3. Identidade OBDC
-- Nome sempre em minúsculas: **obdc**.
+## 3. Identidade CONTRO
+- Nome sempre em maiúsculas: **CONTRO**.
 - Descritivo: **obras da contorno**.
 - Monograma: preservar geometria contínua do símbolo aprovado pelo usuário, originalmente mostrado em fundo azul. **A geometria é aprovada; as cores originais não são.**
 - Ícone oficial adaptado: quadrado preto de cantos arredondados, símbolo branco com segmento turquesa.
@@ -131,7 +131,7 @@ Barra inferior móvel com até cinco destinos: **Início**, **Obras**, **Vistori
 ## 11. Critérios de aceite
 - [ ] Apenas turquesa, preto e branco no sistema e na marca.
 - [ ] Ícone usa geometria do símbolo aprovado, sem fundo azul.
-- [ ] Tipografia em minúsculas no logotipo.
+- [ ] Tipografia em maiúsculas no logotipo.
 - [ ] Componentes consistentes em mobile e desktop.
 - [ ] Todos os indicadores têm rótulos e valores legíveis.
 - [ ] Fluxos de obra e vistoria funcionam com poucos toques.

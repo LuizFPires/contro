@@ -2,7 +2,7 @@
   "name": "obdc",
   "private": true,
   "version": "0.0.0",
-  "description": "obdc · app de obras da Contorno do Corpo (PWA mobile-first)",
+  "description": "CONTRO · app de obras da Contorno do Corpo (PWA mobile-first)",
   "type": "module",
   "packageManager": "pnpm@11.25.0",
   "engines": {

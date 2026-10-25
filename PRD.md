@@ -1,4 +1,4 @@
-# PRD — obdc · obras da contorno
+# PRD — CONTRO · obras da contorno
 
 Versão 1.1 · 24/10/2026 · base: protótipo navegável "Obras CDC — protótipo" (app de campo + modelos de obra no celular)
 
@@ -6,7 +6,7 @@ Versão 1.1 · 24/10/2026 · base: protótipo navegável "Obras CDC — protóti
 
 ## 1. Visão
 
-O **obdc** é o app de planejamento rápido e acompanhamento rápido das obras de reforma das unidades **Contorno do Corpo**.
+O **CONTRO** é o app de planejamento rápido e acompanhamento rápido das obras de reforma das unidades **Contorno do Corpo**.
 
 As obras são muito parecidas: mesma sequência, mesmo escopo e os mesmos encadeamentos. Por isso cada nova obra nasce no primeiro dia com o cronograma pronto, puxado de um **modelo de obra** escolhido entre os modelos salvos pelo gestor (ex.: "Modelo 1 · CDC completo", "Modelo 2 · CDC sem vestiários"), com atividades, prazos médios, conexões e lembretes de providência.
 
@@ -38,7 +38,7 @@ Frase-guia: *planejar em um minuto, acompanhar em um olhar, provar com foto.*
 
 São **dois perfis de acesso** apenas:
 
-| Perfil | Quem é | O que faz no obdc |
+| Perfil | Quem é | O que faz no CONTRO |
 |---|---|---|
 | **Gestor** | Diretoria e gestão de obras | **Tudo**: vê todas as obras, conduz a reunião e aprova a ata, e é o único que **cria, edita, duplica e exclui modelos de obra** |
 | **Equipe de obra** | Engenheiro, mestre/encarregado, compras e demais da obra | O app do dia a dia, **tudo menos editar modelos**: cria obra escolhendo um modelo, conclui atividades com foto, aponta, resolve e vistoria pendências, marca lembretes, dá baixa e replaneja tarefas |
@@ -116,7 +116,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
   - fases e qualidade;
   - campo em branco de encaminhamentos.
 - **Envio sem integração:** o botão "WhatsApp" abre o WhatsApp (`wa.me/?text=`) com o texto pronto, e o usuário escolhe o grupo da obra.
-- **PDF** A4 bem formatado no padrão OBDC, para levar à reunião.
+- **PDF** A4 bem formatado no padrão CONTRO, para levar à reunião.
 
 ### 5.10 Reunião semanal (segunda, 16h)
 - Pauta montada obra a obra:
@@ -200,10 +200,10 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 
 ## 9. Design
 
-- Design system **OBDC**: turquesa #54B4B0, preto #181818, branco e opacidades dessas três cores; Nunito Sans.
+- Design system **CONTRO**: turquesa #54B4B0, preto #181818, branco e opacidades dessas três cores; Nunito Sans.
 - **Exceção aprovada:** vermelho #C62828 **somente** para atraso (atividades, lembretes, providências vencidas, ritmo atrasado).
 - Botão primário turquesa com texto preto; secundário preto com texto branco.
-- Marca "obdc" sempre em minúsculas. O símbolo definitivo é o vetor aprovado que está na pasta do projeto obdc.
+- Marca "CONTRO" sempre em maiúsculas. O símbolo definitivo é o vetor aprovado que está na pasta do projeto CONTRO.
 
 ## 10. Questões em aberto
 
@@ -213,7 +213,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 | Q2 | Peso do % de avanço | v1: peso pela duração do modelo. Avaliar peso por custo-padrão da unidade ou % parcial (25/50/75) com foto |
 | Q3 | ~~Equipe real~~ | **Decidido:** começa com nomes fictícios; nomes digitados viram sugestões e o cadastro se forma com o uso |
 | Q4 | Prestador da atividade | Mantido como campo opcional; confirmar se fica |
-| Q5 | ~~Vetor do símbolo~~ | **Resolvido:** o vetor aprovado está na pasta do projeto obdc |
+| Q5 | ~~Vetor do símbolo~~ | **Resolvido:** o vetor aprovado está na pasta do projeto CONTRO |
 | Q6 | Prazos médios reais | Substituir os 28 prazos do protótipo pelo histórico das obras CDC antes do piloto |
 | Q7 | Quem pode editar o cronograma de uma obra | Gestor e equipe de obra (só a edição de **modelos** é exclusiva do gestor) |
 | Q8 | ~~Versões do modelo~~ | **Decidido:** sem versões nem publicação; vários modelos salvos com nome e subtítulo, escolhidos na criação da obra |
