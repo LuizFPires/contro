@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Monograma, TabBar, type TabItem } from '@contro/ui';
+import { Button, Logo, TabBar, type TabItem } from '@contro/ui';
 import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
@@ -28,8 +28,8 @@ export function App() {
   const ehGestor = pessoa?.perfil === 'gestor';
 
   const tabs: TabItem[] = [
+    // "Início" já é a lista "Minhas obras" (não há aba "Obras" separada).
     { key: 'inicio', label: 'Início', icon: 'home' },
-    { key: 'obras', label: 'Obras', icon: 'obras' },
     // Modelos só aparece para o gestor (a RLS também bloqueia a escrita).
     ...(ehGestor ? [{ key: 'modelos', label: 'Modelos', icon: 'modelos' } as TabItem] : []),
     { key: 'mais', label: 'Mais', icon: 'more' },
@@ -39,13 +39,11 @@ export function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <Monograma size={28} />
-        <span className="app-wordmark">CONTRO</span>
+        <Logo on="preto" height={22} />
       </header>
 
       <main className="app-main">
         {tabAtiva === 'inicio' ? <MinhasObras /> : null}
-        {tabAtiva === 'obras' ? <div className="app-placeholder">Obras chegam no M2.</div> : null}
         {tabAtiva === 'modelos' && ehGestor ? <ModelosScreen /> : null}
         {tabAtiva === 'mais' ? (
           maisTela === 'reuniao' ? (

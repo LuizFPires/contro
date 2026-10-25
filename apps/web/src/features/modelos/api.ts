@@ -100,7 +100,7 @@ export async function excluirModelo(id: string): Promise<void> {
 
 export async function restaurarModelo(id: string): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const { error } = await supabase.from('modelo').update({ deleted_at: null }).eq('id', id);
+  const { error } = await supabase.rpc('restaurar_modelo', { p_id: id });
   if (error) throw error;
 }
 
