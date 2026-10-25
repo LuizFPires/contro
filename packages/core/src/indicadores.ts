@@ -20,7 +20,10 @@ export interface RitmoTexto {
 export function ritmoTexto(ritmoDias: number, curto = false): RitmoTexto {
   const suf = curto ? '' : ' do modelo';
   if (ritmoDias >= 1) {
-    return { texto: `${ritmoDias} ${ritmoDias === 1 ? 'dia' : 'dias'} à frente${suf}`, atrasada: false };
+    return {
+      texto: `${ritmoDias} ${ritmoDias === 1 ? 'dia' : 'dias'} à frente${suf}`,
+      atrasada: false,
+    };
   }
   if (estaAtrasada(ritmoDias)) {
     return { texto: `Atrasada · ${Math.abs(ritmoDias)} dias`, atrasada: true };
