@@ -78,7 +78,11 @@ begin
 end;
 $$;
 
-revoke all on function gerar_disparos_boletim(timestamptz) from public;
+-- Só o dono (postgres, usado pelo pg_cron) executa. Revoga explicitamente de
+-- public E dos papéis do Supabase (anon/authenticated recebem EXECUTE por
+-- default privileges), senão um autenticado poderia forçar disparos fora do
+-- horário passando um p_agora arbitrário.
+revoke all on function public.gerar_disparos_boletim(timestamptz) from public, anon, authenticated;
 
 -- Agenda no pg_cron (a cada 15 min) se a extensão existir. A função checa o
 -- horário por dentro, então rodar com frequência é seguro e idempotente.

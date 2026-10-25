@@ -2,7 +2,7 @@
 -- Horário no fuso America/Sao_Paulo (UTC-3). Datas: 2026-01-05 é segunda.
 
 begin;
-select plan(6);
+select plan(7);
 
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.boletim_disparo'::regclass),
@@ -53,6 +53,16 @@ select is(
   (select count(*)::int from boletim_disparo where edicao = 'fechamento'),
   1,
   'fechamento na sexta gera'
+);
+
+-- Segurança: só o dono (cron) executa; usuário autenticado não.
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000c0ff","role":"authenticated"}';
+select throws_ok(
+  $$ select gerar_disparos_boletim('2026-01-05 09:35:00+00') $$,
+  '42501',
+  null,
+  'authenticated NÃO executa gerar_disparos_boletim'
 );
 
 select * from finish();
