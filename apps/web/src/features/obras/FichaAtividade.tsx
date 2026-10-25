@@ -79,12 +79,17 @@ export function FichaAtividade({
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    const fase = obra.fases.find((f) => f.id === a.fase_id);
+    const prox = obra.fases.find((f) => f.ordem === (fase?.ordem ?? 0) + 1);
+    // Fecha a fase se nenhuma outra atividade de topo dela fica em aberto (= regra do servidor).
+    const faseFechada = !obra.atividades.some(
+      (x) => !x.pai_id && x.fase_id === a.fase_id && x.id !== a.id && !x.concluida_em,
+    );
+    const xp = 50 + (faseFechada ? 200 : 0);
     campo.concluir.mutate(
-      { atividadeId: a.id, file },
+      { atividadeId: a.id, file, faseFechada, xp },
       {
         onSuccess: (r) => {
-          const fase = obra.fases.find((f) => f.id === a.fase_id);
-          const prox = obra.fases.find((f) => f.ordem === (fase?.ordem ?? 0) + 1);
           onConcluida(r, {
             nome: a.nome,
             libera,
@@ -387,7 +392,7 @@ export function FichaAtividade({
             disabled={!podeConcluir || campo.concluir.isPending}
             onClick={() => fileRef.current?.click()}
           >
-            {campo.concluir.isPending ? 'Enviando foto…' : 'Concluir com foto'}
+            {campo.concluir.isPending ? 'Concluindo…' : 'Concluir com foto'}
           </Button>
         </>
       ) : null}

@@ -217,23 +217,17 @@ export async function restaurarTarefa(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export interface ResultadoConclusao {
-  xp: number;
-  fase_fechada: boolean;
-}
-
-/** Envia a foto e conclui a atividade. */
-export async function concluirComFoto(
-  obraId: string,
+/** Conclui a atividade com a foto já enviada (idempotente por client_op_id). */
+export async function concluirAtividade(
   atividadeId: string,
-  file: File,
-): Promise<ResultadoConclusao> {
+  fotoId: string,
+  clientOpId?: string,
+): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const fotoId = await enviarFoto(obraId, file);
-  const { data, error } = await supabase.rpc('concluir_atividade', {
+  const { error } = await supabase.rpc('concluir_atividade', {
     p_atividade_id: atividadeId,
     p_foto_id: fotoId,
+    p_client_op_id: clientOpId ?? null,
   });
   if (error) throw error;
-  return data as ResultadoConclusao;
 }

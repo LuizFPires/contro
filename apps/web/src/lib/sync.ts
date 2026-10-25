@@ -1,6 +1,7 @@
 import { aposTentativa, classificarErro, proximaOp } from '@obdc/core';
 import type { QueryClient } from '@tanstack/react-query';
-import { marcarProvidencia } from '../features/obras/campo';
+import { concluirAtividade, marcarProvidencia } from '../features/obras/campo';
+import { removerFotoLocal, subirFotoLocal } from '../features/obras/foto';
 import { supabase } from './supabase';
 import { db, type OpDB } from './db';
 
@@ -12,6 +13,11 @@ import { db, type OpDB } from './db';
 type Handler = (payload: Record<string, unknown>, opId: string) => Promise<void>;
 const DISPATCH: Record<string, Handler> = {
   marcar_providencia: (p, opId) => marcarProvidencia(p.id as string, p.feito as boolean, opId),
+  concluir_atividade: async (p, opId) => {
+    const fotoId = await subirFotoLocal(p.fotoLocalId as string); // upload com retomada
+    await concluirAtividade(p.atividadeId as string, fotoId, opId);
+    await removerFotoLocal(p.fotoLocalId as string);
+  },
 };
 
 let qc: QueryClient | null = null;

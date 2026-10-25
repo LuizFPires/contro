@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase';
+import { db } from '../../lib/db';
 
 /** Comprime no aparelho: lado maior até 1600px, JPEG ~0,75 (CLAUDE.md). */
 export async function comprimirImagem(file: File, maxLado = 1600, q = 0.75): Promise<Blob> {
@@ -52,4 +53,59 @@ export async function enviarFoto(obraId: string, file: File): Promise<string> {
     .single();
   if (error) throw error;
   return (data as { id: string }).id;
+}
+
+/** Guarda a foto comprimida no Dexie (para subir em 2º plano). Retorna o localId. */
+export async function guardarFotoLocal(obraId: string, file: File): Promise<string> {
+  const blob = await comprimirImagem(file);
+  const localId = crypto.randomUUID();
+  await db.fotos.add({ localId, obraId, blob });
+  return localId;
+}
+
+/**
+ * Sobe a foto local ao Storage e cria a linha `foto`, com RETOMADA: pula o que
+ * já foi feito (storagePath/fotoId). Retorna o foto_id.
+ */
+export async function subirFotoLocal(localId: string): Promise<string> {
+  if (!supabase) throw new Error('Sem conexão');
+  const f = await db.fotos.get(localId);
+  if (!f) {
+    // Foto sumiu do dispositivo: falha terminal (não adianta repetir).
+    throw Object.assign(new Error('Foto local não encontrada'), { code: 'FOTO0' });
+  }
+  if (f.fotoId) return f.fotoId;
+
+  let caminho = f.storagePath;
+  if (!caminho) {
+    caminho = `${f.obraId}/${crypto.randomUUID()}.jpg`;
+    const up = await supabase.storage
+      .from('fotos')
+      .upload(caminho, f.blob, { contentType: 'image/jpeg', upsert: true });
+    if (up.error) throw up.error;
+    await db.fotos.update(localId, { storagePath: caminho });
+  }
+
+  const { data: userData } = await supabase.auth.getUser();
+  const pessoaRes = await supabase
+    .from('pessoa')
+    .select('id')
+    .eq('user_id', userData.user?.id ?? '')
+    .maybeSingle();
+  const pessoaId = (pessoaRes.data as { id: string } | null)?.id ?? null;
+
+  const { data, error } = await supabase
+    .from('foto')
+    .insert({ obra_id: f.obraId, storage_path: caminho, tirada_por: pessoaId })
+    .select('id')
+    .single();
+  if (error) throw error;
+  const fotoId = (data as { id: string }).id;
+  await db.fotos.update(localId, { fotoId });
+  return fotoId;
+}
+
+/** Limpa a foto local após a conclusão sincronizar. */
+export async function removerFotoLocal(localId: string): Promise<void> {
+  await db.fotos.delete(localId);
 }
