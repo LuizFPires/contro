@@ -4,7 +4,15 @@ import { formatarDataCurta } from '../../lib/datas';
 import type { ObraResumo } from './api';
 import styles from './ObraCard.module.css';
 
-export function ObraCard({ obra, onAbrir }: { obra: ObraResumo; onAbrir: () => void }) {
+export function ObraCard({
+  obra,
+  onAbrir,
+  onAbrirTarefas,
+}: {
+  obra: ObraResumo;
+  onAbrir: () => void;
+  onAbrirTarefas?: () => void;
+}) {
   const ritmo = ritmoTexto(obra.ritmoDias, true);
 
   return (
@@ -29,6 +37,25 @@ export function ObraCard({ obra, onAbrir }: { obra: ObraResumo; onAbrir: () => v
           <span className={ritmo.atrasada ? styles.atrasada : styles.ritmo}>{ritmo.texto}</span>
           <span className={styles.entrega}>Entrega {formatarDataCurta(obra.entrega)}</span>
         </div>
+
+        {onAbrirTarefas && (obra.tarefasAbertas > 0 || obra.tarefasAtrasadas > 0) ? (
+          <button
+            type="button"
+            className={styles.tarefas}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAbrirTarefas();
+            }}
+          >
+            {obra.tarefasAbertas} {obra.tarefasAbertas === 1 ? 'tarefa' : 'tarefas'}
+            {obra.tarefasAtrasadas > 0 ? (
+              <span className={styles.tarefasAtraso}>
+                {' '}
+                · {obra.tarefasAtrasadas} atrasada{obra.tarefasAtrasadas === 1 ? '' : 's'}
+              </span>
+            ) : null}
+          </button>
+        ) : null}
       </div>
     </Card>
   );

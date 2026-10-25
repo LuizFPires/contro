@@ -10,10 +10,16 @@ export function MinhasObras() {
   const { data: obras, isLoading } = useObras();
   const { showToast } = useToast();
   const [vista, setVista] = useState<'lista' | 'nova'>('lista');
-  const [obraAberta, setObraAberta] = useState<string | null>(null);
+  const [obraAberta, setObraAberta] = useState<{ id: string; aba?: 'tarefas' } | null>(null);
 
   if (obraAberta) {
-    return <ObraDetalhe id={obraAberta} onVoltar={() => setObraAberta(null)} />;
+    return (
+      <ObraDetalhe
+        id={obraAberta.id}
+        abaInicial={obraAberta.aba}
+        onVoltar={() => setObraAberta(null)}
+      />
+    );
   }
 
   if (vista === 'nova') {
@@ -49,7 +55,12 @@ export function MinhasObras() {
       ) : temObras ? (
         <div className={styles.lista}>
           {(obras ?? []).map((o) => (
-            <ObraCard key={o.id} obra={o} onAbrir={() => setObraAberta(o.id)} />
+            <ObraCard
+              key={o.id}
+              obra={o}
+              onAbrir={() => setObraAberta({ id: o.id })}
+              onAbrirTarefas={() => setObraAberta({ id: o.id, aba: 'tarefas' })}
+            />
           ))}
         </div>
       ) : (
