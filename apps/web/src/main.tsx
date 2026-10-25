@@ -6,10 +6,12 @@ import '@obdc/ui/styles.css';
 import './styles/app.css';
 import { App } from './App';
 import { iniciarSentry } from './lib/sentry';
+import { iniciarSync } from './lib/sync';
 
 iniciarSentry();
 
 const queryClient = new QueryClient();
+iniciarSync(queryClient);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
