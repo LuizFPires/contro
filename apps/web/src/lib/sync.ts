@@ -1,6 +1,7 @@
 import { aposTentativa, classificarErro, proximaOp } from '@obdc/core';
 import type { QueryClient } from '@tanstack/react-query';
 import { marcarProvidencia } from '../features/obras/campo';
+import { supabase } from './supabase';
 import { db, type OpDB } from './db';
 
 /**
@@ -15,6 +16,16 @@ const DISPATCH: Record<string, Handler> = {
 
 let qc: QueryClient | null = null;
 let drenando = false;
+// Dono das ops a enviar: só a própria sessão drena a própria fila (aparelho
+// compartilhado não envia ação de outra pessoa com a sessão errada).
+let usuarioAtual: string | null = null;
+
+async function uidAtual(): Promise<string | null> {
+  if (usuarioAtual) return usuarioAtual;
+  const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+  usuarioAtual = data.session?.user.id ?? null;
+  return usuarioAtual;
+}
 
 function invalidar(payload: Record<string, unknown>) {
   const obraId = payload?.obraId as string | undefined;
@@ -29,6 +40,7 @@ export async function enfileirar(tipo: string, payload: Record<string, unknown>)
   const id = crypto.randomUUID();
   const op: OpDB = {
     id,
+    userId: (await uidAtual()) ?? '',
     tipo,
     payload,
     status: 'pendente',
@@ -45,10 +57,12 @@ export async function enfileirar(tipo: string, payload: Record<string, unknown>)
 export async function drenar(): Promise<void> {
   if (drenando) return;
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+  const uid = await uidAtual();
+  if (!uid) return; // sem sessão: não envia a fila de ninguém
   drenando = true;
   try {
     for (;;) {
-      const ops = await db.outbox.toArray();
+      const ops = (await db.outbox.toArray()).filter((o) => o.userId === uid);
       const op = proximaOp(ops, Date.now());
       if (!op) break;
       const handler = DISPATCH[op.tipo];
@@ -88,6 +102,10 @@ export async function drenar(): Promise<void> {
 /** Liga o sync: drena ao voltar o sinal, ao focar a aba e a cada 30s. */
 export function iniciarSync(client: QueryClient): void {
   qc = client;
+  supabase?.auth.onAuthStateChange((_evento, session) => {
+    usuarioAtual = session?.user.id ?? null;
+    if (usuarioAtual) void drenar();
+  });
   if (typeof window === 'undefined') return;
   window.addEventListener('online', () => void drenar());
   window.addEventListener('focus', () => void drenar());
