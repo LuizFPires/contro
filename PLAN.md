@@ -132,14 +132,16 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## M5 · Cronograma, indicadores e inauguração
 **Objetivo:** ler a saúde da obra num olhar.
 
-- [ ] `core/indicadores.ts`: real, previsto hoje e sexta, ritmo em dias, atrasos (atividades e lembretes); `peso()` isolado (Q2)
-- [ ] Testes com os casos do protótipo (Eldorado 47%, 53%, −3 dias; Pampulha; Betim)
-- [ ] Aba **Cronograma:** Gantt por fase, linha de hoje, cores por estado, detalhe ao tocar (situação, prestador, lembretes, depende de, libera)
-- [ ] Carteira e cabeçalho com os indicadores reais
-- [ ] **Tarja Inauguração** no fim da trilha de fases: data por extenso, dias úteis restantes e atraso do ritmo
-- [ ] Editar o cronograma da obra (duração e predecessoras da cópia), gestor e equipe de obra
+- [x] `core/indicadores.ts`: real, previsto hoje e sexta, ritmo em dias, atrasos (atividades e lembretes); `peso()` isolado (Q2)
+- [x] Testes com os casos do protótipo (Eldorado 47%, 53%, −3 dias; Pampulha; Betim)
+- [x] Aba **Cronograma:** Gantt por fase, linha de hoje, cores por estado, detalhe ao tocar (situação, prestador, lembretes, depende de, libera)
+- [x] Carteira e cabeçalho com os indicadores reais
+- [x] **Tarja Inauguração** no fim da trilha de fases: data por extenso, dias úteis restantes e atraso do ritmo
+- [x] Editar o cronograma da obra (duração e predecessoras da cópia), gestor e equipe de obra
 
 **Aceite:** os números batem com os casos de teste; a tarja mostra a data correta e acompanha os ajustes manuais de início.
+
+> **M5 concluído e mergeado em 24/10/2026 (PR #7).** As fórmulas já estavam no core (M2); adicionado `core/indicadores.ts` (texto do ritmo, dias úteis restantes) e os casos do protótipo (Eldorado 47/53/−3 exatos). Gantt por fase com linha de hoje; tarja de Inauguração enriquecida; editar duração/predecessoras na ficha + trigger anti-ciclo em `obra_dependencia`. Revisão: sem críticos/altos; aplicados ajustes (token `--obdc-bg-app`, 44px e a11y no Gantt, duração só sem subitens, coerência de obra). Desfazer em edições fica p/ M9. CI verde.
 
 ## M6 · Tarefas
 **Objetivo:** quem faz o quê, até quando, com baixa ao longo da semana.
