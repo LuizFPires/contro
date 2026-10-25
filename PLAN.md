@@ -244,8 +244,8 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 - [x] pg_cron `*/15 * * * *` chama a função (ela checa o horário por dentro)
 - Decisão de arquitetura: o texto/snapshot do boletim é calculado no **cliente** (core, como na tela Boletim), então a função só marca "está na hora". Sem Edge Function/compute server-side de texto nesta fatia.
 
-**Fatia 3 · Enviar (lista in-app + push)** (próxima; push precisa de VAPID + Edge Function)
-- [ ] Lista "prontos para enviar" (gestor) a partir de `boletim_disparo` → abre o boletim da obra (já calculado no cliente) e marca como enviado
+**Fatia 3 · Enviar (lista in-app + push)** (push precisa de VAPID + Edge Function)
+- [x] Lista "prontos para enviar" no Início (só gestor) a partir de `boletim_disparo` → "Abrir" abre o boletim da obra (já calculado no cliente) e "Enviado" marca com Desfazer (regra 10). Verificado no app (local) de ponta a ponta.
 - [ ] Service worker com handler de push/notificationclick; permissão; tabela `push_subscription`
 - [ ] Edge Function de push chamada pelo cron (lê disparos não notificados); avisos "Boletim pronto para enviar"
 - [ ] Ressalva iOS: push só com o PWA instalado na tela inicial (16.4+)

@@ -4,19 +4,27 @@ import { ObraCard } from '../features/obras/ObraCard';
 import { ObraDetalhe } from '../features/obras/ObraDetalhe';
 import { NovaObraScreen } from '../features/obras/NovaObraScreen';
 import { useObras } from '../features/obras/useObras';
+import { usePerfil } from '../features/perfil/usePerfil';
+import { ProntosParaEnviar } from '../features/boletim-auto/ProntosParaEnviar';
 import styles from './MinhasObras.module.css';
 
 export function MinhasObras() {
   const { data: obras, isLoading } = useObras();
+  const { data: pessoa } = usePerfil();
   const { showToast } = useToast();
   const [vista, setVista] = useState<'lista' | 'nova'>('lista');
-  const [obraAberta, setObraAberta] = useState<{ id: string; aba?: 'tarefas' } | null>(null);
+  const [obraAberta, setObraAberta] = useState<{
+    id: string;
+    aba?: 'tarefas';
+    boletim?: boolean;
+  } | null>(null);
 
   if (obraAberta) {
     return (
       <ObraDetalhe
         id={obraAberta.id}
         abaInicial={obraAberta.aba}
+        abrirBoletim={obraAberta.boletim}
         onVoltar={() => setObraAberta(null)}
       />
     );
@@ -49,6 +57,12 @@ export function MinhasObras() {
           <Icon name="plus" size={24} />
         </button>
       </div>
+
+      {pessoa?.perfil === 'gestor' ? (
+        <ProntosParaEnviar
+          onAbrirBoletim={(obraId) => setObraAberta({ id: obraId, boletim: true })}
+        />
+      ) : null}
 
       {isLoading ? (
         <p className={styles.vazio}>Carregando…</p>
