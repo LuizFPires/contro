@@ -240,15 +240,21 @@ export async function reabrirTarefa(id: string, clientOpId?: string): Promise<vo
   if (error) throw error;
 }
 
-export async function excluirTarefa(id: string): Promise<void> {
+export async function excluirTarefa(id: string, clientOpId?: string): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const { error } = await supabase.rpc('excluir_tarefa', { p_id: id });
+  const { error } = await supabase.rpc('excluir_tarefa', {
+    p_id: id,
+    p_client_op_id: clientOpId ?? null,
+  });
   if (error) throw error;
 }
 
-export async function restaurarTarefa(id: string): Promise<void> {
+export async function restaurarTarefa(id: string, clientOpId?: string): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const { error } = await supabase.rpc('restaurar_tarefa', { p_id: id });
+  const { error } = await supabase.rpc('restaurar_tarefa', {
+    p_id: id,
+    p_client_op_id: clientOpId ?? null,
+  });
   if (error) throw error;
 }
 

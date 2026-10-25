@@ -4,6 +4,8 @@ import {
   adiarPendencia,
   apontarPendencia,
   concluirAtividade,
+  excluirTarefa,
+  restaurarTarefa,
   concluirTarefa,
   marcarProvidencia,
   marcarSubitem,
@@ -38,6 +40,8 @@ const DISPATCH: Record<string, Handler> = {
   salvar_tarefa: async (p, opId) => {
     await salvarTarefa(p.obraId as string, p.entrada as EntradaTarefa, opId);
   },
+  excluir_tarefa: (p, opId) => excluirTarefa(p.id as string, opId),
+  restaurar_tarefa: (p, opId) => restaurarTarefa(p.id as string, opId),
   adiar_pendencia: (p, opId) =>
     adiarPendencia(p.id as string, p.data as string, p.motivo as string, opId),
   trazer_pendencia: (p, opId) => trazerPendencia(p.id as string, opId),
