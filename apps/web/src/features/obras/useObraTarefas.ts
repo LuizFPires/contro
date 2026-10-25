@@ -98,7 +98,11 @@ export function useObraTarefas(obraId: string) {
       await qc.cancelQueries({ queryKey: ['tarefas', obraId] });
       const prev = qc.getQueryData<TarefaObra[]>(['tarefas', obraId]);
       const alvo = prev?.find((t) => t.id === id);
-      if (alvo) removidas.current.set(id, alvo);
+      if (alvo) {
+        removidas.current.set(id, alvo);
+        // Passada a janela do "Desfazer", libera o stash (evita acúmulo).
+        window.setTimeout(() => removidas.current.delete(id), 8000);
+      }
       if (prev) {
         qc.setQueryData<TarefaObra[]>(
           ['tarefas', obraId],
@@ -118,9 +122,10 @@ export function useObraTarefas(obraId: string) {
       if (prev && item && !prev.some((t) => t.id === id)) {
         qc.setQueryData<TarefaObra[]>(['tarefas', obraId], [...prev, item]);
       }
-      removidas.current.delete(id);
       return { prev };
     },
+    // Só libera o stash quando o enfileiramento deu certo (onError pode reverter).
+    onSuccess: (_d, id) => removidas.current.delete(id),
     onError: (_e, _v, ctx) => reverter(ctx),
   });
 
