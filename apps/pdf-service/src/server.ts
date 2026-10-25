@@ -4,6 +4,22 @@ import { ataHtml, boletimHtml } from './html';
 import { fecharBrowser, renderPdf } from './pdf';
 
 const app = express();
+
+// CORS: o app (browser) chama o serviço de outra origem. Libera a origem
+// configurada em PDF_CORS_ORIGIN (ex.: a do app) ou todas por padrão — serviço
+// interno, sem credenciais e com corpo sem segredo. Responde o preflight.
+const corsOrigin = process.env.PDF_CORS_ORIGIN ?? '*';
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', corsOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
+
 app.use(express.json({ limit: '4mb' }));
 
 function enviarPdf(res: Response, pdf: Buffer, nome: string): void {

@@ -10,8 +10,10 @@ import {
   type AtividadeSemana,
   type BoletimDados,
 } from '@contro/core';
-import { Icon } from '@contro/ui';
+import { Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
+import { pdfServiceConfigurado } from '../../lib/env';
+import { baixarPdf } from '../../lib/pdf';
 import { hojeISO } from './api';
 import type { ObraCompleta } from './detalhe';
 import { useObraTarefas } from './useObraTarefas';
@@ -139,6 +141,21 @@ export function BoletimView({ obra, onFechar }: { obra: ObraCompleta; onFechar: 
 
   const texto = textoBoletimWhatsapp(dados);
   const wa = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  const { showToast } = useToast();
+
+  // Com o pdf-service configurado, baixa o PDF real; senão, imprime pelo navegador.
+  async function baixar() {
+    if (!pdfServiceConfigurado) {
+      window.print();
+      return;
+    }
+    try {
+      await baixarPdf('boletim', dados, `boletim-${dados.obra}.pdf`);
+    } catch {
+      showToast({ message: 'Não foi possível gerar o PDF. Abrindo a impressão.' });
+      window.print();
+    }
+  }
 
   return (
     <div className={styles.screen}>
@@ -151,7 +168,7 @@ export function BoletimView({ obra, onFechar }: { obra: ObraCompleta; onFechar: 
           <a className={styles.wa} href={wa} target="_blank" rel="noreferrer">
             WhatsApp
           </a>
-          <button type="button" className={styles.print} onClick={() => window.print()}>
+          <button type="button" className={styles.print} onClick={baixar}>
             Baixar PDF
           </button>
         </div>
