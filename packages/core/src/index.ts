@@ -7,6 +7,7 @@ export * from './schedule';
 export * from './obra';
 export * from './providencias';
 export * from './pendencias';
+export * from './indicadores';
 
 export type Perfil = 'gestor' | 'equipe';
 
