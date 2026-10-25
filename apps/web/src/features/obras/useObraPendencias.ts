@@ -2,7 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { topoFila } from '@obdc/core';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
-import { apontarPendencia, resolverPendencia, type NovaPendencia } from './campo';
+import { apontarPendencia, type NovaPendencia } from './campo';
+import { guardarFotoLocal } from './foto';
 import { loadPendencias, type PendenciaObra } from './pendenciasObra';
 
 export function useObraPendencias(obraId: string) {
@@ -36,16 +37,27 @@ export function useObraPendencias(obraId: string) {
     return topoFila(lista.map((p) => p.ordem_fila));
   };
 
-  // apontar (insert com foto) e resolver (foto de depois) seguem online nesta
-  // fatia: dependem de id gerado no cliente / foto em 2º plano (fatia 5).
+  // apontar (insert com foto) segue online nesta fatia: depende de id gerado no
+  // cliente (próxima fatia).
   const apontar = useMutation({
     mutationFn: (v: { dados: NovaPendencia; file: File }) =>
       apontarPendencia(obraId, v.dados, v.file),
     onSuccess: inval,
   });
+  // Resolver: otimista e offline. Guarda a foto de depois no Dexie (sobe em 2º
+  // plano) e enfileira; manda a pendência para vistoria na hora.
   const resolver = useMutation({
-    mutationFn: (v: { id: string; file: File }) => resolverPendencia(obraId, v.id, v.file),
-    onSuccess: inval,
+    mutationFn: async (v: { id: string; file: File; pessoaId: string | null }) => {
+      const fotoLocalId = await guardarFotoLocal(obraId, v.file);
+      await enfileirar('resolver_pendencia', { obraId, id: v.id, fotoLocalId });
+    },
+    onMutate: (v: { id: string; file: File; pessoaId: string | null }) =>
+      patch(v.id, (p) => ({
+        ...p,
+        status: 'em_vistoria',
+        resolvida_por: v.pessoaId ?? p.resolvida_por,
+      })),
+    onError: (_e, _v, ctx) => reverter(ctx),
   });
 
   // Ações de campo otimistas, offline e idempotentes.

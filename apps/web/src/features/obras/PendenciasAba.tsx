@@ -106,7 +106,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
           onCancelar={() => setResolver(null)}
           onCapturar={(file) =>
             campo.resolver.mutate(
-              { id: resolver.id, file },
+              { id: resolver.id, file, pessoaId: pessoa?.id ?? null },
               {
                 onSuccess: () => {
                   setResolver(null);

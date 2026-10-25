@@ -7,6 +7,7 @@ import {
   marcarProvidencia,
   marcarSubitem,
   reabrirTarefa,
+  resolverPendencia,
   trazerPendencia,
   vistoriarPendencia,
 } from '../features/obras/campo';
@@ -35,6 +36,11 @@ const DISPATCH: Record<string, Handler> = {
   trazer_pendencia: (p, opId) => trazerPendencia(p.id as string, opId),
   vistoriar_pendencia: (p, opId) =>
     vistoriarPendencia(p.id as string, p.aprovado as boolean, p.motivo as string | undefined, opId),
+  resolver_pendencia: async (p, opId) => {
+    const fotoId = await subirFotoLocal(p.fotoLocalId as string); // upload com retomada
+    await resolverPendencia(p.id as string, fotoId, opId);
+    await removerFotoLocal(p.fotoLocalId as string);
+  },
 };
 
 let qc: QueryClient | null = null;

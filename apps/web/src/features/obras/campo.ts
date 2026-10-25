@@ -132,13 +132,17 @@ export async function apontarPendencia(
   return data as string;
 }
 
-/** Envia a foto de depois e manda a pendência para vistoria. */
-export async function resolverPendencia(obraId: string, id: string, file: File): Promise<void> {
+/** Manda a pendência para vistoria com a foto de depois já enviada (idempotente). */
+export async function resolverPendencia(
+  id: string,
+  fotoId: string,
+  clientOpId?: string,
+): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const fotoId = await enviarFoto(obraId, file);
   const { error } = await supabase.rpc('resolver_pendencia', {
     p_id: id,
     p_foto_depois_id: fotoId,
+    p_client_op_id: clientOpId ?? null,
   });
   if (error) throw error;
 }
