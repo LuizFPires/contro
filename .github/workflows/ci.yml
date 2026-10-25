@@ -54,3 +54,33 @@ jobs:
 
       - name: Testes de RLS/segurança (pgTAP)
         run: supabase test db
+
+  # E2E (Playwright) dos fluxos principais contra o build servido e um Supabase
+  # local efêmero. O global-setup cria o gestor de teste.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.0
+
+      - name: Subir Supabase local (db + migrations + seed)
+        run: supabase start -x studio,imgproxy,edge-runtime,realtime,vector,logflare
+
+      - name: Instalar navegador do Playwright
+        run: pnpm --filter @contro/web exec playwright install --with-deps chromium
+
+      - name: E2E (Playwright)
+        run: pnpm --filter @contro/web exec playwright test
