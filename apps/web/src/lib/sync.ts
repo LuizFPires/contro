@@ -9,8 +9,10 @@ import {
   marcarSubitem,
   reabrirTarefa,
   resolverPendencia,
+  salvarTarefa,
   trazerPendencia,
   vistoriarPendencia,
+  type EntradaTarefa,
   type NovaPendencia,
 } from '../features/obras/campo';
 import { removerFotoLocal, subirFotoLocal } from '../features/obras/foto';
@@ -33,6 +35,9 @@ const DISPATCH: Record<string, Handler> = {
   marcar_subitem: (p, opId) => marcarSubitem(p.subitemId as string, p.feito as boolean, opId),
   concluir_tarefa: (p, opId) => concluirTarefa(p.id as string, opId),
   reabrir_tarefa: (p, opId) => reabrirTarefa(p.id as string, opId),
+  salvar_tarefa: async (p, opId) => {
+    await salvarTarefa(p.obraId as string, p.entrada as EntradaTarefa, opId);
+  },
   adiar_pendencia: (p, opId) =>
     adiarPendencia(p.id as string, p.data as string, p.motivo as string, opId),
   trazer_pendencia: (p, opId) => trazerPendencia(p.id as string, opId),
