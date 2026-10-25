@@ -222,7 +222,10 @@ export function FichaAtividade({
                     className={styles.remover}
                     aria-label={`Remover dependência ${p.nome}`}
                     onClick={() =>
-                      campo.removerPred.mutate({ atividadeId: a.id, predecessoraId: p.id })
+                      campo.removerPred.mutate(
+                        { atividadeId: a.id, predecessoraId: p.id },
+                        { onError: () => showToast({ message: 'Não foi possível remover' }) },
+                      )
                     }
                   >
                     <Icon name="close" size={16} />
@@ -256,7 +259,15 @@ export function FichaAtividade({
                     { atividadeId: a.id, predecessoraId: novaPred },
                     {
                       onSuccess: () => setNovaPred(''),
-                      onError: () => showToast({ message: 'Essa dependência criaria um ciclo' }),
+                      onError: (e) => {
+                        const err = e as { message?: string; code?: string };
+                        const ciclo = err.code === '23514' || /ciclo/i.test(err.message ?? '');
+                        showToast({
+                          message: ciclo
+                            ? 'Essa dependência criaria um ciclo'
+                            : 'Não foi possível salvar a dependência',
+                        });
+                      },
                     },
                   )
                 }
@@ -279,7 +290,7 @@ export function FichaAtividade({
         </div>
       ) : null}
 
-      {!a.concluida_em ? (
+      {!a.concluida_em && subitens.length === 0 ? (
         <div className={styles.secao}>
           <p className={styles.rotulo}>Duração (dias úteis)</p>
           <div className={styles.ajuste}>
@@ -296,7 +307,11 @@ export function FichaAtividade({
               variant="tertiary"
               onClick={() => {
                 const du = Number(duracaoRef.current?.value);
-                if (Number.isInteger(du) && du >= 1) campo.duracao.mutate({ id: a.id, du });
+                if (Number.isInteger(du) && du >= 1)
+                  campo.duracao.mutate(
+                    { id: a.id, du },
+                    { onError: () => showToast({ message: 'Não foi possível ajustar a duração' }) },
+                  );
               }}
             >
               Ajustar

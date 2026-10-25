@@ -6,6 +6,13 @@ function clamp(v: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, v));
 }
 
+const ESTADO_LABEL: Record<string, string> = {
+  concluida: 'concluída',
+  liberada: 'liberada',
+  atrasada: 'atrasada',
+  planejada: 'planejada',
+};
+
 /** Gantt simplificado por fase (SPEC §5.8). Cores por estado; linha de hoje; tocar abre a ficha. */
 export function GanttAba({
   obra,
@@ -51,6 +58,7 @@ export function GanttAba({
                     key={a.id}
                     type="button"
                     className={styles.row}
+                    aria-label={`${a.nome} — ${ESTADO_LABEL[estado]}`}
                     onClick={() => onAbrir(a.id)}
                   >
                     <span className={styles.nome}>{a.nome}</span>

@@ -11,6 +11,14 @@ language plpgsql
 set search_path = ''
 as $$
 begin
+  -- As duas atividades têm de pertencer à obra da dependência (coerência de escopo).
+  if not exists (
+    select 1 from public.obra_atividade where id = new.atividade_id and obra_id = new.obra_id
+  ) or not exists (
+    select 1 from public.obra_atividade where id = new.predecessora_id and obra_id = new.obra_id
+  ) then
+    raise exception 'Dependência fora da obra' using errcode = '23503';
+  end if;
   if exists (
     with recursive anc as (
       select new.predecessora_id as id

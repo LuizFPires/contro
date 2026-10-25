@@ -54,7 +54,7 @@
   border: none;
   background: transparent;
   padding: 4px 0;
-  min-height: 36px;
+  min-height: var(--obdc-touch);
   cursor: pointer;
   text-align: left;
 }
@@ -68,7 +68,7 @@
 .trilho {
   position: relative;
   height: 16px;
-  background: var(--obdc-bg);
+  background: var(--obdc-bg-app);
   border-radius: var(--obdc-radius-pill);
   overflow: hidden;
 }
