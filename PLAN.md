@@ -101,15 +101,17 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## M3 · Lembretes de providência e liberação
 **Objetivo:** nada trava por falta de contratação, locação ou compra.
 
-- [ ] Migration `obra_providencia` + RLS (compras pode alterar o status)
-- [ ] `core/providencias.ts`: limite, providenciar até, na obra em, atrasada
-- [ ] Liberação = predecessoras + providências (`core`), com testes
-- [ ] Aba **Providências:** grupos Atrasados (vermelho) e A providenciar, "Marcar como providenciado" e o contador de já providenciados
-- [ ] Na ficha da atividade: lista "Para começar" com + Contratação / + Locação / + Compra
-- [ ] Formulário do lembrete: tipo, o que, precisa estar na obra em (padrão: início da atividade), situação. **Sem valor e sem fornecedor**
-- [ ] Badge vermelho de lembretes atrasados na aba
+- [x] Migration `obra_providencia` + RLS (compras pode alterar o status)
+- [x] `core/providencias.ts`: limite, providenciar até, na obra em, atrasada
+- [x] Liberação = predecessoras + providências (`core`), com testes
+- [x] Aba **Providências:** grupos Atrasados (vermelho) e A providenciar, "Marcar como providenciado" e o contador de já providenciados
+- [x] Na ficha da atividade: lista "Para começar" com + Contratação / + Locação / + Compra
+- [x] Formulário do lembrete: tipo, o que, precisa estar na obra em (padrão: início da atividade), situação. **Sem valor e sem fornecedor**
+- [x] Badge vermelho de lembretes atrasados na aba
 
 **Aceite:** marcar "Porcelanato e argamassa" como providenciado libera "Revestimento cerâmico" na hora, com o toast "liberou…". Um lembrete vencido aparece em vermelho com "era para providenciar até…".
+
+> **M3 concluído e mergeado em 24/10/2026 (PR #4).** Revisão independente aplicada: helper único `classificarProvidencias` (aba + badge), "Desfazer" ao remover lembrete (regra 10), ícone SVG no remover. Fix de segurança: `obra_providencia.manual` imutável (trigger) — impede flipar `manual` e deletar bloqueio do modelo. Scope extra do M3 (`+ lembrete` / remover na ficha) é previsto no próprio checklist. CI verde.
 
 ## M4 · Pendências
 **Objetivo:** pendência registrada com foto, resolvida com antes e depois, sem nada se perder.
