@@ -46,7 +46,8 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Versão fixada para CI determinístico (igual à validada localmente).
+          version: 2.122.0
 
       - name: Subir Supabase local (db + migrations + seed)
         run: supabase start -x studio,imgproxy,edge-runtime,realtime,vector,logflare

@@ -2,6 +2,8 @@
 -- NÃO a resolveu (vistoriador ≠ resolvedor). A transição passa pela RPC
 -- vistoriar_pendencia (SECURITY DEFINER), que compara contro_pessoa_atual() com
 -- resolvida_por. Roda com: supabase test db
+-- Requer o seed de homologação (Modelo 1 + unidades), sempre carregado pelo
+-- `supabase test db` (db.seed habilitado no config.toml).
 
 begin;
 select plan(3);
@@ -36,9 +38,12 @@ values (
 -- Quem RESOLVEU (gestor) NÃO pode vistoriar a própria pendência (regra 5).
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}';
+-- Asserta a MENSAGEM específica: vistoriar_pendencia lança 42501 em três ramos
+-- (não-membro, status errado, regra 5). Checar só o SQLSTATE não provaria a
+-- regra 5 — por isso casamos a mensagem exata do ramo.
 select throws_ok(
   $$ select vistoriar_pendencia((select id from pendencia where titulo = 'Pend R5'), true) $$,
-  '42501', null,
+  '42501', 'Quem resolveu não pode vistoriar a própria pendência',
   'resolvedor NÃO vistoria a própria pendência (regra 5)'
 );
 
