@@ -37,5 +37,7 @@ test-results/
 # Material de referência (não faz parte do produto)
 exemplos de projetos/
 
-# Estado do roteiro (memória entre sessões, local)
+# Estado do roteiro e locks locais (memória entre sessões)
 .claude/roteiro.json
+.claude/scheduled_tasks.lock
+.claude/*.lock
