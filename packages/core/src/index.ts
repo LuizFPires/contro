@@ -2,6 +2,9 @@
 // Telas e pdf-service importam daqui e nunca recalculam por conta própria.
 // O motor de cronograma (calendar, schedule) entra no M1.
 
+export * from './calendar';
+export * from './schedule';
+
 export type Perfil = 'gestor' | 'equipe';
 
 /** Rótulo curto do perfil, em pt-BR. */

@@ -1,18 +1,15 @@
 import { useState } from 'react';
 import { Button, Monograma, TabBar, type TabItem } from '@obdc/ui';
 import { useSession } from './auth/useSession';
+import { usePerfil } from './features/perfil/usePerfil';
+import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { supabase } from './lib/supabase';
 import { Login } from './screens/Login';
 import { MinhasObras } from './screens/MinhasObras';
 
-const TABS: TabItem[] = [
-  { key: 'inicio', label: 'Início', icon: 'home' },
-  { key: 'obras', label: 'Obras', icon: 'obras' },
-  { key: 'mais', label: 'Mais', icon: 'more' },
-];
-
 export function App() {
   const { carregando, session } = useSession();
+  const { data: pessoa } = usePerfil();
   const [tab, setTab] = useState('inicio');
 
   if (carregando) {
@@ -24,6 +21,17 @@ export function App() {
     return <Login />;
   }
 
+  const ehGestor = pessoa?.perfil === 'gestor';
+
+  const tabs: TabItem[] = [
+    { key: 'inicio', label: 'Início', icon: 'home' },
+    { key: 'obras', label: 'Obras', icon: 'obras' },
+    // Modelos só aparece para o gestor (a RLS também bloqueia a escrita).
+    ...(ehGestor ? [{ key: 'modelos', label: 'Modelos', icon: 'modelos' } as TabItem] : []),
+    { key: 'mais', label: 'Mais', icon: 'more' },
+  ];
+  const tabAtiva = tabs.some((t) => t.key === tab) ? tab : 'inicio';
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -32,10 +40,16 @@ export function App() {
       </header>
 
       <main className="app-main">
-        {tab === 'inicio' ? <MinhasObras /> : null}
-        {tab === 'obras' ? <div className="app-placeholder">Obras chegam no M2.</div> : null}
-        {tab === 'mais' ? (
+        {tabAtiva === 'inicio' ? <MinhasObras /> : null}
+        {tabAtiva === 'obras' ? <div className="app-placeholder">Obras chegam no M2.</div> : null}
+        {tabAtiva === 'modelos' && ehGestor ? <ModelosScreen /> : null}
+        {tabAtiva === 'mais' ? (
           <div className="app-mais">
+            {pessoa ? (
+              <p className="app-placeholder" style={{ padding: 0, textAlign: 'left' }}>
+                {pessoa.nome}
+              </p>
+            ) : null}
             <Button variant="tertiary" onClick={() => supabase?.auth.signOut()}>
               Sair
             </Button>
@@ -43,7 +57,7 @@ export function App() {
         ) : null}
       </main>
 
-      <TabBar items={TABS} active={tab} onSelect={setTab} />
+      <TabBar items={tabs} active={tabAtiva} onSelect={setTab} />
     </div>
   );
 }
