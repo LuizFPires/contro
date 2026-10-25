@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Icon, useToast } from '@obdc/ui';
 import { formatarDataCompleta } from '../../lib/datas';
+import { FichaAtividade } from './FichaAtividade';
 import { useObraDetalhe } from './useObraDetalhe';
 import type { ObraAtv, ObraCompleta } from './detalhe';
 import styles from './ObraDetalhe.module.css';
@@ -17,6 +18,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
   const { data: obra, isLoading } = useObraDetalhe(id);
   const { showToast } = useToast();
   const [faseAberta, setFaseAberta] = useState<string | null>(null);
+  const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
 
   const dados = useMemo(() => (obra ? derivar(obra) : null), [obra]);
 
@@ -101,7 +103,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
                         key={a.id}
                         type="button"
                         className={styles.atv}
-                        onClick={() => showToast({ message: `Ficha de "${a.nome}" chega já.` })}
+                        onClick={() => setFichaAtvId(a.id)}
                       >
                         {info.concluida ? (
                           <Icon name="check" size={18} />
@@ -136,6 +138,22 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
         <strong>Inauguração</strong>
         <span>{formatarDataCompleta(obra.entrega)}</span>
       </div>
+
+      <FichaAtividade
+        obra={obra}
+        atividadeId={fichaAtvId}
+        onClose={() => setFichaAtvId(null)}
+        onConcluida={(r, nome, libera) => {
+          setFichaAtvId(null);
+          if (r.fase_fechada) {
+            showToast({ message: `Fase concluída! +${r.xp} XP` });
+          } else if (libera.length) {
+            showToast({ message: `"${nome}" concluída · liberou ${libera.join(', ')}` });
+          } else {
+            showToast({ message: `"${nome}" concluída · +${r.xp} XP` });
+          }
+        }}
+      />
     </div>
   );
 }
