@@ -143,19 +143,28 @@ export async function resolverPendencia(obraId: string, id: string, file: File):
   if (error) throw error;
 }
 
-export async function adiarPendencia(id: string, data: string, motivo: string): Promise<void> {
+export async function adiarPendencia(
+  id: string,
+  data: string,
+  motivo: string,
+  clientOpId?: string,
+): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('adiar_pendencia', {
     p_id: id,
     p_data: data,
     p_motivo: motivo,
+    p_client_op_id: clientOpId ?? null,
   });
   if (error) throw error;
 }
 
-export async function trazerPendencia(id: string): Promise<void> {
+export async function trazerPendencia(id: string, clientOpId?: string): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const { error } = await supabase.rpc('trazer_pendencia', { p_id: id });
+  const { error } = await supabase.rpc('trazer_pendencia', {
+    p_id: id,
+    p_client_op_id: clientOpId ?? null,
+  });
   if (error) throw error;
 }
 
@@ -163,12 +172,14 @@ export async function vistoriarPendencia(
   id: string,
   aprovado: boolean,
   motivo?: string,
+  clientOpId?: string,
 ): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('vistoriar_pendencia', {
     p_id: id,
     p_aprovado: aprovado,
     p_motivo: motivo ?? null,
+    p_client_op_id: clientOpId ?? null,
   });
   if (error) throw error;
 }

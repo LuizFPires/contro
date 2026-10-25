@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { classificarPendencias, estaNaFila, podeVistoriar, type Pendencia } from './pendencias';
+import {
+  classificarPendencias,
+  estaNaFila,
+  podeVistoriar,
+  topoFila,
+  type Pendencia,
+} from './pendencias';
 
 const base = (p: Partial<Pendencia>): Pendencia => ({
   id: p.id ?? 'x',
@@ -54,5 +60,17 @@ describe('podeVistoriar (regra 5)', () => {
   });
   it('sem pessoa identificada, bloqueia', () => {
     expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: 'p1' }, null)).toBe(false);
+  });
+});
+
+describe('topoFila', () => {
+  it('sem itens, topo é -1 (coalesce 0)', () => {
+    expect(topoFila([])).toBe(-1);
+  });
+  it('com todos positivos, topo é min-1 (bate com o servidor)', () => {
+    expect(topoFila([1, 2, 3])).toBe(0);
+  });
+  it('com negativos, segue abaixo do menor', () => {
+    expect(topoFila([-2, 0, 5])).toBe(-3);
   });
 });

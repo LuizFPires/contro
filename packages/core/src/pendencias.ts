@@ -52,3 +52,11 @@ export function podeVistoriar(
 ): boolean {
   return p.status === 'em_vistoria' && pessoaId !== null && p.resolvida_por !== pessoaId;
 }
+
+/**
+ * Topo da fila: menor `ordem_fila` − 1 (espelha `coalesce(min(ordem_fila),0)-1`
+ * do servidor). Sem itens, o mínimo é 0 → topo −1.
+ */
+export function topoFila(ordens: number[]): number {
+  return (ordens.length ? Math.min(...ordens) : 0) - 1;
+}
