@@ -2,14 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { topoFila } from '@obdc/core';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
-import { apontarPendencia, type NovaPendencia } from './campo';
+import { type NovaPendencia } from './campo';
 import { guardarFotoLocal } from './foto';
 import { loadPendencias, type PendenciaObra } from './pendenciasObra';
 
 export function useObraPendencias(obraId: string) {
   const qc = useQueryClient();
-  const inval = () => qc.invalidateQueries({ queryKey: ['pendencias', obraId] });
-
   const query = useQuery({
     queryKey: ['pendencias', obraId],
     enabled: Boolean(supabase) && Boolean(obraId),
@@ -37,12 +35,51 @@ export function useObraPendencias(obraId: string) {
     return topoFila(lista.map((p) => p.ordem_fila));
   };
 
-  // apontar (insert com foto) segue online nesta fatia: depende de id gerado no
-  // cliente (próxima fatia).
+  // Apontar: otimista e offline. Gera o id no cliente (o MESMO para o card
+  // otimista e para a op, para que ações na pendência recém-criada usem o id
+  // real), guarda a foto do antes no Dexie (sobe em 2º plano) e enfileira.
+  type ApontarVars = { dados: NovaPendencia; file: File; pendenciaId?: string };
   const apontar = useMutation({
-    mutationFn: (v: { dados: NovaPendencia; file: File }) =>
-      apontarPendencia(obraId, v.dados, v.file),
-    onSuccess: inval,
+    mutationFn: async (v: ApontarVars) => {
+      const pendenciaId = v.pendenciaId ?? crypto.randomUUID();
+      const fotoLocalId = await guardarFotoLocal(obraId, v.file);
+      await enfileirar('apontar_pendencia', { obraId, pendenciaId, dados: v.dados, fotoLocalId });
+      return pendenciaId;
+    },
+    onMutate: async (v: ApontarVars) => {
+      // onMutate roda antes do mutationFn com o mesmo objeto; fixa o id aqui.
+      const pendenciaId = v.pendenciaId ?? crypto.randomUUID();
+      v.pendenciaId = pendenciaId;
+      await qc.cancelQueries({ queryKey: ['pendencias', obraId] });
+      const prev = qc.getQueryData<PendenciaObra[]>(['pendencias', obraId]);
+      const nova: PendenciaObra = {
+        id: pendenciaId,
+        obra_id: obraId,
+        atividade_id: v.dados.atividadeId,
+        titulo: v.dados.titulo,
+        local: v.dados.local,
+        criticidade: v.dados.criticidade,
+        status: 'aberta',
+        ordem_fila: topoDaFila(),
+        adiada_ate: null,
+        motivo_adiamento: null,
+        apontada_em: new Date().toISOString(),
+        resolvida_por: null,
+        resolvida_em: null,
+        vistoriada_por: null,
+        vistoriada_em: null,
+        // A miniatura do antes aparece após o drain (a foto sobe em 2º plano);
+        // não usamos objectURL aqui para não vazar blob ao substituir o card.
+        fotoAntesUrl: null,
+        fotoDepoisUrl: null,
+        apontouNome: null,
+        resolveuNome: null,
+        atividadeNome: null,
+      };
+      qc.setQueryData<PendenciaObra[]>(['pendencias', obraId], [...(prev ?? []), nova]);
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => reverter(ctx),
   });
   // Resolver: otimista e offline. Guarda a foto de depois no Dexie (sobe em 2º
   // plano) e enfileira; manda a pendência para vistoria na hora.
