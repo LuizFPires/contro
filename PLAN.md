@@ -146,20 +146,22 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## M6 · Tarefas
 **Objetivo:** quem faz o quê, até quando, com baixa ao longo da semana.
 
-- [ ] Migrations `tarefa`, `tarefa_evento` + RLS (o responsável conclui e edita o texto; qualquer perfil pode trocar o responsável, com evento registrado)
-- [ ] Tela **Tarefas:**
+- [x] Migrations `tarefa`, `tarefa_evento` + RLS (o responsável conclui e edita o texto; qualquer perfil pode trocar o responsável, com evento registrado)
+- [x] Tela **Tarefas:**
   - filtro por pessoa com o contador de atrasadas;
   - grupos Atrasadas, Abertas e Concluídas;
   - vínculo exibido
-- [ ] **Concluir** (um toque) com "Desfazer". Efeitos do vínculo:
+- [x] **Concluir** (um toque) com "Desfazer". Efeitos do vínculo:
   - lembrete → providenciado (grava o efeito);
   - atividade → câmera
-- [ ] **Reabrir** (botão e toque no check). Desfaz o efeito no lembrete se a atividade não foi concluída
-- [ ] **Editar** (sheet): texto, responsável, prazo (atalhos ou dd/mm com validação), situação; excluir com "Desfazer"
-- [ ] **Replanejamento:** `prazo_original` e `replanejamentos`; exibir "Replanejada Nx · prazo original…"
-- [ ] Atalho Tarefas na carteira com abertas e atrasadas
+- [x] **Reabrir** (botão e toque no check). Desfaz o efeito no lembrete se a atividade não foi concluída
+- [x] **Editar** (sheet): texto, responsável, prazo (atalhos ou dd/mm com validação), situação; excluir com "Desfazer"
+- [x] **Replanejamento:** `prazo_original` e `replanejamentos`; exibir "Replanejada Nx · prazo original…"
+- [x] Atalho Tarefas na carteira com abertas e atrasadas
 
 **Aceite:** concluir "Garantir porcelanato…" libera o revestimento; reabrir faz o lembrete voltar para "a providenciar"; mudar o prazo de 21/10 para 03/11 mostra "Replanejada 1x · prazo original qua 21/10".
+
+> **M6 concluído e mergeado em 25/10/2026 (PR #8).** core/tarefas testado; escrita só por RPC (replanejamento regra 8, efeitos de vínculo com guard de obra); tela de Tarefas (filtro por pessoa, grupos, concluir/reabrir com Desfazer, câmera no vínculo de atividade, editar/excluir com Desfazer) + atalho na carteira. Revisão: sem críticos/altos; aplicados ajustes (44px no check, regra 1 na contagem, erro no salvar). Desfazer em edição fica p/ M9. CI verde.
 
 ## M7 · Reunião semanal e ata
 **Objetivo:** a reunião de segunda às 16h acontece dentro do app e gera a ata.
