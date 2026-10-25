@@ -186,17 +186,19 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## M8 · Boletim semanal
 **Objetivo:** todo grupo de obra recebe o resumo da semana em um toque.
 
-- [ ] `core/atribuicoes.ts` (SPEC 4.7) e `core/boletim.ts` (texto do WhatsApp, SPEC 8.1), com testes de snapshot
-- [ ] Tela **Boletim** (ícone no cabeçalho da obra):
+- [x] `core/atribuicoes.ts` (SPEC 4.7, feito no M7) e `core/boletim.ts` (texto do WhatsApp, SPEC 8.1), com testes
+- [x] Tela **Boletim** (ícone no cabeçalho da obra):
   - Atenção;
   - Quem faz o quê;
   - prévia da mensagem;
-  - botões **WhatsApp** e **Baixar PDF**
-- [ ] pdf-service: template do boletim (SPEC 8.2) com Nunito Sans embutida, margens e quebras corretas
-- [ ] Cron segunda 06:30 (edição de segunda) e sexta 17:00 (fechamento) + push "Boletim pronto para enviar"
-- [ ] Truncar o texto do WhatsApp acima de ~4.000 caracteres, remetendo ao PDF
+  - botões **WhatsApp** e **Baixar PDF** (imprimir do navegador)
+- [ ] ~~pdf-service: template do boletim (SPEC 8.2)~~ → **débito** (HTML imprimível por ora, decisão do M7)
+- [ ] ~~Cron segunda 06:30 / sexta 17:00 + push~~ → **débito de infra** (push web VAPID/FCM)
+- [x] Truncar o texto do WhatsApp acima de ~4.000 caracteres, remetendo ao PDF
 
 **Aceite:** às 07:00 de segunda o engenheiro abre o boletim, toca em WhatsApp, escolhe o grupo e envia. O PDF tem 3 páginas no máximo para uma obra típica.
+
+> **M8 concluído e mergeado em 25/10/2026 (PR #10).** core/boletim (texto WhatsApp §8.1 + truncagem, 79 testes); tela Boletim ao vivo (Atenção, Quem faz o quê por responsável, prévia) + WhatsApp + Imprimir/PDF, pelo ícone no cabeçalho da obra. Revisão: sem críticos/altos; aplicados fuso UTC na semana + guard de truncagem. Débitos: pdf-service, cron+push, §4.7 fontes engenheiro/compras (decisão de produto). CI verde.
 
 ## M9 · Offline, gamificação e endurecimento
 **Objetivo:** confiável em campo e agradável de usar.
