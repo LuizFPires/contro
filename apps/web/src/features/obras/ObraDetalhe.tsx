@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { duEntre, providenciaAtrasada } from '@obdc/core';
 import { Icon, Segmented, useToast } from '@obdc/ui';
 import { formatarDataCompleta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { FichaAtividade } from './FichaAtividade';
 import { ProvidenciasAba } from './ProvidenciasAba';
+import { classificarProvidencias } from './providenciasObra';
 import { useObraDetalhe } from './useObraDetalhe';
 import type { ObraAtv, ObraCompleta } from './detalhe';
 import styles from './ObraDetalhe.module.css';
@@ -26,31 +26,10 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
 
   const dados = useMemo(() => (obra ? derivar(obra) : null), [obra]);
 
-  const atrasados = useMemo(() => {
-    if (!obra) return 0;
-    const hoje = hojeISO();
-    const decorridos = duEntre(obra.inicio, hoje);
-    const iniciada = hoje >= obra.inicio;
-    let n = 0;
-    for (const a of obra.atividades) {
-      if (a.pai_id) continue;
-      const es = obra.cron.porId[a.id]?.es ?? 0;
-      for (const p of a.providencias) {
-        if (
-          providenciaAtrasada({
-            status: p.status,
-            atividadeConcluida: Boolean(a.concluida_em),
-            obraIniciada: iniciada,
-            decorridos,
-            esAtividade: es,
-            antecedenciaDu: p.antecedencia_du,
-          })
-        )
-          n += 1;
-      }
-    }
-    return n;
-  }, [obra]);
+  const atrasados = useMemo(
+    () => (obra ? classificarProvidencias(obra, hojeISO()).atrasadas.length : 0),
+    [obra],
+  );
 
   if (isLoading || !obra || !dados) {
     return (

@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { BottomSheet, Button, Chip, Input } from '@obdc/ui';
+import { BottomSheet, Button, Chip, Icon, Input, useToast } from '@obdc/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import type { ObraCompleta } from './detalhe';
 import { useObraCampo } from './useObraCampo';
@@ -24,6 +24,7 @@ export function FichaAtividade({
   onConcluida: (r: { xp: number; fase_fechada: boolean }, nome: string, libera: string[]) => void;
 }) {
   const campo = useObraCampo(obra.id);
+  const { showToast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [inicioData, setInicioData] = useState('');
   const [novoTipo, setNovoTipo] = useState<'contratacao' | 'locacao' | 'compra'>('compra');
@@ -127,9 +128,22 @@ export function FichaAtividade({
                     type="button"
                     className={styles.remover}
                     aria-label="Remover lembrete"
-                    onClick={() => campo.removerProv.mutate(p.id)}
+                    onClick={() =>
+                      campo.removerProv.mutate(p.id, {
+                        onSuccess: () =>
+                          showToast({
+                            message: 'Lembrete removido',
+                            onUndo: () =>
+                              campo.addProvidencia.mutate({
+                                atividadeId: a.id,
+                                tipo: p.tipo,
+                                descricao: p.descricao,
+                              }),
+                          }),
+                      })
+                    }
                   >
-                    ×
+                    <Icon name="close" size={16} />
                   </button>
                 ) : null}
               </span>
