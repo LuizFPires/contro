@@ -205,11 +205,12 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 
 > **Pivô (25/10/2026, decisão do usuário):** a **fila offline Dexie + idempotência + conflitos** é um bloco grande e não verificável sem E2E/dispositivo — vira um **milestone dedicado futuro** (M9-offline), não entra agora. O M9 passa a focar no que destrava o piloto.
 
-- [ ] **Guia de go-live** (`DEPLOY.md`): Vercel (PWA) + Supabase (aplicar migrations M0–M8, env, bucket de fotos, pg_cron, criar gestor) + variáveis
-- [ ] **README** do projeto (visão, stack, scripts, estrutura)
-- [ ] **Checklist de prontidão** (`PILOTO.md`): o que está pronto por milestone, débitos e bloqueadores de go-live
-- [ ] Gamificação (se der): conquistas da obra e celebração de fase (XP já registrado desde o M2, sem card)
-- [ ] Acessibilidade (se der): foco visível e leitores de tela nos controles de swipe (botões equivalentes já existem)
+- [x] **Guia de go-live** (`DEPLOY.md`): Vercel (PWA) + Supabase (aplicar migrations M0–M8, env, bucket de fotos, pg_cron, criar gestor) + variáveis
+- [x] **README** do projeto (visão, stack, scripts, estrutura)
+- [x] **Checklist de prontidão** (`PILOTO.md`): o que está pronto por milestone, débitos e bloqueadores de go-live
+- [~] Acessibilidade: `:focus-visible` global já existe; swipe com botões equivalentes. Conquistas/celebração de fase não feitas (gamificação fica para depois)
+
+> **M9 (pivô) concluído e mergeado em 25/10/2026 (PR #11).** DEPLOY.md (go-live Supabase+Vercel), README.md, PILOTO.md (prontidão + débitos) e vercel.json. Revisão do guia: corrigidos a contagem de migrations (22), a ordem do pg_cron e o escopo do db:reset. A fila offline é o M9-offline (dedicado). CI verde.
 
 **Deferido para o M9-offline (dedicado):** fila offline Dexie com `client_op_id` idempotente; upload de foto em 2º plano com retomada; indicador "x aguardando sinal"; conflitos last-write-wins; E2E completos (SPEC 12); testes de RLS por perfil no CI; performance/Lighthouse ≥ 90.
 
