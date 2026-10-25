@@ -88,17 +88,25 @@
 }
 .check {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  margin-top: 2px;
-  border-radius: 50%;
-  border: 2px solid var(--obdc-border);
+  width: var(--obdc-touch);
+  height: var(--obdc-touch);
+  border: none;
   background: transparent;
-  color: var(--obdc-action-primary-text);
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+.checkCirc {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--obdc-border);
+  color: var(--obdc-action-primary-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .checkFeito {
   background: var(--obdc-turquoise, #54b4b0);

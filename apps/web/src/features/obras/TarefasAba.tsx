@@ -72,7 +72,10 @@ export function TarefasAba({ obra }: { obra: ObraCompleta }) {
   }
 
   function salvar(e: EntradaTarefa) {
-    tarefas.salvar.mutate(e, { onSuccess: () => setSheet({ aberto: false, tarefa: null }) });
+    tarefas.salvar.mutate(e, {
+      onSuccess: () => setSheet({ aberto: false, tarefa: null }),
+      onError: () => showToast({ message: 'Não foi possível salvar a tarefa' }),
+    });
   }
 
   function excluir(t: TarefaObra) {
@@ -249,11 +252,13 @@ function Linha({
     <div className={styles.linha}>
       <button
         type="button"
-        className={`${styles.check} ${concluida ? styles.checkFeito : ''}`}
+        className={styles.check}
         aria-label={concluida ? 'Reabrir tarefa' : 'Concluir tarefa'}
         onClick={onConcluir}
       >
-        {concluida ? <Icon name="check" size={16} /> : null}
+        <span className={`${styles.checkCirc} ${concluida ? styles.checkFeito : ''}`}>
+          {concluida ? <Icon name="check" size={16} /> : null}
+        </span>
       </button>
       <button type="button" className={styles.corpo} onClick={onEditar}>
         <span className={`${styles.texto} ${concluida ? styles.textoFeito : ''}`}>{t.texto}</span>

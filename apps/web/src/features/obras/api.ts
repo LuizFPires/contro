@@ -1,4 +1,4 @@
-import { calcularCronograma, estadoObra, type AtividadeEntrada } from '@obdc/core';
+import { calcularCronograma, estadoObra, tarefaAtrasada, type AtividadeEntrada } from '@obdc/core';
 import { supabase } from '../../lib/supabase';
 
 export function hojeISO(): string {
@@ -101,12 +101,16 @@ export async function listarObras(): Promise<ObraResumo[]> {
   const provPendentePorAtv = new Set<string>();
   for (const p of provs) if (p.status === 'pendente') provPendentePorAtv.add(p.atividade_id);
 
-  const tarefas = (tarefasRes.data ?? []) as { obra_id: string; prazo: string; status: string }[];
+  const tarefas = (tarefasRes.data ?? []) as {
+    obra_id: string;
+    prazo: string;
+    status: 'aberta' | 'feita';
+  }[];
   const tAbertas = new Map<string, number>();
   const tAtrasadas = new Map<string, number>();
   for (const t of tarefas) {
     tAbertas.set(t.obra_id, (tAbertas.get(t.obra_id) ?? 0) + 1);
-    if (t.prazo < hoje) tAtrasadas.set(t.obra_id, (tAtrasadas.get(t.obra_id) ?? 0) + 1);
+    if (tarefaAtrasada(t, hoje)) tAtrasadas.set(t.obra_id, (tAtrasadas.get(t.obra_id) ?? 0) + 1);
   }
 
   return obras.map((o) => {
