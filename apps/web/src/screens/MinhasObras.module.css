@@ -31,6 +31,12 @@
   cursor: pointer;
 }
 
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-3);
+}
+
 .vazio {
   margin-top: var(--obdc-space-8);
   text-align: center;

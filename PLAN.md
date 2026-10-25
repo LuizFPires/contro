@@ -75,26 +75,28 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## M2 · Obra: criar, carteira, fases e conclusão com foto
 **Objetivo:** o engenheiro cria a obra em < 2 min e conclui atividades com foto.
 
-- [ ] Migrations `obra`, `obra_atividade`, `obra_dependencia`, `foto` + RLS por perfil e vínculo
-- [ ] `gerar_obra` (Edge Function, transacional): copia o modelo escolhido e grava `modelo_rotulo`
-- [ ] Tela **Nova obra**: unidade, segundas disponíveis, **escolha do modelo** e prévia (atividades, lembretes, dias úteis, fases com datas, entrega)
-- [ ] **Carteira:**
+- [x] Migrations `obra`, `obra_atividade`, `obra_dependencia`, `foto` + RLS por perfil e vínculo
+- [x] `gerar_obra` (Edge Function, transacional): copia o modelo escolhido e grava `modelo_rotulo`
+- [x] Tela **Nova obra**: unidade, segundas disponíveis, **escolha do modelo** e prévia (atividades, lembretes, dias úteis, fases com datas, entrega)
+- [x] **Carteira:**
   - título com ícone "+";
   - atalhos Reunião e Tarefas (placeholders até M6/M7);
   - card da obra (fase, %, 6 segmentos, ritmo, entrega, aviso de atraso)
-- [ ] **Cabeçalho da obra:** nome, "Dia N de M", %, barra e ícone de boletim (placeholder até M8)
-- [ ] **Fases:**
+- [x] **Cabeçalho da obra:** nome, "Dia N de M", %, barra e ícone de boletim (placeholder até M8)
+- [x] **Fases:**
   - trilha com 6 fases e estados;
   - expandir fase;
   - itens com estado e motivo de bloqueio
-- [ ] **Ficha da atividade** (bottom sheet): situação, datas, prestador (texto opcional, com sugestões), depende de / libera
-- [ ] **Subitens** na ficha: checklist com prazo; marcar sem foto obrigatória; a atividade só conclui com todos marcados
-- [ ] **Ajustar início** (manual): escolher a nova data; as sucessoras recalculam; o evento é registrado
-- [ ] Câmera de conclusão (captura, compressão, upload em segundo plano) → `concluir_atividade` (exige liberada)
-- [ ] Celebração de fase concluída com o que foi liberado
-- [ ] Toast "liberou X" ao concluir
+- [x] **Ficha da atividade** (bottom sheet): situação, datas, prestador (texto opcional, com sugestões), depende de / libera
+- [x] **Subitens** na ficha: checklist com prazo; marcar sem foto obrigatória; a atividade só conclui com todos marcados
+- [x] **Ajustar início** (manual): escolher a nova data; as sucessoras recalculam; o evento é registrado
+- [x] Câmera de conclusão (captura, compressão, upload em segundo plano) → `concluir_atividade` (exige liberada)
+- [x] Celebração de fase concluída com o que foi liberado
+- [x] Toast "liberou X" ao concluir
 
 **Aceite:** criar a obra "CDC Sete Lagoas", concluir Mobilização com 3 fotos, ver a celebração e a Fase 2 liberada. O tempo de criação da obra fica abaixo de 2 minutos.
+
+> **M2 validado (24/10/2026):** criei "CDC Sete Lagoas" do Modelo 1 em segundos; a Carteira e a tela da obra mostram fase/%/ritmo via core; na ficha, marcar a providência liberou a atividade e habilitou "Concluir com foto"; upload de foto como gestor retornou 200; `concluir_atividade` testado no servidor (exige liberada + foto, +XP, evento). **Decisão:** `gerar_obra` e os RPCs de campo são funções Postgres (não Edge Function). **Lacunas:** a captura da câmera não é testável no navegador automatizado (precisa de aparelho); a celebração de fase é um toast (pode virar tela depois).
 
 ## M3 · Lembretes de providência e liberação
 **Objetivo:** nada trava por falta de contratação, locação ou compra.
@@ -271,3 +273,6 @@ Registro do que mudou em relação ao PRD/SPEC durante a implementação (data �
 - 2026-10-24 · (auto — recomendado · M1) `peso(atividade)` isolado no core retornando a **duração** (peso por duração); a opção por custo (Q2) fica para o M5/M10, trocando só essa função · evita efeito colateral
 - 2026-10-24 · (auto — recomendado · M1) CRUD de modelo (`salvar_modelo_*`, `duplicar_modelo`, `excluir_modelo`) como **funções RPC no Postgres** (plpgsql, transacional, checagem de perfil gestor), não Edge Functions · mais simples e transacional; Edge Function fica para `gerar_obra` (M2)
 - 2026-10-24 · (auto — recomendado · M1) Só `duplicar_modelo` e `excluir_modelo` viram RPC (precisam de transação/regra). As edições granulares (renomear, duração, predecessora, providência, subitem) vão pelo **cliente sob RLS**, pois os constraints e triggers (dur≥1, anti-ciclo, 1 nível, fase com título) já validam no banco · menos código e mesma garantia
+- 2026-10-24 · (auto — recomendado · M2) `gerar_obra`, `ajustar_inicio`, `concluir_atividade` e `marcar_subitem` como **RPCs Postgres** (plpgsql, transacionais, SECURITY DEFINER com checagem de perfil+vínculo), não Edge Functions · consistente com o M1 e sem deploy separado; a SPEC citava Edge Function para `gerar_obra`
+- 2026-10-24 · (auto — recomendado · M2) Fotos no **Storage** em bucket privado `fotos`, caminho `obra_id/…`, acesso por URL assinada curta; compressão no aparelho (lado maior 1600px, JPEG ~0,75), upload em segundo plano · conforme PRD/SPEC
+- 2026-10-24 · (auto — recomendado · M2) Offline completo (fila Dexie) fica no **M9**; no M2 as ações de campo são **otimistas via TanStack Query** (sem a fila ainda), e `concluir_atividade` é confirmada no servidor (exige liberada) · entrega o M2 sem antecipar o M9

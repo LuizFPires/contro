@@ -1,0 +1,185 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.cabecalho {
+  padding: var(--obdc-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-2);
+  background: var(--obdc-surface);
+  box-shadow: 0 1px 0 var(--obdc-border);
+}
+.topo {
+  display: flex;
+  align-items: center;
+  gap: var(--obdc-space-2);
+}
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--obdc-touch);
+  height: var(--obdc-touch);
+  border: none;
+  background: transparent;
+  color: var(--obdc-text);
+  cursor: pointer;
+  transform: rotate(180deg);
+}
+.nome {
+  flex: 1;
+  font-size: var(--obdc-fs-h2);
+  font-weight: 800;
+  margin: 0;
+}
+.boletim {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--obdc-touch);
+  height: var(--obdc-touch);
+  border: none;
+  background: transparent;
+  color: var(--obdc-muted);
+  cursor: pointer;
+}
+.linhaDia {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.dia {
+  font-size: var(--obdc-fs-body-sm);
+  color: var(--obdc-muted);
+  font-weight: 700;
+}
+.pct {
+  font-size: var(--obdc-fs-h2);
+  font-weight: 800;
+}
+.barra {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--obdc-progress-track);
+  overflow: hidden;
+}
+.barraFill {
+  height: 100%;
+  background: var(--obdc-progress-fill);
+}
+
+.trilha {
+  flex: 1;
+  padding: var(--obdc-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-3);
+}
+.faseBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--obdc-space-3);
+  width: 100%;
+  border: none;
+  background: var(--obdc-surface);
+  box-shadow: inset 0 0 0 1px var(--obdc-border);
+  border-radius: var(--obdc-radius-card);
+  padding: var(--obdc-space-3) var(--obdc-space-4);
+  cursor: pointer;
+  text-align: left;
+  min-height: var(--obdc-touch);
+}
+.faseIcone {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--obdc-radius-pill);
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.concluida {
+  background: var(--obdc-turquoise);
+  color: var(--obdc-black);
+}
+.execucao {
+  background: var(--obdc-selected);
+  color: var(--obdc-turquoise);
+  box-shadow: inset 0 0 0 2px var(--obdc-turquoise);
+}
+.atraso {
+  background: transparent;
+  color: var(--obdc-late);
+  box-shadow: inset 0 0 0 2px var(--obdc-late);
+}
+.planejada {
+  background: var(--obdc-progress-track);
+  color: var(--obdc-muted);
+}
+.faseInfo {
+  flex: 1;
+  min-width: 0;
+}
+.faseTitulo {
+  font-weight: 800;
+}
+.faseEstado {
+  font-size: var(--obdc-fs-caption);
+  color: var(--obdc-muted);
+  font-weight: 700;
+}
+.atividades {
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-1);
+  padding: var(--obdc-space-2) var(--obdc-space-2) var(--obdc-space-2) var(--obdc-space-8);
+}
+.atv {
+  display: flex;
+  align-items: center;
+  gap: var(--obdc-space-2);
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: var(--obdc-space-2);
+  border-radius: var(--obdc-radius-field);
+  text-align: left;
+  min-height: var(--obdc-touch);
+}
+.atvNome {
+  flex: 1;
+  font-weight: 600;
+  font-size: var(--obdc-fs-body-sm);
+}
+.atvConcluida {
+  color: var(--obdc-turquoise);
+}
+.atvAtrasada {
+  color: var(--obdc-late);
+  font-weight: 800;
+}
+.motivo {
+  font-size: var(--obdc-fs-caption);
+  color: var(--obdc-muted);
+}
+.inauguracao {
+  margin: var(--obdc-space-4);
+  margin-top: 0;
+  background: var(--obdc-black);
+  color: var(--obdc-white);
+  border-radius: var(--obdc-radius-card);
+  padding: var(--obdc-space-4);
+  text-align: center;
+}
+.inauguracao strong {
+  display: block;
+  font-size: var(--obdc-fs-h3);
+  font-weight: 800;
+}
+.inauguracao span {
+  font-size: var(--obdc-fs-body-sm);
+  opacity: 0.85;
+}

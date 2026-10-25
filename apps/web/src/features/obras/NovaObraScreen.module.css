@@ -1,0 +1,65 @@
+.screen {
+  padding: var(--obdc-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-4);
+}
+.topo {
+  display: flex;
+  align-items: center;
+  gap: var(--obdc-space-2);
+}
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--obdc-touch);
+  height: var(--obdc-touch);
+  border: none;
+  background: transparent;
+  color: var(--obdc-text);
+  cursor: pointer;
+  transform: rotate(180deg);
+}
+.titulo {
+  font-size: var(--obdc-fs-h1);
+  font-weight: 800;
+  margin: 0;
+}
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--obdc-space-1);
+}
+.label {
+  font-size: var(--obdc-fs-body-sm);
+  font-weight: 700;
+}
+.select {
+  width: 100%;
+  min-height: var(--obdc-control-h);
+  padding: 0 var(--obdc-space-4);
+  border: none;
+  border-radius: var(--obdc-radius-field);
+  background: var(--obdc-surface);
+  box-shadow: inset 0 0 0 1.5px var(--obdc-border);
+  font-size: var(--obdc-fs-body);
+}
+.previa {
+  background: var(--obdc-selected);
+  border-radius: var(--obdc-radius-card);
+  padding: var(--obdc-space-4);
+}
+.previaTitulo {
+  font-weight: 800;
+  margin: 0 0 var(--obdc-space-2);
+}
+.previaLinha {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--obdc-fs-body-sm);
+  padding: 2px 0;
+}
+.previaLinha strong {
+  font-weight: 800;
+}
