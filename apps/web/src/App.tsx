@@ -3,6 +3,7 @@ import { Button, Monograma, TabBar, type TabItem } from '@obdc/ui';
 import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
+import { SyncIndicator } from './features/offline/SyncIndicator';
 import { ReuniaoScreen } from './features/reuniao/ReuniaoScreen';
 import { supabase } from './lib/supabase';
 import { Login } from './screens/Login';
@@ -65,6 +66,7 @@ export function App() {
       </main>
 
       <TabBar items={tabs} active={tabAtiva} onSelect={setTab} />
+      <SyncIndicator />
     </div>
   );
 }

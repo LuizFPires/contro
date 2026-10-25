@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { enfileirar } from '../../lib/sync';
 import {
   adicionarPredecessora,
   adicionarProvidencia,
@@ -6,11 +7,11 @@ import {
   concluirComFoto,
   editarDuracao,
   editarPrestador,
-  marcarProvidencia,
   marcarSubitem,
   removerPredecessora,
   removerProvidencia,
 } from './campo';
+import type { ObraCompleta } from './detalhe';
 
 export function useObraCampo(obraId: string) {
   const qc = useQueryClient();
@@ -28,9 +29,30 @@ export function useObraCampo(obraId: string) {
       editarPrestador(id, prestador),
     onSuccess: inval,
   });
+  // Ação de campo OTIMISTA e offline (regra 9): atualiza o cache na hora, enfileira
+  // a op (client_op_id idempotente) e o sync envia ao servidor quando houver sinal.
   const providencia = useMutation({
-    mutationFn: ({ id, feito }: { id: string; feito: boolean }) => marcarProvidencia(id, feito),
-    onSuccess: inval,
+    mutationFn: ({ id, feito }: { id: string; feito: boolean }) =>
+      enfileirar('marcar_providencia', { obraId, id, feito }),
+    onMutate: async ({ id, feito }: { id: string; feito: boolean }) => {
+      await qc.cancelQueries({ queryKey: ['obra', obraId] });
+      const prev = qc.getQueryData<ObraCompleta>(['obra', obraId]);
+      if (prev) {
+        qc.setQueryData<ObraCompleta>(['obra', obraId], {
+          ...prev,
+          atividades: prev.atividades.map((a) => ({
+            ...a,
+            providencias: a.providencias.map((p) =>
+              p.id === id ? { ...p, status: feito ? 'feito' : 'pendente' } : p,
+            ),
+          })),
+        });
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['obra', obraId], ctx.prev);
+    },
   });
   const addProvidencia = useMutation({
     mutationFn: (p: {

@@ -57,9 +57,17 @@ export async function removerPredecessora(
   if (error) throw error;
 }
 
-export async function marcarProvidencia(id: string, feito: boolean): Promise<void> {
+export async function marcarProvidencia(
+  id: string,
+  feito: boolean,
+  clientOpId?: string,
+): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const { error } = await supabase.rpc('marcar_providencia', { p_id: id, p_feito: feito });
+  const { error } = await supabase.rpc('marcar_providencia', {
+    p_id: id,
+    p_feito: feito,
+    p_client_op_id: clientOpId ?? null,
+  });
   if (error) throw error;
 }
 
