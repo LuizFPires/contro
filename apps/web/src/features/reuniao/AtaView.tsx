@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   compilarPorPessoa,
   derivarAtribuicoes,
@@ -33,17 +34,21 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
   }));
   const wa = `https://wa.me/?text=${encodeURIComponent(textoAtaWhatsapp(dataFmt, obrasAta))}`;
   const { showToast } = useToast();
+  const [baixando, setBaixando] = useState(false);
 
   async function baixar() {
     if (!pdfServiceConfigurado) {
       window.print();
       return;
     }
+    setBaixando(true);
     try {
       await baixarPdf('ata', { dataFmt, obras: obrasAta }, `ata-${reuniao.data}.pdf`);
     } catch {
       showToast({ message: 'Não foi possível gerar o PDF. Abrindo a impressão.' });
       window.print();
+    } finally {
+      setBaixando(false);
     }
   }
 
@@ -74,8 +79,8 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
           <a className={styles.wa} href={wa} target="_blank" rel="noreferrer">
             WhatsApp
           </a>
-          <button type="button" className={styles.print} onClick={baixar}>
-            Baixar PDF
+          <button type="button" className={styles.print} onClick={baixar} disabled={baixando}>
+            {baixando ? 'Gerando…' : 'Baixar PDF'}
           </button>
         </div>
       </div>

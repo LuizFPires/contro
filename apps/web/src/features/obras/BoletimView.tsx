@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   classificarSemana,
   compilarPorPessoa,
@@ -142,6 +142,7 @@ export function BoletimView({ obra, onFechar }: { obra: ObraCompleta; onFechar: 
   const texto = textoBoletimWhatsapp(dados);
   const wa = `https://wa.me/?text=${encodeURIComponent(texto)}`;
   const { showToast } = useToast();
+  const [baixando, setBaixando] = useState(false);
 
   // Com o pdf-service configurado, baixa o PDF real; senão, imprime pelo navegador.
   async function baixar() {
@@ -149,11 +150,14 @@ export function BoletimView({ obra, onFechar }: { obra: ObraCompleta; onFechar: 
       window.print();
       return;
     }
+    setBaixando(true);
     try {
       await baixarPdf('boletim', dados, `boletim-${dados.obra}.pdf`);
     } catch {
       showToast({ message: 'Não foi possível gerar o PDF. Abrindo a impressão.' });
       window.print();
+    } finally {
+      setBaixando(false);
     }
   }
 
@@ -168,8 +172,8 @@ export function BoletimView({ obra, onFechar }: { obra: ObraCompleta; onFechar: 
           <a className={styles.wa} href={wa} target="_blank" rel="noreferrer">
             WhatsApp
           </a>
-          <button type="button" className={styles.print} onClick={baixar}>
-            Baixar PDF
+          <button type="button" className={styles.print} onClick={baixar} disabled={baixando}>
+            {baixando ? 'Gerando…' : 'Baixar PDF'}
           </button>
         </div>
       </div>

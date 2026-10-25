@@ -9,7 +9,9 @@ export async function baixarPdf(
   body: unknown,
   filename: string,
 ): Promise<void> {
-  const resp = await fetch(`${PDF_SERVICE_URL}/${endpoint}`, {
+  // Normaliza a barra final (evita `//endpoint`, que o Express responde 404).
+  const base = PDF_SERVICE_URL.replace(/\/+$/, '');
+  const resp = await fetch(`${base}/${endpoint}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -20,7 +22,8 @@ export async function baixarPdf(
   try {
     const a = document.createElement('a');
     a.href = url;
-    a.download = filename;
+    // Sanitiza o nome do arquivo (sem separadores de caminho nem caracteres ruins).
+    a.download = filename.replace(/[/\\?%*:|"<>]/g, '-');
     document.body.appendChild(a);
     a.click();
     a.remove();
