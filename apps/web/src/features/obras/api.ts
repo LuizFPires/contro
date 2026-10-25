@@ -1,4 +1,4 @@
-import { calcularCronograma, estadoObra, type AtividadeEntrada } from '@obdc/core';
+import { calcularCronograma, estadoObra, tarefaAtrasada, type AtividadeEntrada } from '@obdc/core';
 import { supabase } from '../../lib/supabase';
 
 export function hojeISO(): string {
@@ -24,6 +24,8 @@ export interface ObraResumo {
   entrega: string;
   atrasada: boolean;
   fasesEstado: FaseEstado[];
+  tarefasAbertas: number;
+  tarefasAtrasadas: number;
 }
 
 interface LinhaAtv {
@@ -46,7 +48,7 @@ export async function listarUnidades(): Promise<Unidade[]> {
 export async function listarObras(): Promise<ObraResumo[]> {
   if (!supabase) return [];
   const hoje = hojeISO();
-  const [obrasRes, fasesRes, atvsRes, depsRes, provsRes] = await Promise.all([
+  const [obrasRes, fasesRes, atvsRes, depsRes, provsRes, tarefasRes] = await Promise.all([
     supabase
       .from('obra')
       .select('id,nome,modelo_rotulo,inicio')
@@ -59,6 +61,11 @@ export async function listarObras(): Promise<ObraResumo[]> {
       .is('deleted_at', null),
     supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id'),
     supabase.from('obra_providencia').select('obra_id,atividade_id,status'),
+    supabase
+      .from('tarefa')
+      .select('obra_id,prazo,status')
+      .eq('status', 'aberta')
+      .is('deleted_at', null),
   ]);
 
   const obras = (obrasRes.data ?? []) as {
@@ -93,6 +100,18 @@ export async function listarObras(): Promise<ObraResumo[]> {
   }
   const provPendentePorAtv = new Set<string>();
   for (const p of provs) if (p.status === 'pendente') provPendentePorAtv.add(p.atividade_id);
+
+  const tarefas = (tarefasRes.data ?? []) as {
+    obra_id: string;
+    prazo: string;
+    status: 'aberta' | 'feita';
+  }[];
+  const tAbertas = new Map<string, number>();
+  const tAtrasadas = new Map<string, number>();
+  for (const t of tarefas) {
+    tAbertas.set(t.obra_id, (tAbertas.get(t.obra_id) ?? 0) + 1);
+    if (tarefaAtrasada(t, hoje)) tAtrasadas.set(t.obra_id, (tAtrasadas.get(t.obra_id) ?? 0) + 1);
+  }
 
   return obras.map((o) => {
     const minhasFases = fases.filter((f) => f.obra_id === o.id).sort((a, b) => a.ordem - b.ordem);
@@ -164,6 +183,8 @@ export async function listarObras(): Promise<ObraResumo[]> {
       entrega: est.indicadores.entrega,
       atrasada: est.indicadores.ritmoDias <= -2,
       fasesEstado,
+      tarefasAbertas: tAbertas.get(o.id) ?? 0,
+      tarefasAtrasadas: tAtrasadas.get(o.id) ?? 0,
     };
   });
 }

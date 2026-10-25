@@ -6,6 +6,7 @@ import { hojeISO } from './api';
 import { FichaAtividade } from './FichaAtividade';
 import { GanttAba } from './GanttAba';
 import { PendenciasAba } from './PendenciasAba';
+import { TarefasAba } from './TarefasAba';
 import { ProvidenciasAba } from './ProvidenciasAba';
 import { classificarProvidencias } from './providenciasObra';
 import { useObraDetalhe } from './useObraDetalhe';
@@ -20,12 +21,22 @@ const ESTADO_ROTULO: Record<FaseEstado, string> = {
   atraso: 'Com atraso',
 };
 
-export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void }) {
+type AbaObra = 'fases' | 'cronograma' | 'pendencias' | 'providencias' | 'tarefas';
+
+export function ObraDetalhe({
+  id,
+  onVoltar,
+  abaInicial,
+}: {
+  id: string;
+  onVoltar: () => void;
+  abaInicial?: AbaObra;
+}) {
   const { data: obra, isLoading } = useObraDetalhe(id);
   const { showToast } = useToast();
   const [faseAberta, setFaseAberta] = useState<string | null>(null);
   const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
-  const [aba, setAba] = useState<'fases' | 'pendencias' | 'providencias' | 'cronograma'>('fases');
+  const [aba, setAba] = useState<AbaObra>(abaInicial ?? 'fases');
 
   const dados = useMemo(() => (obra ? derivar(obra) : null), [obra]);
 
@@ -77,7 +88,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
         <div className={styles.barra}>
           <div className={styles.barraFill} style={{ width: `${Math.round(obra.pct * 100)}%` }} />
         </div>
-        <div style={{ marginTop: 'var(--obdc-space-2)' }}>
+        <div style={{ marginTop: 'var(--obdc-space-2)', overflowX: 'auto' }}>
           <Segmented
             ariaLabel="Seção da obra"
             value={aba}
@@ -90,6 +101,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
                 value: 'providencias',
                 label: atrasados > 0 ? `Providências (${atrasados})` : 'Providências',
               },
+              { value: 'tarefas', label: 'Tarefas' },
             ]}
           />
         </div>
@@ -98,6 +110,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
       {aba === 'cronograma' ? <GanttAba obra={obra} onAbrir={setFichaAtvId} /> : null}
       {aba === 'pendencias' ? <PendenciasAba obra={obra} /> : null}
       {aba === 'providencias' ? <ProvidenciasAba obra={obra} /> : null}
+      {aba === 'tarefas' ? <TarefasAba obra={obra} /> : null}
 
       <div className={styles.trilha} hidden={aba !== 'fases'}>
         {obra.fases.map((f) => {

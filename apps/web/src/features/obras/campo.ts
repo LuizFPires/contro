@@ -157,6 +157,58 @@ export async function vistoriarPendencia(
   if (error) throw error;
 }
 
+// --- Tarefas (M6) ---
+
+export interface EntradaTarefa {
+  id?: string | null;
+  texto: string;
+  responsavelId: string | null;
+  prazo: string;
+  vinculoTipo?: 'providencia' | 'atividade' | null;
+  vinculoId?: string | null;
+  origemTexto?: string | null;
+}
+
+export async function salvarTarefa(obraId: string, t: EntradaTarefa): Promise<string> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { data, error } = await supabase.rpc('salvar_tarefa', {
+    p_id: t.id ?? null,
+    p_obra_id: obraId,
+    p_texto: t.texto,
+    p_responsavel_id: t.responsavelId,
+    p_prazo: t.prazo,
+    p_vinculo_tipo: t.vinculoTipo ?? null,
+    p_vinculo_id: t.vinculoId ?? null,
+    p_origem_texto: t.origemTexto ?? null,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function concluirTarefa(id: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('concluir_tarefa', { p_id: id });
+  if (error) throw error;
+}
+
+export async function reabrirTarefa(id: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('reabrir_tarefa', { p_id: id });
+  if (error) throw error;
+}
+
+export async function excluirTarefa(id: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('excluir_tarefa', { p_id: id });
+  if (error) throw error;
+}
+
+export async function restaurarTarefa(id: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('restaurar_tarefa', { p_id: id });
+  if (error) throw error;
+}
+
 export interface ResultadoConclusao {
   xp: number;
   fase_fechada: boolean;

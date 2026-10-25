@@ -71,3 +71,19 @@
 .entrega {
   color: var(--obdc-muted);
 }
+.tarefas {
+  margin-top: var(--obdc-space-2);
+  align-self: flex-start;
+  border: 1px solid var(--obdc-border);
+  background: transparent;
+  color: var(--obdc-text);
+  border-radius: var(--obdc-radius-pill);
+  min-height: var(--obdc-touch);
+  padding: 0 var(--obdc-space-3);
+  font-size: var(--obdc-fs-body-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+.tarefasAtraso {
+  color: var(--obdc-late);
+}

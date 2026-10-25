@@ -8,6 +8,7 @@ export * from './obra';
 export * from './providencias';
 export * from './pendencias';
 export * from './indicadores';
+export * from './tarefas';
 
 export type Perfil = 'gestor' | 'equipe';
 
