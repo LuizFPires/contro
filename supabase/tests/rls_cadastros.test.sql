@@ -5,9 +5,9 @@ begin;
 select plan(9);
 
 -- RLS habilitada nas três tabelas
-select row_security_is_active('public', 'pessoa', 'RLS ligada em pessoa');
-select row_security_is_active('public', 'unidade', 'RLS ligada em unidade');
-select row_security_is_active('public', 'sugestao', 'RLS ligada em sugestao');
+select ok((select relrowsecurity from pg_class where oid = 'public.pessoa'::regclass), 'RLS ligada em pessoa');
+select ok((select relrowsecurity from pg_class where oid = 'public.unidade'::regclass), 'RLS ligada em unidade');
+select ok((select relrowsecurity from pg_class where oid = 'public.sugestao'::regclass), 'RLS ligada em sugestao');
 
 -- Usuários de teste (gestor, equipe e um autenticado SEM pessoa)
 insert into auth.users (id, email) values
@@ -31,19 +31,22 @@ select lives_ok(
 -- EQUIPE: lê a unidade criada, mas não escreve
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
 select is(
-  (select count(*)::int from unidade),
+  (select count(*)::int from unidade where nome = 'Unidade Y'),
   1,
-  'equipe enxerga a unidade (1 linha)'
+  'equipe enxerga a unidade criada pelo gestor'
 );
 select throws_ok(
   $$ insert into unidade (nome) values ('Unidade X') $$,
   '42501', null,
   'equipe NÃO insere unidade (RLS)'
 );
-select throws_ok(
-  $$ update unidade set cidade = 'Outra' where nome = 'Unidade Y' $$,
-  '42501', null,
-  'equipe NÃO atualiza unidade (RLS)'
+-- UPDATE sem policy de escrita: a RLS filtra a linha (0 afetadas, sem erro,
+-- ao contrário do INSERT que viola o WITH CHECK e lança 42501).
+update unidade set cidade = 'Outra' where nome = 'Unidade Y';
+select is(
+  (select cidade from unidade where nome = 'Unidade Y'),
+  'Lagoa Santa',
+  'equipe NÃO altera unidade (RLS filtra a linha)'
 );
 select lives_ok(
   $$ insert into sugestao (tipo, texto) values ('local', 'Coworking') $$,

@@ -4,11 +4,11 @@
 begin;
 select plan(10);
 
-select row_security_is_active('public', 'modelo', 'RLS em modelo');
-select row_security_is_active('public', 'modelo_fase', 'RLS em modelo_fase');
-select row_security_is_active('public', 'modelo_atividade', 'RLS em modelo_atividade');
-select row_security_is_active('public', 'modelo_dependencia', 'RLS em modelo_dependencia');
-select row_security_is_active('public', 'modelo_providencia', 'RLS em modelo_providencia');
+select ok((select relrowsecurity from pg_class where oid = 'public.modelo'::regclass), 'RLS em modelo');
+select ok((select relrowsecurity from pg_class where oid = 'public.modelo_fase'::regclass), 'RLS em modelo_fase');
+select ok((select relrowsecurity from pg_class where oid = 'public.modelo_atividade'::regclass), 'RLS em modelo_atividade');
+select ok((select relrowsecurity from pg_class where oid = 'public.modelo_dependencia'::regclass), 'RLS em modelo_dependencia');
+select ok((select relrowsecurity from pg_class where oid = 'public.modelo_providencia'::regclass), 'RLS em modelo_providencia');
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'gestor@m1.contro'),
@@ -30,9 +30,9 @@ select lives_ok(
 -- EQUIPE lê, mas não escreve
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}';
 select is(
-  (select count(*)::int from modelo),
+  (select count(*)::int from modelo where nome = 'Modelo Teste'),
   1,
-  'equipe enxerga o modelo (para escolher na obra)'
+  'equipe enxerga o modelo criado (para escolher na obra)'
 );
 select throws_ok(
   $$ insert into modelo (nome) values ('Proibido') $$,

@@ -36,3 +36,21 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  # Testes de política (RLS) e de segurança por perfil, em pgTAP, contra um
+  # Supabase local efêmero (migrations + seed aplicados). Roda em paralelo.
+  banco:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          # Versão fixada para CI determinístico (igual à validada localmente).
+          version: 2.122.0
+
+      - name: Subir Supabase local (db + migrations + seed)
+        run: supabase start -x studio,imgproxy,edge-runtime,realtime,vector,logflare
+
+      - name: Testes de RLS/segurança (pgTAP)
+        run: supabase test db
