@@ -3,6 +3,7 @@ import { Button, Monograma, TabBar, type TabItem } from '@obdc/ui';
 import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
+import { ReuniaoScreen } from './features/reuniao/ReuniaoScreen';
 import { supabase } from './lib/supabase';
 import { Login } from './screens/Login';
 import { MinhasObras } from './screens/MinhasObras';
@@ -11,6 +12,7 @@ export function App() {
   const { carregando, session } = useSession();
   const { data: pessoa } = usePerfil();
   const [tab, setTab] = useState('inicio');
+  const [reuniaoAberta, setReuniaoAberta] = useState(false);
 
   if (carregando) {
     return <div className="app-placeholder">Carregando…</div>;
@@ -44,16 +46,21 @@ export function App() {
         {tabAtiva === 'obras' ? <div className="app-placeholder">Obras chegam no M2.</div> : null}
         {tabAtiva === 'modelos' && ehGestor ? <ModelosScreen /> : null}
         {tabAtiva === 'mais' ? (
-          <div className="app-mais">
-            {pessoa ? (
-              <p className="app-placeholder" style={{ padding: 0, textAlign: 'left' }}>
-                {pessoa.nome}
-              </p>
-            ) : null}
-            <Button variant="tertiary" onClick={() => supabase?.auth.signOut()}>
-              Sair
-            </Button>
-          </div>
+          reuniaoAberta ? (
+            <ReuniaoScreen onVoltar={() => setReuniaoAberta(false)} />
+          ) : (
+            <div className="app-mais">
+              {pessoa ? (
+                <p className="app-placeholder" style={{ padding: 0, textAlign: 'left' }}>
+                  {pessoa.nome}
+                </p>
+              ) : null}
+              <Button onClick={() => setReuniaoAberta(true)}>Reunião da semana</Button>
+              <Button variant="tertiary" onClick={() => supabase?.auth.signOut()}>
+                Sair
+              </Button>
+            </div>
+          )
         ) : null}
       </main>
 
