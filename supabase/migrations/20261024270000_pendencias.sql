@@ -90,6 +90,11 @@ begin
   if coalesce(trim(p_titulo), '') = '' then
     raise exception 'Título obrigatório' using errcode = '23514';
   end if;
+  if p_atividade_id is not null and not exists (
+    select 1 from public.obra_atividade where id = p_atividade_id and obra_id = p_obra_id
+  ) then
+    raise exception 'Atividade não é desta obra' using errcode = '23503';
+  end if;
   v_pessoa := public.obdc_pessoa_atual();
   select coalesce(min(ordem_fila), 0) - 1 into v_topo from public.pendencia where obra_id = p_obra_id;
   insert into public.pendencia (
@@ -235,7 +240,7 @@ begin
     select coalesce(min(ordem_fila), 0) - 1 into v_topo from public.pendencia where obra_id = v_obra;
     update public.pendencia
     set status = 'aberta', foto_depois_id = null, resolvida_por = null, resolvida_em = null,
-        adiada_ate = null, ordem_fila = v_topo
+        adiada_ate = null, motivo_adiamento = null, ordem_fila = v_topo
     where id = p_id;
     insert into public.pendencia_evento (pendencia_id, tipo, por, dados)
     values (p_id, 'reaberta', v_pessoa, jsonb_build_object('motivo', p_motivo));

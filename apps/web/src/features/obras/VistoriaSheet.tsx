@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { podeVistoriar } from '@obdc/core';
 import { BottomSheet, Button, Icon } from '@obdc/ui';
 import type { PendenciaObra } from './pendenciasObra';
@@ -20,6 +20,7 @@ export function VistoriaSheet({
   pendente?: boolean;
 }) {
   const [motivo, setMotivo] = useState('');
+  useEffect(() => setMotivo(''), [pendencia?.id]);
   const p = pendencia;
   const pode = p ? podeVistoriar(p, pessoaId) : false;
 
