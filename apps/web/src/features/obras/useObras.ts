@@ -21,17 +21,8 @@ export function useUnidades() {
 export function useGerarObra() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      unidadeId,
-      inicio,
-      nome,
-      modeloId,
-    }: {
-      unidadeId: string;
-      inicio: string;
-      nome: string;
-      modeloId: string;
-    }) => gerarObra(unidadeId, inicio, nome, modeloId),
+    mutationFn: ({ inicio, nome, modeloId }: { inicio: string; nome: string; modeloId: string }) =>
+      gerarObra(inicio, nome, modeloId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['obras'] }),
   });
 }
