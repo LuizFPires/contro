@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
+import { diasUteisRestantes, ritmoTexto } from '@obdc/core';
 import { Icon, Segmented, useToast } from '@obdc/ui';
 import { formatarDataCompleta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { FichaAtividade } from './FichaAtividade';
+import { GanttAba } from './GanttAba';
 import { PendenciasAba } from './PendenciasAba';
 import { ProvidenciasAba } from './ProvidenciasAba';
 import { classificarProvidencias } from './providenciasObra';
@@ -23,7 +25,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
   const { showToast } = useToast();
   const [faseAberta, setFaseAberta] = useState<string | null>(null);
   const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
-  const [aba, setAba] = useState<'fases' | 'pendencias' | 'providencias'>('fases');
+  const [aba, setAba] = useState<'fases' | 'pendencias' | 'providencias' | 'cronograma'>('fases');
 
   const dados = useMemo(() => (obra ? derivar(obra) : null), [obra]);
 
@@ -46,6 +48,8 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
       </div>
     );
   }
+
+  const ritmo = ritmoTexto(obra.ritmoDias);
 
   return (
     <div className={styles.screen}>
@@ -80,6 +84,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
             onChange={setAba}
             options={[
               { value: 'fases', label: 'Fases' },
+              { value: 'cronograma', label: 'Cronograma' },
               { value: 'pendencias', label: 'Pendências' },
               {
                 value: 'providencias',
@@ -90,6 +95,7 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
         </div>
       </div>
 
+      {aba === 'cronograma' ? <GanttAba obra={obra} onAbrir={setFichaAtvId} /> : null}
       {aba === 'pendencias' ? <PendenciasAba obra={obra} /> : null}
       {aba === 'providencias' ? <ProvidenciasAba obra={obra} /> : null}
 
@@ -165,7 +171,11 @@ export function ObraDetalhe({ id, onVoltar }: { id: string; onVoltar: () => void
       {aba === 'fases' ? (
         <div className={styles.inauguracao}>
           <strong>Inauguração</strong>
-          <span>{formatarDataCompleta(obra.entrega)}</span>
+          <span className={styles.inaugData}>{formatarDataCompleta(obra.entrega)}</span>
+          <span className={ritmo.atrasada ? styles.inaugAtraso : styles.inaugMeta}>
+            {diasUteisRestantes(obra.decorridos, obra.dia.m)} dias úteis restantes
+            {ritmo.atrasada ? ` · ${ritmo.texto}` : ''}
+          </span>
         </div>
       ) : null}
 

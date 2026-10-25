@@ -183,3 +183,17 @@
   font-size: var(--obdc-fs-body-sm);
   opacity: 0.85;
 }
+.inaugData {
+  display: block;
+}
+.inaugMeta {
+  display: block;
+  margin-top: 2px;
+}
+.inaugAtraso {
+  display: block;
+  margin-top: 2px;
+  color: var(--obdc-white);
+  font-weight: 800;
+  opacity: 1;
+}

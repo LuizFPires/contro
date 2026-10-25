@@ -26,9 +26,11 @@ export function FichaAtividade({
   const campo = useObraCampo(obra.id);
   const { showToast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const duracaoRef = useRef<HTMLInputElement>(null);
   const [inicioData, setInicioData] = useState('');
   const [novoTipo, setNovoTipo] = useState<'contratacao' | 'locacao' | 'compra'>('compra');
   const [novaDesc, setNovaDesc] = useState('');
+  const [novaPred, setNovaPred] = useState('');
 
   const dados = useMemo(() => {
     if (!atividadeId) return null;
@@ -38,17 +40,21 @@ export function FichaAtividade({
     const cron = obra.cron.porId[a.id];
     const subitens = obra.atividades.filter((x) => x.pai_id === a.id);
     const nomePorId = new Map(obra.atividades.map((x) => [x.id, x.nome]));
-    const dependeDe = a.predecessoras.map((p) => nomePorId.get(p) ?? p);
+    const dependePreds = a.predecessoras.map((p) => ({ id: p, nome: nomePorId.get(p) ?? p }));
+    const predsDisponiveis = obra.atividades.filter(
+      (x) => !x.pai_id && x.id !== a.id && !a.predecessoras.includes(x.id),
+    );
     const libera = obra.atividades
       .filter((x) => !x.pai_id && x.predecessoras.includes(a.id))
       .map((x) => x.nome);
     const subsOk = subitens.every((s) => s.concluida_em);
     const podeConcluir = Boolean(est?.liberada) && subsOk && !a.concluida_em;
-    return { a, est, cron, subitens, dependeDe, libera, subsOk, podeConcluir };
+    return { a, est, cron, subitens, dependePreds, predsDisponiveis, libera, subsOk, podeConcluir };
   }, [obra, atividadeId]);
 
   if (!dados) return <BottomSheet open={false} onClose={onClose} children={null} />;
-  const { a, est, cron, subitens, dependeDe, libera, subsOk, podeConcluir } = dados;
+  const { a, est, cron, subitens, dependePreds, predsDisponiveis, libera, subsOk, podeConcluir } =
+    dados;
 
   const situacao = a.concluida_em
     ? 'Concluída'
@@ -203,14 +209,73 @@ export function FichaAtividade({
         </div>
       ) : null}
 
-      {dependeDe.length > 0 ? (
+      {!a.pai_id ? (
         <div className={styles.secao}>
           <p className={styles.rotulo}>Depende de</p>
-          <ul className={styles.lista}>
-            {dependeDe.map((n) => (
-              <li key={n}>{n}</li>
-            ))}
-          </ul>
+          {dependePreds.length > 0 ? (
+            dependePreds.map((p) => (
+              <div key={p.id} className={styles.prov}>
+                <span>{p.nome}</span>
+                {!a.concluida_em ? (
+                  <button
+                    type="button"
+                    className={styles.remover}
+                    aria-label={`Remover dependência ${p.nome}`}
+                    onClick={() =>
+                      campo.removerPred.mutate(
+                        { atividadeId: a.id, predecessoraId: p.id },
+                        { onError: () => showToast({ message: 'Não foi possível remover' }) },
+                      )
+                    }
+                  >
+                    <Icon name="close" size={16} />
+                  </button>
+                ) : null}
+              </div>
+            ))
+          ) : (
+            <p className={styles.aviso}>Sem predecessoras.</p>
+          )}
+          {!a.concluida_em && predsDisponiveis.length > 0 ? (
+            <div className={styles.ajuste} style={{ marginTop: 8 }}>
+              <select
+                className={styles.input}
+                value={novaPred}
+                onChange={(e) => setNovaPred(e.target.value)}
+                aria-label="Adicionar predecessora"
+              >
+                <option value="">Adicionar…</option>
+                {predsDisponiveis.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.nome}
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="tertiary"
+                disabled={!novaPred}
+                onClick={() =>
+                  campo.addPred.mutate(
+                    { atividadeId: a.id, predecessoraId: novaPred },
+                    {
+                      onSuccess: () => setNovaPred(''),
+                      onError: (e) => {
+                        const err = e as { message?: string; code?: string };
+                        const ciclo = err.code === '23514' || /ciclo/i.test(err.message ?? '');
+                        showToast({
+                          message: ciclo
+                            ? 'Essa dependência criaria um ciclo'
+                            : 'Não foi possível salvar a dependência',
+                        });
+                      },
+                    },
+                  )
+                }
+              >
+                Adicionar
+              </Button>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -222,6 +287,36 @@ export function FichaAtividade({
               <li key={n}>{n}</li>
             ))}
           </ul>
+        </div>
+      ) : null}
+
+      {!a.concluida_em && subitens.length === 0 ? (
+        <div className={styles.secao}>
+          <p className={styles.rotulo}>Duração (dias úteis)</p>
+          <div className={styles.ajuste}>
+            <input
+              key={a.id}
+              ref={duracaoRef}
+              type="number"
+              min={1}
+              defaultValue={a.duracao_du}
+              className={styles.input}
+              aria-label="Duração em dias úteis"
+            />
+            <Button
+              variant="tertiary"
+              onClick={() => {
+                const du = Number(duracaoRef.current?.value);
+                if (Number.isInteger(du) && du >= 1)
+                  campo.duracao.mutate(
+                    { id: a.id, du },
+                    { onError: () => showToast({ message: 'Não foi possível ajustar a duração' }) },
+                  );
+              }}
+            >
+              Ajustar
+            </Button>
+          </div>
         </div>
       ) : null}
 

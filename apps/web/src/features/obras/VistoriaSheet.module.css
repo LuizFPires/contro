@@ -21,7 +21,7 @@
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: var(--obdc-radius-md, 12px);
-  background: var(--obdc-bg);
+  background: var(--obdc-bg-app);
 }
 .semFoto {
   width: 100%;
@@ -30,7 +30,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--obdc-radius-md, 12px);
-  background: var(--obdc-bg);
+  background: var(--obdc-bg-app);
   color: var(--obdc-muted);
   font-size: var(--obdc-fs-caption);
 }
@@ -51,7 +51,7 @@
   margin-top: var(--obdc-space-3);
   padding: var(--obdc-space-2) var(--obdc-space-3);
   border-radius: var(--obdc-radius-md, 12px);
-  background: var(--obdc-bg);
+  background: var(--obdc-bg-app);
   color: var(--obdc-late);
   font-weight: 700;
   font-size: var(--obdc-fs-body-sm);

@@ -19,6 +19,44 @@ export async function editarPrestador(id: string, prestador: string | null): Pro
   if (error) throw error;
 }
 
+// --- Editar cronograma da obra (M5): duração e predecessoras da cópia ---
+
+export async function editarDuracao(id: string, du: number): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  if (!Number.isInteger(du) || du < 1) throw new Error('Duração deve ser ≥ 1 dia útil');
+  const { error } = await supabase.from('obra_atividade').update({ duracao_du: du }).eq('id', id);
+  if (error) throw error;
+}
+
+export async function adicionarPredecessora(
+  obraId: string,
+  atividadeId: string,
+  predecessoraId: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.from('obra_dependencia').insert({
+    obra_id: obraId,
+    atividade_id: atividadeId,
+    predecessora_id: predecessoraId,
+  });
+  if (error) throw error;
+}
+
+export async function removerPredecessora(
+  obraId: string,
+  atividadeId: string,
+  predecessoraId: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase
+    .from('obra_dependencia')
+    .delete()
+    .eq('obra_id', obraId)
+    .eq('atividade_id', atividadeId)
+    .eq('predecessora_id', predecessoraId);
+  if (error) throw error;
+}
+
 export async function marcarProvidencia(id: string, feito: boolean): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('marcar_providencia', { p_id: id, p_feito: feito });

@@ -1,11 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  adicionarPredecessora,
   adicionarProvidencia,
   ajustarInicio,
   concluirComFoto,
+  editarDuracao,
   editarPrestador,
   marcarProvidencia,
   marcarSubitem,
+  removerPredecessora,
   removerProvidencia,
 } from './campo';
 
@@ -45,11 +48,36 @@ export function useObraCampo(obraId: string) {
     mutationFn: ({ id, data }: { id: string; data: string }) => ajustarInicio(id, data),
     onSuccess: inval,
   });
+  const duracao = useMutation({
+    mutationFn: ({ id, du }: { id: string; du: number }) => editarDuracao(id, du),
+    onSuccess: inval,
+  });
+  const addPred = useMutation({
+    mutationFn: (v: { atividadeId: string; predecessoraId: string }) =>
+      adicionarPredecessora(obraId, v.atividadeId, v.predecessoraId),
+    onSuccess: inval,
+  });
+  const removerPred = useMutation({
+    mutationFn: (v: { atividadeId: string; predecessoraId: string }) =>
+      removerPredecessora(obraId, v.atividadeId, v.predecessoraId),
+    onSuccess: inval,
+  });
   const concluir = useMutation({
     mutationFn: ({ atividadeId, file }: { atividadeId: string; file: File }) =>
       concluirComFoto(obraId, atividadeId, file),
     onSuccess: inval,
   });
 
-  return { subitem, prestador, providencia, addProvidencia, removerProv, inicio, concluir };
+  return {
+    subitem,
+    prestador,
+    providencia,
+    addProvidencia,
+    removerProv,
+    inicio,
+    duracao,
+    addPred,
+    removerPred,
+    concluir,
+  };
 }

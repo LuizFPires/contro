@@ -1,15 +1,11 @@
+import { ritmoTexto } from '@obdc/core';
 import { Card } from '@obdc/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import type { ObraResumo } from './api';
 import styles from './ObraCard.module.css';
 
 export function ObraCard({ obra, onAbrir }: { obra: ObraResumo; onAbrir: () => void }) {
-  const ritmoTexto =
-    obra.ritmoDias >= 1
-      ? `${obra.ritmoDias} dias à frente`
-      : obra.ritmoDias <= -2
-        ? `Atrasada · ${Math.abs(obra.ritmoDias)} dias`
-        : 'No ritmo';
+  const ritmo = ritmoTexto(obra.ritmoDias, true);
 
   return (
     <Card onClick={onAbrir}>
@@ -30,7 +26,7 @@ export function ObraCard({ obra, onAbrir }: { obra: ObraResumo; onAbrir: () => v
         </div>
 
         <div className={styles.rodape}>
-          <span className={obra.atrasada ? styles.atrasada : styles.ritmo}>{ritmoTexto}</span>
+          <span className={ritmo.atrasada ? styles.atrasada : styles.ritmo}>{ritmo.texto}</span>
           <span className={styles.entrega}>Entrega {formatarDataCurta(obra.entrega)}</span>
         </div>
       </div>
