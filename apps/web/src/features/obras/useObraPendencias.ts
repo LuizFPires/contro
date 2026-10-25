@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { topoFila } from '@obdc/core';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
 import { apontarPendencia, resolverPendencia, type NovaPendencia } from './campo';
@@ -29,10 +30,10 @@ export function useObraPendencias(obraId: string) {
   const reverter = (ctx: { prev?: PendenciaObra[] } | undefined) => {
     if (ctx?.prev) qc.setQueryData(['pendencias', obraId], ctx.prev);
   };
-  // Topo da fila = menor ordem_fila − 1 (espelha o servidor), a partir do cache.
-  const topoFila = () => {
+  // Topo da fila a partir do cache (regra espelhada do servidor vem do core).
+  const topoDaFila = () => {
     const lista = qc.getQueryData<PendenciaObra[]>(['pendencias', obraId]) ?? [];
-    return lista.reduce((m, p) => Math.min(m, p.ordem_fila), 0) - 1;
+    return topoFila(lista.map((p) => p.ordem_fila));
   };
 
   // apontar (insert com foto) e resolver (foto de depois) seguem online nesta
@@ -58,7 +59,7 @@ export function useObraPendencias(obraId: string) {
   const trazer = useMutation({
     mutationFn: (id: string) => enfileirar('trazer_pendencia', { obraId, id }),
     onMutate: (id: string) => {
-      const topo = topoFila();
+      const topo = topoDaFila();
       return patch(id, (p) => ({
         ...p,
         adiada_ate: null,
@@ -78,7 +79,7 @@ export function useObraPendencias(obraId: string) {
       }),
     onMutate: (v: { id: string; aprovado: boolean; motivo?: string }) => {
       if (v.aprovado) return patch(v.id, (p) => ({ ...p, status: 'fechada' }));
-      const topo = topoFila();
+      const topo = topoDaFila();
       return patch(v.id, (p) => ({
         ...p,
         status: 'aberta',
