@@ -94,7 +94,10 @@ export async function drenar(): Promise<void> {
           });
         }
         if (classe === 'rejeicao') {
-          invalidar(op.payload as Record<string, unknown>); // reverte o otimismo (verdade do servidor)
+          const pl = op.payload as Record<string, unknown>;
+          // Rejeição é terminal: sem reenvio, então libera o blob local para não vazar no Dexie.
+          if (typeof pl.fotoLocalId === 'string') await removerFotoLocal(pl.fotoLocalId);
+          invalidar(pl); // reverte o otimismo (verdade do servidor)
         } else {
           break; // rede: para e tenta de novo no próximo gatilho
         }

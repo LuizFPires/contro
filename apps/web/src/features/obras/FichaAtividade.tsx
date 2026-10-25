@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { faseFechaCom, xpConclusao } from '@obdc/core';
 import { BottomSheet, Button, Chip, Icon, Input, useToast } from '@obdc/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import type { ObraCompleta } from './detalhe';
@@ -81,11 +82,18 @@ export function FichaAtividade({
     if (!file) return;
     const fase = obra.fases.find((f) => f.id === a.fase_id);
     const prox = obra.fases.find((f) => f.ordem === (fase?.ordem ?? 0) + 1);
-    // Fecha a fase se nenhuma outra atividade de topo dela fica em aberto (= regra do servidor).
-    const faseFechada = !obra.atividades.some(
-      (x) => !x.pai_id && x.fase_id === a.fase_id && x.id !== a.id && !x.concluida_em,
+    // Regra de domínio (fechamento de fase + XP) vem do core (espelha o servidor).
+    const faseFechada = faseFechaCom(
+      a.id,
+      a.fase_id,
+      obra.atividades.map((x) => ({
+        id: x.id,
+        paiId: x.pai_id,
+        faseId: x.fase_id,
+        concluida: Boolean(x.concluida_em),
+      })),
     );
-    const xp = 50 + (faseFechada ? 200 : 0);
+    const xp = xpConclusao(faseFechada);
     campo.concluir.mutate(
       { atividadeId: a.id, file, faseFechada, xp },
       {

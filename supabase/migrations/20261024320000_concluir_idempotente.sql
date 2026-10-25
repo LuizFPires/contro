@@ -3,6 +3,13 @@
 -- rollback do registro em op_idempotente, então o reenvio tenta de novo. Se o
 -- corpo tiver sucesso (commit), o reenvio após resposta perdida vira no-op de
 -- sucesso (não devolve "já concluída" nem conta XP duas vezes).
+
+-- Remove as versões antigas de 2 args: o novo parâmetro muda a assinatura, então
+-- `create or replace` criaria um OVERLOAD e deixaria a RPC sem guard de
+-- idempotência viva (e tornaria ambígua a chamada de 2 args no PostgREST).
+drop function if exists public.concluir_atividade(uuid, uuid);
+drop function if exists public.marcar_providencia(uuid, boolean);
+
 create or replace function concluir_atividade(
   p_atividade_id uuid,
   p_foto_id uuid,
