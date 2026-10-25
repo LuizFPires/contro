@@ -75,26 +75,28 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## M2 · Obra: criar, carteira, fases e conclusão com foto
 **Objetivo:** o engenheiro cria a obra em < 2 min e conclui atividades com foto.
 
-- [ ] Migrations `obra`, `obra_atividade`, `obra_dependencia`, `foto` + RLS por perfil e vínculo
-- [ ] `gerar_obra` (Edge Function, transacional): copia o modelo escolhido e grava `modelo_rotulo`
-- [ ] Tela **Nova obra**: unidade, segundas disponíveis, **escolha do modelo** e prévia (atividades, lembretes, dias úteis, fases com datas, entrega)
-- [ ] **Carteira:**
+- [x] Migrations `obra`, `obra_atividade`, `obra_dependencia`, `foto` + RLS por perfil e vínculo
+- [x] `gerar_obra` (Edge Function, transacional): copia o modelo escolhido e grava `modelo_rotulo`
+- [x] Tela **Nova obra**: unidade, segundas disponíveis, **escolha do modelo** e prévia (atividades, lembretes, dias úteis, fases com datas, entrega)
+- [x] **Carteira:**
   - título com ícone "+";
   - atalhos Reunião e Tarefas (placeholders até M6/M7);
   - card da obra (fase, %, 6 segmentos, ritmo, entrega, aviso de atraso)
-- [ ] **Cabeçalho da obra:** nome, "Dia N de M", %, barra e ícone de boletim (placeholder até M8)
-- [ ] **Fases:**
+- [x] **Cabeçalho da obra:** nome, "Dia N de M", %, barra e ícone de boletim (placeholder até M8)
+- [x] **Fases:**
   - trilha com 6 fases e estados;
   - expandir fase;
   - itens com estado e motivo de bloqueio
-- [ ] **Ficha da atividade** (bottom sheet): situação, datas, prestador (texto opcional, com sugestões), depende de / libera
-- [ ] **Subitens** na ficha: checklist com prazo; marcar sem foto obrigatória; a atividade só conclui com todos marcados
-- [ ] **Ajustar início** (manual): escolher a nova data; as sucessoras recalculam; o evento é registrado
-- [ ] Câmera de conclusão (captura, compressão, upload em segundo plano) → `concluir_atividade` (exige liberada)
-- [ ] Celebração de fase concluída com o que foi liberado
-- [ ] Toast "liberou X" ao concluir
+- [x] **Ficha da atividade** (bottom sheet): situação, datas, prestador (texto opcional, com sugestões), depende de / libera
+- [x] **Subitens** na ficha: checklist com prazo; marcar sem foto obrigatória; a atividade só conclui com todos marcados
+- [x] **Ajustar início** (manual): escolher a nova data; as sucessoras recalculam; o evento é registrado
+- [x] Câmera de conclusão (captura, compressão, upload em segundo plano) → `concluir_atividade` (exige liberada)
+- [x] Celebração de fase concluída com o que foi liberado
+- [x] Toast "liberou X" ao concluir
 
 **Aceite:** criar a obra "CDC Sete Lagoas", concluir Mobilização com 3 fotos, ver a celebração e a Fase 2 liberada. O tempo de criação da obra fica abaixo de 2 minutos.
+
+> **M2 validado (24/10/2026):** criei "CDC Sete Lagoas" do Modelo 1 em segundos; a Carteira e a tela da obra mostram fase/%/ritmo via core; na ficha, marcar a providência liberou a atividade e habilitou "Concluir com foto"; upload de foto como gestor retornou 200; `concluir_atividade` testado no servidor (exige liberada + foto, +XP, evento). **Decisão:** `gerar_obra` e os RPCs de campo são funções Postgres (não Edge Function). **Lacunas:** a captura da câmera não é testável no navegador automatizado (precisa de aparelho); a celebração de fase é um toast (pode virar tela depois).
 
 ## M3 · Lembretes de providência e liberação
 **Objetivo:** nada trava por falta de contratação, locação ou compra.
