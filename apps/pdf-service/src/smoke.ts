@@ -2,7 +2,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import type { BoletimDados, ObraAta } from '@contro/core';
 import { ataHtml, boletimHtml } from './html';
-import { renderPdf } from './pdf';
+import { fecharBrowser, renderPdf } from './pdf';
 
 const boletim: BoletimDados = {
   obra: 'Contorno do Corpo · Betim',
@@ -10,6 +10,7 @@ const boletim: BoletimDados = {
   realPct: 0.466,
   previstoSextaPct: 0.525,
   ritmoTexto: 'Atrasada · 3 dias',
+  ritmoAtrasado: true,
   atrasos: ['Contratação: Elétrica Silva', 'Alvenaria da recepção'],
   concluir: [{ dataFmt: 'qua 28/10', nome: 'Demolição' }],
   comecar: [{ dataFmt: 'qui 29/10', nome: 'Alvenaria', motivo: 'aguarda providências' }],
@@ -38,6 +39,7 @@ async function main(): Promise<void> {
   const a = await renderPdf(ataHtml('segunda, 26/10/2026', obrasAta));
   await writeFile('out/ata.pdf', a);
   console.log(`OK · out/boletim.pdf (${b.length} bytes) · out/ata.pdf (${a.length} bytes)`);
+  await fecharBrowser(); // fecha o Chromium para o processo encerrar
 }
 
 main().catch((e) => {

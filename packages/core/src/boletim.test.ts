@@ -7,6 +7,7 @@ const base: BoletimDados = {
   realPct: 0.47,
   previstoSextaPct: 0.63,
   ritmoTexto: 'Atrasada · 3 dias',
+  ritmoAtrasado: true,
   atrasos: ['Contrapiso'],
   concluir: [{ dataFmt: 'qua 28/10', nome: 'Pintura' }],
   comecar: [{ dataFmt: 'ter 27/10', nome: 'Forro', motivo: 'aguarda predecessoras' }],

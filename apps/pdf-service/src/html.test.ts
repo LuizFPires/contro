@@ -8,6 +8,7 @@ const boletim: BoletimDados = {
   realPct: 0.466,
   previstoSextaPct: 0.525,
   ritmoTexto: 'Atrasada · 3 dias',
+  ritmoAtrasado: true,
   atrasos: ['Contratação: Elétrica', 'Alvenaria'],
   concluir: [{ dataFmt: 'qua 28/10', nome: 'Demolição' }],
   comecar: [{ dataFmt: 'qui 29/10', nome: 'Alvenaria', motivo: 'aguarda providências' }],
@@ -36,6 +37,27 @@ describe('boletimHtml', () => {
     expect(html).toContain('aguarda providências');
     expect(html).toContain('João');
   });
+  it('o vermelho vem do ritmoAtrasado do core, não de heurística de texto', () => {
+    // sem atrasos e ritmo NÃO atrasado: nenhuma classe de atraso no documento
+    const ok = boletimHtml({
+      ...boletim,
+      atrasos: [],
+      ritmoAtrasado: false,
+      ritmoTexto: 'No ritmo',
+    });
+    expect(ok).not.toContain('class="atraso"');
+    // ritmo atrasado: o span do ritmo ganha a classe de atraso
+    const atrasado = boletimHtml({ ...boletim, atrasos: [], ritmoAtrasado: true });
+    expect(atrasado).toContain('class="atraso"');
+  });
+  it('trata item do quem faz o quê sem data (dataFmt null)', () => {
+    const h = boletimHtml({
+      ...boletim,
+      quemFazOQue: [{ pessoa: 'Ana', itens: [{ dataFmt: null, texto: 'Acompanhar' }] }],
+    });
+    expect(h).toContain('Ana');
+    expect(h).toContain('Acompanhar');
+  });
 });
 
 describe('ataHtml', () => {
@@ -63,9 +85,27 @@ describe('ataHtml', () => {
 });
 
 describe('escape de HTML', () => {
-  it('escapa caracteres perigosos no nome da obra', () => {
-    const html = boletimHtml({ ...boletim, obra: '<script>x</script>' });
-    expect(html).not.toContain('<script>x</script>');
+  it('escapa os caracteres perigosos (< > & aspas e apostrofo) no nome da obra', () => {
+    const html = boletimHtml({ ...boletim, obra: `<script>a & b "c" 'd'</script>` });
+    expect(html).not.toContain('<script>a');
     expect(html).toContain('&lt;script&gt;');
+    expect(html).toContain('&amp;');
+    expect(html).toContain('&quot;');
+    expect(html).toContain('&#39;');
+  });
+  it('escapa injeção nas observações da ata (texto livre do usuário)', () => {
+    const html = ataHtml('seg 26/10', [
+      {
+        nome: 'Obra X',
+        indicador: '10%',
+        atrasos: [],
+        concluir: [],
+        comecar: [],
+        providenciar: [],
+        observacoes: '</p><script>alert(1)</script>',
+      },
+    ]);
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
   });
 });

@@ -48,5 +48,10 @@ export default tseslint.config(
       ecmaVersion: 2022,
       globals: globals.node,
     },
+    rules: {
+      // Parâmetros/vars intencionalmente não usados: prefixo _ (ex.: o `next`
+      // obrigatório no error middleware do Express).
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
   },
 );

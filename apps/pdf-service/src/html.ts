@@ -8,7 +8,8 @@ function esc(s: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -22,7 +23,8 @@ function pagina(titulo: string, corpo: string): string {
 <meta charset="utf-8" />
 <title>${esc(titulo)}</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap');
+  /* Sem fonte externa: o PDF não pode depender de CDN (travaria offline).
+     Usa Nunito Sans se instalada no host; senão, cai no stack do sistema. */
   :root {
     --turquesa: #54b4b0;
     --preto: #181818;
@@ -59,7 +61,7 @@ function pagina(titulo: string, corpo: string): string {
   .pessoa { font-weight: 800; margin-top: 6px; }
   .vazio { color: var(--muted); }
   .obra-ata { break-inside: avoid; margin-bottom: 16px; }
-  .obra-faixa { background: var(--preto); color: var(--branco); font-weight: 800; padding: 6px 10px; border-radius: 6px; }
+  .obra-faixa { background: #4a4a4a; color: var(--branco); font-weight: 800; padding: 6px 10px; border-radius: 6px; }
   .obra-ind { color: var(--muted); font-weight: 700; margin: 6px 0; }
   .obs { margin-top: 6px; }
 </style>
@@ -84,10 +86,9 @@ function blocoLista(titulo: string, itens: string[], atraso = false): string {
 
 /** Boletim semanal de UMA obra em PDF (A4), a partir dos dados do core. */
 export function boletimHtml(d: BoletimDados): string {
-  const ritmoAtrasado = /atras/i.test(d.ritmoTexto);
   const ind = `<p class="ind">Real <span class="num">${pct(d.realPct)}</span> · previsto até sexta <span class="num">${pct(
     d.previstoSextaPct,
-  )}</span> · <span class="${ritmoAtrasado ? 'atraso' : ''}">${esc(d.ritmoTexto)}</span></p>`;
+  )}</span> · <span class="${d.ritmoAtrasado ? 'atraso' : ''}">${esc(d.ritmoTexto)}</span></p>`;
 
   const atrasos = blocoLista(
     `Atenção · ${d.atrasos.length} em atraso`,
