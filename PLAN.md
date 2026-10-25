@@ -229,6 +229,30 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 
 ---
 
+## Boletim automático (destrava o débito do M8)
+**Objetivo:** o gestor configura quando o boletim é gerado (dia, hora, recorrência) e é avisado por push para enviar com um toque. Decisões do usuário: envio = **gerar + avisar** (sem API de WhatsApp, sem e-mail); escopo = **global** (um agendamento para todas as obras); aviso = **push**; recorrência = semanal (dia + hora) com edição de fechamento opcional.
+
+**Fatia 1 · Configuração (base)**
+- [x] Migration `config_boletim` (linha única global) + RLS (membro lê, só gestor edita) + teste pgTAP
+- [x] `core/boletimAgenda.ts` — validação + `proximoDisparo` (puro, 9 testes)
+- [x] Tela **Boletim automático** (aba Mais, só gestor): liga/desliga, dia, hora, fechamento opcional, "próximo envio" e Desfazer
+- [ ] Aplicar a migration no Supabase remoto (ação do usuário) para o save funcionar no piloto
+
+**Fatia 2 · Geração agendada (backend)**
+- [x] Tabela `boletim_disparo` (marcador por obra/semana/edição, dedup único) + RLS (membro lê, gestor marca enviado)
+- [x] `gerar_disparos_boletim(p_agora)` — no horário (fuso America/Sao_Paulo) cria os disparos das obras ativas, idempotente; teste pgTAP (horário, dedup, obra ativa só, fechamento)
+- [x] pg_cron `*/15 * * * *` chama a função (ela checa o horário por dentro)
+- Decisão de arquitetura: o texto/snapshot do boletim é calculado no **cliente** (core, como na tela Boletim), então a função só marca "está na hora". Sem Edge Function/compute server-side de texto nesta fatia.
+
+**Fatia 3 · Enviar (lista in-app + push)** (push precisa de VAPID + Edge Function)
+- [x] Lista "prontos para enviar" no Início (só gestor) a partir de `boletim_disparo` → "Abrir" abre o boletim da obra (já calculado no cliente) e "Enviado" marca com Desfazer (regra 10). Verificado no app (local) de ponta a ponta.
+- [x] (código) Service worker com handler de push/notificationclick via `importScripts` (offline intacto); permissão + assinatura; tabela `push_subscription` + RLS + pgTAP
+- [x] (código) Edge Function `enviar-push-boletim` (lê disparos não notificados, envia e marca); toggle "Receber aviso por push" na tela do gestor
+- [ ] **Deploy (ação do usuário):** gerar VAPID, `VITE_VAPID_PUBLIC_KEY` na Vercel, segredos + deploy da função, agendar pg_cron+pg_net — runbook em `supabase/functions/enviar-push-boletim/README.md`
+- [ ] Ressalva iOS: push só com o PWA instalado na tela inicial (16.4+)
+
+**Aceite:** no dia/hora configurado pelo gestor, o boletim de cada obra ativa é gerado e o gestor recebe um push; ele toca e o WhatsApp abre com o texto pronto.
+
 ---
 
 ## Melhorias (fora do plano principal)
@@ -262,6 +286,10 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
+
+- 2026-10-25 · (boletim automático · fatia 3 · PR a abrir) **Push por Web Push, com o SW intacto.** Os handlers de `push`/`notificationclick` entram no service worker gerado via `workbox.importScripts('/push-handlers.js')` — não troca a estratégia do vite-plugin-pwa, então o precache/offline do M9-offline fica igual. Assinaturas em `push_subscription` (RLS: cada um só a sua). A Edge Function `enviar-push-boletim` (service role, `npm:web-push`) lê os disparos não notificados, envia aos gestores inscritos, remove assinaturas 404/410 e marca `notificado_em`. O envio depende de deploy (VAPID, segredos, pg_cron+pg_net) — runbook em `supabase/functions/enviar-push-boletim/README.md`. A lista in-app "prontos para enviar" cobre o "avisar" sem depender do push.
+- 2026-10-25 · (boletim automático · fatia 2 · PR a abrir) **Geração agendada por marcador, sem compute server-side de texto.** Como o texto/snapshot do boletim é calculado no core (TS) e a tela Boletim já o monta ao abrir, a fatia 2 não materializa texto no banco: `gerar_disparos_boletim(p_agora)` (SECURITY DEFINER, fuso America/Sao_Paulo) só insere um `boletim_disparo` por obra ativa quando chega o dia/hora de `config_boletim`, com dedup único por (obra, semana, edição). pg_cron roda a cada 15 min e a função checa o horário por dentro (idempotente). A lista "prontos para enviar" e o push consomem esses disparos na fatia 3. Testado por pgTAP (horário, dedup, obra ativa, fechamento).
+- 2026-10-25 · (boletim automático · fatia 1 · PR a abrir) **Agendamento do boletim deixa de ser fixo.** O gestor configura dia/hora (global, todas as obras) em `config_boletim` (linha única; RLS só gestor edita), com edição principal + fechamento opcional; os horários do SPEC §11 viram apenas o padrão. Envio = **gerar + avisar** por push (sem API de WhatsApp nem e-mail — a Cloud API não envia para grupos); escopo **global** e aviso por **push** escolhidos pelo usuário. Geração agendada (pg_cron) e push (VAPID/Edge Function) são as fatias 2 e 3.
 
 - 2026-10-25 · (pdf-service · PR a abrir) **Boletim e ata em PDF** (substitui o HTML imprimível): novo pacote `apps/pdf-service` (Node + Express + Playwright) que importa o `@contro/core` e renderiza templates HTML A4 (Nunito Sans, design system; vermelho só para atraso) para PDF via Chromium. Endpoints `POST /boletim` (BoletimDados) e `POST /ata` ({dataFmt, obras}); `GET /health`; `pnpm --filter @contro/pdf-service smoke` gera PDFs de exemplo. Os geradores de HTML são puros e testados no Vitest (roda no CI). **Follow-up (feito, PR a abrir)**: o botão "Baixar PDF" do web (boletim e ata) agora chama o pdf-service quando `VITE_PDF_SERVICE_URL` está configurado (helper `baixarPdf` → POST + download do blob), com fallback para `window.print()` quando não há URL; o serviço ganhou CORS (preflight + `Access-Control-Allow-Origin` por `PDF_CORS_ORIGIN`, default `*`; **em produção, fixar para a origem do app**). A URL é normalizada (sem barra final → evita `//endpoint` 404), o nome do arquivo é sanitizado e o botão desabilita durante o download. **Ainda pendente**: deploy do serviço (container) e o snapshot semanal (pg_cron) que materializa os dados do PDF
 - 2026-10-25 · (rename do nome antigo → contro · PR #21) Rename geral do projeto a pedido do usuário: zero referência ao nome antigo em todo o código (pacotes `@contro/*`, tokens `--contro-*`, funções SQL `contro_*`, `project_id` contro, marca/docs/testes, e os nomes internos do zip de logos reempacotados como `CONTRO_*`). Revisão independente: 0 crítico/alto/médio. O `config.toml` também passou a fixar portas próprias do Supabase local (api 54821, studio 54823, inbucket 54824, db 54822/shadow 54820) e desligar o analytics no dev, para não colidir com outros stacks locais — convenção de ambiente, decidida aqui. Pontos sem ação (não são referências de produto): a pasta do workspace no disco mantém o nome antigo (caminho do SO, fora do versionamento); e as imagens de logo contêm essas letras por coincidência dentro de um trecho de base64

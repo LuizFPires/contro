@@ -29,17 +29,19 @@ export function ObraDetalhe({
   id,
   onVoltar,
   abaInicial,
+  abrirBoletim,
 }: {
   id: string;
   onVoltar: () => void;
   abaInicial?: AbaObra;
+  abrirBoletim?: boolean;
 }) {
   const { data: obra, isLoading } = useObraDetalhe(id);
   const { showToast } = useToast();
   const [faseAberta, setFaseAberta] = useState<string | null>(null);
   const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
   const [aba, setAba] = useState<AbaObra>(abaInicial ?? 'fases');
-  const [boletimAberto, setBoletimAberto] = useState(false);
+  const [boletimAberto, setBoletimAberto] = useState(abrirBoletim ?? false);
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
 
   const dados = useMemo(() => (obra ? derivar(obra) : null), [obra]);

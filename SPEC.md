@@ -105,6 +105,20 @@ tarefa_evento(id, tarefa_id, tipo: 'criada'|'editada'|'replanejada'|'concluida'|
 ### 3.7 Boletim
 ```
 boletim(id, obra_id, semana_inicio date, edicao: 'segunda'|'sexta', snapshot jsonb, texto_whatsapp text, pdf_path, gerado_em)
+
+-- Agendamento do boletim automático (global; só gestor edita). Linha única.
+config_boletim(id bool=true PK, ativo, dia_semana 1..7 (ISO), hora time,
+               fechamento_ativo, fechamento_dia 1..7, fechamento_hora time,
+               updated_at, updated_by)
+
+-- Disparo = "está na hora do boletim" por obra/semana/edição (dedup único).
+-- O texto/snapshot é calculado no cliente (core) ao abrir; aqui só o marcador.
+boletim_disparo(id, obra_id, semana_inicio date, edicao: 'principal'|'fechamento',
+                criado_em, notificado_em, enviado_em,
+                unique(obra_id, semana_inicio, edicao))
+
+-- Assinaturas de Web Push (um aparelho = um endpoint). Cada um gerencia a sua.
+push_subscription(id, user_id, endpoint unique, p256dh, auth, user_agent, criado_em)
 ```
 
 ## 4. Motor de cronograma (`packages/core/schedule.ts`)
@@ -350,6 +364,8 @@ Alvos de toque ≥ 44 px. Nunca branco sobre turquesa em texto pequeno; usar pre
 | Segunda 06:30 | `gerar_boletim(obra, 'segunda')` para cada obra ativa; notificação push ao engenheiro: "Boletim pronto para enviar" |
 | Segunda 15:30 | Cria `reuniao(data=hoje)` em status `pauta`, se não existir |
 | Sexta 17:00 | `gerar_boletim(obra, 'sexta')` (fechamento) |
+
+Os horários do boletim **deixam de ser fixos**: o gestor configura dia e hora (global, vale para todas as obras) em `config_boletim` — edição principal + edição de fechamento opcional. Os valores acima viram apenas o **padrão** da linha única. O cron da geração lê `config_boletim` e dispara no horário configurado (fatia 2); o aviso é por push (fatia 3).
 
 ## 12. Testes obrigatórios
 

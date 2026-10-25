@@ -13,6 +13,7 @@ export * from './semana';
 export * from './atribuicoes';
 export * from './ata';
 export * from './boletim';
+export * from './boletimAgenda';
 export * from './outbox';
 
 export type Perfil = 'gestor' | 'equipe';
