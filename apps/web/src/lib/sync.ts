@@ -93,7 +93,11 @@ export async function enfileirar(tipo: string, payload: Record<string, unknown>)
   const id = crypto.randomUUID();
   const op: OpDB = {
     id,
-    userId: (await uidAtual()) ?? '',
+    // Dono = sessão em cache (SÍNCRONO). Nunca bloqueamos o outbox.add numa
+    // chamada de auth: offline, getSession pode travar sob o lock do refresh, e
+    // a ação de campo (regra 9, <100ms) não pode esperar isso. Se o uid ainda
+    // não está em cache, a op fica sem dono e o drenar a adota (ver abaixo).
+    userId: usuarioAtual ?? '',
     tipo,
     payload,
     status: 'pendente',
@@ -101,7 +105,7 @@ export async function enfileirar(tipo: string, payload: Record<string, unknown>)
     criadoEm: Date.now(),
     proximaEm: 0,
   };
-  await db.outbox.add(op);
+  await db.outbox.add(op); // persiste PRIMEIRO
   void drenar();
   return id;
 }
@@ -114,6 +118,10 @@ export async function drenar(): Promise<void> {
   if (!uid) return; // sem sessão: não envia a fila de ninguém
   drenando = true;
   try {
+    // Adota ops sem dono (enfileiradas antes do uid estar em cache) para a
+    // sessão atual — senão ficariam órfãs e nunca seriam enviadas.
+    const orfas = (await db.outbox.toArray()).filter((o) => o.userId === '');
+    for (const o of orfas) await db.outbox.update(o.id, { userId: uid });
     for (;;) {
       const ops = (await db.outbox.toArray()).filter((o) => o.userId === uid);
       const op = proximaOp(ops, Date.now());
@@ -158,6 +166,9 @@ export async function drenar(): Promise<void> {
 /** Liga o sync: drena ao voltar o sinal, ao focar a aba e a cada 30s. */
 export function iniciarSync(client: QueryClient): void {
   qc = client;
+  // Aquece o uid em cache o quanto antes, para o enqueue já ter dono (o
+  // onAuthStateChange abaixo também seta no INITIAL_SESSION).
+  void uidAtual();
   supabase?.auth.onAuthStateChange((_evento, session) => {
     usuarioAtual = session?.user.id ?? null;
     if (usuarioAtual) void drenar();
