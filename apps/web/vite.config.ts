@@ -34,6 +34,12 @@ export default defineConfig({
         // Não precachear os SVGs de marca (PNG embutido pesado). Só o essencial.
         globPatterns: ['**/*.{js,css,html,woff,woff2}', 'icons/*.png'],
       },
+      // Liga o service worker também no `pnpm dev`, para testar o PWA
+      // (instalável + offline) com HMR, sem precisar de build+preview.
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      },
     }),
   ],
   server: {
