@@ -84,6 +84,7 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
+declare v_n int;
 begin
   if public.obdc_perfil() is distinct from 'gestor' then
     raise exception 'Só o gestor fecha a reunião' using errcode = '42501';
@@ -91,6 +92,10 @@ begin
   update public.reuniao
   set status = 'fechada', fechada_em = now(), fechada_por = public.obdc_pessoa_atual()
   where id = p_id and status <> 'fechada';
+  get diagnostics v_n = row_count;
+  if v_n = 0 then
+    raise exception 'Reunião já fechada ou inválida' using errcode = '42501';
+  end if;
   if p_snapshots is not null then
     update public.reuniao_obra ro
     set snapshot = s.snapshot
