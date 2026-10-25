@@ -1,6 +1,12 @@
 import { aposTentativa, classificarErro, proximaOp } from '@obdc/core';
 import type { QueryClient } from '@tanstack/react-query';
-import { concluirAtividade, marcarProvidencia } from '../features/obras/campo';
+import {
+  concluirAtividade,
+  concluirTarefa,
+  marcarProvidencia,
+  marcarSubitem,
+  reabrirTarefa,
+} from '../features/obras/campo';
 import { removerFotoLocal, subirFotoLocal } from '../features/obras/foto';
 import { supabase } from './supabase';
 import { db, type OpDB } from './db';
@@ -18,6 +24,9 @@ const DISPATCH: Record<string, Handler> = {
     await concluirAtividade(p.atividadeId as string, fotoId, opId);
     await removerFotoLocal(p.fotoLocalId as string);
   },
+  marcar_subitem: (p, opId) => marcarSubitem(p.subitemId as string, p.feito as boolean, opId),
+  concluir_tarefa: (p, opId) => concluirTarefa(p.id as string, opId),
+  reabrir_tarefa: (p, opId) => reabrirTarefa(p.id as string, opId),
 };
 
 let qc: QueryClient | null = null;
@@ -38,6 +47,7 @@ function invalidar(payload: Record<string, unknown>) {
   if (qc && obraId) {
     qc.invalidateQueries({ queryKey: ['obra', obraId] });
     qc.invalidateQueries({ queryKey: ['obras'] });
+    qc.invalidateQueries({ queryKey: ['tarefas', obraId] });
   }
 }
 

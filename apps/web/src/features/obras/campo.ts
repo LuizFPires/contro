@@ -1,9 +1,17 @@
 import { supabase } from '../../lib/supabase';
 import { enviarFoto } from './foto';
 
-export async function marcarSubitem(id: string, feito: boolean): Promise<void> {
+export async function marcarSubitem(
+  id: string,
+  feito: boolean,
+  clientOpId?: string,
+): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const { error } = await supabase.rpc('marcar_subitem', { p_subitem_id: id, p_feito: feito });
+  const { error } = await supabase.rpc('marcar_subitem', {
+    p_subitem_id: id,
+    p_feito: feito,
+    p_client_op_id: clientOpId ?? null,
+  });
   if (error) throw error;
 }
 
@@ -193,15 +201,21 @@ export async function salvarTarefa(obraId: string, t: EntradaTarefa): Promise<st
   return data as string;
 }
 
-export async function concluirTarefa(id: string): Promise<void> {
+export async function concluirTarefa(id: string, clientOpId?: string): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const { error } = await supabase.rpc('concluir_tarefa', { p_id: id });
+  const { error } = await supabase.rpc('concluir_tarefa', {
+    p_id: id,
+    p_client_op_id: clientOpId ?? null,
+  });
   if (error) throw error;
 }
 
-export async function reabrirTarefa(id: string): Promise<void> {
+export async function reabrirTarefa(id: string, clientOpId?: string): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const { error } = await supabase.rpc('reabrir_tarefa', { p_id: id });
+  const { error } = await supabase.rpc('reabrir_tarefa', {
+    p_id: id,
+    p_client_op_id: clientOpId ?? null,
+  });
   if (error) throw error;
 }
 
