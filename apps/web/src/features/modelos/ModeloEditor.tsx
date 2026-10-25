@@ -36,17 +36,19 @@ export function ModeloEditor({ id, onVoltar }: { id: string; onVoltar: () => voi
     const succ: Record<string, string[]> = {};
     for (const a of topo) succ[a.id] = [];
     for (const a of topo) for (const p of a.predecessoras) succ[p]?.push(a.id);
-    const cache: Record<string, Set<string>> = {};
-    const calc = (x: string, vis = new Set<string>()): Set<string> => {
-      if (cache[x]) return cache[x];
+    // Memoização pura (o grafo é DAG — o trigger anti-ciclo garante). O
+    // placeholder evita recursão infinita se houver um ciclo transitório.
+    const memo: Record<string, Set<string>> = {};
+    const calc = (x: string): Set<string> => {
+      const pronto = memo[x];
+      if (pronto) return pronto;
+      memo[x] = new Set();
       const out = new Set<string>();
       for (const s of succ[x] ?? []) {
-        if (vis.has(s)) continue;
-        vis.add(s);
         out.add(s);
-        for (const d of calc(s, vis)) out.add(d);
+        for (const d of calc(s)) out.add(d);
       }
-      cache[x] = out;
+      memo[x] = out;
       return out;
     };
     const r: Record<string, Set<string>> = {};

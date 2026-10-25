@@ -77,7 +77,16 @@ export function Gantt({ itens, nomes, predecessoras, total }: GanttProps) {
           return (
             <g
               key={it.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`${nomes[it.id] ?? ''}${it.critico ? ', caminho crítico' : ''}`}
               onClick={() => setSel((s) => (s === it.id ? null : it.id))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setSel((s) => (s === it.id ? null : it.id));
+                }
+              }}
               style={{ cursor: 'pointer', opacity: dim ? 0.3 : 1 }}
             >
               <text

@@ -96,8 +96,8 @@
   gap: var(--obdc-space-3);
 }
 .stepBtn {
-  width: 40px;
-  height: 40px;
+  width: var(--obdc-touch);
+  height: var(--obdc-touch);
   border: none;
   border-radius: var(--obdc-radius-field);
   background: var(--obdc-selected);
@@ -126,12 +126,13 @@
   min-width: 0;
 }
 .remover {
-  width: 36px;
-  height: 36px;
+  width: var(--obdc-touch);
+  height: var(--obdc-touch);
   border: none;
   background: transparent;
   cursor: pointer;
   color: var(--obdc-text);
+  flex-shrink: 0;
 }
 
 .abas {
