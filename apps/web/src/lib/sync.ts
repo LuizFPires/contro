@@ -1,6 +1,7 @@
 import { aposTentativa, classificarErro, proximaOp } from '@obdc/core';
 import type { QueryClient } from '@tanstack/react-query';
-import { marcarProvidencia } from '../features/obras/campo';
+import { concluirAtividade, marcarProvidencia } from '../features/obras/campo';
+import { removerFotoLocal, subirFotoLocal } from '../features/obras/foto';
 import { supabase } from './supabase';
 import { db, type OpDB } from './db';
 
@@ -12,6 +13,11 @@ import { db, type OpDB } from './db';
 type Handler = (payload: Record<string, unknown>, opId: string) => Promise<void>;
 const DISPATCH: Record<string, Handler> = {
   marcar_providencia: (p, opId) => marcarProvidencia(p.id as string, p.feito as boolean, opId),
+  concluir_atividade: async (p, opId) => {
+    const fotoId = await subirFotoLocal(p.fotoLocalId as string); // upload com retomada
+    await concluirAtividade(p.atividadeId as string, fotoId, opId);
+    await removerFotoLocal(p.fotoLocalId as string);
+  },
 };
 
 let qc: QueryClient | null = null;
@@ -88,7 +94,10 @@ export async function drenar(): Promise<void> {
           });
         }
         if (classe === 'rejeicao') {
-          invalidar(op.payload as Record<string, unknown>); // reverte o otimismo (verdade do servidor)
+          const pl = op.payload as Record<string, unknown>;
+          // Rejeição é terminal: sem reenvio, então libera o blob local para não vazar no Dexie.
+          if (typeof pl.fotoLocalId === 'string') await removerFotoLocal(pl.fotoLocalId);
+          invalidar(pl); // reverte o otimismo (verdade do servidor)
         } else {
           break; // rede: para e tenta de novo no próximo gatilho
         }

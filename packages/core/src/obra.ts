@@ -99,3 +99,37 @@ export function diaDaObra(inicio: DataISO, hoje: DataISO, total: number): { n: n
 export function entregaObra(inicio: DataISO, total: number): DataISO {
   return addDU(inicio, total - 1);
 }
+
+// --- Conclusão de atividade: XP e fechamento de fase (espelha concluir_atividade) ---
+
+/** XP por concluir uma atividade. */
+export const XP_ATIVIDADE = 50;
+/** XP extra ao fechar a última atividade de topo de uma fase. */
+export const XP_FASE_FECHADA = 200;
+
+export interface AtividadeFase {
+  id: string;
+  paiId: string | null;
+  faseId: string;
+  concluida: boolean;
+}
+
+/**
+ * Fecha a fase se nenhuma OUTRA atividade de topo (sem pai) da mesma fase fica
+ * em aberto. A própria atividade que está sendo concluída é desconsiderada
+ * (`id !== atividadeId`), espelhando o estado pós-conclusão do servidor.
+ */
+export function faseFechaCom(
+  atividadeId: string,
+  faseId: string,
+  atividades: AtividadeFase[],
+): boolean {
+  return !atividades.some(
+    (a) => a.paiId === null && a.faseId === faseId && a.id !== atividadeId && !a.concluida,
+  );
+}
+
+/** XP otimista da conclusão (50, +200 ao fechar a fase). */
+export function xpConclusao(faseFechada: boolean): number {
+  return XP_ATIVIDADE + (faseFechada ? XP_FASE_FECHADA : 0);
+}

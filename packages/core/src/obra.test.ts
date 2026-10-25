@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { calcularCronograma } from './schedule';
-import { diaDaObra, estadoObra } from './obra';
+import { diaDaObra, estadoObra, faseFechaCom, xpConclusao, type AtividadeFase } from './obra';
 
 const INICIO = '2026-01-05'; // segunda
 
@@ -105,5 +105,34 @@ describe('diaDaObra', () => {
   it('Dia N de M', () => {
     expect(diaDaObra(INICIO, '2026-01-07', 5)).toEqual({ n: 3, m: 5 }); // decorridos 2 -> dia 3
     expect(diaDaObra(INICIO, INICIO, 5)).toEqual({ n: 1, m: 5 });
+  });
+});
+
+describe('faseFechaCom / xpConclusao', () => {
+  // Fase f1: A, B (topo) e B1 (subitem de B). Fase f2: C.
+  const atvs: AtividadeFase[] = [
+    { id: 'A', paiId: null, faseId: 'f1', concluida: true },
+    { id: 'B', paiId: null, faseId: 'f1', concluida: false },
+    { id: 'B1', paiId: 'B', faseId: 'f1', concluida: false },
+    { id: 'C', paiId: null, faseId: 'f2', concluida: false },
+  ];
+
+  it('fecha a fase ao concluir a última de topo em aberto', () => {
+    // Concluir B fecha f1 (A já concluída; B1 é subitem, não conta).
+    expect(faseFechaCom('B', 'f1', atvs)).toBe(true);
+  });
+
+  it('não fecha a fase se sobra outra de topo em aberto', () => {
+    // Concluir A não fecha: B ainda aberta.
+    expect(faseFechaCom('A', 'f1', atvs)).toBe(false);
+  });
+
+  it('ignora atividades de outra fase', () => {
+    expect(faseFechaCom('C', 'f2', atvs)).toBe(true);
+  });
+
+  it('XP: 50 por atividade, +200 ao fechar a fase', () => {
+    expect(xpConclusao(false)).toBe(50);
+    expect(xpConclusao(true)).toBe(250);
   });
 });

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { faseFechaCom, xpConclusao } from '@obdc/core';
 import { BottomSheet, Button, Chip, Icon, Input, useToast } from '@obdc/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import type { ObraCompleta } from './detalhe';
@@ -79,12 +80,24 @@ export function FichaAtividade({
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    const fase = obra.fases.find((f) => f.id === a.fase_id);
+    const prox = obra.fases.find((f) => f.ordem === (fase?.ordem ?? 0) + 1);
+    // Regra de domínio (fechamento de fase + XP) vem do core (espelha o servidor).
+    const faseFechada = faseFechaCom(
+      a.id,
+      a.fase_id,
+      obra.atividades.map((x) => ({
+        id: x.id,
+        paiId: x.pai_id,
+        faseId: x.fase_id,
+        concluida: Boolean(x.concluida_em),
+      })),
+    );
+    const xp = xpConclusao(faseFechada);
     campo.concluir.mutate(
-      { atividadeId: a.id, file },
+      { atividadeId: a.id, file, faseFechada, xp },
       {
         onSuccess: (r) => {
-          const fase = obra.fases.find((f) => f.id === a.fase_id);
-          const prox = obra.fases.find((f) => f.ordem === (fase?.ordem ?? 0) + 1);
           onConcluida(r, {
             nome: a.nome,
             libera,
@@ -387,7 +400,7 @@ export function FichaAtividade({
             disabled={!podeConcluir || campo.concluir.isPending}
             onClick={() => fileRef.current?.click()}
           >
-            {campo.concluir.isPending ? 'Enviando foto…' : 'Concluir com foto'}
+            {campo.concluir.isPending ? 'Concluindo…' : 'Concluir com foto'}
           </Button>
         </>
       ) : null}

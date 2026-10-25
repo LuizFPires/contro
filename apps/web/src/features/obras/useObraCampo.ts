@@ -4,13 +4,13 @@ import {
   adicionarPredecessora,
   adicionarProvidencia,
   ajustarInicio,
-  concluirComFoto,
   editarDuracao,
   editarPrestador,
   marcarSubitem,
   removerPredecessora,
   removerProvidencia,
 } from './campo';
+import { guardarFotoLocal } from './foto';
 import type { ObraCompleta } from './detalhe';
 
 export function useObraCampo(obraId: string) {
@@ -84,10 +84,37 @@ export function useObraCampo(obraId: string) {
       removerPredecessora(obraId, v.atividadeId, v.predecessoraId),
     onSuccess: inval,
   });
+  // Conclusão OTIMISTA e offline: guarda a foto no Dexie (sobe em 2º plano),
+  // enfileira a op (idempotente) e marca a atividade concluída na hora. A fase/XP
+  // são calculados no cliente e devolvidos para a celebração.
   const concluir = useMutation({
-    mutationFn: ({ atividadeId, file }: { atividadeId: string; file: File }) =>
-      concluirComFoto(obraId, atividadeId, file),
-    onSuccess: inval,
+    mutationFn: async (v: {
+      atividadeId: string;
+      file: File;
+      faseFechada?: boolean;
+      xp?: number;
+    }) => {
+      const fotoLocalId = await guardarFotoLocal(obraId, v.file);
+      await enfileirar('concluir_atividade', { obraId, atividadeId: v.atividadeId, fotoLocalId });
+      return { xp: v.xp ?? 50, fase_fechada: v.faseFechada ?? false };
+    },
+    onMutate: async (v) => {
+      await qc.cancelQueries({ queryKey: ['obra', obraId] });
+      const prev = qc.getQueryData<ObraCompleta>(['obra', obraId]);
+      if (prev) {
+        qc.setQueryData<ObraCompleta>(['obra', obraId], {
+          ...prev,
+          xp: prev.xp + (v.xp ?? 50),
+          atividades: prev.atividades.map((a) =>
+            a.id === v.atividadeId ? { ...a, concluida_em: new Date().toISOString() } : a,
+          ),
+        });
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['obra', obraId], ctx.prev);
+    },
   });
 
   return {
