@@ -24,7 +24,7 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
-declare v_pessoa uuid; v_topo numeric;
+declare v_pessoa uuid; v_topo numeric; v_id uuid;
 begin
   if not public.obdc_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
@@ -52,7 +52,14 @@ begin
     p_id, p_obra_id, p_atividade_id, p_titulo, p_local,
     coalesce(p_criticidade, 'media'), p_foto_antes_id, v_pessoa, 'aberta', v_topo
   )
-  on conflict (id) do nothing;
+  on conflict (id) do nothing
+  returning id into v_id;
+  -- Reenvio da MESMA op já é cortado pelo guard acima; chegar aqui com o id
+  -- ocupado é colisão/reuso indevido do id do cliente. Aborta (terminal) e não
+  -- grava evento sobre uma pendência que não foi inserida nesta chamada.
+  if v_id is null then
+    raise exception 'Pendência com esse id já existe' using errcode = '23505';
+  end if;
   insert into public.pendencia_evento (pendencia_id, tipo, por, dados)
   values (p_id, 'apontada', v_pessoa, jsonb_build_object('foto_antes_id', p_foto_antes_id));
   return p_id;
