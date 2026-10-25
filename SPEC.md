@@ -1,4 +1,4 @@
-# SPEC — obdc · especificação técnica
+# SPEC — CONTRO · especificação técnica
 
 Versão 1.0 · 24/10/2026 · complementa o PRD.md. Em caso de conflito sobre comportamento, o PRD vale; sobre implementação, este SPEC.
 
@@ -11,7 +11,7 @@ Versão 1.0 · 24/10/2026 · complementa o PRD.md. Em caso de conflito sobre com
 | App | **React 18 + TypeScript + Vite**, PWA com `vite-plugin-pwa` | Uma base para celular (campo e modelos) e desktop, instalável e sem loja |
 | Estado do servidor | **TanStack Query** com atualização otimista | Feedback instantâneo ao toque |
 | Estado local e offline | **Dexie (IndexedDB)** + fila de sincronização | Campo sem sinal |
-| Estilo | CSS Modules + tokens OBDC em CSS variables | Sem dependência de UI kit; tokens do design system |
+| Estilo | CSS Modules + tokens CONTRO em CSS variables | Sem dependência de UI kit; tokens do design system |
 | Backend | **Supabase**: Postgres, Auth, Storage, RLS, Edge Functions, `pg_cron` | Banco relacional para o cronograma; fotos no Storage; regras de acesso no banco |
 | PDF | **Serviço Node + Playwright** (container) renderizando templates HTML | Mesmo método validado nos PDFs do protótipo (A4, Nunito Sans, ícones SVG) |
 | Testes | Vitest (lógica), Playwright (E2E), testes de RLS em SQL | O motor de cronograma é o coração e precisa de testes |
@@ -250,7 +250,7 @@ Dois perfis:
 
 ### 8.1 Texto do WhatsApp (gerado por `core/boletim.ts`)
 ```
-*obdc · Boletim da semana*
+*CONTRO · Boletim da semana*
 *{obra}* · {seg dd/mm} a {sex dd/mm}
 Avanço real {x}% · previsto até sexta {y}% · {ritmo}
 
@@ -265,7 +265,7 @@ Avanço real {x}% · previsto até sexta {y}% · {ritmo}
 _{pessoa}_
 • {dia dd/mm} · {tarefa}
 
-PDF completo com fotos e cronograma no app obdc.
+PDF completo com fotos e cronograma no app CONTRO.
 ```
 O envio é `https://wa.me/?text=` + `encodeURIComponent(texto)`, aberto em nova aba. O usuário escolhe o grupo. Limite prático de cerca de 4.000 caracteres: se passar, truncar "Quem faz o quê" e remeter ao PDF.
 
@@ -330,7 +330,7 @@ A faixa lateral de cada obra é **cinza escuro #4A4A4A**.
 ### 10.2 Componentes-chave
 `FaseTrilha`, `AtividadeItem`, `FichaAtividade` (bottom sheet, com subitens e "Ajustar início"), `AutocompleteNome` (sugestões de pessoa e prestador), `LembreteItem`, `PendenciaDeck` (swipe com limiar de 100 px, rotação dx/22 e botões equivalentes), `ListaPendencias`, `AdiarSheet`, `CameraGhost` (overlay do antes com 40% de opacidade), `Gantt`, `Inauguracao`, `BoletimView`, `ReuniaoObraCard`, `TarefaItem`, `TarefaSheet`, `Toast` com ação "Desfazer" (5 s).
 
-### 10.3 Tokens OBDC
+### 10.3 Tokens CONTRO
 ```css
 --obdc-turquoise:#54B4B0; --obdc-black:#181818; --obdc-white:#FFFFFF;
 --obdc-text:#181818; --obdc-muted:#696969; --obdc-bg:#F6F6F6; --obdc-surface:#FFFFFF;

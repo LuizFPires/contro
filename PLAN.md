@@ -1,4 +1,4 @@
-# PLAN — obdc · plano de implementação por milestones
+# PLAN — CONTRO · plano de implementação por milestones
 
 Versão 1.1 · 24/10/2026 · referência: PRD.md, SPEC.md, CLAUDE.md, protótipo aprovado.
 
@@ -23,21 +23,21 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ---
 
 ## M0 · Fundação
-**Objetivo:** projeto rodando ponta a ponta com login e o visual OBDC.
+**Objetivo:** projeto rodando ponta a ponta com login e o visual CONTRO.
 
 - [x] Monorepo pnpm (`apps/web`, `apps/pdf-service`, `packages/core`, `packages/ui`, `supabase`)
-- [x] Vite + React + TS + PWA (manifest, ícone provisório obdc, service worker)
-- [x] Tokens OBDC em `packages/ui` (cores, raios, Nunito Sans self-hosted, vermelho só como `--obdc-late`)
+- [x] Vite + React + TS + PWA (manifest, ícone provisório CONTRO, service worker)
+- [x] Tokens CONTRO em `packages/ui` (cores, raios, Nunito Sans self-hosted, vermelho só como `--obdc-late`)
 - [x] Componentes base: Botão (primário, secundário, terciário), Chip, Card, BottomSheet, Toast com "Desfazer", TabBar, Input, Segmented
 - [x] Supabase: projeto criado e **Auth e-mail/senha validado de ponta a ponta** (login logado e logout funcionando com o projeto `oaslrtizvfornxjuxpgp`). Falta só o 2º projeto (homologação)
 - [x] Tabelas `pessoa` (perfil gestor | equipe), `unidade`, `sugestao` + RLS — migration, políticas, seed e teste pgTAP **aplicados no projeto**
 - [x] CI: lint, typecheck, vitest, build — **verde** (GitHub Actions; repo tornado público). Deploy de preview por PR ainda requer ligar a Vercel
 - [~] Sentry no web — código pronto (inerte sem DSN); falta o usuário fornecer o DSN
-- [x] Importar o símbolo vetorial aprovado da pasta do projeto obdc (ícone do app, favicon, cabeçalho)
+- [x] Importar o símbolo vetorial aprovado da pasta do projeto CONTRO (ícone do app, favicon, cabeçalho)
 
-**Aceite:** login no celular, PWA instalável, tela vazia "Minhas obras" no padrão OBDC, CI verde.
+**Aceite:** login no celular, PWA instalável, tela vazia "Minhas obras" no padrão CONTRO, CI verde.
 
-> **Aceite do M0 validado em 24/10/2026:** login logado de ponta a ponta no app contra o Supabase real, tela "Minhas obras" no padrão OBDC, logout, CI verde. Migrations + RLS + seed aplicados; usuário de teste `engenheiro@obdc.dev` (gestor).
+> **Aceite do M0 validado em 24/10/2026:** login logado de ponta a ponta no app contra o Supabase real, tela "Minhas obras" no padrão CONTRO, logout, CI verde. Migrations + RLS + seed aplicados; usuário de teste `engenheiro@obdc.dev` (gestor).
 >
 > **Ainda pendente (não bloqueia o M0):** 2º projeto Supabase (homologação), ligar a Vercel ao repo para preview por PR, e DSN do Sentry.
 >
@@ -206,7 +206,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 **Aceite:** em modo avião, concluir atividade, apontar pendência, marcar lembrete e concluir tarefa; ao reconectar, tudo sincroniza sem duplicar.
 
 ## M10 · Piloto
-**Objetivo:** uma obra real do início ao fim no obdc.
+**Objetivo:** uma obra real do início ao fim no CONTRO.
 
 - [ ] Criar a obra piloto (a equipe se cadastra pelo uso, com sugestões)
 - [ ] Treinamento de 30 minutos (gestor e equipe de obra)
@@ -253,7 +253,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
 - 24/10/2026 · Lembretes sem valor e sem fornecedor · isso fica em outro sistema · usuário
-- 24/10/2026 · Vermelho só para atraso (exceção ao OBDC) · destacar o que está atrasado · usuário
+- 24/10/2026 · Vermelho só para atraso (exceção ao CONTRO) · destacar o que está atrasado · usuário
 - 24/10/2026 · Faixa de obra na ata em cinza #4A4A4A · vermelho dava a impressão de que todas as obras estavam atrasadas · usuário
 - 24/10/2026 · WhatsApp pelo link `wa.me` (sem API) · simplicidade e nenhum risco de bloqueio do número · usuário
 - 24/10/2026 · Home sem card de XP e sem contadores; nova obra como ícone "+" · o foco é a obra · usuário
@@ -262,11 +262,12 @@ Registro do que mudou em relação ao PRD/SPEC durante a implementação (data �
 - 24/10/2026 · Sem cadastro de feriados; dias úteis seg–sex e ajuste manual de início · não complicar; o usuário empurra a data quando houver feriado · usuário
 - 24/10/2026 · Modelo com fases editáveis (renomear, criar, excluir), atividades incluir/remover e subitens em sequência ou paralelo · flexibilidade do modelo · usuário
 - 24/10/2026 · Equipe com nomes fictícios no início; nomes digitados viram sugestões (cadastro pelo uso) · sem configuração prévia · usuário
-- 24/10/2026 · Símbolo: usar o vetor aprovado da pasta do projeto obdc · já disponível · usuário
+- 24/10/2026 · Símbolo: usar o vetor aprovado da pasta do projeto CONTRO · já disponível · usuário
 - 2026-10-24 · Modelo sem versões nem publicação: vários **modelos de obra** salvos (nome + subtítulo), escolhidos ao criar a obra. Lançamento de atividade no celular em assistente de 5 passos. Predecessoras de qualquer fase, sem ciclo (cálculo topológico).
 - 2026-10-24 · Só dois perfis: **Gestor** (tudo, inclusive modelos) e **Equipe de obra** (tudo menos editar modelos).
 - 2026-10-24 · Maquete 3D gamificada fica como **melhoria E1, fora do plano principal**: antes, estudo de uso de IA e custo. O protótipo navegável serve de referência.
-- 2026-10-24 · (auto — recomendado) Repositório próprio do obdc em `LuizFPires/obdc` (privado), isolado do catch-all `Desktop/Claude` · CI e deploy por PR precisam de repo dedicado · usuário aprovou "Repo próprio + GitHub"
+- 2026-10-24 · (auto — recomendado) Repositório próprio do CONTRO em `LuizFPires/contro` (privado→público), isolado do catch-all `Desktop/Claude` · CI e deploy por PR precisam de repo dedicado · usuário aprovou "Repo próprio + GitHub"
+- 2026-10-24 · Rename da marca obdc → **CONTRO** (só a marca visível: UI, assets, PWA, docs). Mantidos os identificadores internos `@obdc/*`, prefixo CSS `--obdc-*` e a função SQL `obdc_e_membro()` (invisíveis; renomeá-los seria churn e migration no banco sem ganho). Repo renomeado para `LuizFPires/contro`. Projeto Supabase renomeado para `contro` (ref inalterado). · usuário
 - 2026-10-24 · (auto — recomendado) Autenticação por **e-mail e senha** (não link mágico) · equipe de campo, login previsível sem depender de abrir o e-mail no celular; link mágico pode entrar depois se preciso
 - 2026-10-24 · (auto — recomendado) Hospedagem do PWA na **Vercel** com deploy de preview por PR; CI no **GitHub Actions** (lint, typecheck, vitest) · Vercel já conectado ao ambiente e atende o critério de preview por PR do M0
 - 2026-10-24 · (auto — recomendado · M1) Q6 — seed dos modelos com os **prazos provisórios do Anexo A**; o usuário ajusta pelo histórico real direto no editor do Modelo quando tiver os dados · não bloqueia o M1 e é o que o PLAN previa

@@ -1,9 +1,9 @@
-# CLAUDE.md — obdc · obras da contorno
+# CLAUDE.md — CONTRO · obras da contorno
 
 Guia para o Claude Code trabalhar neste repositório. Leia este arquivo inteiro antes de qualquer tarefa.
 
 ## O que é
-O obdc é um app (PWA, mobile first) para planejar e acompanhar as obras de reforma das unidades Contorno do Corpo.
+O CONTRO é um app (PWA, mobile first) para planejar e acompanhar as obras de reforma das unidades Contorno do Corpo.
 
 Cada obra nasce de um **modelo de obra** escolhido entre os modelos salvos (ex.: Modelo 1 · CDC completo, com 28 atividades em 6 fases, prazos médios em dias úteis, dependências e lembretes de providência) e é conduzida como um jogo de fases:
 - concluir atividade **com foto**;
@@ -30,7 +30,7 @@ React 18 + TypeScript + Vite (PWA) · TanStack Query · Dexie (offline) · Supab
 /apps/web            PWA (rotas, telas, componentes)
 /apps/pdf-service    HTML → PDF (boletim, ata)
 /packages/core       REGRAS DE DOMÍNIO puras e testadas (cronograma, liberação, %, semana, atribuições, textos)
-/packages/ui         tokens OBDC e componentes base
+/packages/ui         tokens CONTRO e componentes base
 /supabase            migrations, policies (RLS), seed, functions
 /docs                PRD.md, SPEC.md, PLAN.md, protótipo
 ```
@@ -61,14 +61,14 @@ pnpm lint && pnpm typecheck
 12. **Dependências entre quaisquer fases, sem ciclo.** O core calcula por ordenação topológica e rejeita ciclo.
 13. **Modelos se editam no celular** por assistente de 5 passos (nome com sugestões, prazo, começa depois de, providências, revisão). Editar abre direto na revisão.
 
-## Design system OBDC
+## Design system CONTRO
 - Cores: **somente** turquesa `#54B4B0`, preto `#181818` e branco, com opacidades. Fundo do app `#F6F6F6`.
 - **Exceção aprovada:** vermelho `#C62828` só para **atraso** (atividade, lembrete, providência vencida e ritmo atrasado). Não use vermelho para nada mais. A faixa separadora de obra na ata é cinza `#4A4A4A`, não vermelha.
 - Tipografia Nunito Sans (títulos 700–800, corpo 400–600, números 800). Mínimo de 12 px.
 - Botão primário: fundo turquesa e **texto preto**. Secundário: preto com texto branco. Terciário: contorno.
 - Alvos de toque ≥ 44 px. Estados sempre com **texto e ícone**, nunca só cor. Contraste AA.
 - Ícones lineares arredondados com traço 1,8–2 px, inline SVG. Sem emoji na UI.
-- Marca **"obdc"** sempre em minúsculas.
+- Marca **"CONTRO"** sempre em maiúsculas.
 - Decisões de layout já tomadas pelo usuário:
   - tela inicial sem card de XP e sem linha de contadores;
   - "nova obra" é ícone "+" ao lado de "Minhas obras";
@@ -79,7 +79,7 @@ pnpm lint && pnpm typecheck
 ## Cadastros e marca
 - Não há cadastro prévio obrigatório de equipe nem de prestadores. Os nomes fictícios ficam só no seed de homologação.
 - Todo nome digitado (responsável, prestador, local) vira **sugestão** de autocompletar (`sugestao`), ordenada por uso.
-- Símbolo: use o **vetor aprovado que está na pasta do projeto obdc**. Não redesenhe o símbolo.
+- Símbolo: use o **vetor aprovado que está na pasta do projeto CONTRO**. Não redesenhe o símbolo.
 
 ## Linguagem e formatos
 - Toda a UI em **pt-BR**.

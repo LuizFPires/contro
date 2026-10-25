@@ -1,6 +1,6 @@
-# supabase · obdc
+# supabase · CONTRO
 
-Migrations, RLS, seed e testes de política do obdc.
+Migrations, RLS, seed e testes de política do CONTRO.
 
 ## Estrutura
 - `migrations/` — schema versionado (aplicado em ordem).
