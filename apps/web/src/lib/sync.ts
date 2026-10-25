@@ -2,6 +2,7 @@ import { aposTentativa, classificarErro, proximaOp } from '@obdc/core';
 import type { QueryClient } from '@tanstack/react-query';
 import {
   adiarPendencia,
+  apontarPendencia,
   concluirAtividade,
   concluirTarefa,
   marcarProvidencia,
@@ -10,6 +11,7 @@ import {
   resolverPendencia,
   trazerPendencia,
   vistoriarPendencia,
+  type NovaPendencia,
 } from '../features/obras/campo';
 import { removerFotoLocal, subirFotoLocal } from '../features/obras/foto';
 import { supabase } from './supabase';
@@ -39,6 +41,17 @@ const DISPATCH: Record<string, Handler> = {
   resolver_pendencia: async (p, opId) => {
     const fotoId = await subirFotoLocal(p.fotoLocalId as string); // upload com retomada
     await resolverPendencia(p.id as string, fotoId, opId);
+    await removerFotoLocal(p.fotoLocalId as string);
+  },
+  apontar_pendencia: async (p, opId) => {
+    const fotoId = await subirFotoLocal(p.fotoLocalId as string); // foto do antes (retomada)
+    await apontarPendencia(
+      p.obraId as string,
+      p.pendenciaId as string,
+      p.dados as NovaPendencia,
+      fotoId,
+      opId,
+    );
     await removerFotoLocal(p.fotoLocalId as string);
   },
 };

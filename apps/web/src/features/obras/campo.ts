@@ -1,5 +1,4 @@
 import { supabase } from '../../lib/supabase';
-import { enviarFoto } from './foto';
 
 export async function marcarSubitem(
   id: string,
@@ -112,24 +111,26 @@ export interface NovaPendencia {
   atividadeId: string | null;
 }
 
-/** Envia a foto do antes e aponta a pendência. Retorna o id. */
+/** Aponta a pendência com id gerado no cliente e a foto do antes já enviada. */
 export async function apontarPendencia(
   obraId: string,
+  pendenciaId: string,
   dados: NovaPendencia,
-  file: File,
-): Promise<string> {
+  fotoId: string,
+  clientOpId?: string,
+): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const fotoId = await enviarFoto(obraId, file);
-  const { data, error } = await supabase.rpc('apontar_pendencia', {
+  const { error } = await supabase.rpc('apontar_pendencia', {
+    p_id: pendenciaId,
     p_obra_id: obraId,
     p_titulo: dados.titulo,
     p_local: dados.local,
     p_criticidade: dados.criticidade,
     p_foto_antes_id: fotoId,
     p_atividade_id: dados.atividadeId,
+    p_client_op_id: clientOpId ?? null,
   });
   if (error) throw error;
-  return data as string;
 }
 
 /** Manda a pendência para vistoria com a foto de depois já enviada (idempotente). */
