@@ -238,13 +238,16 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 - [x] Tela **Boletim automático** (aba Mais, só gestor): liga/desliga, dia, hora, fechamento opcional, "próximo envio" e Desfazer
 - [ ] Aplicar a migration no Supabase remoto (ação do usuário) para o save funcionar no piloto
 
-**Fatia 2 · Geração agendada** (próxima)
-- [ ] Tabela `boletim` + RPC `gerar_boletim(obra, edicao)` (snapshot + texto) idempotente
-- [ ] Cron (pg_cron) lê `config_boletim` e dispara no horário; lista "prontos para enviar"
+**Fatia 2 · Geração agendada (backend)**
+- [x] Tabela `boletim_disparo` (marcador por obra/semana/edição, dedup único) + RLS (membro lê, gestor marca enviado)
+- [x] `gerar_disparos_boletim(p_agora)` — no horário (fuso America/Sao_Paulo) cria os disparos das obras ativas, idempotente; teste pgTAP (horário, dedup, obra ativa só, fechamento)
+- [x] pg_cron `*/15 * * * *` chama a função (ela checa o horário por dentro)
+- Decisão de arquitetura: o texto/snapshot do boletim é calculado no **cliente** (core, como na tela Boletim), então a função só marca "está na hora". Sem Edge Function/compute server-side de texto nesta fatia.
 
-**Fatia 3 · Push** (próxima; precisa de chaves VAPID + Edge Function)
+**Fatia 3 · Enviar (lista in-app + push)** (próxima; push precisa de VAPID + Edge Function)
+- [ ] Lista "prontos para enviar" (gestor) a partir de `boletim_disparo` → abre o boletim da obra (já calculado no cliente) e marca como enviado
 - [ ] Service worker com handler de push/notificationclick; permissão; tabela `push_subscription`
-- [ ] Edge Function de envio chamada pelo cron; avisos "Boletim pronto para enviar"
+- [ ] Edge Function de push chamada pelo cron (lê disparos não notificados); avisos "Boletim pronto para enviar"
 - [ ] Ressalva iOS: push só com o PWA instalado na tela inicial (16.4+)
 
 **Aceite:** no dia/hora configurado pelo gestor, o boletim de cada obra ativa é gerado e o gestor recebe um push; ele toca e o WhatsApp abre com o texto pronto.
@@ -283,6 +286,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-25 · (boletim automático · fatia 2 · PR a abrir) **Geração agendada por marcador, sem compute server-side de texto.** Como o texto/snapshot do boletim é calculado no core (TS) e a tela Boletim já o monta ao abrir, a fatia 2 não materializa texto no banco: `gerar_disparos_boletim(p_agora)` (SECURITY DEFINER, fuso America/Sao_Paulo) só insere um `boletim_disparo` por obra ativa quando chega o dia/hora de `config_boletim`, com dedup único por (obra, semana, edição). pg_cron roda a cada 15 min e a função checa o horário por dentro (idempotente). A lista "prontos para enviar" e o push consomem esses disparos na fatia 3. Testado por pgTAP (horário, dedup, obra ativa, fechamento).
 - 2026-10-25 · (boletim automático · fatia 1 · PR a abrir) **Agendamento do boletim deixa de ser fixo.** O gestor configura dia/hora (global, todas as obras) em `config_boletim` (linha única; RLS só gestor edita), com edição principal + fechamento opcional; os horários do SPEC §11 viram apenas o padrão. Envio = **gerar + avisar** por push (sem API de WhatsApp nem e-mail — a Cloud API não envia para grupos); escopo **global** e aviso por **push** escolhidos pelo usuário. Geração agendada (pg_cron) e push (VAPID/Edge Function) são as fatias 2 e 3.
 
 - 2026-10-25 · (pdf-service · PR a abrir) **Boletim e ata em PDF** (substitui o HTML imprimível): novo pacote `apps/pdf-service` (Node + Express + Playwright) que importa o `@contro/core` e renderiza templates HTML A4 (Nunito Sans, design system; vermelho só para atraso) para PDF via Chromium. Endpoints `POST /boletim` (BoletimDados) e `POST /ata` ({dataFmt, obras}); `GET /health`; `pnpm --filter @contro/pdf-service smoke` gera PDFs de exemplo. Os geradores de HTML são puros e testados no Vitest (roda no CI). **Follow-up (feito, PR a abrir)**: o botão "Baixar PDF" do web (boletim e ata) agora chama o pdf-service quando `VITE_PDF_SERVICE_URL` está configurado (helper `baixarPdf` → POST + download do blob), com fallback para `window.print()` quando não há URL; o serviço ganhou CORS (preflight + `Access-Control-Allow-Origin` por `PDF_CORS_ORIGIN`, default `*`; **em produção, fixar para a origem do app**). A URL é normalizada (sem barra final → evita `//endpoint` 404), o nome do arquivo é sanitizado e o botão desabilita durante o download. **Ainda pendente**: deploy do serviço (container) e o snapshot semanal (pg_cron) que materializa os dados do PDF

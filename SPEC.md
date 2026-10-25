@@ -110,6 +110,12 @@ boletim(id, obra_id, semana_inicio date, edicao: 'segunda'|'sexta', snapshot jso
 config_boletim(id bool=true PK, ativo, dia_semana 1..7 (ISO), hora time,
                fechamento_ativo, fechamento_dia 1..7, fechamento_hora time,
                updated_at, updated_by)
+
+-- Disparo = "está na hora do boletim" por obra/semana/edição (dedup único).
+-- O texto/snapshot é calculado no cliente (core) ao abrir; aqui só o marcador.
+boletim_disparo(id, obra_id, semana_inicio date, edicao: 'principal'|'fechamento',
+                criado_em, notificado_em, enviado_em,
+                unique(obra_id, semana_inicio, edicao))
 ```
 
 ## 4. Motor de cronograma (`packages/core/schedule.ts`)
