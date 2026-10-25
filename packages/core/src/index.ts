@@ -12,6 +12,7 @@ export * from './tarefas';
 export * from './semana';
 export * from './atribuicoes';
 export * from './ata';
+export * from './boletim';
 
 export type Perfil = 'gestor' | 'equipe';
 
