@@ -61,12 +61,19 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
+declare v_n int;
 begin
   if not public.obdc_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  update public.reuniao_obra set observacoes = p_texto
-  where reuniao_id = p_reuniao_id and obra_id = p_obra_id;
+  update public.reuniao_obra ro set observacoes = p_texto
+  from public.reuniao r
+  where r.id = ro.reuniao_id and ro.reuniao_id = p_reuniao_id
+    and ro.obra_id = p_obra_id and r.status <> 'fechada';
+  get diagnostics v_n = row_count;
+  if v_n = 0 then
+    raise exception 'Reunião fechada ou inválida' using errcode = '42501';
+  end if;
 end;
 $$;
 
