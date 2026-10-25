@@ -266,6 +266,11 @@ begin
 end;
 $$;
 
+-- Nenhum cliente chama estas duas diretamente: a devolução roda só pelo pg_cron
+-- (owner) e o helper de pessoa é usado dentro das RPCs (que rodam como owner).
+revoke execute on function public.pendencia_devolver_adiadas() from public, anon, authenticated;
+revoke execute on function public.obdc_pessoa_atual() from public, anon, authenticated;
+
 -- Agenda no pg_cron (00:10) se a extensão estiver instalada. Sem ela, a fila já
 -- cobre as vencidas pela query do cliente.
 do $$
