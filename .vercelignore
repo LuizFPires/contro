@@ -1,0 +1,15 @@
+# A Vercel builda do zero (pnpm install + build); não suba artefatos locais.
+node_modules
+**/node_modules
+dist
+**/dist
+**/dev-dist
+.git
+.vercel
+supabase/.temp
+supabase/.branches
+apps/pdf-service/out
+coverage
+playwright-report
+test-results
+*.log
