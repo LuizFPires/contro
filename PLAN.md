@@ -200,22 +200,20 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 
 > **M8 concluído e mergeado em 25/10/2026 (PR #10).** core/boletim (texto WhatsApp §8.1 + truncagem, 79 testes); tela Boletim ao vivo (Atenção, Quem faz o quê por responsável, prévia) + WhatsApp + Imprimir/PDF, pelo ícone no cabeçalho da obra. Revisão: sem críticos/altos; aplicados fuso UTC na semana + guard de truncagem. Débitos: pdf-service, cron+push, §4.7 fontes engenheiro/compras (decisão de produto). CI verde.
 
-## M9 · Offline, gamificação e endurecimento
-**Objetivo:** confiável em campo e agradável de usar.
+## M9 · Prontidão para o piloto (pivô) + endurecimento leve
+**Objetivo:** destravar o piloto real (deploy, homologação, go-live) e polir o que for verificável.
 
-- [ ] Fila offline Dexie com `client_op_id` idempotente para todas as ações de campo
-- [ ] Upload de fotos em segundo plano com retomada
-- [ ] Indicador discreto "x ações aguardando sinal"
-- [ ] Conflitos: last write wins por campo; reversão com explicação quando o servidor recusar a conclusão
-- [ ] Gamificação:
-  - XP da equipe (registrado, sem card na home);
-  - conquistas da obra;
-  - celebração de fase (revisão final)
-- [ ] Performance: abrir a obra em < 1,5 s em 4G; toques < 100 ms; auditoria Lighthouse PWA ≥ 90
-- [ ] Acessibilidade: contraste AA, foco visível e leitores de tela nos controles de swipe (botões equivalentes)
-- [ ] E2E completos (SPEC 12) e testes de RLS por perfil
+> **Pivô (25/10/2026, decisão do usuário):** a **fila offline Dexie + idempotência + conflitos** é um bloco grande e não verificável sem E2E/dispositivo — vira um **milestone dedicado futuro** (M9-offline), não entra agora. O M9 passa a focar no que destrava o piloto.
 
-**Aceite:** em modo avião, concluir atividade, apontar pendência, marcar lembrete e concluir tarefa; ao reconectar, tudo sincroniza sem duplicar.
+- [ ] **Guia de go-live** (`DEPLOY.md`): Vercel (PWA) + Supabase (aplicar migrations M0–M8, env, bucket de fotos, pg_cron, criar gestor) + variáveis
+- [ ] **README** do projeto (visão, stack, scripts, estrutura)
+- [ ] **Checklist de prontidão** (`PILOTO.md`): o que está pronto por milestone, débitos e bloqueadores de go-live
+- [ ] Gamificação (se der): conquistas da obra e celebração de fase (XP já registrado desde o M2, sem card)
+- [ ] Acessibilidade (se der): foco visível e leitores de tela nos controles de swipe (botões equivalentes já existem)
+
+**Deferido para o M9-offline (dedicado):** fila offline Dexie com `client_op_id` idempotente; upload de foto em 2º plano com retomada; indicador "x aguardando sinal"; conflitos last-write-wins; E2E completos (SPEC 12); testes de RLS por perfil no CI; performance/Lighthouse ≥ 90.
+
+**Aceite:** com o `DEPLOY.md`, dá para subir o app na Vercel e o banco no Supabase e fazer login numa obra real; o `PILOTO.md` lista o que falta para o go-live.
 
 ## M10 · Piloto
 **Objetivo:** uma obra real do início ao fim no CONTRO.
@@ -314,4 +312,5 @@ Registro do que mudou em relação ao PRD/SPEC durante a implementação (data �
 - 2026-10-25 · (auto — recomendado · M8) `core/boletim.ts`: texto do WhatsApp (SPEC §8.1) derivado do estado da obra (indicadores + semana + atribuições), com **truncagem acima de ~4000 chars** remetendo ao PDF; testes · regra 1 ("textos do boletim" no core); `core/atribuicoes` já existe (M7)
 - 2026-10-25 · (auto — recomendado · M8) Boletim é **view derivada ao vivo** da obra (não persiste snapshot no M8): o ícone de boletim no cabeçalho da obra abre Atenção / Quem faz o quê / prévia / **WhatsApp + Imprimir-PDF** (HTML imprimível, como a ata) · entrega o uso imediato; snapshot histórico e o pdf-service ficam como débito
 - 2026-10-25 · (auto — recomendado · M8) Cron (segunda 06:30 / sexta 17:00) e **push "Boletim pronto"** ficam como **débito de infra** (push web precisa de service worker push + VAPID/FCM, infra nova); o boletim abre sob demanda a qualquer hora · consistente com a decisão do M7 de adiar infra pesada; o aceite (engenheiro abre e envia) é atendido sem push
+- 2026-10-25 · (usuário · M9) **Pivô do M9**: a fila offline (Dexie + idempotência + conflitos) é grande e não verificável sem E2E/dispositivo → vira um **milestone dedicado futuro (M9-offline)**. O M9 agora foca em **destravar o piloto**: guia de go-live (`DEPLOY.md`), README, checklist de prontidão (`PILOTO.md`), com gamificação/a11y se couber · prioriza entrega verificável e o caminho para o piloto real (M10)
 - 2026-10-25 · (review M7/M8 · débito registrado) O "Quem faz o quê" da **ata e do boletim** hoje inclui só as **tarefas por responsável** (fonte 1 do §4.7). As fontes 2 (engenheiro: recuperar atraso/garantir conclusão/mobilizar início) e 3 (compras: destravar/contratar/alugar/comprar) **não aparecem** porque o modelo de obra não tem quem é o engenheiro/compras. `core/atribuicoes` já suporta essas fontes (basta passar os nomes). Pendente de **decisão de produto**: como identificar engenheiro/compras por obra (campo na obra? por `papel_texto`?). Herdado do M7, não é regressão do M8
