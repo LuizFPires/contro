@@ -10,6 +10,7 @@ export * from './pendencias';
 export * from './indicadores';
 export * from './tarefas';
 export * from './semana';
+export * from './atribuicoes';
 
 export type Perfil = 'gestor' | 'equipe';
 
