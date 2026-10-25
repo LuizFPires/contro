@@ -9,6 +9,9 @@ export * from './providencias';
 export * from './pendencias';
 export * from './indicadores';
 export * from './tarefas';
+export * from './semana';
+export * from './atribuicoes';
+export * from './ata';
 
 export type Perfil = 'gestor' | 'equipe';
 
