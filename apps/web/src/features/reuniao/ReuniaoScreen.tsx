@@ -2,8 +2,10 @@ import { useMemo, useState } from 'react';
 import { ritmoTexto } from '@obdc/core';
 import { Icon, useToast } from '@obdc/ui';
 import { usePerfil } from '../perfil/usePerfil';
+import { usePessoas } from '../perfil/usePessoas';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import { AtaView } from './AtaView';
+import { NovaAcaoSheet } from './NovaAcaoSheet';
 import { useReuniao } from './useReuniao';
 import type { ReuniaoObraDados } from './reuniaoApi';
 import styles from './ReuniaoScreen.module.css';
@@ -19,9 +21,11 @@ function segundaISO(): string {
 export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
   const data = useMemo(segundaISO, []);
   const { data: pessoa } = usePerfil();
+  const { data: pessoas = [] } = usePessoas();
   const { showToast } = useToast();
-  const { query, observacao, fechar } = useReuniao(data);
+  const { query, observacao, fechar, criarAcao } = useReuniao(data);
   const [ataAberta, setAtaAberta] = useState(false);
+  const [acaoObra, setAcaoObra] = useState<ReuniaoObraDados | null>(null);
 
   const reuniao = query.data;
   const obras = useMemo(() => reuniao?.obras ?? [], [reuniao]);
@@ -87,6 +91,7 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
               key={o.obraId}
               o={o}
               fechada={fechada}
+              onNovaAcao={() => setAcaoObra(o)}
               onObservacao={(texto) =>
                 reuniao && observacao.mutate({ reuniaoId: reuniao.id, obraId: o.obraId, texto })
               }
@@ -111,6 +116,28 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
           )}
         </>
       )}
+
+      <NovaAcaoSheet
+        aberto={Boolean(acaoObra)}
+        obra={acaoObra}
+        pessoas={pessoas}
+        dataFmt={formatarDataCurta(data)}
+        pendente={criarAcao.isPending}
+        onFechar={() => setAcaoObra(null)}
+        onSalvar={(entrada) => {
+          if (!acaoObra) return;
+          criarAcao.mutate(
+            { obraId: acaoObra.obraId, entrada },
+            {
+              onSuccess: () => {
+                setAcaoObra(null);
+                showToast({ message: 'Registrado na reunião' });
+              },
+              onError: () => showToast({ message: 'Não foi possível registrar' }),
+            },
+          );
+        }}
+      />
     </div>
   );
 }
@@ -134,10 +161,12 @@ function ObraCard({
   o,
   fechada,
   onObservacao,
+  onNovaAcao,
 }: {
   o: ReuniaoObraDados;
   fechada: boolean;
   onObservacao: (texto: string) => void;
+  onNovaAcao: () => void;
 }) {
   const ritmo = ritmoTexto(o.ritmoDias, true);
   return (
@@ -212,6 +241,13 @@ function ObraCard({
             if (e.target.value !== o.observacoes) onObservacao(e.target.value);
           }}
         />
+
+        {!fechada ? (
+          <button type="button" className={styles.novaAcao} onClick={onNovaAcao}>
+            <Icon name="plus" size={16} />
+            Providência / tarefa
+          </button>
+        ) : null}
       </div>
     </div>
   );

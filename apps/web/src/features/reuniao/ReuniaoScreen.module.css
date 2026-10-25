@@ -135,6 +135,22 @@
   font-size: var(--obdc-fs-body-sm);
   resize: vertical;
 }
+.novaAcao {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--obdc-touch);
+  padding: 0 var(--obdc-space-3);
+  margin-top: var(--obdc-space-1);
+  border: 1px solid var(--obdc-text);
+  border-radius: var(--obdc-radius-pill);
+  background: transparent;
+  color: var(--obdc-text);
+  font-weight: 700;
+  font-size: var(--obdc-fs-body-sm);
+  cursor: pointer;
+}
 .fechar,
 .ata {
   min-height: var(--obdc-touch);

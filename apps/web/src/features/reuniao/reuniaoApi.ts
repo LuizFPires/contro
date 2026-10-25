@@ -43,6 +43,7 @@ export async function fecharReuniao(id: string, snapshots: SnapshotObra[]): Prom
 export interface ItemAtv {
   nome: string;
   data: string; // ISO (fim ou início previsto)
+  atividadeId: string;
 }
 export interface ItemPassada {
   nome: string;
@@ -53,6 +54,7 @@ export interface ItemProv {
   tipo: 'contratacao' | 'locacao' | 'compra';
   descricao: string;
   atividadeId: string;
+  providenciaId: string;
   naObraEm: string | null;
 }
 
@@ -113,10 +115,12 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
   const concluir: ItemAtv[] = sem.concluir.map((a) => ({
     nome: a.nome,
     data: cronOf(a.id)?.fim_previsto ?? obra.inicio,
+    atividadeId: a.id,
   }));
   const comecar: ItemAtv[] = sem.comecar.map((a) => ({
     nome: a.nome,
     data: cronOf(a.id)?.inicio_previsto ?? obra.inicio,
+    atividadeId: a.id,
   }));
   const passadaConcluir: ItemPassada[] = sem.passadaConcluir.map((a) => ({
     nome: a.nome,
@@ -146,6 +150,7 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
         tipo: p.tipo,
         descricao: p.descricao,
         atividadeId: a.id,
+        providenciaId: p.id,
         naObraEm: p.na_obra_em,
       };
       if (providenciaAtrasada(args)) providenciasAtrasadas.push(item);
@@ -158,6 +163,7 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
     .map((a) => ({
       nome: nomePorId.get(a.id) ?? '',
       data: cronOf(a.id)?.fim_previsto ?? obra.inicio,
+      atividadeId: a.id,
     }));
 
   return {
