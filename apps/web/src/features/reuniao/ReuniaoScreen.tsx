@@ -78,6 +78,8 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
 
       {query.isLoading ? (
         <p className={styles.vazio}>Montando a pauta…</p>
+      ) : query.isError ? (
+        <p className={styles.vazio}>Não foi possível montar a pauta. Tente de novo.</p>
       ) : (
         <>
           <div className={styles.kpis}>
@@ -93,7 +95,11 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
               fechada={fechada}
               onNovaAcao={() => setAcaoObra(o)}
               onObservacao={(texto) =>
-                reuniao && observacao.mutate({ reuniaoId: reuniao.id, obraId: o.obraId, texto })
+                reuniao &&
+                observacao.mutate(
+                  { reuniaoId: reuniao.id, obraId: o.obraId, texto },
+                  { onError: () => showToast({ message: 'Não foi possível salvar a observação' }) },
+                )
               }
             />
           ))}

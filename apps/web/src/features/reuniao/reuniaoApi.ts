@@ -2,6 +2,7 @@ import {
   classificarSemana,
   providenciaAtrasada,
   providenciarNaSemana,
+  tarefaAtrasada,
   type AtividadeSemana,
 } from '@obdc/core';
 import { supabase } from '../../lib/supabase';
@@ -75,11 +76,20 @@ export interface ReuniaoObraDados {
   atividadesAtrasadas: ItemAtv[];
 }
 
+export interface TarefaAtrib {
+  texto: string;
+  pessoa: string;
+  prazo: string | null;
+  atrasado: boolean;
+  concluido: boolean;
+}
+
 export interface ReuniaoCompleta {
   id: string;
   data: string;
   status: 'pauta' | 'em_andamento' | 'fechada';
   obras: ReuniaoObraDados[];
+  tarefas: TarefaAtrib[]; // para "Quem faz o quê" (por responsável) na ata
 }
 
 function motivoAtividade(obra: ObraCompleta, id: string): string | null {
@@ -195,15 +205,42 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
   if (!r) return null;
   const ro = (roRes.data ?? []) as { obra_id: string; observacoes: string | null }[];
 
-  const obras = (await Promise.all(ro.map((x) => loadObra(x.obra_id)))).filter(
+  const obraIds = ro.map((x) => x.obra_id);
+  const obras = (await Promise.all(obraIds.map((oid) => loadObra(oid)))).filter(
     (o): o is ObraCompleta => Boolean(o),
   );
   const obsPorObra = new Map(ro.map((x) => [x.obra_id, x.observacoes ?? '']));
+
+  // Tarefas das obras da reunião → "Quem faz o quê" por responsável na ata.
+  let tarefas: TarefaAtrib[] = [];
+  if (obraIds.length > 0) {
+    const hoje = hojeISO();
+    const { data: tData } = await supabase
+      .from('tarefa')
+      .select('texto,status,prazo,responsavel:pessoa!responsavel_id(nome)')
+      .in('obra_id', obraIds)
+      .is('deleted_at', null);
+    tarefas = (
+      (tData ?? []) as unknown as {
+        texto: string;
+        status: 'aberta' | 'feita';
+        prazo: string;
+        responsavel: { nome: string } | null;
+      }[]
+    ).map((t) => ({
+      texto: t.texto,
+      pessoa: t.responsavel?.nome ?? 'Sem responsável',
+      prazo: t.prazo,
+      atrasado: tarefaAtrasada(t, hoje),
+      concluido: t.status === 'feita',
+    }));
+  }
 
   return {
     id: r.id,
     data: r.data,
     status: r.status,
     obras: obras.map((o) => derivarObra(o, obsPorObra.get(o.id) ?? '')),
+    tarefas,
   };
 }

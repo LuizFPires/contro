@@ -40,12 +40,12 @@ begin
   if not public.obdc_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
+  -- Idempotente e à prova de corrida (dois membros abrindo a tela ao mesmo tempo).
+  insert into public.reuniao (data) values (p_data) on conflict (data) do nothing;
   select id into v_id from public.reuniao where data = p_data;
-  if v_id is null then
-    insert into public.reuniao (data) values (p_data) returning id into v_id;
-    insert into public.reuniao_obra (reuniao_id, obra_id)
-    select v_id, o.id from public.obra o where o.status = 'ativa' and o.deleted_at is null;
-  end if;
+  insert into public.reuniao_obra (reuniao_id, obra_id)
+  select v_id, o.id from public.obra o where o.status = 'ativa' and o.deleted_at is null
+  on conflict (reuniao_id, obra_id) do nothing;
   return v_id;
 end;
 $$;

@@ -1,5 +1,12 @@
-import { ritmoTexto, textoAtaWhatsapp, type ObraAta } from '@obdc/core';
+import {
+  compilarPorPessoa,
+  derivarAtribuicoes,
+  ritmoTexto,
+  textoAtaWhatsapp,
+  type ObraAta,
+} from '@obdc/core';
 import { Icon } from '@obdc/ui';
+import { hojeISO } from '../obras/api';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import type { ReuniaoCompleta } from './reuniaoApi';
 import styles from './AtaView.module.css';
@@ -23,6 +30,22 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
     observacoes: o.observacoes,
   }));
   const wa = `https://wa.me/?text=${encodeURIComponent(textoAtaWhatsapp(dataFmt, obrasAta))}`;
+
+  const porPessoa = compilarPorPessoa(
+    derivarAtribuicoes(
+      {
+        tarefas: reuniao.tarefas,
+        engenheiroNome: null,
+        comprasNome: null,
+        atividadesAtrasadas: [],
+        concluirSemana: [],
+        comecarSemana: [],
+        providenciasAtrasadas: [],
+        providenciarSemana: [],
+      },
+      hojeISO(),
+    ),
+  );
 
   return (
     <div className={styles.screen}>
@@ -110,6 +133,26 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
             ) : null}
           </section>
         ))}
+        {porPessoa.length > 0 ? (
+          <section className={styles.obra}>
+            <div className={styles.faixa}>Quem faz o quê</div>
+            {porPessoa.map((g) => (
+              <div key={g.pessoa} className={styles.bloco}>
+                <p className={styles.blocoTitulo}>{g.pessoa}</p>
+                <ul>
+                  {g.itens.map((it, i) => (
+                    <li key={i} className={it.atrasado ? styles.atraso : ''}>
+                      {it.texto}
+                      {it.prazo ? ` — ${formatarDataCurta(it.prazo)}` : ''}
+                      {it.concluido ? ' · feito' : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        ) : null}
+
         <footer className={styles.rodape}>Gerada em {formatarDataCompleta(reuniao.data)}</footer>
       </article>
     </div>
