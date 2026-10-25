@@ -1,16 +1,14 @@
+import { useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
-import { excluirTarefa, restaurarTarefa, type EntradaTarefa } from './campo';
+import { type EntradaTarefa } from './campo';
 import { loadTarefas, type TarefaObra } from './tarefasObra';
 
 export function useObraTarefas(obraId: string) {
   const qc = useQueryClient();
-  const inval = () => {
-    qc.invalidateQueries({ queryKey: ['tarefas', obraId] });
-    // efeitos de vínculo mexem na obra (providência/liberação)
-    qc.invalidateQueries({ queryKey: ['obra', obraId] });
-  };
+  // Tarefas removidas, à espera do "Desfazer" (re-adicionar otimista offline).
+  const removidas = useRef(new Map<string, TarefaObra>());
 
   const query = useQuery({
     queryKey: ['tarefas', obraId],
@@ -92,10 +90,43 @@ export function useObraTarefas(obraId: string) {
     onMutate: (id: string) => patchStatus(id, 'aberta'),
     onError: (_e, _v, ctx) => reverter(ctx),
   });
-  const excluir = useMutation({ mutationFn: (id: string) => excluirTarefa(id), onSuccess: inval });
+  // Excluir/restaurar: otimistas, offline e idempotentes. Guarda a tarefa
+  // removida para o "Desfazer" (regra 10) re-adicionar na hora, mesmo offline.
+  const excluir = useMutation({
+    mutationFn: (id: string) => enfileirar('excluir_tarefa', { obraId, id }),
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: ['tarefas', obraId] });
+      const prev = qc.getQueryData<TarefaObra[]>(['tarefas', obraId]);
+      const alvo = prev?.find((t) => t.id === id);
+      if (alvo) {
+        removidas.current.set(id, alvo);
+        // Passada a janela do "Desfazer", libera o stash (evita acúmulo).
+        window.setTimeout(() => removidas.current.delete(id), 8000);
+      }
+      if (prev) {
+        qc.setQueryData<TarefaObra[]>(
+          ['tarefas', obraId],
+          prev.filter((t) => t.id !== id),
+        );
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
   const restaurar = useMutation({
-    mutationFn: (id: string) => restaurarTarefa(id),
-    onSuccess: inval,
+    mutationFn: (id: string) => enfileirar('restaurar_tarefa', { obraId, id }),
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: ['tarefas', obraId] });
+      const prev = qc.getQueryData<TarefaObra[]>(['tarefas', obraId]);
+      const item = removidas.current.get(id);
+      if (prev && item && !prev.some((t) => t.id === id)) {
+        qc.setQueryData<TarefaObra[]>(['tarefas', obraId], [...prev, item]);
+      }
+      return { prev };
+    },
+    // Só libera o stash quando o enfileiramento deu certo (onError pode reverter).
+    onSuccess: (_d, id) => removidas.current.delete(id),
+    onError: (_e, _v, ctx) => reverter(ctx),
   });
 
   return { query, salvar, concluir, reabrir, excluir, restaurar };
