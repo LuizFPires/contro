@@ -47,11 +47,16 @@ export async function listarObras(): Promise<ObraResumo[]> {
   if (!supabase) return [];
   const hoje = hojeISO();
   const [obrasRes, fasesRes, atvsRes, depsRes, provsRes] = await Promise.all([
-    supabase.from('obra').select('id,nome,modelo_rotulo,inicio').eq('status', 'ativa'),
+    supabase
+      .from('obra')
+      .select('id,nome,modelo_rotulo,inicio')
+      .eq('status', 'ativa')
+      .is('deleted_at', null),
     supabase.from('obra_fase').select('id,obra_id,ordem,titulo').order('ordem'),
     supabase
       .from('obra_atividade')
-      .select('id,obra_id,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em'),
+      .select('id,obra_id,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em')
+      .is('deleted_at', null),
     supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id'),
     supabase.from('obra_providencia').select('obra_id,atividade_id,status'),
   ]);

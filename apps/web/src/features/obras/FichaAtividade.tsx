@@ -150,8 +150,8 @@ export function FichaAtividade({
         <div className={styles.secao}>
           <p className={styles.rotulo}>Depende de</p>
           <ul className={styles.lista}>
-            {dependeDe.map((n, i) => (
-              <li key={i}>{n}</li>
+            {dependeDe.map((n) => (
+              <li key={n}>{n}</li>
             ))}
           </ul>
         </div>
@@ -161,8 +161,8 @@ export function FichaAtividade({
         <div className={styles.secao}>
           <p className={styles.rotulo}>Libera</p>
           <ul className={styles.lista}>
-            {libera.map((n, i) => (
-              <li key={i}>{n}</li>
+            {libera.map((n) => (
+              <li key={n}>{n}</li>
             ))}
           </ul>
         </div>

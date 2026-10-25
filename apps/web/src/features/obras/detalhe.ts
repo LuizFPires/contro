@@ -59,7 +59,12 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
   if (!supabase) return null;
   const hoje = hojeISO();
   const [oRes, fRes, aRes, dRes, pRes] = await Promise.all([
-    supabase.from('obra').select('id,nome,inicio,modelo_rotulo,xp').eq('id', id).maybeSingle(),
+    supabase
+      .from('obra')
+      .select('id,nome,inicio,modelo_rotulo,xp')
+      .eq('id', id)
+      .is('deleted_at', null)
+      .maybeSingle(),
     supabase.from('obra_fase').select('id,ordem,titulo').eq('obra_id', id).order('ordem'),
     supabase
       .from('obra_atividade')
@@ -67,6 +72,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
         'id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,prestador',
       )
       .eq('obra_id', id)
+      .is('deleted_at', null)
       .order('ordem'),
     supabase.from('obra_dependencia').select('atividade_id,predecessora_id').eq('obra_id', id),
     supabase

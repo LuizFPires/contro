@@ -51,7 +51,7 @@
   font-weight: 700;
   font-size: var(--obdc-fs-caption);
   cursor: pointer;
-  min-height: 32px;
+  min-height: var(--obdc-touch);
 }
 .provFeito {
   background: var(--obdc-turquoise);
