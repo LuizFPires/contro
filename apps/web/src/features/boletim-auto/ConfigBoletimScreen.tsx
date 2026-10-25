@@ -8,6 +8,7 @@ import {
 import { Button, Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { useConfigBoletim } from './useConfigBoletim';
+import { usePushBoletim } from './usePushBoletim';
 import styles from './ConfigBoletimScreen.module.css';
 
 const DIAS: { v: DiaSemana; abrev: string }[] = [
@@ -163,8 +164,35 @@ export function ConfigBoletimScreen({ onVoltar }: { onVoltar: () => void }) {
           <Button full onClick={onSalvar} disabled={salvando}>
             {salvando ? 'Salvando…' : 'Salvar'}
           </Button>
+
+          <PushBloco />
         </div>
       )}
+    </div>
+  );
+}
+
+function PushBloco() {
+  const { disponivel, inscrito, ocupado, erro, inscrever, cancelar } = usePushBoletim();
+  if (!disponivel) return null;
+  return (
+    <div className={styles.push}>
+      <Switch
+        label="Receber aviso por push neste aparelho"
+        checked={inscrito}
+        disabled={ocupado}
+        onChange={(v) => void (v ? inscrever() : cancelar())}
+      />
+      <p className={styles.pushNota}>
+        No iPhone, o push só funciona com o app instalado na tela inicial. O aviso vale só para este
+        aparelho.
+      </p>
+      {erro ? (
+        <p className={styles.erroPush}>
+          <Icon name="alert" size={16} />
+          {erro}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -33,6 +33,9 @@ export default defineConfig({
       workbox: {
         // Não precachear os SVGs de marca (PNG embutido pesado). Só o essencial.
         globPatterns: ['**/*.{js,css,html,woff,woff2}', 'icons/*.png'],
+        // Handlers de Web Push adicionados ao SW gerado (sem trocar a estratégia:
+        // o precache/offline continua igual). Arquivo em public/push-handlers.js.
+        importScripts: ['/push-handlers.js'],
       },
       // Liga o service worker também no `pnpm dev`, para testar o PWA
       // (instalável + offline) com HMR, sem precisar de build+preview.

@@ -7,3 +7,7 @@ export const supabaseConfigurado = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 // URL do pdf-service (boletim/ata em PDF). Sem ela, o app cai no window.print().
 export const PDF_SERVICE_URL = import.meta.env.VITE_PDF_SERVICE_URL ?? '';
 export const pdfServiceConfigurado = Boolean(PDF_SERVICE_URL);
+
+// Chave pública VAPID do Web Push. Sem ela, a opção de push nem aparece.
+export const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY ?? '';
+export const pushConfigurado = Boolean(VAPID_PUBLIC_KEY);

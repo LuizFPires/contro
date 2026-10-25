@@ -246,8 +246,9 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 
 **Fatia 3 · Enviar (lista in-app + push)** (push precisa de VAPID + Edge Function)
 - [x] Lista "prontos para enviar" no Início (só gestor) a partir de `boletim_disparo` → "Abrir" abre o boletim da obra (já calculado no cliente) e "Enviado" marca com Desfazer (regra 10). Verificado no app (local) de ponta a ponta.
-- [ ] Service worker com handler de push/notificationclick; permissão; tabela `push_subscription`
-- [ ] Edge Function de push chamada pelo cron (lê disparos não notificados); avisos "Boletim pronto para enviar"
+- [x] (código) Service worker com handler de push/notificationclick via `importScripts` (offline intacto); permissão + assinatura; tabela `push_subscription` + RLS + pgTAP
+- [x] (código) Edge Function `enviar-push-boletim` (lê disparos não notificados, envia e marca); toggle "Receber aviso por push" na tela do gestor
+- [ ] **Deploy (ação do usuário):** gerar VAPID, `VITE_VAPID_PUBLIC_KEY` na Vercel, segredos + deploy da função, agendar pg_cron+pg_net — runbook em `supabase/functions/enviar-push-boletim/README.md`
 - [ ] Ressalva iOS: push só com o PWA instalado na tela inicial (16.4+)
 
 **Aceite:** no dia/hora configurado pelo gestor, o boletim de cada obra ativa é gerado e o gestor recebe um push; ele toca e o WhatsApp abre com o texto pronto.
@@ -286,6 +287,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-25 · (boletim automático · fatia 3 · PR a abrir) **Push por Web Push, com o SW intacto.** Os handlers de `push`/`notificationclick` entram no service worker gerado via `workbox.importScripts('/push-handlers.js')` — não troca a estratégia do vite-plugin-pwa, então o precache/offline do M9-offline fica igual. Assinaturas em `push_subscription` (RLS: cada um só a sua). A Edge Function `enviar-push-boletim` (service role, `npm:web-push`) lê os disparos não notificados, envia aos gestores inscritos, remove assinaturas 404/410 e marca `notificado_em`. O envio depende de deploy (VAPID, segredos, pg_cron+pg_net) — runbook em `supabase/functions/enviar-push-boletim/README.md`. A lista in-app "prontos para enviar" cobre o "avisar" sem depender do push.
 - 2026-10-25 · (boletim automático · fatia 2 · PR a abrir) **Geração agendada por marcador, sem compute server-side de texto.** Como o texto/snapshot do boletim é calculado no core (TS) e a tela Boletim já o monta ao abrir, a fatia 2 não materializa texto no banco: `gerar_disparos_boletim(p_agora)` (SECURITY DEFINER, fuso America/Sao_Paulo) só insere um `boletim_disparo` por obra ativa quando chega o dia/hora de `config_boletim`, com dedup único por (obra, semana, edição). pg_cron roda a cada 15 min e a função checa o horário por dentro (idempotente). A lista "prontos para enviar" e o push consomem esses disparos na fatia 3. Testado por pgTAP (horário, dedup, obra ativa, fechamento).
 - 2026-10-25 · (boletim automático · fatia 1 · PR a abrir) **Agendamento do boletim deixa de ser fixo.** O gestor configura dia/hora (global, todas as obras) em `config_boletim` (linha única; RLS só gestor edita), com edição principal + fechamento opcional; os horários do SPEC §11 viram apenas o padrão. Envio = **gerar + avisar** por push (sem API de WhatsApp nem e-mail — a Cloud API não envia para grupos); escopo **global** e aviso por **push** escolhidos pelo usuário. Geração agendada (pg_cron) e push (VAPID/Edge Function) são as fatias 2 e 3.
 

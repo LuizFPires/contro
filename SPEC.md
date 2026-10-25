@@ -116,6 +116,9 @@ config_boletim(id bool=true PK, ativo, dia_semana 1..7 (ISO), hora time,
 boletim_disparo(id, obra_id, semana_inicio date, edicao: 'principal'|'fechamento',
                 criado_em, notificado_em, enviado_em,
                 unique(obra_id, semana_inicio, edicao))
+
+-- Assinaturas de Web Push (um aparelho = um endpoint). Cada um gerencia a sua.
+push_subscription(id, user_id, endpoint unique, p256dh, auth, user_agent, criado_em)
 ```
 
 ## 4. Motor de cronograma (`packages/core/schedule.ts`)
