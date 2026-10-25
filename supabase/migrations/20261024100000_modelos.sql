@@ -45,7 +45,7 @@ create trigger modelo_atividade_set_updated_at before update on modelo_atividade
   for each row execute function set_updated_at();
 
 -- Subitem só tem um nível: o pai não pode ser, ele mesmo, um subitem.
-create or replace function obdc_subitem_um_nivel()
+create or replace function contro_subitem_um_nivel()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -60,7 +60,7 @@ begin
 end;
 $$;
 create trigger modelo_atividade_um_nivel before insert or update on modelo_atividade
-  for each row execute function obdc_subitem_um_nivel();
+  for each row execute function contro_subitem_um_nivel();
 
 create table modelo_dependencia (
   modelo_id uuid not null references modelo (id) on delete cascade,
@@ -72,7 +72,7 @@ create table modelo_dependencia (
 create index on modelo_dependencia (modelo_id);
 
 -- Trigger anti-ciclo: rejeita a dependência que fecharia um ciclo no modelo.
-create or replace function obdc_checa_ciclo_dependencia()
+create or replace function contro_checa_ciclo_dependencia()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -94,7 +94,7 @@ begin
 end;
 $$;
 create trigger modelo_dependencia_anti_ciclo before insert or update on modelo_dependencia
-  for each row execute function obdc_checa_ciclo_dependencia();
+  for each row execute function contro_checa_ciclo_dependencia();
 
 create table modelo_providencia (
   id uuid primary key default gen_random_uuid(),
@@ -120,11 +120,11 @@ alter table modelo_providencia enable row level security;
 
 -- modelo (exclusão lógica: filtra deleted_at na leitura)
 create policy modelo_sel on modelo
-  for select to authenticated using (deleted_at is null and obdc_e_membro());
+  for select to authenticated using (deleted_at is null and contro_e_membro());
 create policy modelo_ins on modelo
-  for insert to authenticated with check (obdc_perfil() = 'gestor');
+  for insert to authenticated with check (contro_perfil() = 'gestor');
 create policy modelo_upd on modelo
-  for update to authenticated using (obdc_perfil() = 'gestor') with check (obdc_perfil() = 'gestor');
+  for update to authenticated using (contro_perfil() = 'gestor') with check (contro_perfil() = 'gestor');
 
 -- tabelas filhas: leitura para membro; escrita só gestor
 do $$
@@ -132,9 +132,9 @@ declare t text;
 begin
   foreach t in array array['modelo_fase','modelo_atividade','modelo_dependencia','modelo_providencia']
   loop
-    execute format('create policy %I_sel on %I for select to authenticated using (obdc_e_membro());', t, t);
-    execute format('create policy %I_ins on %I for insert to authenticated with check (obdc_perfil() = ''gestor'');', t, t);
-    execute format('create policy %I_upd on %I for update to authenticated using (obdc_perfil() = ''gestor'') with check (obdc_perfil() = ''gestor'');', t, t);
-    execute format('create policy %I_del on %I for delete to authenticated using (obdc_perfil() = ''gestor'');', t, t);
+    execute format('create policy %I_sel on %I for select to authenticated using (contro_e_membro());', t, t);
+    execute format('create policy %I_ins on %I for insert to authenticated with check (contro_perfil() = ''gestor'');', t, t);
+    execute format('create policy %I_upd on %I for update to authenticated using (contro_perfil() = ''gestor'') with check (contro_perfil() = ''gestor'');', t, t);
+    execute format('create policy %I_del on %I for delete to authenticated using (contro_perfil() = ''gestor'');', t, t);
   end loop;
 end $$;

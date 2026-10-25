@@ -129,8 +129,8 @@ begin
     'obra','obra_fase','foto','obra_atividade','obra_dependencia','obra_providencia','obra_atividade_evento'
   ]
   loop
-    execute format('create policy %I_sel on %I for select to authenticated using (obdc_e_membro());', t, t);
-    execute format('create policy %I_ins on %I for insert to authenticated with check (obdc_e_membro());', t, t);
-    execute format('create policy %I_upd on %I for update to authenticated using (obdc_e_membro()) with check (obdc_e_membro());', t, t);
+    execute format('create policy %I_sel on %I for select to authenticated using (contro_e_membro());', t, t);
+    execute format('create policy %I_ins on %I for insert to authenticated with check (contro_e_membro());', t, t);
+    execute format('create policy %I_upd on %I for update to authenticated using (contro_e_membro()) with check (contro_e_membro());', t, t);
   end loop;
 end $$;

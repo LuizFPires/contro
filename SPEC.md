@@ -332,11 +332,11 @@ A faixa lateral de cada obra é **cinza escuro #4A4A4A**.
 
 ### 10.3 Tokens CONTRO
 ```css
---obdc-turquoise:#54B4B0; --obdc-black:#181818; --obdc-white:#FFFFFF;
---obdc-text:#181818; --obdc-muted:#696969; --obdc-bg:#F6F6F6; --obdc-surface:#FFFFFF;
---obdc-border:rgb(24 24 24 / 10%); --obdc-selected:rgb(84 180 176 / 22%);
---obdc-late:#C62828;            /* exceção: só atraso */
---obdc-separator:#4A4A4A;       /* faixa lateral das obras na ata */
+--contro-turquoise:#54B4B0; --contro-black:#181818; --contro-white:#FFFFFF;
+--contro-text:#181818; --contro-muted:#696969; --contro-bg:#F6F6F6; --contro-surface:#FFFFFF;
+--contro-border:rgb(24 24 24 / 10%); --contro-selected:rgb(84 180 176 / 22%);
+--contro-late:#C62828;            /* exceção: só atraso */
+--contro-separator:#4A4A4A;       /* faixa lateral das obras na ata */
 --radius-field:12px; --radius-card:16px; --radius-modal:20px;
 font-family:'Nunito Sans',sans-serif;
 ```

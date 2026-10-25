@@ -2,7 +2,7 @@
 -- cliente e endurecer marcar_subitem (subitem real, pai não concluído, evento).
 
 -- 1) Trigger de proteção também rejeita mudança estrutural pelo cliente.
-create or replace function obdc_protege_conclusao()
+create or replace function contro_protege_conclusao()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -41,7 +41,7 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_pai uuid;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   select a.pai_id into v_pai

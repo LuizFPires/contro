@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import { faseFechaCom, xpConclusao } from '@obdc/core';
-import { BottomSheet, Button, Chip, Icon, Input, useToast } from '@obdc/ui';
+import { faseFechaCom, xpConclusao } from '@contro/core';
+import { BottomSheet, Button, Chip, Icon, Input, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import type { ObraCompleta } from './detalhe';
 import { useObraCampo } from './useObraCampo';

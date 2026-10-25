@@ -1,4 +1,4 @@
-import { calcularCronograma, type AtividadeEntrada, type Cronograma } from '@obdc/core';
+import { calcularCronograma, type AtividadeEntrada, type Cronograma } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 const BASE = '2026-01-05';

@@ -12,19 +12,19 @@ drop policy if exists fotos_sel on storage.objects;
 drop policy if exists fotos_ins on storage.objects;
 create policy fotos_sel on storage.objects for select to authenticated
   using (
-    bucket_id = 'fotos' and public.obdc_e_membro()
+    bucket_id = 'fotos' and public.contro_e_membro()
     and (storage.foldername(name))[1] in (select id::text from public.obra where deleted_at is null)
   );
 create policy fotos_ins on storage.objects for insert to authenticated
   with check (
-    bucket_id = 'fotos' and public.obdc_e_membro()
+    bucket_id = 'fotos' and public.contro_e_membro()
     and (storage.foldername(name))[1] in (select id::text from public.obra where deleted_at is null)
   );
 
 -- 3) Conclusão só pelo RPC: bloqueia alteração direta (cliente) das colunas de
 -- conclusão. Dentro de uma função SECURITY DEFINER (dona = postgres) current_user
 -- é a dona, então o concluir_atividade passa; update direto (role authenticated) não.
-create or replace function obdc_protege_conclusao()
+create or replace function contro_protege_conclusao()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -41,4 +41,4 @@ begin
 end;
 $$;
 create trigger obra_atividade_protege_conclusao before update on obra_atividade
-  for each row execute function obdc_protege_conclusao();
+  for each row execute function contro_protege_conclusao();

@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type { OpStatus } from '@obdc/core';
+import type { OpStatus } from '@contro/core';
 
 export interface OpDB {
   id: string; // client_op_id (uuid) — chave e idempotência no servidor

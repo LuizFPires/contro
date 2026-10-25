@@ -2,10 +2,10 @@
   display: block;
   width: 100%;
   text-align: left;
-  background: var(--obdc-surface);
-  border-radius: var(--obdc-radius-card);
-  box-shadow: inset 0 0 0 1px var(--obdc-border);
-  padding: var(--obdc-space-4);
+  background: var(--contro-surface);
+  border-radius: var(--contro-radius-card);
+  box-shadow: inset 0 0 0 1px var(--contro-border);
+  padding: var(--contro-space-4);
 }
 
 .interactive {
@@ -18,6 +18,6 @@
 
 .interactive:active {
   box-shadow:
-    inset 0 0 0 1px var(--obdc-border),
-    var(--obdc-shadow-2);
+    inset 0 0 0 1px var(--contro-border),
+    var(--contro-shadow-2);
 }

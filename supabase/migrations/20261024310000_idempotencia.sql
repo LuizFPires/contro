@@ -12,7 +12,7 @@ alter table op_idempotente enable row level security;
 
 -- Registra a op e diz se é NOVA (true) ou repetida (false). p_op nulo = sempre nova
 -- (chamada online sem fila).
-create or replace function obdc_op_nova(p_op uuid)
+create or replace function contro_op_nova(p_op uuid)
 returns boolean
 language plpgsql
 security definer
@@ -27,7 +27,7 @@ begin
   return found; -- found = inseriu agora = é nova
 end;
 $$;
-revoke execute on function obdc_op_nova(uuid) from public, anon, authenticated;
+revoke execute on function contro_op_nova(uuid) from public, anon, authenticated;
 
 -- marcar_providencia idempotente por client_op_id (mantém o corpo do M3).
 create or replace function marcar_providencia(p_id uuid, p_feito boolean, p_client_op_id uuid default null)
@@ -38,10 +38,10 @@ set search_path = ''
 as $$
 declare v_pessoa uuid;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  if not public.obdc_op_nova(p_client_op_id) then
+  if not public.contro_op_nova(p_client_op_id) then
     return; -- já aplicada (reenvio da fila)
   end if;
   select id into v_pessoa from public.pessoa where user_id = auth.uid() and deleted_at is null;

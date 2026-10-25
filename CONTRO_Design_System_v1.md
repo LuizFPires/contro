@@ -113,18 +113,18 @@ Barra inferior móvel com até cinco destinos: **Início**, **Obras**, **Vistori
 ## 10. Tokens CSS de referência
 ```css
 :root {
-  --obdc-turquoise: #54B4B0;
-  --obdc-black: #181818;
-  --obdc-white: #FFFFFF;
-  --obdc-text: var(--obdc-black);
-  --obdc-bg: var(--obdc-white);
-  --obdc-border: rgb(24 24 24 / 14%);
-  --obdc-muted: rgb(24 24 24 / 60%);
-  --obdc-selected: rgb(84 180 176 / 12%);
-  --obdc-radius-field: 12px;
-  --obdc-radius-card: 16px;
-  --obdc-space-unit: 4px;
-  --obdc-font: 'Nunito Sans', sans-serif;
+  --contro-turquoise: #54B4B0;
+  --contro-black: #181818;
+  --contro-white: #FFFFFF;
+  --contro-text: var(--contro-black);
+  --contro-bg: var(--contro-white);
+  --contro-border: rgb(24 24 24 / 14%);
+  --contro-muted: rgb(24 24 24 / 60%);
+  --contro-selected: rgb(84 180 176 / 12%);
+  --contro-radius-field: 12px;
+  --contro-radius-card: 16px;
+  --contro-space-unit: 4px;
+  --contro-font: 'Nunito Sans', sans-serif;
 }
 ```
 

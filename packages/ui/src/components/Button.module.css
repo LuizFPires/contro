@@ -2,13 +2,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--obdc-space-2);
-  min-height: var(--obdc-control-h);
-  min-width: var(--obdc-touch);
-  padding: 0 var(--obdc-space-5);
+  gap: var(--contro-space-2);
+  min-height: var(--contro-control-h);
+  min-width: var(--contro-touch);
+  padding: 0 var(--contro-space-5);
   border: none;
-  border-radius: var(--obdc-radius-field);
-  font-size: var(--obdc-fs-body);
+  border-radius: var(--contro-radius-field);
+  font-size: var(--contro-fs-body);
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -28,27 +28,27 @@
 
 /* Primário: fundo turquesa, texto preto */
 .primary {
-  background: var(--obdc-action-primary-bg);
-  color: var(--obdc-action-primary-text);
+  background: var(--contro-action-primary-bg);
+  color: var(--contro-action-primary-text);
 }
 
 /* Secundário: preto, texto branco */
 .secondary {
-  background: var(--obdc-action-inverse-bg);
-  color: var(--obdc-action-inverse-text);
+  background: var(--contro-action-inverse-bg);
+  color: var(--contro-action-inverse-text);
 }
 
 /* Terciário: contorno */
 .tertiary {
   background: transparent;
-  color: var(--obdc-text);
-  box-shadow: inset 0 0 0 1.5px var(--obdc-border);
+  color: var(--contro-text);
+  box-shadow: inset 0 0 0 1.5px var(--contro-border);
 }
 
 .btn:disabled {
   cursor: not-allowed;
   filter: none;
-  background: var(--obdc-disabled-bg);
-  color: var(--obdc-disabled-text);
+  background: var(--contro-disabled-bg);
+  color: var(--contro-disabled-text);
   box-shadow: none;
 }

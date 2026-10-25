@@ -38,10 +38,10 @@ importers:
 
   apps/web:
     dependencies:
-      '@obdc/core':
+      '@contro/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@obdc/ui':
+      '@contro/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@sentry/react':

@@ -1,4 +1,9 @@
-import { calcularCronograma, estadoObra, tarefaAtrasada, type AtividadeEntrada } from '@obdc/core';
+import {
+  calcularCronograma,
+  estadoObra,
+  tarefaAtrasada,
+  type AtividadeEntrada,
+} from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 export function hojeISO(): string {

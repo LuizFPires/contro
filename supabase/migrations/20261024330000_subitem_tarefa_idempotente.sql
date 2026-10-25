@@ -23,10 +23,10 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_pai uuid;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  if not public.obdc_op_nova(p_client_op_id) then return; end if;
+  if not public.contro_op_nova(p_client_op_id) then return; end if;
   select a.pai_id into v_pai
   from public.obra_atividade a
   join public.obra_atividade pa on pa.id = a.pai_id
@@ -54,15 +54,15 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_t public.tarefa;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  if not public.obdc_op_nova(p_client_op_id) then return; end if;
+  if not public.contro_op_nova(p_client_op_id) then return; end if;
   select * into v_t from public.tarefa where id = p_id and deleted_at is null;
   if v_t.id is null then
     raise exception 'Tarefa inválida' using errcode = '23503';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
 
   if v_t.vinculo_tipo = 'providencia' and v_t.vinculo_id is not null then
     update public.obra_providencia
@@ -86,15 +86,15 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_t public.tarefa; v_atv_concluida boolean;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  if not public.obdc_op_nova(p_client_op_id) then return; end if;
+  if not public.contro_op_nova(p_client_op_id) then return; end if;
   select * into v_t from public.tarefa where id = p_id and deleted_at is null;
   if v_t.id is null then
     raise exception 'Tarefa inválida' using errcode = '23503';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
 
   if v_t.efeito_providencia_id is not null then
     select oa.concluida_em is not null into v_atv_concluida

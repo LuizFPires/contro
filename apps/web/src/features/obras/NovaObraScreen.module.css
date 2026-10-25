@@ -1,63 +1,63 @@
 .screen {
-  padding: var(--obdc-space-4);
+  padding: var(--contro-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--obdc-space-4);
+  gap: var(--contro-space-4);
 }
 .topo {
   display: flex;
   align-items: center;
-  gap: var(--obdc-space-2);
+  gap: var(--contro-space-2);
 }
 .voltar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--obdc-touch);
-  height: var(--obdc-touch);
+  width: var(--contro-touch);
+  height: var(--contro-touch);
   border: none;
   background: transparent;
-  color: var(--obdc-text);
+  color: var(--contro-text);
   cursor: pointer;
   transform: rotate(180deg);
 }
 .titulo {
-  font-size: var(--obdc-fs-h1);
+  font-size: var(--contro-fs-h1);
   font-weight: 800;
   margin: 0;
 }
 .campo {
   display: flex;
   flex-direction: column;
-  gap: var(--obdc-space-1);
+  gap: var(--contro-space-1);
 }
 .label {
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
   font-weight: 700;
 }
 .select {
   width: 100%;
-  min-height: var(--obdc-control-h);
-  padding: 0 var(--obdc-space-4);
+  min-height: var(--contro-control-h);
+  padding: 0 var(--contro-space-4);
   border: none;
-  border-radius: var(--obdc-radius-field);
-  background: var(--obdc-surface);
-  box-shadow: inset 0 0 0 1.5px var(--obdc-border);
-  font-size: var(--obdc-fs-body);
+  border-radius: var(--contro-radius-field);
+  background: var(--contro-surface);
+  box-shadow: inset 0 0 0 1.5px var(--contro-border);
+  font-size: var(--contro-fs-body);
 }
 .previa {
-  background: var(--obdc-selected);
-  border-radius: var(--obdc-radius-card);
-  padding: var(--obdc-space-4);
+  background: var(--contro-selected);
+  border-radius: var(--contro-radius-card);
+  padding: var(--contro-space-4);
 }
 .previaTitulo {
   font-weight: 800;
-  margin: 0 0 var(--obdc-space-2);
+  margin: 0 0 var(--contro-space-2);
 }
 .previaLinha {
   display: flex;
   justify-content: space-between;
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
   padding: 2px 0;
 }
 .previaLinha strong {

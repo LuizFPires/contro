@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Icon } from '@obdc/ui';
+import { Icon } from '@contro/ui';
 import type { PendenciaObra } from './pendenciasObra';
 import styles from './PendenciaDeck.module.css';
 

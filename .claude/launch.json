@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "obdc-web",
+      "name": "contro-web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@obdc/web", "dev"],
+      "runtimeArgs": ["--filter", "@contro/web", "dev"],
       "port": 5173
     }
   ]

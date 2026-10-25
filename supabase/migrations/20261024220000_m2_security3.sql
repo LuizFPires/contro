@@ -1,6 +1,6 @@
 -- M2 · Reforço 3 (review): no INSERT, validar o pai do subitem (mesma obra/fase,
 -- não excluído, não concluído, de topo) e tornar id imutável no UPDATE.
-create or replace function obdc_protege_conclusao()
+create or replace function contro_protege_conclusao()
 returns trigger
 language plpgsql
 set search_path = ''

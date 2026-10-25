@@ -1,15 +1,15 @@
 .aba {
-  padding: var(--obdc-space-4);
+  padding: var(--contro-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--obdc-space-3);
+  gap: var(--contro-space-3);
 }
 .legenda {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--obdc-space-3);
-  font-size: var(--obdc-fs-caption);
-  color: var(--obdc-muted);
+  gap: var(--contro-space-3);
+  font-size: var(--contro-fs-caption);
+  color: var(--contro-muted);
 }
 .legenda span {
   display: inline-flex;
@@ -24,21 +24,21 @@
   display: inline-block;
 }
 .lgConcluida::before {
-  background: var(--obdc-turquoise, #54b4b0);
+  background: var(--contro-turquoise, #54b4b0);
 }
 .lgLiberada::before {
-  background: var(--obdc-black, #181818);
+  background: var(--contro-black, #181818);
 }
 .lgAtrasada::before {
-  background: var(--obdc-late);
+  background: var(--contro-late);
 }
 .lgPlanejada::before {
-  background: var(--obdc-muted);
+  background: var(--contro-muted);
 }
 .faseTitulo {
   font-weight: 800;
-  font-size: var(--obdc-fs-body-sm);
-  margin: 0 0 var(--obdc-space-2);
+  font-size: var(--contro-fs-body-sm);
+  margin: 0 0 var(--contro-space-2);
 }
 .rows {
   display: flex;
@@ -49,18 +49,18 @@
   display: grid;
   grid-template-columns: 40% 1fr;
   align-items: center;
-  gap: var(--obdc-space-2);
+  gap: var(--contro-space-2);
   width: 100%;
   border: none;
   background: transparent;
   padding: 4px 0;
-  min-height: var(--obdc-touch);
+  min-height: var(--contro-touch);
   cursor: pointer;
   text-align: left;
 }
 .nome {
-  font-size: var(--obdc-fs-caption);
-  color: var(--obdc-text);
+  font-size: var(--contro-fs-caption);
+  color: var(--contro-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -68,35 +68,35 @@
 .trilho {
   position: relative;
   height: 16px;
-  background: var(--obdc-bg-app);
-  border-radius: var(--obdc-radius-pill);
+  background: var(--contro-bg-app);
+  border-radius: var(--contro-radius-pill);
   overflow: hidden;
 }
 .barra {
   position: absolute;
   top: 0;
   bottom: 0;
-  border-radius: var(--obdc-radius-pill);
+  border-radius: var(--contro-radius-pill);
   min-width: 4px;
 }
 .concluida {
-  background: var(--obdc-turquoise, #54b4b0);
+  background: var(--contro-turquoise, #54b4b0);
 }
 .liberada {
-  background: var(--obdc-black, #181818);
+  background: var(--contro-black, #181818);
 }
 .atrasada {
-  background: var(--obdc-late);
+  background: var(--contro-late);
 }
 .planejada {
-  background: var(--obdc-muted);
+  background: var(--contro-muted);
 }
 .hoje {
   position: absolute;
   top: -2px;
   bottom: -2px;
   width: 2px;
-  background: var(--obdc-text);
+  background: var(--contro-text);
   z-index: 2;
   opacity: 0.6;
 }

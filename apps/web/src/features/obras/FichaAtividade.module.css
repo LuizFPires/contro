@@ -1,30 +1,30 @@
 .secao {
-  margin-bottom: var(--obdc-space-4);
+  margin-bottom: var(--contro-space-4);
 }
 .rotulo {
-  font-size: var(--obdc-fs-caption);
+  font-size: var(--contro-fs-caption);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--obdc-muted);
-  margin: 0 0 var(--obdc-space-2);
+  color: var(--contro-muted);
+  margin: 0 0 var(--contro-space-2);
 }
 .datas {
   display: flex;
-  gap: var(--obdc-space-6);
-  font-size: var(--obdc-fs-body-sm);
+  gap: var(--contro-space-6);
+  font-size: var(--contro-fs-body-sm);
 }
 .datas strong {
   display: block;
-  font-size: var(--obdc-fs-caption);
-  color: var(--obdc-muted);
+  font-size: var(--contro-fs-caption);
+  color: var(--contro-muted);
 }
 .linhaCheck {
   display: flex;
   align-items: center;
-  gap: var(--obdc-space-2);
-  min-height: var(--obdc-touch);
-  font-size: var(--obdc-fs-body-sm);
+  gap: var(--contro-space-2);
+  min-height: var(--contro-touch);
+  font-size: var(--contro-fs-body-sm);
 }
 .linhaCheck input {
   width: 22px;
@@ -32,66 +32,66 @@
 }
 .feito {
   text-decoration: line-through;
-  color: var(--obdc-muted);
+  color: var(--contro-muted);
 }
 .prov {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--obdc-space-2);
-  min-height: var(--obdc-touch);
-  font-size: var(--obdc-fs-body-sm);
+  gap: var(--contro-space-2);
+  min-height: var(--contro-touch);
+  font-size: var(--contro-fs-body-sm);
 }
 .provToggle {
   border: none;
-  background: var(--obdc-selected);
-  box-shadow: inset 0 0 0 1px var(--obdc-border);
-  border-radius: var(--obdc-radius-pill);
-  padding: var(--obdc-space-1) var(--obdc-space-3);
+  background: var(--contro-selected);
+  box-shadow: inset 0 0 0 1px var(--contro-border);
+  border-radius: var(--contro-radius-pill);
+  padding: var(--contro-space-1) var(--contro-space-3);
   font-weight: 700;
-  font-size: var(--obdc-fs-caption);
+  font-size: var(--contro-fs-caption);
   cursor: pointer;
-  min-height: var(--obdc-touch);
+  min-height: var(--contro-touch);
 }
 .provFeito {
-  background: var(--obdc-turquoise);
-  color: var(--obdc-black);
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
 }
 .lista {
-  font-size: var(--obdc-fs-body-sm);
-  color: var(--obdc-text);
+  font-size: var(--contro-fs-body-sm);
+  color: var(--contro-text);
   margin: 0;
-  padding-left: var(--obdc-space-4);
+  padding-left: var(--contro-space-4);
 }
 .ajuste {
   display: flex;
-  gap: var(--obdc-space-2);
+  gap: var(--contro-space-2);
   align-items: flex-end;
 }
 .input {
   flex: 1;
-  min-height: var(--obdc-control-h);
-  padding: 0 var(--obdc-space-3);
+  min-height: var(--contro-control-h);
+  padding: 0 var(--contro-space-3);
   border: none;
-  border-radius: var(--obdc-radius-field);
-  background: var(--obdc-surface);
-  box-shadow: inset 0 0 0 1.5px var(--obdc-border);
-  font-size: var(--obdc-fs-body);
+  border-radius: var(--contro-radius-field);
+  background: var(--contro-surface);
+  box-shadow: inset 0 0 0 1.5px var(--contro-border);
+  font-size: var(--contro-fs-body);
 }
 .aviso {
-  font-size: var(--obdc-fs-body-sm);
-  color: var(--obdc-muted);
-  margin: 0 0 var(--obdc-space-2);
+  font-size: var(--contro-fs-body-sm);
+  color: var(--contro-muted);
+  margin: 0 0 var(--contro-space-2);
 }
 .remover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--obdc-touch);
-  height: var(--obdc-touch);
+  width: var(--contro-touch);
+  height: var(--contro-touch);
   border: none;
   background: transparent;
-  color: var(--obdc-text);
+  color: var(--contro-text);
   cursor: pointer;
   flex-shrink: 0;
 }

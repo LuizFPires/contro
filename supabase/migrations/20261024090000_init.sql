@@ -54,7 +54,7 @@ create table sugestao (
 );
 
 -- Perfil do usuário atual (security definer evita recursão de RLS em pessoa)
-create or replace function obdc_perfil()
+create or replace function contro_perfil()
 returns perfil
 language sql
 stable
@@ -68,7 +68,7 @@ as $$
 $$;
 
 -- Membro ativo = tem pessoa não excluída e ativa (gestor ou equipe).
-create or replace function obdc_e_membro()
+create or replace function contro_e_membro()
 returns boolean
 language sql
 stable
@@ -88,29 +88,29 @@ alter table sugestao enable row level security;
 
 -- pessoa (só membros ativos leem; só gestor escreve)
 create policy pessoa_sel on pessoa
-  for select to authenticated using (deleted_at is null and obdc_e_membro());
+  for select to authenticated using (deleted_at is null and contro_e_membro());
 create policy pessoa_ins on pessoa
-  for insert to authenticated with check (obdc_perfil() = 'gestor');
+  for insert to authenticated with check (contro_perfil() = 'gestor');
 create policy pessoa_upd on pessoa
   for update to authenticated
-  using (obdc_perfil() = 'gestor') with check (obdc_perfil() = 'gestor');
+  using (contro_perfil() = 'gestor') with check (contro_perfil() = 'gestor');
 
 -- unidade
 create policy unidade_sel on unidade
-  for select to authenticated using (deleted_at is null and obdc_e_membro());
+  for select to authenticated using (deleted_at is null and contro_e_membro());
 create policy unidade_ins on unidade
-  for insert to authenticated with check (obdc_perfil() = 'gestor');
+  for insert to authenticated with check (contro_perfil() = 'gestor');
 create policy unidade_upd on unidade
   for update to authenticated
-  using (obdc_perfil() = 'gestor') with check (obdc_perfil() = 'gestor');
+  using (contro_perfil() = 'gestor') with check (contro_perfil() = 'gestor');
 
 -- sugestao: membro ativo lê e escreve (cadastro pelo uso); sem exclusão
 create policy sugestao_sel on sugestao
-  for select to authenticated using (obdc_e_membro());
+  for select to authenticated using (contro_e_membro());
 create policy sugestao_ins on sugestao
-  for insert to authenticated with check (obdc_e_membro());
+  for insert to authenticated with check (contro_e_membro());
 create policy sugestao_upd on sugestao
-  for update to authenticated using (obdc_e_membro()) with check (obdc_e_membro());
+  for update to authenticated using (contro_e_membro()) with check (contro_e_membro());
 
 -- Nota: o primeiro gestor é criado fora da RLS (service role / seed de homologação),
--- pois nenhum gestor existe ainda para satisfazer obdc_perfil() = 'gestor'.
+-- pois nenhum gestor existe ainda para satisfazer contro_perfil() = 'gestor'.

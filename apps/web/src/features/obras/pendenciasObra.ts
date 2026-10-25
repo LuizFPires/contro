@@ -1,4 +1,4 @@
-import type { Criticidade, StatusPendencia } from '@obdc/core';
+import type { Criticidade, StatusPendencia } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 export interface PendenciaObra {

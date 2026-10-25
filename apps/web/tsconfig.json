@@ -6,8 +6,8 @@
     "types": ["vite/client", "vite-plugin-pwa/client"],
     "noEmit": true,
     "paths": {
-      "@obdc/core": ["../../packages/core/src/index.ts"],
-      "@obdc/ui": ["../../packages/ui/src/index.ts"]
+      "@contro/core": ["../../packages/core/src/index.ts"],
+      "@contro/ui": ["../../packages/ui/src/index.ts"]
     }
   },
   "include": ["src"]

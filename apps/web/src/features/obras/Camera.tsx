@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, Icon } from '@obdc/ui';
+import { Button, Icon } from '@contro/ui';
 import styles from './Camera.module.css';
 
 export interface CameraProps {

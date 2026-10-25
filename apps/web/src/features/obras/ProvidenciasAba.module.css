@@ -1,65 +1,65 @@
 .aba {
-  padding: var(--obdc-space-4);
+  padding: var(--contro-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--obdc-space-4);
+  gap: var(--contro-space-4);
 }
 .grupo {
   display: flex;
   flex-direction: column;
-  gap: var(--obdc-space-2);
+  gap: var(--contro-space-2);
 }
 .grupoTitulo {
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--obdc-muted);
+  color: var(--contro-muted);
   margin: 0;
 }
 .atrasadoTitulo {
-  color: var(--obdc-late);
+  color: var(--contro-late);
 }
 .item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--obdc-space-2);
+  gap: var(--contro-space-2);
 }
 .info {
   min-width: 0;
 }
 .desc {
   font-weight: 700;
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
 }
 .meta {
-  font-size: var(--obdc-fs-caption);
-  color: var(--obdc-muted);
+  font-size: var(--contro-fs-caption);
+  color: var(--contro-muted);
 }
 .metaAtraso {
-  color: var(--obdc-late);
+  color: var(--contro-late);
   font-weight: 700;
 }
 .marcar {
   border: none;
-  background: var(--obdc-action-primary-bg);
-  color: var(--obdc-action-primary-text);
-  border-radius: var(--obdc-radius-pill);
-  padding: 0 var(--obdc-space-3);
-  min-height: var(--obdc-touch);
+  background: var(--contro-action-primary-bg);
+  color: var(--contro-action-primary-text);
+  border-radius: var(--contro-radius-pill);
+  padding: 0 var(--contro-space-3);
+  min-height: var(--contro-touch);
   font-weight: 700;
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
   cursor: pointer;
   flex-shrink: 0;
 }
 .contador {
-  color: var(--obdc-muted);
-  font-size: var(--obdc-fs-body-sm);
+  color: var(--contro-muted);
+  font-size: var(--contro-fs-body-sm);
   text-align: center;
 }
 .vazio {
-  color: var(--obdc-muted);
+  color: var(--contro-muted);
   text-align: center;
-  margin-top: var(--obdc-space-6);
+  margin-top: var(--contro-space-6);
 }

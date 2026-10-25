@@ -1,5 +1,5 @@
 {
-  "name": "obdc",
+  "name": "contro",
   "private": true,
   "version": "0.0.0",
   "description": "CONTRO · app de obras da Contorno do Corpo (PWA mobile-first)",
@@ -9,13 +9,13 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "dev": "pnpm --filter @obdc/web dev",
-    "build": "pnpm --filter @obdc/web build",
-    "preview": "pnpm --filter @obdc/web preview",
-    "pdf:dev": "pnpm --filter @obdc/pdf-service dev",
+    "dev": "pnpm --filter @contro/web dev",
+    "build": "pnpm --filter @contro/web build",
+    "preview": "pnpm --filter @contro/web preview",
+    "pdf:dev": "pnpm --filter @contro/pdf-service dev",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "pnpm --filter @obdc/web test:e2e",
+    "test:e2e": "pnpm --filter @contro/web test:e2e",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

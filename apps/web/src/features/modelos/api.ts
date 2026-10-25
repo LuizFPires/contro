@@ -1,4 +1,4 @@
-import { calcularCronograma, type AtividadeEntrada } from '@obdc/core';
+import { calcularCronograma, type AtividadeEntrada } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 // Data base (segunda) só para o cálculo: o total em dias úteis independe dela.

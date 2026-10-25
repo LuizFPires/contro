@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Monograma, TabBar, type TabItem } from '@obdc/ui';
+import { Button, Monograma, TabBar, type TabItem } from '@contro/ui';
 import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
 import { ModelosScreen } from './features/modelos/ModelosScreen';

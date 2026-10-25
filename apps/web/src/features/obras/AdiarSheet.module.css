@@ -1,49 +1,49 @@
 .rotulo {
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--obdc-muted);
-  margin: var(--obdc-space-3) 0 var(--obdc-space-2);
+  color: var(--contro-muted);
+  margin: var(--contro-space-3) 0 var(--contro-space-2);
 }
 .pills {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--obdc-space-2);
+  gap: var(--contro-space-2);
 }
 .pill {
-  min-height: var(--obdc-touch);
-  padding: 0 var(--obdc-space-3);
-  border-radius: var(--obdc-radius-pill);
-  border: 1px solid var(--obdc-border);
+  min-height: var(--contro-touch);
+  padding: 0 var(--contro-space-3);
+  border-radius: var(--contro-radius-pill);
+  border: 1px solid var(--contro-border);
   background: transparent;
-  color: var(--obdc-text);
+  color: var(--contro-text);
   font-weight: 700;
-  font-size: var(--obdc-fs-body-sm);
+  font-size: var(--contro-fs-body-sm);
   cursor: pointer;
 }
 .ativo {
-  background: var(--obdc-action-primary-bg);
-  color: var(--obdc-action-primary-text);
+  background: var(--contro-action-primary-bg);
+  color: var(--contro-action-primary-text);
   border-color: transparent;
 }
 .data {
-  min-height: var(--obdc-touch);
-  padding: 0 var(--obdc-space-3);
-  border-radius: var(--obdc-radius-md, 12px);
-  border: 1px solid var(--obdc-border);
-  background: var(--obdc-surface);
-  color: var(--obdc-text);
-  font-size: var(--obdc-fs-body-sm);
+  min-height: var(--contro-touch);
+  padding: 0 var(--contro-space-3);
+  border-radius: var(--contro-radius-md, 12px);
+  border: 1px solid var(--contro-border);
+  background: var(--contro-surface);
+  color: var(--contro-text);
+  font-size: var(--contro-fs-body-sm);
 }
 .rodape {
-  margin-top: var(--obdc-space-4);
+  margin-top: var(--contro-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--obdc-space-2);
+  gap: var(--contro-space-2);
 }
 .resumo {
-  font-size: var(--obdc-fs-body-sm);
-  color: var(--obdc-muted);
+  font-size: var(--contro-fs-body-sm);
+  color: var(--contro-muted);
   text-align: center;
 }

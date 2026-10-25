@@ -1,4 +1,4 @@
-import { Card } from '@obdc/ui';
+import { Card } from '@contro/ui';
 import type { ObraCompleta } from './detalhe';
 import styles from './GanttAba.module.css';
 

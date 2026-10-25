@@ -7,7 +7,7 @@ import sharp from 'sharp';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..');
-const src = join(root, 'public', 'brand', 'OBDC_icone_app.png');
+const src = join(root, 'public', 'brand', 'CONTRO_icone_app.png');
 const outDir = join(root, 'public', 'icons');
 
 const BLACK = { r: 0x18, g: 0x18, b: 0x18, alpha: 1 };

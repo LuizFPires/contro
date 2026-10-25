@@ -4,7 +4,7 @@ import {
   providenciarNaSemana,
   tarefaAtrasada,
   type AtividadeSemana,
-} from '@obdc/core';
+} from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { hojeISO } from '../obras/api';
 import { loadObra, type ObraCompleta } from '../obras/detalhe';

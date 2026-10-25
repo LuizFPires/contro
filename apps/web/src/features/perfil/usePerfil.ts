@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type { Perfil } from '@obdc/core';
+import type { Perfil } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 export interface PessoaAtual {

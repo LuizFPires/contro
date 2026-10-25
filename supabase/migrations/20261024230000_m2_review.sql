@@ -24,7 +24,7 @@ declare
   v_rotulo text;
   v_pessoa uuid;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros podem criar obras' using errcode = '42501';
   end if;
 

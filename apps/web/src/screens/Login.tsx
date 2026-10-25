@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Button, Icon, Input, Monograma } from '@obdc/ui';
+import { Button, Icon, Input, Monograma } from '@contro/ui';
 import { supabase } from '../lib/supabase';
 import { supabaseConfigurado } from '../lib/env';
 import styles from './Login.module.css';

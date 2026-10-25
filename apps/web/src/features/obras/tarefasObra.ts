@@ -1,4 +1,4 @@
-import type { StatusTarefa } from '@obdc/core';
+import type { StatusTarefa } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 export interface TarefaObra {

@@ -27,10 +27,10 @@ declare
   v_xp int := 50;
   v_fase_fechada boolean := false;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
-  if not public.obdc_op_nova(p_client_op_id) then
+  if not public.contro_op_nova(p_client_op_id) then
     return jsonb_build_object('xp', 0, 'fase_fechada', false, 'repetida', true);
   end if;
 

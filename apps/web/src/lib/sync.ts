@@ -1,4 +1,4 @@
-import { aposTentativa, classificarErro, proximaOp } from '@obdc/core';
+import { aposTentativa, classificarErro, proximaOp } from '@contro/core';
 import type { QueryClient } from '@tanstack/react-query';
 import {
   adiarPendencia,

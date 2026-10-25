@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { AtividadeCronograma } from '@obdc/core';
+import type { AtividadeCronograma } from '@contro/core';
 
 const ROW_H = 26;
 const LABEL_W = 220;
@@ -45,7 +45,7 @@ export function Gantt({ itens, nomes, predecessoras, total }: GanttProps) {
         height={height}
         role="img"
         aria-label="Gantt do modelo"
-        style={{ fontFamily: 'var(--obdc-font)', display: 'block' }}
+        style={{ fontFamily: 'var(--contro-font)', display: 'block' }}
       >
         {/* grade vertical a cada 5 du */}
         {Array.from({ length: Math.floor(total / 5) + 1 }, (_, i) => i * 5).map((d) => (
@@ -55,13 +55,13 @@ export function Gantt({ itens, nomes, predecessoras, total }: GanttProps) {
               y1={PAD}
               x2={LABEL_W + d * PX_DU + PAD}
               y2={height - PAD}
-              stroke="var(--obdc-border)"
+              stroke="var(--contro-border)"
             />
             <text
               x={LABEL_W + d * PX_DU + PAD + 2}
               y={height - PAD}
               fontSize="10"
-              fill="var(--obdc-muted)"
+              fill="var(--contro-muted)"
             >
               {d}
             </text>
@@ -73,7 +73,7 @@ export function Gantt({ itens, nomes, predecessoras, total }: GanttProps) {
           const x = LABEL_W + it.es * PX_DU + PAD;
           const w = Math.max(it.dur * PX_DU, 4);
           const dim = realcadas ? !realcadas.has(it.id) : false;
-          const cor = it.critico ? 'var(--obdc-turquoise)' : 'var(--obdc-black)';
+          const cor = it.critico ? 'var(--contro-turquoise)' : 'var(--contro-black)';
           return (
             <g
               key={it.id}
@@ -94,7 +94,7 @@ export function Gantt({ itens, nomes, predecessoras, total }: GanttProps) {
                 y={y + ROW_H / 2 + 4}
                 fontSize="12"
                 fontWeight={it.id === sel ? 800 : 600}
-                fill="var(--obdc-text)"
+                fill="var(--contro-text)"
               >
                 {(nomes[it.id] ?? '').slice(0, 30)}
               </text>
@@ -105,7 +105,7 @@ export function Gantt({ itens, nomes, predecessoras, total }: GanttProps) {
                 height={ROW_H - 10}
                 rx={4}
                 fill={cor}
-                stroke={it.id === sel ? 'var(--obdc-black)' : 'none'}
+                stroke={it.id === sel ? 'var(--contro-black)' : 'none'}
                 strokeWidth={it.id === sel ? 2 : 0}
               />
             </g>

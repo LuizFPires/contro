@@ -1,9 +1,25 @@
 # Config mínima do Supabase. Rode `supabase init` para regenerar completa,
 # e `supabase link --project-ref <ref>` para apontar dev/homologação.
-project_id = "obdc"
+project_id = "contro"
+
+# Portas próprias (as padrão 5432x já são usadas por outros stacks locais).
+[api]
+port = 54821
+
+[studio]
+port = 54823
+
+[inbucket]
+port = 54824
+
+# Analytics (logflare) desligado no dev local para aliviar a máquina.
+[analytics]
+enabled = false
 
 [db]
 major_version = 15
+port = 54822
+shadow_port = 54820
 
 [db.seed]
 enabled = true

@@ -1,4 +1,4 @@
-import { duEntre, providenciaAtrasada, providenciarAte } from '@obdc/core';
+import { duEntre, providenciaAtrasada, providenciarAte } from '@contro/core';
 import type { ObraCompleta } from './detalhe';
 
 const TIPO: Record<string, string> = {

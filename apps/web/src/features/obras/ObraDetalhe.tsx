@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { diasUteisRestantes, ritmoTexto } from '@obdc/core';
-import { Icon, Segmented, useToast } from '@obdc/ui';
+import { diasUteisRestantes, ritmoTexto } from '@contro/core';
+import { Icon, Segmented, useToast } from '@contro/ui';
 import { formatarDataCompleta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { BoletimView } from './BoletimView';
@@ -96,7 +96,7 @@ export function ObraDetalhe({
         <div className={styles.barra}>
           <div className={styles.barraFill} style={{ width: `${Math.round(obra.pct * 100)}%` }} />
         </div>
-        <div style={{ marginTop: 'var(--obdc-space-2)', overflowX: 'auto' }}>
+        <div style={{ marginTop: 'var(--contro-space-2)', overflowX: 'auto' }}>
           <Segmented
             ariaLabel="Seção da obra"
             value={aba}

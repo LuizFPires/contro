@@ -49,12 +49,12 @@ create index on pendencia_evento (pendencia_id, em);
 alter table pendencia enable row level security;
 alter table pendencia_evento enable row level security;
 create policy pendencia_sel on pendencia
-  for select to authenticated using (obdc_e_membro());
+  for select to authenticated using (contro_e_membro());
 create policy pendencia_evento_sel on pendencia_evento
-  for select to authenticated using (obdc_e_membro());
+  for select to authenticated using (contro_e_membro());
 
 -- Helper interno: pessoa ativa do auth.uid() (ou erro).
-create or replace function public.obdc_pessoa_atual()
+create or replace function public.contro_pessoa_atual()
 returns uuid
 language sql
 security definer
@@ -79,7 +79,7 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_id uuid; v_topo numeric;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   if p_foto_antes_id is null or not exists (
@@ -95,7 +95,7 @@ begin
   ) then
     raise exception 'Atividade não é desta obra' using errcode = '23503';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   select coalesce(min(ordem_fila), 0) - 1 into v_topo from public.pendencia where obra_id = p_obra_id;
   insert into public.pendencia (
     obra_id, atividade_id, titulo, local, criticidade, foto_antes_id,
@@ -119,7 +119,7 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_obra uuid; v_status text;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   select obra_id, status into v_obra, v_status
@@ -135,7 +135,7 @@ begin
   ) then
     raise exception 'Resolver exige foto de depois da obra' using errcode = '23503';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   update public.pendencia
   set status = 'em_vistoria', foto_depois_id = p_foto_depois_id,
       resolvida_por = v_pessoa, resolvida_em = now()
@@ -154,7 +154,7 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_status text;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   select status into v_status from public.pendencia where id = p_id and deleted_at is null;
@@ -167,7 +167,7 @@ begin
   if p_data is null or p_data <= current_date then
     raise exception 'Data de retorno deve ser futura' using errcode = '23514';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   update public.pendencia
   set adiada_ate = p_data, motivo_adiamento = p_motivo
   where id = p_id;
@@ -185,7 +185,7 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_obra uuid; v_status text; v_topo numeric;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   select obra_id, status into v_obra, v_status
@@ -196,7 +196,7 @@ begin
   if v_status <> 'aberta' then
     raise exception 'Só traz pendência aberta' using errcode = '42501';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   select coalesce(min(ordem_fila), 0) - 1 into v_topo from public.pendencia where obra_id = v_obra;
   update public.pendencia
   set adiada_ate = null, motivo_adiamento = null, ordem_fila = v_topo
@@ -215,7 +215,7 @@ set search_path = ''
 as $$
 declare v_pessoa uuid; v_obra uuid; v_status text; v_resolvida_por uuid; v_topo numeric;
 begin
-  if not public.obdc_e_membro() then
+  if not public.contro_e_membro() then
     raise exception 'Apenas membros' using errcode = '42501';
   end if;
   select obra_id, status, resolvida_por into v_obra, v_status, v_resolvida_por
@@ -226,7 +226,7 @@ begin
   if v_status <> 'em_vistoria' then
     raise exception 'Só vistoria pendência em vistoria' using errcode = '42501';
   end if;
-  v_pessoa := public.obdc_pessoa_atual();
+  v_pessoa := public.contro_pessoa_atual();
   if v_pessoa = v_resolvida_por then
     raise exception 'Quem resolveu não pode vistoriar a própria pendência' using errcode = '42501';
   end if;
@@ -274,7 +274,7 @@ $$;
 -- Nenhum cliente chama estas duas diretamente: a devolução roda só pelo pg_cron
 -- (owner) e o helper de pessoa é usado dentro das RPCs (que rodam como owner).
 revoke execute on function public.pendencia_devolver_adiadas() from public, anon, authenticated;
-revoke execute on function public.obdc_pessoa_atual() from public, anon, authenticated;
+revoke execute on function public.contro_pessoa_atual() from public, anon, authenticated;
 
 -- Agenda no pg_cron (00:10) se a extensão estiver instalada. Sem ela, a fila já
 -- cobre as vencidas pela query do cliente.

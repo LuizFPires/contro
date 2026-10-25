@@ -23,7 +23,7 @@ declare
   pr jsonb;
   p uuid;
 begin
-  if public.obdc_perfil() is distinct from 'gestor' then
+  if public.contro_perfil() is distinct from 'gestor' then
     raise exception 'Só o gestor edita modelos' using errcode = '42501';
   end if;
   if coalesce(p_duracao_du, 0) < 1 then

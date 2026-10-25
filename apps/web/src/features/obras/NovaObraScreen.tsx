@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { calcularCronograma, type AtividadeEntrada } from '@obdc/core';
-import { Button, Icon, Input } from '@obdc/ui';
+import { calcularCronograma, type AtividadeEntrada } from '@contro/core';
+import { Button, Icon, Input } from '@contro/ui';
 import { formatarDataCompleta } from '../../lib/datas';
 import { useModelos } from '../modelos/useModelos';
 import { useModeloCompleto } from '../modelos/useModeloDetalhe';

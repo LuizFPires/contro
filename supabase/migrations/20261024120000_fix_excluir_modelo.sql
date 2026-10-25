@@ -10,7 +10,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if public.obdc_perfil() is distinct from 'gestor' then
+  if public.contro_perfil() is distinct from 'gestor' then
     raise exception 'Só o gestor edita modelos' using errcode = '42501';
   end if;
   if (select count(*) from public.modelo where deleted_at is null) <= 1 then

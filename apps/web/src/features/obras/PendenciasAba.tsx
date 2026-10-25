@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { classificarPendencias } from '@obdc/core';
-import { Card, Icon, Segmented, useToast } from '@obdc/ui';
+import { classificarPendencias } from '@contro/core';
+import { Card, Icon, Segmented, useToast } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';

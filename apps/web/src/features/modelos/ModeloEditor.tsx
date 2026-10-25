@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Button, Card, Icon, useToast } from '@obdc/ui';
+import { Button, Card, Icon, useToast } from '@contro/ui';
 import { AssistenteAtividade } from './AssistenteAtividade';
 import { Gantt } from './Gantt';
 import { useModeloCompleto, useSalvarAtividade } from './useModeloDetalhe';

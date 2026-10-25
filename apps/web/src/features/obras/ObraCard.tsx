@@ -1,5 +1,5 @@
-import { ritmoTexto } from '@obdc/core';
-import { Card } from '@obdc/ui';
+import { ritmoTexto } from '@contro/core';
+import { Card } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import type { ObraResumo } from './api';
 import styles from './ObraCard.module.css';
