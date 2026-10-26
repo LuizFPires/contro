@@ -1,139 +1,190 @@
+/* Fila de pendências em cartões — protótipo aprovado (PENDÊNCIAS · Fila). */
 .deck {
-  position: relative;
-  padding: var(--contro-space-2) 0 var(--contro-space-4);
+  display: flex;
+  flex-direction: column;
 }
-.cardTopo,
-.cardAtras {
-  background: var(--contro-surface);
-  border: 1px solid var(--contro-border);
-  border-radius: var(--contro-radius-lg, 16px);
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgb(24 24 24 / 8%);
+.pilha {
+  position: relative;
+  height: clamp(340px, calc(100dvh - 380px), 520px);
 }
 .cardAtras {
   position: absolute;
-  inset: var(--contro-space-2) 0 auto 0;
-  transform-origin: top center;
+  inset: 14px 10px 0;
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 20px;
+  transform: scale(0.96) translateY(10px);
+  opacity: 0.7;
 }
 .cardTopo {
-  position: relative;
-  touch-action: pan-y;
+  position: absolute;
+  inset: 0;
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 20px;
+  overflow: hidden;
+  touch-action: none;
   cursor: grab;
   user-select: none;
+  box-shadow: 0 10px 30px rgb(24 24 24 / 12%);
+  display: flex;
+  flex-direction: column;
 }
 .foto {
+  height: 58%;
+  position: relative;
+  flex-shrink: 0;
+  background: #6a6a6a;
+}
+.foto img {
   width: 100%;
-  height: 220px;
+  height: 100%;
   object-fit: cover;
   display: block;
-  background: var(--contro-bg-app);
+  pointer-events: none;
 }
-.fotoVazia {
-  width: 100%;
-  height: 220px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--contro-muted);
-  background: var(--contro-bg-app);
+.antes,
+.crit {
+  position: absolute;
+  top: 12px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 9px;
+  border-radius: 8px;
+}
+.antes {
+  left: 12px;
+  background: rgb(24 24 24 / 82%);
+  color: var(--contro-white);
+}
+.crit {
+  right: 12px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+}
+.critAlta {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.legenda {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--contro-white);
+  background: rgb(24 24 24 / 60%);
+}
+.seloOk,
+.seloAdiar {
+  position: absolute;
+  top: 50%;
+  border: 3px solid var(--contro-black);
+  color: var(--contro-black);
+  font-weight: 800;
+  font-size: 22px;
+  padding: 2px 10px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+.seloOk {
+  left: 18px;
+  transform: translateY(-50%) rotate(-12deg);
+  background: var(--contro-turquoise);
+}
+.seloAdiar {
+  right: 18px;
+  transform: translateY(-50%) rotate(12deg);
+  background: var(--contro-white);
 }
 .corpo {
-  padding: var(--contro-space-3);
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.linha {
-  display: flex;
-  align-items: center;
-  gap: var(--contro-space-2);
-}
-.crit {
-  font-size: var(--contro-fs-caption);
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: var(--contro-radius-pill);
-}
-.crit_alta {
-  background: var(--contro-black, #181818);
-  color: #fff;
-}
-.crit_media {
-  background: var(--contro-selected, rgb(84 180 176 / 22%));
-  color: var(--contro-text);
-}
-.crit_baixa {
-  border: 1px solid var(--contro-border);
-  color: var(--contro-muted);
-}
-.local {
-  font-size: var(--contro-fs-caption);
-  color: var(--contro-muted);
-}
 .titulo {
   font-weight: 800;
-  font-size: var(--contro-fs-body);
-  margin: 0;
+  font-size: 19px;
+  line-height: 1.25;
+}
+.onde {
+  font-size: 15px;
+  color: #464646;
 }
 .meta {
-  font-size: var(--contro-fs-caption);
-  color: var(--contro-muted);
-  margin: 0;
+  font-size: 13px;
+  color: #696969;
 }
-.selo {
-  position: absolute;
-  top: var(--contro-space-3);
-  z-index: 2;
-  font-weight: 800;
-  font-size: var(--contro-fs-body);
-  padding: 4px 10px;
-  border-radius: var(--contro-radius-pill);
-  border: 2px solid currentColor;
-}
-.seloOk {
-  right: var(--contro-space-3);
-  color: var(--contro-turquoise, #54b4b0);
-  background: #fff;
-}
-.seloAdiar {
-  left: var(--contro-space-3);
-  color: var(--contro-text);
-  background: #fff;
-}
-.botoes {
-  display: flex;
-  gap: var(--contro-space-2);
-  margin-top: var(--contro-space-3);
-}
-.btnAdiar,
-.btnResolver {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: var(--contro-touch);
-  border-radius: var(--contro-radius-pill);
-  font-weight: 700;
-  font-size: var(--contro-fs-body-sm);
-  cursor: pointer;
-}
-.btnAdiar {
-  border: 1px solid var(--contro-text);
-  background: transparent;
-  color: var(--contro-text);
-}
-.btnResolver {
-  border: none;
-  background: var(--contro-action-primary-bg);
-  color: var(--contro-action-primary-text);
-}
+
 .vazio {
+  position: absolute;
+  inset: 0;
+  border: 2px dashed rgb(24 24 24 / 25%);
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--contro-space-2);
-  color: var(--contro-muted);
+  justify-content: center;
+  gap: 8px;
   text-align: center;
-  padding: var(--contro-space-6) var(--contro-space-4);
+  padding: 24px;
+}
+.vazioIcone {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vazioTitulo {
+  font-size: 22px;
+  font-weight: 800;
+}
+.vazioTexto {
+  font-size: 15px;
+  color: #696969;
+}
+
+.botoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.btnAdiar,
+.btnResolver {
+  min-height: 52px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--contro-black);
+}
+.btnAdiar {
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+}
+.btnResolver {
+  border: 0;
+  background: var(--contro-turquoise);
+}
+.btnAdiar:disabled,
+.btnResolver:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.dica {
+  font-size: 12px;
+  color: #696969;
+  text-align: center;
+  margin-top: 6px;
 }
