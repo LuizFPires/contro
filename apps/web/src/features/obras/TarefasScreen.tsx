@@ -16,6 +16,10 @@ import styles from './TarefasScreen.module.css';
 const SEM = 'sem';
 
 /** Tarefas da equipe (protótipo · TAREFAS): todas as obras, filtro por pessoa. */
+/** Chave do chip: pessoa do app, nome digitado ou sem responsável. */
+const chaveResp = (t: TarefaObra) =>
+  t.responsavel_id ?? (t.responsavelNome ? `nome:${t.responsavelNome}` : SEM);
+
 export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
   const { showToast } = useToast();
   const { data: obras = [] } = useObras();
@@ -33,7 +37,7 @@ export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
   const chips = useMemo(() => {
     const m = new Map<string, { nome: string; atrasadas: number }>();
     for (const t of lista) {
-      const k = t.responsavel_id ?? SEM;
+      const k = chaveResp(t);
       const c = m.get(k) ?? { nome: t.responsavelNome ?? 'Sem responsável', atrasadas: 0 };
       if (tarefaAtrasada(t, hoje)) c.atrasadas += 1;
       m.set(k, c);
@@ -42,7 +46,7 @@ export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
   }, [lista, hoje]);
 
   const filtrada = useMemo(
-    () => (filtro === 'todos' ? lista : lista.filter((t) => (t.responsavel_id ?? SEM) === filtro)),
+    () => (filtro === 'todos' ? lista : lista.filter((t) => chaveResp(t) === filtro)),
     [lista, filtro],
   );
   const { atrasadas, abertas, concluidas } = useMemo(

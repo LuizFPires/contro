@@ -3,6 +3,7 @@ import {
   providenciaAtrasada,
   providenciarNaSemana,
   tarefaAtrasada,
+  type AtividadeEntrada,
   type AtividadeSemana,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
@@ -48,8 +49,14 @@ export interface ItemAtv {
   atividadeId: string;
 }
 export interface ItemPassada {
+  atividadeId: string;
   nome: string;
+  tipo: 'concluir' | 'comecar';
+  /** Data prevista (fim para concluir, início para começar). */
+  data: string;
   ok: boolean; // concluída (concluir) ou começou/liberada (começar)
+  /** Liberada e ainda aberta: dá para concluir na reunião. */
+  liberada: boolean;
   motivo: string | null;
 }
 export interface ItemProv {
@@ -78,6 +85,9 @@ export interface ReuniaoObraDados {
   providenciar: ItemProv[];
   providenciasAtrasadas: ItemProv[];
   atividadesAtrasadas: ItemAtv[];
+  /** Para simular o impacto de "Não feito" no cronograma (sem gravar). */
+  inicio: string;
+  entradaCronograma: AtividadeEntrada[];
 }
 
 export interface TarefaAtrib {
@@ -90,6 +100,14 @@ export interface TarefaAtrib {
   prazo: string | null;
   atrasado: boolean;
   concluido: boolean;
+  responsavelId: string | null;
+  /** Nome digitado (sem login), quando não há responsavelId. */
+  responsavelNome: string | null;
+  observacao: string | null;
+  vinculoTipo: 'providencia' | 'atividade' | null;
+  vinculoId: string | null;
+  prazoOriginal: string | null;
+  replanejamentos: number;
 }
 
 export interface ReuniaoCompleta {
@@ -141,13 +159,21 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
     atividadeId: a.id,
   }));
   const passadaConcluir: ItemPassada[] = sem.passadaConcluir.map((a) => ({
+    atividadeId: a.id,
     nome: a.nome,
+    tipo: 'concluir',
+    data: cronOf(a.id)?.fim_previsto ?? obra.inicio,
     ok: a.concluida,
+    liberada: a.liberada,
     motivo: a.concluida ? null : motivoAtividade(obra, a.id),
   }));
   const passadaComecar: ItemPassada[] = sem.passadaComecar.map((a) => ({
+    atividadeId: a.id,
     nome: a.nome,
+    tipo: 'comecar',
+    data: cronOf(a.id)?.inicio_previsto ?? obra.inicio,
     ok: a.concluida || a.liberada,
+    liberada: a.liberada,
     motivo: a.concluida || a.liberada ? null : motivoAtividade(obra, a.id),
   }));
 
@@ -203,6 +229,15 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
     providenciar,
     providenciasAtrasadas,
     atividadesAtrasadas,
+    inicio: obra.inicio,
+    entradaCronograma: obra.atividades.map((x) => ({
+      id: x.id,
+      duracao_du: x.duracao_du,
+      pai_id: x.pai_id,
+      em_sequencia: x.em_sequencia,
+      inicio_manual: x.inicio_manual,
+      predecessoras: x.predecessoras,
+    })),
   };
 }
 
@@ -229,7 +264,10 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
     const hoje = hojeISO();
     const { data: tData } = await supabase
       .from('tarefa')
-      .select('id,obra_id,origem_texto,texto,status,prazo,responsavel:pessoa!responsavel_id(nome)')
+      .select(
+        'id,obra_id,origem_texto,texto,status,prazo,prazo_original,replanejamentos,responsavel_id,' +
+          'responsavel_nome,observacao,vinculo_tipo,vinculo_id,responsavel:pessoa!responsavel_id(nome)',
+      )
       .in('obra_id', obraIds)
       .is('deleted_at', null);
     tarefas = (
@@ -240,6 +278,13 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
         texto: string;
         status: 'aberta' | 'feita';
         prazo: string;
+        prazo_original: string | null;
+        replanejamentos: number;
+        responsavel_id: string | null;
+        responsavel_nome: string | null;
+        observacao: string | null;
+        vinculo_tipo: 'providencia' | 'atividade' | null;
+        vinculo_id: string | null;
         responsavel: { nome: string } | null;
       }[]
     ).map((t) => ({
@@ -247,10 +292,17 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
       obraId: t.obra_id,
       origem: t.origem_texto,
       texto: t.texto,
-      pessoa: t.responsavel?.nome ?? 'Sem responsável',
+      pessoa: t.responsavel?.nome ?? t.responsavel_nome ?? 'Sem responsável',
       prazo: t.prazo,
       atrasado: tarefaAtrasada(t, hoje),
       concluido: t.status === 'feita',
+      responsavelId: t.responsavel_id,
+      responsavelNome: t.responsavel_nome,
+      observacao: t.observacao,
+      vinculoTipo: t.vinculo_tipo,
+      vinculoId: t.vinculo_id,
+      prazoOriginal: t.prazo_original,
+      replanejamentos: t.replanejamentos,
     }));
   }
 

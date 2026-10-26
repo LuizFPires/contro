@@ -200,6 +200,9 @@ export interface EntradaTarefa {
   vinculoTipo?: 'providencia' | 'atividade' | null;
   vinculoId?: string | null;
   origemTexto?: string | null;
+  observacao?: string | null;
+  /** Nome digitado de quem não tem login (vale só sem responsavelId). */
+  responsavelNome?: string | null;
 }
 
 export async function salvarTarefa(
@@ -218,6 +221,8 @@ export async function salvarTarefa(
     p_vinculo_id: t.vinculoId ?? null,
     p_origem_texto: t.origemTexto ?? null,
     p_client_op_id: clientOpId ?? null,
+    p_observacao: t.observacao ?? null,
+    p_responsavel_nome: t.responsavelNome ?? null,
   });
   if (error) throw error;
   return data as string;

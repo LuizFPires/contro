@@ -7,6 +7,7 @@ export interface TarefaObra {
   texto: string;
   responsavel_id: string | null;
   responsavelNome: string | null;
+  observacao: string | null;
   prazo: string;
   prazo_original: string | null;
   replanejamentos: number;
@@ -28,6 +29,8 @@ interface LinhaTarefa {
   vinculo_tipo: 'providencia' | 'atividade' | null;
   vinculo_id: string | null;
   origem_texto: string | null;
+  observacao: string | null;
+  responsavel_nome: string | null;
   responsavel: { nome: string } | null;
 }
 
@@ -36,7 +39,7 @@ export async function loadTarefas(obraId: string): Promise<TarefaObra[]> {
   const { data } = await supabase
     .from('tarefa')
     .select(
-      'id,obra_id,texto,responsavel_id,prazo,prazo_original,replanejamentos,status,vinculo_tipo,vinculo_id,origem_texto,' +
+      'id,obra_id,texto,responsavel_id,prazo,prazo_original,replanejamentos,status,vinculo_tipo,vinculo_id,origem_texto,observacao,responsavel_nome,' +
         'responsavel:pessoa!responsavel_id(nome)',
     )
     .eq('obra_id', obraId)
@@ -48,7 +51,8 @@ export async function loadTarefas(obraId: string): Promise<TarefaObra[]> {
     obra_id: l.obra_id,
     texto: l.texto,
     responsavel_id: l.responsavel_id,
-    responsavelNome: l.responsavel?.nome ?? null,
+    responsavelNome: l.responsavel?.nome ?? l.responsavel_nome ?? null,
+    observacao: l.observacao,
     prazo: l.prazo,
     prazo_original: l.prazo_original,
     replanejamentos: l.replanejamentos,

@@ -1,0 +1,182 @@
+/* Providência da pauta (opção A · protótipo "Não feito"). */
+.corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--contro-border);
+}
+.rotulo,
+.rotuloAtraso {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #464646;
+}
+.rotuloAtraso {
+  color: var(--contro-late);
+}
+.icNao {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: var(--contro-late);
+  color: var(--contro-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.nome {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.etiquetaAtraso {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--contro-late);
+  background: rgb(198 40 40 / 8%);
+  border-radius: var(--contro-radius-pill);
+  padding: 3px 8px;
+}
+.impacto {
+  border-radius: 12px;
+  background: rgb(24 24 24 / 5%);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.impactoTopo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.impactoTopo span {
+  font-size: 12px;
+  color: #696969;
+}
+.impactoLinha {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+.impactoLinha s {
+  color: #696969;
+}
+.txtAtraso {
+  color: var(--contro-late);
+}
+.miuda {
+  font-size: 12px;
+  color: #464646;
+}
+.rotuloCampo {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #464646;
+}
+.campo,
+.obs {
+  min-height: var(--contro-touch);
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  border-radius: 10px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--contro-black);
+  background: var(--contro-white);
+}
+.obs {
+  padding: 8px 10px;
+  resize: vertical;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip,
+.data {
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+.chip {
+  border-radius: var(--contro-radius-pill);
+}
+.data {
+  border-radius: 10px;
+  padding: 0 10px;
+}
+.chipOn {
+  background: var(--contro-black);
+  border-color: var(--contro-black);
+  color: var(--contro-white);
+}
+.dataOn {
+  background: rgb(84 180 176 / 25%);
+  border-color: var(--contro-black);
+}
+.aviso {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgb(84 180 176 / 16%);
+}
+.rodape {
+  position: sticky;
+  bottom: calc(-1 * (var(--contro-space-6) + env(safe-area-inset-bottom, 0)));
+  margin: 12px calc(-1 * var(--contro-space-4)) 0;
+  padding: 10px var(--contro-space-4);
+  background: var(--contro-white);
+  border-top: 1px solid var(--contro-border);
+  display: flex;
+  gap: 8px;
+}
+.cancelar,
+.salvar {
+  min-height: var(--contro-control-h);
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.cancelar {
+  padding: 0 16px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+}
+.salvar {
+  flex-grow: 1;
+  border: 0;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font-size: 16px;
+}
+.salvar:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

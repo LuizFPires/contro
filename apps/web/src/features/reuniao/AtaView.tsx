@@ -3,7 +3,8 @@ import {
   compilarPorPessoa,
   derivarAtribuicoes,
   origemReuniao,
-  resumoReuniao,
+  deReuniaoAnterior,
+  voltaNaProximaReuniao,
   ritmoTexto,
   textoAtaWhatsapp,
   type ObraAta,
@@ -57,14 +58,6 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
 
   const nomeObra = new Map(reuniao.obras.map((o) => [o.obraId, o.nome]));
   const origemAtual = origemReuniao(formatarDataCurta(reuniao.data));
-  const resumo = resumoReuniao(
-    reuniao.tarefas.map((t) => ({
-      origem: t.origem,
-      concluida: t.concluido,
-      atrasada: t.atrasado,
-    })),
-    origemAtual,
-  );
   // Por responsável, com a obra entre parênteses (protótipo).
   const porPessoa = compilarPorPessoa(
     derivarAtribuicoes(
@@ -110,28 +103,14 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
             <div className={styles.folhaData}>{dataFmt} · 16h</div>
           </div>
 
-          <div className={styles.kpis}>
-            <div>
-              <strong>{resumo.cumpridas}</strong>
-              <span>cumpridas</span>
-            </div>
-            <div className={resumo.atrasadas ? styles.kpiAtraso : ''}>
-              <strong>{resumo.atrasadas}</strong>
-              <span>atrasadas</span>
-            </div>
-            <div className={styles.kpiNovas}>
-              <strong>{resumo.novas}</strong>
-              <span>novas</span>
-            </div>
-          </div>
-
           {reuniao.obras.map((o) => {
             const ritmo = ritmoTexto(o.ritmoDias, true);
-            const naoFeitas = [...o.passadaConcluir, ...o.passadaComecar].filter((p) => !p.ok);
-            const passadaTotal = o.passadaConcluir.length + o.passadaComecar.length;
-            const novas = reuniao.tarefas.filter(
-              (t) => t.obraId === o.obraId && t.origem === origemAtual,
-            );
+            const daObra = reuniao.tarefas.filter((t) => t.obraId === o.obraId);
+            const novas = daObra.filter((t) => t.origem === origemAtual);
+            const anteriores = daObra.filter((t) => deReuniaoAnterior(t, origemAtual));
+            const passada = [...o.passadaConcluir, ...o.passadaComecar];
+            const provDe = (id: string) => novas.find((t) => t.vinculoId === id);
+            const pedir = o.providenciar.map((p) => `${TIPO[p.tipo]}: ${p.descricao}`);
             return (
               <section key={o.obraId} className={styles.obra}>
                 <div className={styles.obraTopo}>
@@ -141,40 +120,116 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
                   </span>
                 </div>
                 <div className={styles.situacao}>
-                  Real {Math.round(o.pct * 100)}% · previsto sexta{' '}
-                  {Math.round(o.previstoSexta * 100)}% · {o.faseAtual} · entrega{' '}
-                  {formatarDataCurta(o.entrega)}
+                  {o.faseAtual} · real {Math.round(o.pct * 100)}% · previsto sexta{' '}
+                  {Math.round(o.previstoSexta * 100)}% · inauguração {formatarDataCurta(o.entrega)}
                 </div>
-                <div className={naoFeitas.length ? styles.txtAtraso : styles.situacao}>
-                  {passadaTotal === 0
-                    ? 'Semana passada: nada previsto.'
-                    : naoFeitas.length
-                      ? `Semana passada: ${passadaTotal - naoFeitas.length} de ${passadaTotal} no prazo · não feitas: ${naoFeitas.map((p) => p.nome).join(', ')}`
-                      : `Semana passada: tudo o que estava previsto foi feito (${passadaTotal}).`}
-                </div>
-                {o.atividadesAtrasadas.length ? (
-                  <div className={styles.txtAtraso}>
-                    Atrasos: {o.atividadesAtrasadas.map((a) => a.nome).join(', ')}
-                  </div>
+
+                <h3 className={styles.secao}>Semana passada</h3>
+                {passada.length === 0 ? (
+                  <div className={styles.situacao}>Nada previsto.</div>
                 ) : null}
+                {passada.map((p) => {
+                  const prov = provDe(p.atividadeId);
+                  const ok = p.ok && !prov;
+                  return (
+                    <div key={`${p.tipo}-${p.atividadeId}`} className={styles.marcado}>
+                      <span
+                        className={ok ? styles.icOk : styles.icNao}
+                        role="img"
+                        aria-label={ok ? 'Feito' : 'Não feito'}
+                      >
+                        <Icon
+                          name={ok ? 'checkGrosso' : 'close'}
+                          size={ok ? 14 : 12}
+                          strokeWidth={3}
+                        />
+                      </span>
+                      <span>
+                        {p.nome}
+                        {prov ? (
+                          <span className={styles.recupera}>
+                            → {prov.texto} — <b>{prov.pessoa}</b>, até{' '}
+                            {prov.prazo ? formatarDataCurta(prov.prazo) : '—'}
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                <h3 className={styles.secao}>Esta semana</h3>
                 <div className={styles.linha}>
-                  <b>Observações:</b> {o.observacoes.trim() || 'sem observações.'}
+                  <b>Concluir:</b> {o.concluir.map((a) => a.nome).join(', ') || 'nada previsto'}
                 </div>
-                {novas.map((t) => (
-                  <div
-                    key={t.id}
-                    className={`${styles.prov} ${t.atrasado ? styles.provAtraso : ''}`}
-                  >
-                    {t.texto} — <b>{t.pessoa}</b>, até {t.prazo ? formatarDataCurta(t.prazo) : '—'}
-                  </div>
-                ))}
+                <div className={styles.linha}>
+                  <b>Começar:</b> {o.comecar.map((a) => a.nome).join(', ') || 'nada previsto'}
+                </div>
+                <div className={styles.linha}>
+                  <b>Contratar/comprar:</b> {pedir.join(', ') || 'nada a fechar'}
+                </div>
+
+                {anteriores.length > 0 ? (
+                  <>
+                    <h3 className={styles.secao}>Providências da reunião anterior</h3>
+                    {anteriores.map((t) => (
+                      <div key={t.id} className={styles.marcado}>
+                        {t.concluido ? (
+                          <span className={styles.icOk} role="img" aria-label="Feita">
+                            <Icon name="checkGrosso" size={14} strokeWidth={3} />
+                          </span>
+                        ) : t.atrasado ? (
+                          <span className={styles.icNao} role="img" aria-label="Atrasada">
+                            <Icon name="relogio" size={14} strokeWidth={2.4} />
+                          </span>
+                        ) : (
+                          <span className={styles.icAberta} role="img" aria-label="No prazo">
+                            <Icon name="relogio" size={14} strokeWidth={2.2} />
+                          </span>
+                        )}
+                        <span
+                          className={
+                            t.concluido ? styles.riscado : t.atrasado ? styles.txtAtraso : undefined
+                          }
+                        >
+                          {t.texto} — {t.pessoa}
+                          {!t.concluido && t.prazo ? `, até ${formatarDataCurta(t.prazo)}` : ''}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                ) : null}
+
+                {novas.length > 0 ? (
+                  <>
+                    <h3 className={styles.secao}>Novas providências</h3>
+                    {novas.map((t) => (
+                      <div key={t.id} className={styles.prov}>
+                        {t.texto} — <b>{t.pessoa}</b>, até{' '}
+                        {t.prazo ? formatarDataCurta(t.prazo) : '—'}
+                        {t.prazo && voltaNaProximaReuniao(reuniao.data, t.prazo) ? (
+                          <span className={styles.volta}> (volta na próxima reunião)</span>
+                        ) : null}
+                        {t.observacao ? (
+                          <span className={styles.recupera}>{t.observacao}</span>
+                        ) : null}
+                      </div>
+                    ))}
+                  </>
+                ) : null}
+
+                {o.observacoes.trim() ? (
+                  <>
+                    <h3 className={styles.secao}>Observações</h3>
+                    <div className={styles.linha}>{o.observacoes.trim()}</div>
+                  </>
+                ) : null}
               </section>
             );
           })}
 
           {porPessoa.length > 0 ? (
             <div className={styles.pessoas}>
-              <div className={styles.pessoasTitulo}>Providências por responsável</div>
+              <div className={styles.pessoasTitulo}>Quem faz o quê</div>
               {porPessoa.map((g) => {
                 const atr = g.itens.filter((it) => it.atrasado).length;
                 return (
