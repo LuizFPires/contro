@@ -280,6 +280,25 @@
   font-size: 13px;
   color: #696969;
 }
+/* Subitens listados embaixo da atividade (marcar é pela ficha). */
+.subitens {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.subitem,
+.subFeito {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #464646;
+}
+.subFeito {
+  color: #696969;
+  text-decoration: line-through;
+}
 .prestador {
   display: inline-flex;
   align-items: center;

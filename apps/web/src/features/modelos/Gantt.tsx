@@ -1,10 +1,8 @@
 import { useMemo, useState } from 'react';
 import type { AtividadeCronograma } from '@contro/core';
+import styles from './Gantt.module.css';
 
-const ROW_H = 26;
-const LABEL_W = 220;
 const PX_DU = 16;
-const PAD = 8;
 
 export interface GanttProps {
   itens: AtividadeCronograma[];
@@ -13,6 +11,11 @@ export interface GanttProps {
   total: number;
 }
 
+/**
+ * Gantt do modelo: a coluna das atividades e a régua de dias ficam congeladas
+ * (rola com o mouse nos dois sentidos). Tocar numa barra mostra o dia de início
+ * e o de término e realça predecessoras e sucessoras.
+ */
 export function Gantt({ itens, nomes, predecessoras, total }: GanttProps) {
   const [sel, setSel] = useState<string | null>(null);
 
@@ -35,83 +38,75 @@ export function Gantt({ itens, nomes, predecessoras, total }: GanttProps) {
     return set;
   }, [sel, predecessoras, sucessoras]);
 
-  const width = LABEL_W + total * PX_DU + PAD * 2;
-  const height = itens.length * ROW_H + PAD * 2 + 16;
+  const largura = Math.max(total, 1) * PX_DU;
+  const marcas = Array.from({ length: Math.floor(total / 5) + 1 }, (_, i) => i * 5);
+  const itSel = itens.find((it) => it.id === sel);
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <svg
-        width={width}
-        height={height}
-        role="img"
-        aria-label="Gantt do modelo"
-        style={{ fontFamily: 'var(--contro-font)', display: 'block' }}
-      >
-        {/* grade vertical a cada 5 du */}
-        {Array.from({ length: Math.floor(total / 5) + 1 }, (_, i) => i * 5).map((d) => (
-          <g key={d}>
-            <line
-              x1={LABEL_W + d * PX_DU + PAD}
-              y1={PAD}
-              x2={LABEL_W + d * PX_DU + PAD}
-              y2={height - PAD}
-              stroke="var(--contro-border)"
-            />
-            <text
-              x={LABEL_W + d * PX_DU + PAD + 2}
-              y={height - PAD}
-              fontSize="10"
-              fill="var(--contro-muted)"
-            >
-              {d}
-            </text>
-          </g>
-        ))}
+    <div className={styles.gantt}>
+      <div className={styles.info} aria-live="polite">
+        {itSel ? (
+          <>
+            <b>{nomes[itSel.id]}</b> · começa no <b>D{itSel.es + 1}</b> e termina no{' '}
+            <b>D{itSel.ef}</b> ({itSel.dur} {itSel.dur === 1 ? 'dia útil' : 'dias úteis'})
+            {itSel.critico ? ' · caminho crítico' : ''}
+          </>
+        ) : (
+          'Toque numa barra para ver o dia de início e o de término.'
+        )}
+      </div>
 
-        {itens.map((it, i) => {
-          const y = PAD + i * ROW_H;
-          const x = LABEL_W + it.es * PX_DU + PAD;
-          const w = Math.max(it.dur * PX_DU, 4);
-          const dim = realcadas ? !realcadas.has(it.id) : false;
-          const cor = it.critico ? 'var(--contro-turquoise)' : 'var(--contro-black)';
-          return (
-            <g
-              key={it.id}
-              role="button"
-              tabIndex={0}
-              aria-label={`${nomes[it.id] ?? ''}${it.critico ? ', caminho crítico' : ''}`}
-              onClick={() => setSel((s) => (s === it.id ? null : it.id))}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setSel((s) => (s === it.id ? null : it.id));
-                }
-              }}
-              style={{ cursor: 'pointer', opacity: dim ? 0.3 : 1 }}
-            >
-              <text
-                x={PAD}
-                y={y + ROW_H / 2 + 4}
-                fontSize="12"
-                fontWeight={it.id === sel ? 800 : 600}
-                fill="var(--contro-text)"
-              >
-                {(nomes[it.id] ?? '').slice(0, 30)}
-              </text>
-              <rect
-                x={x}
-                y={y + 4}
-                width={w}
-                height={ROW_H - 10}
-                rx={4}
-                fill={cor}
-                stroke={it.id === sel ? 'var(--contro-black)' : 'none'}
-                strokeWidth={it.id === sel ? 2 : 0}
-              />
-            </g>
-          );
-        })}
-      </svg>
+      <div className={styles.rolagem} role="region" aria-label="Gantt do modelo" tabIndex={0}>
+        <div className={styles.grade} style={{ gridTemplateColumns: `var(--rotulo) ${largura}px` }}>
+          {/* Régua de dias (congelada no topo) */}
+          <div className={`${styles.canto} ${styles.cabeca}`}>Atividade</div>
+          <div className={`${styles.regua} ${styles.cabeca}`}>
+            {marcas.map((d) => (
+              <span key={d} className={styles.marca} style={{ left: d * PX_DU }}>
+                D{d}
+              </span>
+            ))}
+          </div>
+
+          {itens.map((it) => {
+            const dim = realcadas ? !realcadas.has(it.id) : false;
+            const on = it.id === sel;
+            const alternar = () => setSel((s) => (s === it.id ? null : it.id));
+            return (
+              <div key={it.id} className={styles.linha} style={{ opacity: dim ? 0.3 : 1 }}>
+                {/* Coluna das atividades (congelada à esquerda) */}
+                <div
+                  className={`${styles.rotulo} ${on ? styles.rotuloOn : ''}`}
+                  title={nomes[it.id]}
+                >
+                  {nomes[it.id] ?? ''}
+                </div>
+                <div className={styles.trilho}>
+                  {marcas.map((d) => (
+                    <span key={d} className={styles.guia} style={{ left: d * PX_DU }} />
+                  ))}
+                  <button
+                    type="button"
+                    className={`${styles.barra} ${it.critico ? styles.critica : ''} ${on ? styles.barraOn : ''}`}
+                    style={{ left: it.es * PX_DU, width: Math.max(it.dur * PX_DU, 6) }}
+                    aria-pressed={on}
+                    aria-label={`${nomes[it.id] ?? ''}: D${it.es + 1} a D${it.ef}${it.critico ? ', caminho crítico' : ''}`}
+                    onClick={alternar}
+                  />
+                  {on ? (
+                    <span
+                      className={styles.datas}
+                      style={{ left: it.es * PX_DU + Math.max(it.dur * PX_DU, 6) + 6 }}
+                    >
+                      D{it.es + 1} → D{it.ef}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
