@@ -238,7 +238,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 - [x] Obra: Pendências (fila com cartão e lista completa), vistoria e adiar
 - [x] Obra: Providências, Cronograma e Boletim
 - [x] Nova obra
-- [ ] Reunião e ata
+- [x] Reunião e ata
 - [ ] Folhas: ficha da atividade, câmera, celebração de fase e toast
 - [ ] Modelos no celular (ModeloCel)
 
