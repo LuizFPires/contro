@@ -209,7 +209,9 @@ function CameraAtividade({
   const campo = useObraCampo(tarefa.obra_id);
   return (
     <Camera
+      kicker="Foto de conclusão"
       titulo="Concluir atividade com foto"
+      dica="Uma foto por ambiente. Ela vira o registro da etapa e libera as próximas atividades."
       pendente={campo.concluir.isPending}
       onCancelar={onFechar}
       onCapturar={(file) =>

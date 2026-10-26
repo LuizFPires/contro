@@ -250,7 +250,9 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
 
       {resolver ? (
         <Camera
-          titulo="Foto de depois · alinhe com o antes"
+          kicker="Foto de depois"
+          titulo={resolver.titulo}
+          dica="A foto do apontamento aparece por trás. Alinhe o enquadramento para o antes e depois bater."
           ghostUrl={resolver.fotoAntesUrl}
           pendente={campo.resolver.isPending}
           onCancelar={() => setResolver(null)}

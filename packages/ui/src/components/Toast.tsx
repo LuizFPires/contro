@@ -57,6 +57,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {toast ? (
         <div className={styles.region}>
           <div className={styles.toast} role="status" aria-live="polite">
+            <span className={styles.marca} aria-hidden="true">
+              <Icon name="checkGrosso" size={14} strokeWidth={3} />
+            </span>
             <span className={styles.message}>{toast.message}</span>
             {toast.onUndo ? (
               <button type="button" className={styles.undo} onClick={handleUndo}>
