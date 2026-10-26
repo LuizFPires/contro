@@ -50,6 +50,8 @@ export interface ObraAtv {
   /** Está numa fase de pré-obra (calculada no carregamento). */
   preObra: boolean;
   predecessoras: string[];
+  /** Defasagem por predecessora (≤ 0 = paralelismo do plano de recuperação). */
+  defasagens: Record<string, number>;
   providencias: ObraProv[];
 }
 export interface ObraCompleta {
@@ -58,6 +60,8 @@ export interface ObraCompleta {
   inicio: string;
   modelo_rotulo: string;
   xp: number;
+  /** Inauguração planejada, fixada na obra (null até a primeira abertura). */
+  entrega_original: string | null;
   fases: ObraFase[];
   atividades: ObraAtv[]; // topo + subitens
   cron: {
@@ -83,7 +87,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
   const [oRes, fRes, aRes, dRes, pRes] = await Promise.all([
     supabase
       .from('obra')
-      .select('id,nome,inicio,modelo_rotulo,xp')
+      .select('id,nome,inicio,modelo_rotulo,xp,entrega_original')
       .eq('id', id)
       .is('deleted_at', null)
       .maybeSingle(),
@@ -101,7 +105,10 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
       .eq('obra_id', id)
       .is('deleted_at', null)
       .order('ordem'),
-    supabase.from('obra_dependencia').select('atividade_id,predecessora_id').eq('obra_id', id),
+    supabase
+      .from('obra_dependencia')
+      .select('atividade_id,predecessora_id,defasagem_du')
+      .eq('obra_id', id),
     supabase
       .from('obra_providencia')
       .select(
@@ -117,14 +124,25 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     inicio: string;
     modelo_rotulo: string;
     xp: number;
+    entrega_original: string | null;
   } | null;
   if (!o) return null;
 
   const predsPorAtv = new Map<string, string[]>();
-  for (const d of (dRes.data ?? []) as { atividade_id: string; predecessora_id: string }[]) {
+  const defasPorAtv = new Map<string, Record<string, number>>();
+  for (const d of (dRes.data ?? []) as {
+    atividade_id: string;
+    predecessora_id: string;
+    defasagem_du: number;
+  }[]) {
     const arr = predsPorAtv.get(d.atividade_id) ?? [];
     arr.push(d.predecessora_id);
     predsPorAtv.set(d.atividade_id, arr);
+    if (d.defasagem_du)
+      defasPorAtv.set(d.atividade_id, {
+        ...defasPorAtv.get(d.atividade_id),
+        [d.predecessora_id]: d.defasagem_du,
+      });
   }
   const provPorAtv = new Map<string, ObraProv[]>();
   for (const linha of (pRes.data ?? []) as unknown as (Omit<ObraProv, 'feito_por_nome'> & {
@@ -145,6 +163,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     ...a,
     preObra: faseePre.has(a.fase_id),
     predecessoras: predsPorAtv.get(a.id) ?? [],
+    defasagens: defasPorAtv.get(a.id) ?? {},
     providencias: provPorAtv.get(a.id) ?? [],
   }));
 
@@ -158,6 +177,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
       em_sequencia: a.em_sequencia,
       inicio_manual: a.inicio_manual,
       predecessoras: a.predecessoras,
+      defasagens: a.defasagens,
     }));
   let cron;
   try {
@@ -216,6 +236,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     inicio: o.inicio,
     modelo_rotulo: o.modelo_rotulo,
     xp: o.xp,
+    entrega_original: o.entrega_original,
     fases,
     atividades,
     cron,

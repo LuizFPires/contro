@@ -35,15 +35,20 @@ export function HojeObras({
   obras,
   onAbrirObra,
   onAbrirTarefas,
+  onAbrirPlano,
 }: {
   obras: ObraResumo[];
   onAbrirObra: (id: string) => void;
   onAbrirTarefas: () => void;
+  /** Abre a obra direto no plano de recuperação. */
+  onAbrirPlano: (id: string) => void;
 }) {
-  const comAlgo = obras.filter((o) => o.agenda.atrasados.length + o.agenda.hoje.length > 0);
+  const comAlgo = obras.filter(
+    (o) => o.risco || o.agenda.atrasados.length + o.agenda.hoje.length > 0,
+  );
   // Aberto por padrão só quem tem atraso; o resto começa recolhido.
   const [abertas, setAbertas] = useState<Set<string>>(
-    () => new Set(comAlgo.filter((o) => o.agenda.atrasados.length > 0).map((o) => o.id)),
+    () => new Set(comAlgo.filter((o) => o.risco || o.agenda.atrasados.length > 0).map((o) => o.id)),
   );
   const alternar = (id: string) =>
     setAbertas((s) => {
@@ -103,6 +108,21 @@ export function HojeObras({
 
             {aberta ? (
               <div id={painel} className={styles.corpo}>
+                {o.risco ? (
+                  <button type="button" className={styles.risco} onClick={() => onAbrirPlano(o.id)}>
+                    <Icon name="relogio" size={16} strokeWidth={2.4} className={styles.txtAtraso} />
+                    <span className={styles.riscoTexto}>
+                      <b className={styles.txtAtraso}>
+                        Inauguração em risco · +{o.risco.atrasoDu} d.u.
+                      </b>
+                      <span>
+                        {formatarDataCurta(o.risco.original)} →{' '}
+                        {formatarDataCurta(o.risco.prevista)}
+                      </span>
+                    </span>
+                    <span className={styles.riscoLink}>Ver plano</span>
+                  </button>
+                ) : null}
                 {atrasados.length ? (
                   <>
                     <div className={styles.faixaAtraso}>

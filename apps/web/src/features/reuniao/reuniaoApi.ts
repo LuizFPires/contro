@@ -243,6 +243,7 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
         em_sequencia: x.em_sequencia,
         inicio_manual: x.inicio_manual,
         predecessoras: x.predecessoras,
+        defasagens: x.defasagens,
       })),
   };
 }

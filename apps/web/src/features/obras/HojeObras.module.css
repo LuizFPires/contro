@@ -159,3 +159,32 @@
   color: rgb(24 24 24 / 45%);
   flex-shrink: 0;
 }
+
+/* "Inauguração em risco" no card: abre o plano de recuperação. */
+.risco {
+  margin-top: 2px;
+  min-height: var(--contro-touch);
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: rgb(198 40 40 / 7%);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.riscoTexto {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+.riscoLink {
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: underline;
+  white-space: nowrap;
+}

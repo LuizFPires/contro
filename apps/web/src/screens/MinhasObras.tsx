@@ -35,7 +35,11 @@ export function MinhasObras({
   const { showToast } = useToast();
   const [vista, setVista] = useState<'lista' | 'nova'>('lista');
   const [perfilAberto, setPerfilAberto] = useState(false);
-  const [obraAberta, setObraAberta] = useState<{ id: string; boletim?: boolean } | null>(null);
+  const [obraAberta, setObraAberta] = useState<{
+    id: string;
+    boletim?: boolean;
+    plano?: boolean;
+  } | null>(null);
   // Menu inferior da tela inicial: "Hoje" abre por padrão.
   const [aba, setAba] = useState<'hoje' | 'obras'>('hoje');
 
@@ -44,6 +48,7 @@ export function MinhasObras({
       <ObraDetalhe
         id={obraAberta.id}
         abrirBoletim={obraAberta.boletim}
+        abrirPlano={obraAberta.plano}
         onVoltar={() => setObraAberta(null)}
       />
     );
@@ -109,12 +114,13 @@ export function MinhasObras({
             obras={lista}
             onAbrirObra={(id) => setObraAberta({ id })}
             onAbrirTarefas={() => onIr('tarefas')}
+            onAbrirPlano={(id) => setObraAberta({ id, plano: true })}
           />
         ) : (
           <div className={styles.vazio}>
             <Simbolo size={56} />
             <h2>Nenhuma obra ainda</h2>
-            <p>Crie a primeira obra em “Minhas obras”.</p>
+            <p>Crie a primeira obra pelo menu abaixo, na aba de obras.</p>
           </div>
         )
       ) : (
