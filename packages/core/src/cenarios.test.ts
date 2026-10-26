@@ -12,15 +12,10 @@ function indicadores(inicio: string, hoje: string, concluidasTopo: (n: number) =
   const topo = MODELO_1.filter((a) => !a.pai_id).map((a) => a.id);
   const concluidas = new Set<string>();
   for (const a of MODELO_1) if (!a.pai_id && concluidasTopo(Number(a.id))) concluidas.add(a.id);
-  const predecessoras: Record<string, string[]> = {};
-  for (const it of cron.itens) {
-    predecessoras[it.id] = MODELO_1.find((a) => a.id === it.id)?.predecessoras ?? [];
-  }
   return estadoObra({
     inicio,
     hoje,
     cronograma: cron,
-    predecessoras,
     concluidas,
     provOk: new Set(topo),
   }).indicadores;

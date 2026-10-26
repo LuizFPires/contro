@@ -34,22 +34,18 @@ export interface EntradaTrilha {
 }
 
 export type StatusFaseTrilha = 'concluida' | 'execucao' | 'planejada';
-export type StatusAtividadeTrilha =
-  | 'concluida'
-  | 'atrasada'
-  | 'liberada'
-  | 'aguardando'
-  | 'planejada';
+/** Não há atividade bloqueada: aberta ("liberada") pode ser concluída a qualquer momento. */
+export type StatusAtividadeTrilha = 'concluida' | 'atrasada' | 'liberada';
 
 export interface AtividadeTrilha {
   id: string;
   nome: string;
   status: StatusAtividadeTrilha;
-  /** "Concluída · foto arquivada", "Liberada · 20/10–29/10"… */
+  /** "Concluída · foto arquivada", "Prevista 20/10–29/10 · falta locação: Andaime"… */
   sub: string;
   /** Prestador para o chip (só enquanto não concluída). */
   prestador: string | null;
-  /** Liberada para concluir (botão de câmera; a foto é opcional). */
+  /** Aberta: pode concluir (botão de câmera; a foto é opcional). */
   podeConcluir: boolean;
   /** Concluída sem foto (dá para anexar depois). */
   semFoto: boolean;
@@ -94,13 +90,7 @@ function plural(n: number, um: string, varios: string): string {
 }
 
 export function trilhaDeFases(e: EntradaTrilha): FaseTrilha[] {
-  const nomePorId = new Map(e.atividades.map((a) => [a.id, a.nome]));
   const concluida = (id: string) => Boolean(e.estados[id]?.concluida);
-  const faltam = (a: TrilhaAtividadeEntrada) =>
-    a.predecessoras
-      .filter((p) => !concluida(p))
-      .map((p) => nomePorId.get(p))
-      .filter((n): n is string => Boolean(n));
 
   // Fase atual = a primeira que ainda tem atividade por concluir.
   const porFase = new Map<string, TrilhaAtividadeEntrada[]>();
@@ -117,33 +107,19 @@ export function trilhaDeFases(e: EntradaTrilha): FaseTrilha[] {
     const status: StatusFaseTrilha =
       nConcl === atvs.length ? 'concluida' : f.id === atual?.id ? 'execucao' : 'planejada';
 
-    const atividades = atvs.map((a) => atividadeTrilha(a, e, faltam(a)));
+    const atividades = atvs.map((a) => atividadeTrilha(a, e));
     const atrasadas = atividades.filter((a) => a.status === 'atrasada').length;
-    const liberadas = atividades.filter((a) => a.podeConcluir).length;
 
     let info: string;
     const semFoto = atividades.filter((x) => x.semFoto).length;
+    const comLembrete = atvs.filter((a) => e.estados[a.id]?.lembretesPendentes).length;
     if (status === 'concluida')
       info = semFoto
         ? `Concluída · ${plural(semFoto, 'atividade sem foto', 'atividades sem foto')}`
         : 'Concluída com fotos de todas as etapas';
-    else if (liberadas > 0)
-      info = `${plural(liberadas, 'atividade liberada', 'atividades liberadas')} para executar`;
-    else {
-      const aguard = atvs.filter((a) => e.estados[a.id]?.aguardandoProvidencia).length;
-      if (aguard > 0) info = `${aguard} aguardando contratação, locação ou compra`;
-      else {
-        const primeira = atvs
-          .filter((a) => !concluida(a.id))
-          .sort((x, y) =>
-            (e.datas[x.id]?.inicio ?? '').localeCompare(e.datas[y.id]?.inicio ?? ''),
-          )[0];
-        const falta = primeira ? faltam(primeira) : [];
-        info = falta.length
-          ? `Libera quando concluir: ${falta.join(', ')}`
-          : 'Aguardando liberação';
-      }
-    }
+    else if (comLembrete > 0)
+      info = `${comLembrete} com contratação, locação ou compra a providenciar`;
+    else info = plural(atvs.length - nConcl, 'atividade a executar', 'atividades a executar');
 
     return {
       id: f.id,
@@ -161,11 +137,7 @@ export function trilhaDeFases(e: EntradaTrilha): FaseTrilha[] {
   });
 }
 
-function atividadeTrilha(
-  a: TrilhaAtividadeEntrada,
-  e: EntradaTrilha,
-  faltam: string[],
-): AtividadeTrilha {
+function atividadeTrilha(a: TrilhaAtividadeEntrada, e: EntradaTrilha): AtividadeTrilha {
   const est = e.estados[a.id];
   const datas = e.datas[a.id];
   const fim = datas ? diaMes(datas.fim) : '';
@@ -182,35 +154,23 @@ function atividadeTrilha(
     };
   }
 
-  let sub: string;
-  let status: StatusAtividadeTrilha;
-  if (est?.aguardandoProvidencia) {
-    const p = a.providenciasPendentes[0];
-    sub = p
-      ? `Aguardando ${ROTULO_TIPO_PROVIDENCIA[p.tipo].toLowerCase()}: ${p.descricao}`
-      : 'Aguardando providência';
-    status = 'aguardando';
-  } else if (est?.liberada) {
-    sub = datas ? `Liberada · ${diaMes(datas.inicio)}–${fim}` : 'Liberada';
-    status = 'liberada';
-  } else {
-    sub = faltam.length ? `Planejada · aguarda ${faltam.join(', ')}` : 'Planejada';
-    status = 'planejada';
-  }
-
-  if (est?.atrasada) {
-    const ultimo = sub.split(' · ').slice(-1)[0];
-    sub = `ATRASADA · devia terminar ${fim} · ${ultimo}`;
-    status = 'atrasada';
-  }
+  // Lembrete pendente é só aviso: não trava a atividade.
+  const p = a.providenciasPendentes[0];
+  const lembrete = p
+    ? ` · falta ${ROTULO_TIPO_PROVIDENCIA[p.tipo].toLowerCase()}: ${p.descricao}`
+    : '';
+  const atrasada = Boolean(est?.atrasada);
+  const sub = atrasada
+    ? `ATRASADA · devia terminar ${fim}${lembrete}`
+    : `${datas ? `Prevista ${diaMes(datas.inicio)}–${fim}` : 'Prevista'}${lembrete}`;
 
   return {
     id: a.id,
     nome: a.nome,
-    status,
+    status: atrasada ? 'atrasada' : 'liberada',
     sub,
     prestador: a.prestador,
-    podeConcluir: Boolean(est?.liberada),
+    podeConcluir: true,
     semFoto: false,
   };
 }

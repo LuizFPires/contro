@@ -6,10 +6,13 @@ import { peso, type Cronograma } from './schedule';
 export interface AtividadeEstado {
   id: string;
   concluida: boolean;
-  predsOk: boolean;
-  provOk: boolean;
+  /**
+   * Aberta para concluir. Não existe atividade bloqueada (decisão do usuário,
+   * 26/10/2026): toda atividade não concluída pode ser concluída.
+   */
   liberada: boolean;
-  aguardandoProvidencia: boolean;
+  /** Tem lembrete (contratação, locação, compra) por providenciar — só aviso. */
+  lembretesPendentes: boolean;
   atrasada: boolean;
 }
 
@@ -28,7 +31,6 @@ export interface EntradaObra {
   inicio: DataISO;
   hoje: DataISO;
   cronograma: Cronograma;
-  predecessoras: Record<string, string[]>;
   concluidas: Set<string>;
   /** ids de atividades com TODAS as providências feitas (ou sem providências). */
   provOk: Set<string>;
@@ -40,22 +42,18 @@ export interface EstadoObra {
 }
 
 export function estadoObra(e: EntradaObra): EstadoObra {
-  const { cronograma, inicio, hoje, predecessoras, concluidas, provOk } = e;
+  const { cronograma, inicio, hoje, concluidas, provOk } = e;
   const decorridos = duEntre(inicio, hoje); // 0 se hoje <= inicio
   const iniciada = hoje >= inicio;
 
   const atividades: Record<string, AtividadeEstado> = {};
   for (const it of cronograma.itens) {
     const concluida = concluidas.has(it.id);
-    const predsOk = (predecessoras[it.id] ?? []).every((p) => concluidas.has(p));
-    const temProvOk = provOk.has(it.id);
     atividades[it.id] = {
       id: it.id,
       concluida,
-      predsOk,
-      provOk: temProvOk,
-      liberada: !concluida && predsOk && temProvOk,
-      aguardandoProvidencia: !concluida && predsOk && !temProvOk,
+      liberada: !concluida,
+      lembretesPendentes: !concluida && !provOk.has(it.id),
       atrasada: !concluida && iniciada && it.ef <= decorridos,
     };
   }
