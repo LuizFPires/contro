@@ -22,18 +22,42 @@ export function Login() {
   const [erro, setErro] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  // Login recusado por e-mail ainda não confirmado: oferece reenviar o link.
+  const [semConfirmar, setSemConfirmar] = useState(false);
 
   function trocar(m: Modo) {
     setModo(m);
     setErro(null);
     setMsg(null);
     setConfirmar('');
+    setSemConfirmar(false);
+  }
+
+  async function reenviarConfirmacao() {
+    if (!supabase) return;
+    setEnviando(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (error) setErro('Não foi possível reenviar agora. Tente de novo em alguns minutos.');
+      else {
+        setErro(null);
+        setSemConfirmar(false);
+        setMsg(`Enviamos de novo o link de confirmação para ${email}. Veja também o spam.`);
+      }
+    } finally {
+      setEnviando(false);
+    }
   }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErro(null);
     setMsg(null);
+    setSemConfirmar(false);
     if (!supabase) {
       setErro('Supabase ainda não configurado neste ambiente.');
       return;
@@ -42,7 +66,12 @@ export function Login() {
     try {
       if (modo === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-        if (error) setErro('Não foi possível entrar. Confira e-mail e senha.');
+        if (error?.code === 'email_not_confirmed' || /not confirmed/i.test(error?.message ?? '')) {
+          setSemConfirmar(true);
+          setErro(
+            'Seu e-mail ainda não foi confirmado. Toque no link que enviamos ao criar a conta.',
+          );
+        } else if (error) setErro('Não foi possível entrar. Confira e-mail e senha.');
       } else if (modo === 'signup') {
         if (!nome.trim()) {
           setErro('Informe seu nome.');
@@ -160,6 +189,16 @@ export function Login() {
               <Icon name="alert" size={18} />
               {erro}
             </p>
+          ) : null}
+          {semConfirmar ? (
+            <button
+              type="button"
+              className={styles.link}
+              disabled={enviando}
+              onClick={reenviarConfirmacao}
+            >
+              Reenviar confirmação
+            </button>
           ) : null}
 
           <Button type="submit" full disabled={enviando}>
