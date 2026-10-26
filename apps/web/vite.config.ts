@@ -7,6 +7,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // O registro é assumido manualmente em src/lib/pwa.ts (para somar a
+      // checagem periódica de atualização); não injetar o registro padrão.
+      injectRegister: false,
       includeAssets: ['icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'],
       manifest: {
         name: 'CONTRO · obras da contorno',
