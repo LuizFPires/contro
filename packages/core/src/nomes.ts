@@ -4,7 +4,12 @@ const PARTICULAS = new Set(['da', 'das', 'de', 'do', 'dos', 'e']);
 
 /** Cadastro exige nome e sobrenome: pelo menos duas palavras com letras. */
 export function temNomeESobrenome(nome: string): boolean {
-  return nome.trim().split(/\s+/).filter((p) => /\p{L}/u.test(p)).length >= 2;
+  return (
+    nome
+      .trim()
+      .split(/\s+/)
+      .filter((p) => /\p{L}/u.test(p)).length >= 2
+  );
 }
 
 /**
