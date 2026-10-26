@@ -12,49 +12,45 @@ const cron = calcularCronograma({
     { id: 'B', duracao_du: 3, predecessoras: ['A'] },
   ],
 });
-const preds = { A: [], B: ['A'] };
 const todosProv = new Set(['A', 'B']); // sem providências pendentes
 
-describe('estadoObra — liberação', () => {
-  it('no início: A liberada, B aguarda a predecessora', () => {
+describe('estadoObra — sem atividade bloqueada', () => {
+  it('toda atividade aberta pode ser concluída, mesmo com a predecessora aberta', () => {
     const e = estadoObra({
       inicio: INICIO,
       hoje: INICIO,
       cronograma: cron,
-      predecessoras: preds,
       concluidas: new Set(),
       provOk: todosProv,
     });
     expect(e.atividades.A.liberada).toBe(true);
-    expect(e.atividades.B.liberada).toBe(false);
-    expect(e.atividades.B.predsOk).toBe(false);
+    expect(e.atividades.B.liberada).toBe(true);
     expect(e.indicadores.real).toBe(0);
   });
 
-  it('concluir A libera B', () => {
+  it('concluída deixa de estar aberta e conta no real', () => {
     const e = estadoObra({
       inicio: INICIO,
       hoje: INICIO,
       cronograma: cron,
-      predecessoras: preds,
       concluidas: new Set(['A']),
       provOk: todosProv,
     });
-    expect(e.atividades.B.liberada).toBe(true);
+    expect(e.atividades.A.liberada).toBe(false);
     expect(e.indicadores.real).toBeCloseTo(0.4, 5); // 2/5
   });
 
-  it('sem providência: aguardando, não liberada', () => {
+  it('lembrete pendente só avisa: a atividade continua aberta', () => {
     const e = estadoObra({
       inicio: INICIO,
       hoje: INICIO,
       cronograma: cron,
-      predecessoras: preds,
       concluidas: new Set(),
-      provOk: new Set(['B']), // A sem providência feita
+      provOk: new Set(['B']), // A com lembrete pendente
     });
-    expect(e.atividades.A.liberada).toBe(false);
-    expect(e.atividades.A.aguardandoProvidencia).toBe(true);
+    expect(e.atividades.A.liberada).toBe(true);
+    expect(e.atividades.A.lembretesPendentes).toBe(true);
+    expect(e.atividades.B.lembretesPendentes).toBe(false);
   });
 });
 
@@ -64,7 +60,6 @@ describe('estadoObra — atraso e ritmo', () => {
       inicio: INICIO,
       hoje: '2026-01-12', // decorridos 5
       cronograma: cron,
-      predecessoras: preds,
       concluidas: new Set(),
       provOk: todosProv,
     });
@@ -78,7 +73,6 @@ describe('estadoObra — atraso e ritmo', () => {
       inicio: INICIO,
       hoje: '2026-01-07', // decorridos 2
       cronograma: cron,
-      predecessoras: preds,
       concluidas: new Set(),
       provOk: todosProv,
     });
@@ -91,7 +85,6 @@ describe('estadoObra — atraso e ritmo', () => {
       inicio: INICIO,
       hoje: '2026-01-01', // antes do início
       cronograma: cron,
-      predecessoras: preds,
       concluidas: new Set(),
       provOk: todosProv,
     });

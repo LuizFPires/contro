@@ -29,7 +29,7 @@ Versão 1.0 · 24/10/2026 · complementa o PRD.md. Em caso de conflito sobre com
 ```
 
 - **A regra de domínio vive em um pacote compartilhado** (`/packages/core`, TypeScript puro e testado): cronograma, liberação, atrasos, %, semana, atribuições e textos do boletim e da ata. Front e pdf-service importam o mesmo código.
-- O banco guarda **fatos** (concluído em, providenciado em, prazo, foto). **Derivados** (liberada, atrasada, %, ritmo) são calculados pelo `core`. O que precisar ir para o PDF é materializado no snapshot semanal.
+- O banco guarda **fatos** (concluído em, providenciado em, prazo, foto). **Derivados** (atrasada, lembretes pendentes, %, ritmo) são calculados pelo `core`. O que precisar ir para o PDF é materializado no snapshot semanal.
 
 ## 3. Modelo de dados
 
@@ -153,7 +153,8 @@ concluida(a)  = a.concluida_em != null   -- com subitens: só permitido quando t
 avanço com subitens = peso(a) × (Σ dur dos subitens marcados / Σ dur dos subitens)
 predsOk(a)    = todas predecessoras concluídas
 provOk(a)     = todas providências de a com status 'feito'
-liberada(a)   = !concluida && predsOk && provOk
+liberada(a)   = !concluida                      -- sem atividade bloqueada (26/10/2026); predsOk/provOk não travam
+lembretesPendentes(a) = !concluida && !provOk   -- só aviso
 aguardandoProvidencia(a) = !concluida && predsOk && !provOk
 atrasada(a)   = !concluida && obra iniciada && EF(a) ≤ decorridos
 fase_atual    = menor fase com atividade não concluída
@@ -188,8 +189,8 @@ concluir_semana = não concluídas com decorridos < EF ≤ decorridos + 5
 comecar_semana  = não concluídas com decorridos ≤ ES < decorridos + 5
 providenciar_semana = providências pendentes, não atrasadas, com limite < decorridos + 5
 semana_passada_concluir = decorridos − 5 < EF ≤ decorridos  → concluída? / não (com motivo)
-semana_passada_comecar  = decorridos − 5 ≤ ES < decorridos → começou (concluída ou liberada)? / não (com motivo)
-motivo(a) = "aguarda <predecessoras>" | "aguarda <tipo> de <descrição>" | "liberada"
+semana_passada_comecar  = decorridos − 5 ≤ ES < decorridos → concluída? senão a reunião pergunta "Começou / Não começou"
+motivo(a) = "falta providenciar" (lembrete pendente) | nada
 ```
 
 ### 4.7 Atribuições ("Quem faz o quê")
@@ -226,13 +227,13 @@ excluir: exclusão lógica, com "Desfazer"
 ```
 Efeitos de concluir:
 - vínculo com providência pendente → marca a providência como `feito` e grava `efeito_providencia_id`;
-- vínculo com atividade liberada → abre a câmera de conclusão.
+- vínculo com atividade aberta → abre a câmera de conclusão.
 
 Efeito de reabrir: se `efeito_providencia_id` aponta para uma providência `feito` cuja atividade não foi concluída, ela volta para `pendente`.
 
 **Providência:** `pendente ⇄ feito`. A edição permite descrição, data na obra e status.
 
-**Atividade:** `planejada → liberada → concluída` (com ou sem foto; sem foto, a foto pode ser anexada depois por `anexar_foto_conclusao`). O "Desfazer" do toast reabre a atividade por `desfazer_conclusao` (só quem concluiu e enquanto nenhuma sucessora foi concluída); reabrir em geral, pelo gestor, fica para a v1.1.
+**Atividade:** `aberta → concluída` (sem estado bloqueado) (com ou sem foto; sem foto, a foto pode ser anexada depois por `anexar_foto_conclusao`). O "Desfazer" do toast reabre a atividade por `desfazer_conclusao` (só quem concluiu); reabrir em geral, pelo gestor, fica para a v1.1.
 
 ## 6. Operações (RPC / Edge Functions)
 
@@ -243,7 +244,7 @@ Efeito de reabrir: se `efeito_providencia_id` aponta para uma providência `feit
 | `marcar_subitem(id, feito)` | gestor, equipe | Marca ou desmarca o subitem (foto opcional) |
 | `salvar_modelo_*` (fase, atividade, subitem, dependência, providência, nome/subtítulo) | **só gestor** | Valida sem ciclos, duração ≥ 1, fase com nome e subitem com um nível só |
 | `duplicar_modelo(modelo_id \| null)`, `excluir_modelo(id)` | **só gestor** | Cópia profunda (ou em branco); exclusão lógica, mantendo ao menos um |
-| `concluir_atividade(id, foto_id)` | gestor, equipe | Exige que esteja liberada; grava a conclusão, +50 XP e +200 se fechar a fase |
+| `concluir_atividade(id, foto_id)` | gestor, equipe | Qualquer atividade aberta (sem checar predecessoras nem lembretes); marca os subitens abertos; +50 XP e +200 se fechar a fase |
 | `marcar_providencia(id, status)` | gestor, equipe | Alterna pendente/feito |
 | `apontar_pendencia(...)`, `resolver_pendencia(id, foto_depois_id)` | gestor, equipe | — |
 | `vistoriar_pendencia(id, aprovado, motivo?)` | gestor, equipe | Bloqueia se `vistoriada_por = resolvida_por` |
@@ -324,7 +325,7 @@ A faixa lateral de cada obra é **cinza escuro #4A4A4A**.
 - Leituras: cache da obra aberta e das tarefas do usuário em IndexedDB. A sincronização em segundo plano roda ao abrir o app e a cada 5 minutos com conexão.
 - Escritas: ação aplicada otimisticamente no estado local → `fila_ops` (Dexie) `{client_op_id, op, payload, criado_em}` → envio em ordem, com retry exponencial.
 - Fotos: o arquivo comprimido vai para a fila de upload. A operação que depende da foto referencia um `foto_id` gerado no aparelho.
-- Conflitos: last write wins por campo, com registro de evento. Exceção: `concluir_atividade` exige `liberada` no servidor. Se falhar, a UI reverte e explica o motivo.
+- Conflitos: last write wins por campo, com registro de evento. Exceção: `concluir_atividade` recusa atividade já concluída. Se falhar, a UI reverte e explica o motivo.
 
 ## 10. Frontend
 

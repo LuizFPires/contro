@@ -13,10 +13,8 @@ function est(id: string, p: Partial<AtividadeEstado> = {}): AtividadeEstado {
   return {
     id,
     concluida: false,
-    predsOk: true,
-    provOk: true,
-    liberada: false,
-    aguardandoProvidencia: false,
+    liberada: !p.concluida,
+    lembretesPendentes: false,
     atrasada: false,
     ...p,
   };
@@ -72,8 +70,8 @@ describe('trilhaDeFases', () => {
   const base = {
     A: est('A', { concluida: true }),
     B: est('B', { concluida: true }),
-    Forro: est('Forro', { liberada: true }),
-    Pintura: est('Pintura', { predsOk: false }),
+    Forro: est('Forro'),
+    Pintura: est('Pintura'),
   };
 
   it('fase concluída, fase em execução e fase planejada', () => {
@@ -86,12 +84,12 @@ describe('trilhaDeFases', () => {
       concluidas: 1,
       total: 2,
     });
-    expect(f2.info).toBe('1 atividade liberada para executar');
+    expect(f2.info).toBe('1 atividade a executar');
     expect(f3).toMatchObject({ status: 'planejada', rotulo: 'planejada' });
-    expect(f3.info).toBe('Libera quando concluir: Forro');
+    expect(f3.info).toBe('1 atividade a executar');
   });
 
-  it('textos da atividade: concluída, liberada com datas e prestador, planejada', () => {
+  it('textos da atividade: concluída e aberta (mesmo com a anterior aberta)', () => {
     const [, f2, f3] = trilhaDeFases(entrada(base));
     const [b, forro] = f2.atividades;
     expect(b).toMatchObject({
@@ -101,20 +99,21 @@ describe('trilhaDeFases', () => {
     });
     expect(forro).toMatchObject({
       status: 'liberada',
-      sub: 'Liberada · 20/10–29/10',
+      sub: 'Prevista 20/10–29/10',
       prestador: 'Gesso Forte',
       podeConcluir: true,
     });
+    // Sem atividade bloqueada: Pintura depende do Forro (aberto) e pode ser concluída.
     expect(f3.atividades[0]).toMatchObject({
-      status: 'planejada',
-      sub: 'Planejada · aguarda Forro',
-      podeConcluir: false,
+      status: 'liberada',
+      sub: 'Prevista 02/11–06/11',
+      podeConcluir: true,
     });
   });
 
-  it('aguardando providência mostra o tipo e a descrição', () => {
+  it('lembrete pendente só avisa: mostra o tipo e a descrição e não trava', () => {
     const e = entrada(
-      { ...base, Forro: est('Forro', { provOk: false, aguardandoProvidencia: true }) },
+      { ...base, Forro: est('Forro', { lembretesPendentes: true }) },
       {
         atividades: [
           atv('A', 'f1'),
@@ -127,26 +126,26 @@ describe('trilhaDeFases', () => {
       },
     );
     const f2 = trilhaDeFases(e)[1];
-    expect(f2.atividades[1].sub).toBe('Aguardando contratação: gesseiro');
-    expect(f2.atividades[1].podeConcluir).toBe(false);
-    expect(f2.info).toBe('1 aguardando contratação, locação ou compra');
+    expect(f2.atividades[1].sub).toBe('Prevista 20/10–29/10 · falta contratação: gesseiro');
+    expect(f2.atividades[1].podeConcluir).toBe(true);
+    expect(f2.info).toBe('1 com contratação, locação ou compra a providenciar');
   });
 
-  it('atrasada: texto em destaque, contador na fase e câmera se liberada', () => {
-    const e = entrada({ ...base, Forro: est('Forro', { liberada: true, atrasada: true }) });
+  it('atrasada: texto em destaque, contador na fase e câmera', () => {
+    const e = entrada({ ...base, Forro: est('Forro', { atrasada: true }) });
     const f2 = trilhaDeFases(e)[1];
     expect(f2.atividades[1]).toMatchObject({
       status: 'atrasada',
-      sub: 'ATRASADA · devia terminar 29/10 · 20/10–29/10',
+      sub: 'ATRASADA · devia terminar 29/10',
       podeConcluir: true,
     });
     expect(f2.atrasadas).toBe(1);
     expect(f2.atrasoTxt).toBe('1 atrasada');
   });
 
-  it('plural das atividades liberadas', () => {
-    const e = entrada({ ...base, B: est('B', { liberada: true }) });
-    expect(trilhaDeFases(e)[1].info).toBe('2 atividades liberadas para executar');
+  it('plural das atividades a executar', () => {
+    const e = entrada({ ...base, B: est('B') });
+    expect(trilhaDeFases(e)[1].info).toBe('2 atividades a executar');
   });
 
   it('obra toda concluída: nenhuma fase em execução', () => {

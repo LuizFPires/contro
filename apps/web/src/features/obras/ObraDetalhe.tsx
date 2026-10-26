@@ -358,12 +358,8 @@ function Fase({
                     <Icon name="checkGrosso" size={16} strokeWidth={2.6} />
                   ) : a.status === 'atrasada' ? (
                     <Icon name="relogio" size={16} strokeWidth={2.2} />
-                  ) : a.status === 'liberada' ? (
-                    <Icon name="seta" size={16} strokeWidth={2.2} />
-                  ) : a.status === 'aguardando' ? (
-                    <Icon name="providencias" size={16} strokeWidth={2} />
                   ) : (
-                    <Icon name="cadeado" size={14} strokeWidth={2.2} />
+                    <Icon name="seta" size={16} strokeWidth={2.2} />
                   )}
                 </div>
                 <button type="button" className={styles.atvTexto} onClick={() => onAbrir(a.id)}>

@@ -67,7 +67,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 ### 5.4 Obra · Fases (mapa do jogo)
 - Trilha vertical com as 6 fases: Mobilização, Infraestrutura, Fechamentos, Acabamentos, Instalações finais e Entrega.
 - Estados de fase: concluída, em execução, planejada e com atraso (vermelho).
-- Ao expandir uma fase, as atividades aparecem com estado (concluída, liberada, aguardando providência, planejada ou atrasada), o prestador (quando informado) e um botão de câmera para **concluir** quando liberada (com foto ou, na própria câmera, "Concluir sem foto"). Concluída sem foto aparece como "Concluída · sem foto".
+- Ao expandir uma fase, as atividades aparecem com estado (concluída, atrasada ou a executar, com as datas previstas e o lembrete que falta, se houver), o prestador (quando informado) e um botão de câmera para **concluir** em toda atividade aberta (com foto ou, na própria câmera, "Concluir sem foto"). Concluída sem foto aparece como "Concluída · sem foto". **Não existe atividade bloqueada.**
 - Tocar na atividade abre a **ficha da atividade** (5.5).
 - Ao concluir a última atividade de uma fase: **celebração** de fase concluída com a lista do que foi liberado.
 - No fim da trilha, **tarja preta da Inauguração** com a data por extenso, os dias úteis restantes e, se houver atraso, quanto o ritmo atual atrasa.
@@ -83,14 +83,14 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - **Prestador da atividade:** campo de texto opcional com o nome de quem executa. Não tem valor nem vínculo com compras.
 - Lista **"Para começar"**: os lembretes da atividade, com o botão "+ Contratação / + Locação / + Compra".
 - Depende de / Libera.
-- Botões "Concluir com foto" e "Concluir sem foto" quando liberada; concluída sem foto, "Anexar foto"; caso contrário, o motivo do bloqueio.
+- Rodapé fixo em toda atividade aberta (protótipo A1): **"✓ Marcar como resolvida"** (conclui na hora, sem foto, com Desfazer) e, ao lado, o botão de câmera para concluir com foto; concluída sem foto, "Anexar foto".
 
 ### 5.6 Providências (lembretes de contratação, locação e compra)
 - Cada lembrete tem só: **tipo**, **o que providenciar**, **data em que precisa estar na obra** (padrão: início da atividade, editável) e **situação** (A providenciar ou Providenciado).
 - **Não tem valor nem fornecedor.** Isso fica em outro sistema (decisão do usuário).
 - "Providenciar até" = início da atividade menos a antecedência do modelo, em dias úteis.
 - Aba **Providências** da obra agrupada em Atrasados (vermelho) e A providenciar, com o botão "Marcar como providenciado".
-- A atividade só é liberada quando as predecessoras estão concluídas **e** todos os seus lembretes estão providenciados.
+- Lembretes avisam o que contratar, alugar ou comprar a tempo, mas **não travam** a atividade: ela pode ser concluída com lembrete pendente.
 
 ### 5.7 Pendências (qualidade)
 - Alternância **Fila | Lista completa**, com as contagens.
@@ -102,7 +102,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - **Vistoria:** antes e depois lado a lado, com "Aprovar e fechar" ou "Reabrir".
 
 ### 5.8 Cronograma
-- Gantt simplificado por fase, com a linha de hoje. Cores: concluída (turquesa), liberada (preto), atrasada (vermelho) e planejada (cinza).
+- Gantt simplificado por fase, com a linha de hoje. Cores: concluída (turquesa), a executar (preto) e atrasada (vermelho).
 - Tocar na linha mostra situação, prestador, lembretes (n de m providenciados), depende de e libera.
 
 ### 5.9 Boletim da semana
@@ -121,7 +121,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 ### 5.10 Reunião semanal (segunda, 16h)
 - **Pauta guiada** (opção A do protótipo de reunião): escolhe-se a obra no topo e passa-se por **4 etapas**, com "Continuar" e "Voltar" no rodapé. O cabeçalho é baixo e o rodapé só tem os botões.
   1. **Semana passada:** cada atividade prevista recebe **Feito** ou **Não feito**.
-     - **Feito** numa atividade liberada conclui na hora, sem foto (com Desfazer); já concluída aparece como "Concluída no app".
+     - **Feito** conclui a atividade na hora, sem foto (com Desfazer); já concluída aparece como "Concluída no app".
      - **Não feito** abre uma tela por cima da pauta: a atividade aparece **atrasada**, com o **impacto no cronograma só simulado** (nova conclusão e nova inauguração, sem alterar nada; para mudar de verdade usa-se "Ajustar prazo") e a **providência para recuperar**: o que fazer, responsável, data da providência e observação livre.
   2. **Esta semana:** cada item a concluir, começar ou providenciar recebe **Segue o plano** ou **Providência** (mesma tela de providência). Lembrete vencido aparece em vermelho; quando a atividade tem prestador, ele aparece no item e a providência já vem "Confirmar com <prestador>…".
   3. **Providências:** as da **reunião anterior** recebem **Feita** (com Desfazer) ou **Não feita**, que abre "Remarcar providência" (novo responsável, data e observação; conta como replanejamento). As **criadas nesta reunião** aparecem com a origem e "Editar"; "+ Nova providência" cria uma solta.
@@ -177,7 +177,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 
 1. Toda obra é cópia do **modelo escolhido** ao criá-la. Editar a obra não altera o modelo, e editar o modelo não altera obras já criadas. Só o perfil **Gestor** edita modelos.
 2. Cronograma em **dias úteis de segunda a sexta, sem cadastro de feriados**. Feriado ou imprevisto se resolve com **ajuste manual** da data de início da atividade, e as sucessoras acompanham.
-3. Atividade **liberada** = predecessoras concluídas **e** lembretes providenciados.
+3. **Não existe atividade bloqueada:** qualquer atividade aberta pode ser concluída; dependências só montam o cronograma e lembretes só avisam. Concluir uma atividade com subitens marca os subitens abertos.
 4. Atividade é **concluída com ou sem foto**; sem foto fica marcada e pode receber a foto depois.
 5. Atividade **atrasada** = não concluída e término previsto já passou.
 6. Lembrete **atrasado** = não providenciado e "providenciar até" já passou.

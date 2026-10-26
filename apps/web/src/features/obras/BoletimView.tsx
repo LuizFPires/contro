@@ -47,13 +47,9 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
     const iniciada = dec > 0 || hoje >= obra.inicio;
     const topo = obra.atividades.filter((a) => !a.pai_id);
     const cronOf = (id: string) => obra.cron.porId[id];
-    const motivo = (id: string): string | null => {
-      const e = obra.estados[id];
-      if (!e || e.concluida) return null;
-      if (!e.predsOk) return 'aguarda predecessoras';
-      if (!e.provOk) return 'aguarda providências';
-      return null;
-    };
+    // Sem atividade bloqueada: o motivo de não ter começado é só o lembrete pendente.
+    const motivo = (id: string): string | null =>
+      obra.estados[id]?.lembretesPendentes ? 'falta providenciar' : null;
 
     const semEntrada: (AtividadeSemana & { nome: string })[] = topo.map((a) => ({
       id: a.id,

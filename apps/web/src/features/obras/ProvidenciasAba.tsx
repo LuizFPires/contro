@@ -226,7 +226,7 @@ export function NovaProvidenciaSheet({
         </div>
 
         <div className={styles.dica}>
-          A atividade é liberada quando todos os lembretes dela estiverem providenciados.
+          O lembrete avisa o que contratar, alugar ou comprar a tempo; não trava a atividade.
         </div>
         {erro ? (
           <div role="alert" className={styles.erro}>
