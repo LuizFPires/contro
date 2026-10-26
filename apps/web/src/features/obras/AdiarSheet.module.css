@@ -47,3 +47,94 @@
   color: var(--contro-muted);
   text-align: center;
 }
+
+/* ---------- Adiar pendência (protótipo) ---------- */
+.adiar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.adiarTitulo {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+.adiarSub {
+  font-size: 14px;
+  color: #464646;
+}
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.campoRotulo {
+  font-size: 14px;
+  font-weight: 700;
+}
+.datas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.dataBtn {
+  min-height: 52px;
+  border-radius: 10px;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+}
+.dataBtn b {
+  font-size: 15px;
+}
+.dow {
+  font-size: 12px;
+}
+.dataAtiva {
+  background: rgb(84 180 176 / 22%);
+  border-color: var(--contro-black);
+}
+.motivos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.motivo {
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border-radius: 99px;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.motivoAtivo {
+  background: var(--contro-black);
+  border-color: var(--contro-black);
+  color: var(--contro-white);
+}
+.aviso {
+  font-size: 13px;
+  color: #696969;
+}
+.confirmar {
+  min-height: 52px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+}
+.confirmar:disabled {
+  opacity: 0.6;
+}

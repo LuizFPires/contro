@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { classificarPendencias } from '@contro/core';
-import { Card, Icon, Segmented, useToast } from '@contro/ui';
+import { classificarPendencias, pendenteHa, podeVistoriar } from '@contro/core';
+import { Icon, useToast } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
@@ -8,27 +8,30 @@ import { AdiarSheet } from './AdiarSheet';
 import { ApontarSheet } from './ApontarSheet';
 import { Camera } from './Camera';
 import { PendenciaDeck } from './PendenciaDeck';
-import { VistoriaSheet } from './VistoriaSheet';
 import type { ObraCompleta } from './detalhe';
 import type { PendenciaObra } from './pendenciasObra';
 import { useObraPendencias } from './useObraPendencias';
 import styles from './PendenciasAba.module.css';
 
-const CRIT: Record<string, string> = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
+const CRIT: Record<string, string> = { alta: 'alta', media: 'média', baixa: 'baixa' };
 
+type Modo = 'fila' | 'lista' | 'vistoria';
+
+/** Pendências da obra (protótipo · PENDÊNCIAS e VISTORIA). */
 export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
   const { data: pessoa } = usePerfil();
   const { showToast } = useToast();
   const campo = useObraPendencias(obra.id);
-  const [aba, setAba] = useState<'fila' | 'lista'>('fila');
+  const [modo, setModo] = useState<Modo>('fila');
   const [apontar, setApontar] = useState(false);
   const [resolver, setResolver] = useState<PendenciaObra | null>(null);
   const [adiar, setAdiar] = useState<PendenciaObra | null>(null);
-  const [vistoria, setVistoria] = useState<PendenciaObra | null>(null);
+  const hoje = hojeISO();
 
+  const lista = useMemo(() => campo.query.data ?? [], [campo.query.data]);
   const { fila, adiadas, emVistoria, concluidas } = useMemo(
-    () => classificarPendencias(campo.query.data ?? [], hojeISO()),
-    [campo.query.data],
+    () => classificarPendencias(lista, hoje),
+    [lista, hoje],
   );
 
   const atividades = obra.atividades
@@ -44,7 +47,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
         onSuccess: () => {
           setAdiar(null);
           showToast({
-            message: `Adiada para ${formatarDataCurta(data)}`,
+            message: `Adiada até ${formatarDataCurta(data)}`,
             onUndo: () => campo.trazer.mutate(p.id),
           });
         },
@@ -52,41 +55,188 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
     );
   }
 
+  function vistoriar(p: PendenciaObra, aprovado: boolean) {
+    campo.vistoriar.mutate(
+      { id: p.id, aprovado, motivo: aprovado ? undefined : '' },
+      {
+        onSuccess: () =>
+          showToast({ message: aprovado ? 'Pendência fechada' : 'Pendência reaberta na fila' }),
+      },
+    );
+  }
+
   return (
     <div className={styles.aba}>
       <div className={styles.topo}>
-        <Segmented
-          ariaLabel="Modo das pendências"
-          value={aba}
-          onChange={setAba}
-          options={[
-            { value: 'fila', label: fila.length > 0 ? `Fila (${fila.length})` : 'Fila' },
-            { value: 'lista', label: 'Lista completa' },
-          ]}
-        />
-        <button type="button" className={styles.apontar} onClick={() => setApontar(true)}>
-          <Icon name="camera" size={20} />
-          Apontar
+        <div role="tablist" aria-label="Modo de visualização" className={styles.modos}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={modo === 'fila'}
+            className={`${styles.modo} ${modo === 'fila' ? styles.modoAtivo : ''}`}
+            onClick={() => setModo('fila')}
+          >
+            Fila · {fila.length}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={modo !== 'fila'}
+            className={`${styles.modo} ${modo !== 'fila' ? styles.modoAtivo : ''}`}
+            onClick={() => setModo('lista')}
+          >
+            Lista completa · {lista.length}
+          </button>
+        </div>
+        <button
+          type="button"
+          className={styles.apontar}
+          aria-label="Apontar nova pendência"
+          title="Apontar nova pendência"
+          onClick={() => setApontar(true)}
+        >
+          <Icon name="camera" size={20} strokeWidth={2} />
         </button>
       </div>
 
-      {aba === 'fila' ? (
-        <PendenciaDeck
-          pendencias={fila}
-          onResolver={(p) => setResolver(p)}
-          onAdiar={(p) => setAdiar(p)}
-        />
-      ) : (
-        <ListaCompleta
-          fila={fila}
-          adiadas={adiadas}
-          emVistoria={emVistoria}
-          concluidas={concluidas}
-          onResolver={setResolver}
-          onVistoriar={setVistoria}
-          onTrazer={(id) => campo.trazer.mutate(id)}
-        />
-      )}
+      {modo === 'fila' ? (
+        <>
+          <div className={styles.resumo}>
+            <span>{fila.length} na fila</span>
+            {adiadas.length ? (
+              <button type="button" className={styles.chip} onClick={() => setModo('lista')}>
+                {adiadas.length} {adiadas.length === 1 ? 'adiada' : 'adiadas'}
+              </button>
+            ) : null}
+            {emVistoria.length ? (
+              <button
+                type="button"
+                className={`${styles.chip} ${styles.chipPreto}`}
+                onClick={() => setModo('vistoria')}
+              >
+                {emVistoria.length} em vistoria
+              </button>
+            ) : null}
+          </div>
+          <PendenciaDeck pendencias={fila} onResolver={setResolver} onAdiar={setAdiar} />
+        </>
+      ) : null}
+
+      {modo === 'lista' ? (
+        <div className={styles.grupos}>
+          <Grupo titulo="Na fila" itens={fila}>
+            {(p, i) => (
+              <Linha
+                key={p.id}
+                p={p}
+                sub={i === 0 ? 'Primeira da fila' : `Aberta há ${pendenteHa(p.apontada_em, hoje)}`}
+                acao={
+                  i > 0
+                    ? { txt: 'Resolver agora', tipo: 'turquesa', fn: () => setResolver(p) }
+                    : undefined
+                }
+              />
+            )}
+          </Grupo>
+          <Grupo titulo="Adiadas" itens={adiadas}>
+            {(p) => (
+              <Linha
+                key={p.id}
+                p={p}
+                apagada
+                sub={`Volta ${p.adiada_ate ? formatarDataCurta(p.adiada_ate) : '—'} · ${p.motivo_adiamento || 'sem motivo'}`}
+                acao={{
+                  txt: 'Trazer para a fila',
+                  tipo: 'branco',
+                  fn: () => campo.trazer.mutate(p.id),
+                }}
+              />
+            )}
+          </Grupo>
+          <Grupo titulo="Em vistoria" itens={emVistoria}>
+            {(p) => (
+              <Linha
+                key={p.id}
+                p={p}
+                sub={`Resolvida por ${p.resolveuNome ?? '—'}`}
+                acao={{ txt: 'Vistoriar', tipo: 'preto', fn: () => setModo('vistoria') }}
+              />
+            )}
+          </Grupo>
+          <Grupo titulo="Concluídas" itens={concluidas}>
+            {(p) => <Linha key={p.id} p={p} fechada sub="Antes e depois arquivados" />}
+          </Grupo>
+          {lista.length === 0 ? (
+            <div className={styles.vazio}>Nenhuma pendência registrada nesta obra.</div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {modo === 'vistoria' ? (
+        <div className={styles.vistoria}>
+          <div className={styles.vistoriaTopo}>
+            <h2 className={styles.vistoriaTitulo}>Vistoria: antes e depois</h2>
+            <button type="button" className={styles.voltarFila} onClick={() => setModo('fila')}>
+              Voltar à fila
+            </button>
+          </div>
+          <div className={styles.vistoriaRegra}>
+            Quem vistoria não é quem executou. Só fecha com a foto de depois aprovada.
+          </div>
+          {emVistoria.map((p) => {
+            const pode = podeVistoriar(p, pessoa?.id ?? null);
+            return (
+              <div key={p.id} className={styles.vCard}>
+                <div>
+                  <div className={styles.vNome}>{p.titulo}</div>
+                  <div className={styles.vOnde}>
+                    {[p.local, p.atividadeNome ?? 'Geral'].filter(Boolean).join(' · ')}
+                  </div>
+                </div>
+                <div className={styles.vFotos}>
+                  <div className={styles.vFoto}>
+                    {p.fotoAntesUrl ? <img src={p.fotoAntesUrl} alt="Antes" /> : null}
+                    <span className={styles.vAntes}>ANTES</span>
+                  </div>
+                  <div className={styles.vFoto}>
+                    {p.fotoDepoisUrl ? <img src={p.fotoDepoisUrl} alt="Depois" /> : null}
+                    <span className={styles.vDepois}>
+                      DEPOIS
+                      {p.resolvida_em ? ` · ${formatarDataCurta(p.resolvida_em.slice(0, 10))}` : ''}
+                    </span>
+                  </div>
+                </div>
+                {pode ? (
+                  <div className={styles.vAcoes}>
+                    <button
+                      type="button"
+                      className={styles.vReabrir}
+                      disabled={campo.vistoriar.isPending}
+                      onClick={() => vistoriar(p, false)}
+                    >
+                      Reabrir
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.vAprovar}
+                      disabled={campo.vistoriar.isPending}
+                      onClick={() => vistoriar(p, true)}
+                    >
+                      Aprovar e fechar
+                    </button>
+                  </div>
+                ) : (
+                  <p className={styles.vBloqueio}>
+                    <Icon name="alert" size={16} />
+                    Quem resolveu não pode vistoriar a própria pendência.
+                  </p>
+                )}
+              </div>
+            );
+          })}
+          {emVistoria.length === 0 ? <div className={styles.vazio}>Nada em vistoria.</div> : null}
+        </div>
+      ) : null}
 
       <ApontarSheet
         aberto={apontar}
@@ -100,7 +250,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
 
       {resolver ? (
         <Camera
-          titulo="Resolver — alinhe com o antes"
+          titulo="Foto de depois · alinhe com o antes"
           ghostUrl={resolver.fotoAntesUrl}
           pendente={campo.resolver.isPending}
           onCancelar={() => setResolver(null)}
@@ -120,135 +270,69 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
 
       <AdiarSheet
         aberto={Boolean(adiar)}
+        titulo={adiar?.titulo}
         pendente={campo.adiar.isPending}
         onFechar={() => setAdiar(null)}
         onConfirmar={confirmarAdiar}
       />
-
-      <VistoriaSheet
-        pendencia={vistoria}
-        pessoaId={pessoa?.id ?? null}
-        pendente={campo.vistoriar.isPending}
-        onFechar={() => setVistoria(null)}
-        onAprovar={() =>
-          vistoria &&
-          campo.vistoriar.mutate(
-            { id: vistoria.id, aprovado: true },
-            {
-              onSuccess: () => {
-                setVistoria(null);
-                showToast({ message: 'Pendência fechada' });
-              },
-            },
-          )
-        }
-        onReabrir={(motivo) =>
-          vistoria &&
-          campo.vistoriar.mutate(
-            { id: vistoria.id, aprovado: false, motivo },
-            { onSuccess: () => setVistoria(null) },
-          )
-        }
-      />
     </div>
   );
 }
 
-function ListaCompleta({
-  fila,
-  adiadas,
-  emVistoria,
-  concluidas,
-  onResolver,
-  onVistoriar,
-  onTrazer,
+function Grupo({
+  titulo,
+  itens,
+  children,
 }: {
-  fila: PendenciaObra[];
-  adiadas: PendenciaObra[];
-  emVistoria: PendenciaObra[];
-  concluidas: PendenciaObra[];
-  onResolver: (p: PendenciaObra) => void;
-  onVistoriar: (p: PendenciaObra) => void;
-  onTrazer: (id: string) => void;
+  titulo: string;
+  itens: PendenciaObra[];
+  children: (p: PendenciaObra, i: number) => React.ReactNode;
 }) {
+  if (itens.length === 0) return null;
   return (
-    <div className={styles.listas}>
-      <Grupo titulo={`Na fila (${fila.length})`}>
-        {fila.map((p) => (
-          <Linha key={p.id} p={p} acao="Resolver agora" onAcao={() => onResolver(p)} />
-        ))}
-      </Grupo>
-      <Grupo titulo={`Adiadas (${adiadas.length})`}>
-        {adiadas.map((p) => (
-          <Linha
-            key={p.id}
-            p={p}
-            sub={`volta ${p.adiada_ate ? formatarDataCurta(p.adiada_ate) : '—'}${
-              p.motivo_adiamento ? ` · ${p.motivo_adiamento}` : ''
-            }`}
-            acao="Trazer para a fila"
-            onAcao={() => onTrazer(p.id)}
-          />
-        ))}
-      </Grupo>
-      <Grupo titulo={`Em vistoria (${emVistoria.length})`}>
-        {emVistoria.map((p) => (
-          <Linha
-            key={p.id}
-            p={p}
-            sub={`resolvida por ${p.resolveuNome ?? '—'}`}
-            acao="Vistoriar"
-            onAcao={() => onVistoriar(p)}
-          />
-        ))}
-      </Grupo>
-      <Grupo titulo={`Concluídas (${concluidas.length})`}>
-        {concluidas.map((p) => (
-          <Linha key={p.id} p={p} sub="fechada" />
-        ))}
-      </Grupo>
-    </div>
-  );
-}
-
-function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  const vazio = !children || (Array.isArray(children) && children.length === 0);
-  return (
-    <Card>
-      <p className={styles.grupoTitulo}>{titulo}</p>
-      {vazio ? <p className={styles.vazioGrupo}>—</p> : children}
-    </Card>
+    <section className={styles.grupo}>
+      <h3 className={styles.grupoTitulo}>
+        {titulo} · {itens.length}
+      </h3>
+      {itens.map(children)}
+    </section>
   );
 }
 
 function Linha({
   p,
   sub,
+  apagada,
+  fechada,
   acao,
-  onAcao,
 }: {
   p: PendenciaObra;
-  sub?: string;
-  acao?: string;
-  onAcao?: () => void;
+  sub: string;
+  apagada?: boolean;
+  fechada?: boolean;
+  acao?: { txt: string; tipo: 'turquesa' | 'branco' | 'preto'; fn: () => void };
 }) {
   return (
     <div className={styles.linha}>
-      <div className={styles.info}>
-        <div className={styles.desc}>
-          <span className={`${styles.crit} ${styles[`crit_${p.criticidade}`]}`}>
-            {CRIT[p.criticidade]}
-          </span>
-          {p.titulo}
-        </div>
-        <div className={styles.meta}>
-          {p.local ? `${p.local}` : ''}
-          {sub ? `${p.local ? ' · ' : ''}${sub}` : ''}
-        </div>
+      <div
+        className={`${styles.miniatura} ${apagada ? styles.apagada : ''} ${fechada ? styles.fechadaFoto : ''}`}
+      >
+        {p.fotoAntesUrl ? <img src={p.fotoAntesUrl} alt="" /> : null}
       </div>
-      {acao && onAcao ? (
-        <button type="button" className={styles.acaoBtn} onClick={onAcao}>
-          {acao}
+      <div className={styles.info}>
+        <div className={`${styles.desc} ${fechada ? styles.descFechada : ''}`}>{p.titulo}</div>
+        <div className={styles.meta}>
+          {p.local ? `${p.local} · ` : ''}criticidade {CRIT[p.criticidade]}
+        </div>
+        <div className={styles.sub}>{sub}</div>
+      </div>
+      {acao ? (
+        <button
+          type="button"
+          className={`${styles.acao} ${styles[`acao_${acao.tipo}`]}`}
+          onClick={acao.fn}
+        >
+          {acao.txt}
         </button>
       ) : null}
     </div>
