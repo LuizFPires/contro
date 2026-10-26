@@ -205,3 +205,23 @@ export function planoRecuperacao(e: EntradaRecuperacao): PlanoRecuperacao {
   );
   return { previsao, sugestoes, recomendadas: [...rec] };
 }
+
+/**
+ * Providências do plano: uma por sugestão aplicada, com prazo 2 dias úteis antes
+ * do novo início da atividade (nunca antes de hoje).
+ */
+export function tarefasDoPlano(
+  e: EntradaRecuperacao,
+  sugestoes: Sugestao[],
+): { texto: string; atividadeId: string; prazo: DataISO }[] {
+  const cron = simularPlano(e, sugestoes).cronograma;
+  const decorridos = duEntre(e.inicio, e.hoje);
+  return sugestoes.map((s) => {
+    const es = cron.porId[s.atividadeId]?.es ?? decorridos;
+    return {
+      texto: s.precisa,
+      atividadeId: s.atividadeId,
+      prazo: addDU(e.inicio, Math.max(es - 2, decorridos)),
+    };
+  });
+}

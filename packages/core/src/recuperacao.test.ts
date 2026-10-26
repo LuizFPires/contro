@@ -4,6 +4,7 @@ import {
   planoRecuperacao,
   previsaoEntrega,
   simularPlano,
+  tarefasDoPlano,
   type EntradaRecuperacao,
 } from './recuperacao';
 
@@ -80,5 +81,17 @@ describe('planoRecuperacao', () => {
     const p = planoRecuperacao(entrada({ concluidas: new Set(['A']) }));
     expect(p.sugestoes).toEqual([]);
     expect(p.recomendadas).toEqual([]);
+  });
+});
+
+describe('tarefasDoPlano', () => {
+  it('uma providência por sugestão, 2 dias úteis antes do novo início e nunca antes de hoje', () => {
+    const e = entrada();
+    const plano = planoRecuperacao(e);
+    const rec = plano.sugestoes.filter((s) => plano.recomendadas.includes(s.chave));
+    const t = tarefasDoPlano(e, rec);
+    expect(t).toHaveLength(rec.length);
+    expect(t.every((x) => x.prazo >= e.hoje)).toBe(true);
+    expect(t[0].texto).toBe(rec[0].precisa);
   });
 });
