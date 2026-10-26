@@ -50,6 +50,10 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 ## 5. Escopo da versão 1
 
 ### 5.1 Carteira (tela inicial)
+- **Hoje** no topo (opção A do protótipo): "Hoje · segunda, 26/10" e um resumo ("4 atrasos e 5 coisas para hoje em 3 obras"). Um **card por obra, recolhível**, só das obras com algo no dia; abre sozinho quem tem atraso.
+  - **Atrasado** (faixa vermelha, no topo do card): lembrete não providenciado no prazo, atividade que devia ter terminado e tarefa vencida, do mais antigo para o mais novo.
+  - **Para hoje**: atividade que termina ou começa hoje, lembrete com prazo hoje e tarefa de hoje.
+  - Tocar no item abre a obra (ou as Tarefas, se for tarefa).
 - Título "Minhas obras" com **ícone "+"** discreto para criar obra a partir do modelo.
 - Atalhos **Reunião** (próxima reunião e status da pauta) e **Tarefas** (abertas e atrasadas da equipe).
 - Card por obra: nome, fase atual, % real, barra de 6 segmentos (uma por fase), etiqueta de ritmo, data de entrega e aviso em vermelho de atividades e lembretes atrasados.

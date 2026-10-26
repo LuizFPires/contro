@@ -166,7 +166,7 @@ fase concluída / em execução / planejada / com atraso (se tem atividade atras
 limite(p)      = ES(atividade) − antecedencia_du
 providenciar_ate(p) = addDU(obra.inicio, max(limite, 0))
 na_obra_em(p)  = p.na_obra_em ?? inicio_previsto(atividade)
-atrasada(p)    = status='pendente' && atividade não concluída && obra iniciada && decorridos ≥ max(limite, 0)
+atrasada(p)    = status='pendente' && atividade não concluída && obra iniciada && decorridos > max(limite, 0)   -- "até sex" ainda vale na sexta (26/10/2026)
 ```
 
 ### 4.5 Indicadores
