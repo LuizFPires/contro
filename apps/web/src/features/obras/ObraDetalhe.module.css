@@ -451,3 +451,15 @@
 .badgeAtraso {
   background: var(--contro-late);
 }
+.iconeAtivo {
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+
+/* Impressão do boletim: só o conteúdo, sem cabeçalho nem barra inferior. */
+@media print {
+  .cabecalho,
+  .nav {
+    display: none;
+  }
+}

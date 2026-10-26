@@ -236,7 +236,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 - [x] Início (gestor e equipe): cabeçalho preto com "Modelos" (só gestor) e ícone de perfil (painel com nome, perfil, Boletim automático, Aprovar membros e Sair), blocos Reunião e Tarefas, cartões das obras
 - [x] Tarefas: tela geral (todas as obras) aberta pelo bloco do início
 - [x] Obra: Pendências (fila com cartão e lista completa), vistoria e adiar
-- [ ] Obra: Providências, Cronograma e Boletim
+- [x] Obra: Providências, Cronograma e Boletim
 - [ ] Nova obra
 - [ ] Reunião e ata
 - [ ] Folhas: ficha da atividade, câmera, celebração de fase e toast

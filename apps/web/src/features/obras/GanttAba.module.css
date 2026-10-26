@@ -1,102 +1,148 @@
+/* Cronograma da obra — protótipo aprovado (CRONOGRAMA). */
 .aba {
-  padding: var(--contro-space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--contro-space-3);
+  padding: 10px 16px 20px;
 }
 .legenda {
   display: flex;
+  gap: 12px;
   flex-wrap: wrap;
-  gap: var(--contro-space-3);
-  font-size: var(--contro-fs-caption);
-  color: var(--contro-muted);
+  font-size: 12px;
+  color: #464646;
+  padding: 2px 0 10px;
 }
 .legenda span {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
-.legenda span::before {
-  content: '';
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+.legenda i {
+  width: 14px;
+  height: 9px;
+  border-radius: 2px;
   display: inline-block;
 }
-.lgConcluida::before {
-  background: var(--contro-turquoise, #54b4b0);
+.legenda i.lgHoje {
+  width: 2px;
+  height: 12px;
+  border-radius: 0;
+  background: var(--contro-turquoise);
 }
-.lgLiberada::before {
-  background: var(--contro-black, #181818);
+.legenda .lgAtraso {
+  color: var(--contro-late);
+  font-weight: 800;
 }
-.lgAtrasada::before {
-  background: var(--contro-late);
-}
-.lgPlanejada::before {
-  background: var(--contro-muted);
+
+.fase {
+  margin-bottom: 10px;
 }
 .faseTitulo {
+  font-size: 12px;
   font-weight: 800;
-  font-size: var(--contro-fs-body-sm);
-  margin: 0 0 var(--contro-space-2);
-}
-.rows {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #696969;
+  padding: 6px 0 4px;
 }
 .row {
-  display: grid;
-  grid-template-columns: 40% 1fr;
-  align-items: center;
-  gap: var(--contro-space-2);
+  border-radius: 12px;
+}
+.rowSel {
+  background: rgb(84 180 176 / 12%);
+}
+.rowBtn {
   width: 100%;
-  border: none;
+  border: 0;
   background: transparent;
-  padding: 4px 0;
-  min-height: var(--contro-touch);
+  border-radius: 12px;
+  padding: 6px 8px;
   cursor: pointer;
   text-align: left;
+  color: var(--contro-black);
+  display: block;
+  min-height: var(--contro-touch);
+  font: inherit;
+}
+.rowTopo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  gap: 8px;
 }
 .nome {
-  font-size: var(--contro-fs-caption);
-  color: var(--contro-text);
+  font-weight: 700;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+}
+.datas {
+  color: #696969;
+  flex-shrink: 0;
+}
+.txtAtraso,
+.datasAtraso {
+  color: var(--contro-late);
+}
+.datasAtraso {
+  font-weight: 800;
 }
 .trilho {
+  display: block;
+  height: 10px;
   position: relative;
-  height: 16px;
-  background: var(--contro-bg-app);
-  border-radius: var(--contro-radius-pill);
-  overflow: hidden;
+  margin-top: 5px;
+  background: rgb(24 24 24 / 8%);
+  border-radius: 3px;
 }
 .barra {
   position: absolute;
   top: 0;
   bottom: 0;
-  border-radius: var(--contro-radius-pill);
-  min-width: 4px;
+  border-radius: 3px;
+}
+.hoje {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--contro-turquoise);
 }
 .concluida {
-  background: var(--contro-turquoise, #54b4b0);
+  background: var(--contro-turquoise);
 }
 .liberada {
-  background: var(--contro-black, #181818);
+  background: var(--contro-black);
 }
 .atrasada {
   background: var(--contro-late);
 }
 .planejada {
-  background: var(--contro-muted);
+  background: rgb(24 24 24 / 22%);
 }
-.hoje {
-  position: absolute;
-  top: -2px;
-  bottom: -2px;
-  width: 2px;
-  background: var(--contro-text);
-  z-index: 2;
-  opacity: 0.6;
+.detalhe {
+  font-size: 13px;
+  color: #464646;
+  padding: 0 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  animation: subir 0.25s ease-out;
+}
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.abrir {
+  align-self: flex-start;
+  margin-top: 6px;
+  min-height: var(--contro-touch);
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
 }

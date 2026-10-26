@@ -37,7 +37,8 @@ function semanaFmt(): string {
   )}`;
 }
 
-export function BoletimView({ obra, onFechar }: { obra: ObraCompleta; onFechar: () => void }) {
+/** Boletim da semana (protótipo · BOLETIM), dentro da tela da obra. */
+export function BoletimView({ obra }: { obra: ObraCompleta }) {
   const tarefas = useObraTarefas(obra.id);
 
   const dados = useMemo<BoletimDados>(() => {
@@ -161,80 +162,82 @@ export function BoletimView({ obra, onFechar }: { obra: ObraCompleta; onFechar: 
     }
   }
 
+  const iniciais = (nome: string) =>
+    nome
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase())
+      .join('');
+
   return (
-    <div className={styles.screen}>
-      <div className={styles.barra}>
-        <button type="button" className={styles.voltar} aria-label="Voltar" onClick={onFechar}>
-          <Icon name="chevronRight" size={22} />
-        </button>
-        <span className={styles.barraTitulo}>Boletim</span>
-        <div className={styles.acoes}>
-          <a className={styles.wa} href={wa} target="_blank" rel="noreferrer">
-            WhatsApp
-          </a>
-          <button type="button" className={styles.print} onClick={baixar} disabled={baixando}>
-            {baixando ? 'Gerando…' : 'Baixar PDF'}
-          </button>
-        </div>
+    <div className={styles.boletim}>
+      <div>
+        <h2 className={styles.titulo}>Boletim da semana</h2>
+        <div className={styles.periodo}>{dados.semanaFmt}</div>
       </div>
 
-      <article className={styles.corpo}>
-        <h1 className={styles.titulo}>{dados.obra}</h1>
-        <p className={styles.semana}>{dados.semanaFmt}</p>
-        <p className={styles.ind}>
-          Real {Math.round(dados.realPct * 100)}% · previsto até sexta{' '}
-          {Math.round(dados.previstoSextaPct * 100)}% ·{' '}
-          <span className={ritmoTexto(obra.ritmoDias).atrasada ? styles.atraso : ''}>
-            {dados.ritmoTexto}
-          </span>
-        </p>
+      <div className={styles.acoes}>
+        <a className={styles.wa} href={wa} target="_blank" rel="noreferrer">
+          <Icon name="whatsapp" size={18} strokeWidth={2} />
+          WhatsApp
+        </a>
+        <button type="button" className={styles.pdf} onClick={baixar} disabled={baixando}>
+          <Icon name="baixar" size={18} strokeWidth={2} />
+          {baixando ? 'Gerando…' : 'Baixar PDF'}
+        </button>
+      </div>
 
-        {dados.atrasos.length > 0 ? (
-          <Bloco titulo={`Atenção · ${dados.atrasos.length} em atraso`} atraso>
+      <div className={styles.ind}>
+        Real {Math.round(dados.realPct * 100)}% · previsto até sexta{' '}
+        {Math.round(dados.previstoSextaPct * 100)}% ·{' '}
+        <span className={ritmoTexto(obra.ritmoDias).atrasada ? styles.indAtraso : ''}>
+          {dados.ritmoTexto}
+        </span>
+      </div>
+
+      {dados.atrasos.length > 0 ? (
+        <div className={styles.atencao}>
+          <div className={styles.atencaoTopo}>
+            <Icon name="alert" size={18} strokeWidth={2.2} />
+            Atenção · {dados.atrasos.length} em atraso
+          </div>
+          <div className={styles.atencaoLista}>
             {dados.atrasos.map((a, i) => (
-              <li key={i}>{a}</li>
+              <div key={i} className={styles.atencaoItem}>
+                {a}
+              </div>
             ))}
-          </Bloco>
-        ) : null}
+          </div>
+        </div>
+      ) : null}
 
-        {dados.quemFazOQue.length > 0 ? (
-          <Bloco titulo="Quem faz o quê">
-            {dados.quemFazOQue.map((g) => (
-              <li key={g.pessoa}>
-                <strong>{g.pessoa}</strong>
-                <ul>
-                  {g.itens.map((it, i) => (
-                    <li key={i}>
-                      {it.dataFmt ? `${it.dataFmt} · ` : ''}
-                      {it.texto}
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </Bloco>
-        ) : null}
+      {dados.quemFazOQue.length > 0 ? (
+        <div className={styles.cartao}>
+          <div className={styles.cartaoTitulo}>Quem faz o quê nesta semana</div>
+          {dados.quemFazOQue.map((g) => (
+            <div key={g.pessoa} className={styles.pessoa}>
+              <div className={styles.pessoaTopo}>
+                <span className={styles.avatar} aria-hidden="true">
+                  {iniciais(g.pessoa)}
+                </span>
+                <b>{g.pessoa}</b>
+              </div>
+              {g.itens.map((it, i) => (
+                <div key={i} className={styles.tarefa}>
+                  <span className={styles.quando}>{it.dataFmt ?? ''}</span>
+                  <span>{it.texto}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : null}
 
-        <p className={styles.rotulo}>Prévia da mensagem</p>
-        <pre className={styles.previa}>{texto}</pre>
-      </article>
-    </div>
-  );
-}
-
-function Bloco({
-  titulo,
-  atraso,
-  children,
-}: {
-  titulo: string;
-  atraso?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={styles.bloco}>
-      <p className={`${styles.blocoTitulo} ${atraso ? styles.atraso : ''}`}>{titulo}</p>
-      <ul>{children}</ul>
+      <div className={`${styles.cartao} ${styles.previaCartao}`}>
+        <div className={styles.rotulo}>Prévia da mensagem no WhatsApp</div>
+        <div className={styles.previa}>{texto}</div>
+      </div>
     </div>
   );
 }
