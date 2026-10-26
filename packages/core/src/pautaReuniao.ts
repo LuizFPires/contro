@@ -34,7 +34,7 @@ export function simularConclusaoEm(
     id,
     duracao_du: duracao,
     esManual: a.inicio_manual ? duEntre(inicioObra, a.inicio_manual) : null,
-    predecessoras: a.predecessoras,
+    predecessoras: a.predecessoras ?? [],
   });
   return {
     fimAntes: antes.fim_previsto,
