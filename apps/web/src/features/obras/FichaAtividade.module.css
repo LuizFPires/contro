@@ -359,6 +359,9 @@
 }
 .rodapeConcluir .concluir {
   flex-grow: 1;
+  /* Botão secundário do design system: preto com texto branco. */
+  background: var(--contro-black);
+  color: var(--contro-white);
 }
 .comFoto {
   width: 52px;
