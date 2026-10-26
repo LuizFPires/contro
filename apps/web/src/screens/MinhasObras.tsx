@@ -120,7 +120,7 @@ export function MinhasObras({
           <div className={styles.vazio}>
             <Simbolo size={56} />
             <h2>Nenhuma obra ainda</h2>
-            <p>Crie a primeira obra em “Minhas obras”.</p>
+            <p>Crie a primeira obra pelo menu abaixo, na aba de obras.</p>
           </div>
         )
       ) : (
