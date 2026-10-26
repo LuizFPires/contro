@@ -63,39 +63,6 @@
   font-size: 13px;
   color: #464646;
 }
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  text-align: center;
-}
-.kpis div {
-  background: rgb(24 24 24 / 5%);
-  border-radius: 10px;
-  padding: 6px;
-}
-.kpis strong {
-  display: block;
-  font-size: 20px;
-  font-weight: 800;
-}
-.kpis span {
-  font-size: 12px;
-  color: #696969;
-}
-.kpis .kpiAtraso {
-  background: var(--contro-late);
-  color: var(--contro-white);
-}
-.kpis .kpiAtraso span {
-  color: var(--contro-white);
-}
-.kpis .kpiNovas {
-  background: rgb(84 180 176 / 22%);
-}
-.kpis .kpiNovas span {
-  color: var(--contro-black);
-}
 .obra {
   display: flex;
   flex-direction: column;
@@ -217,4 +184,56 @@
   .folha {
     box-shadow: none;
   }
+}
+.secao {
+  margin: 8px 0 2px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgb(24 24 24 / 8%);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.marcado {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+  align-items: flex-start;
+}
+.icOk,
+.icNao,
+.icAberta {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.icOk {
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.icNao {
+  background: var(--contro-late);
+  color: var(--contro-white);
+}
+.icAberta {
+  border: 1.5px solid rgb(24 24 24 / 35%);
+  color: var(--contro-black);
+}
+.recupera {
+  display: block;
+  font-size: 13px;
+  color: #464646;
+}
+.riscado {
+  color: #696969;
+  text-decoration: line-through;
+}
+.volta {
+  font-size: 12px;
+  color: #464646;
 }
