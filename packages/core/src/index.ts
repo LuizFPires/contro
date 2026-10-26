@@ -18,6 +18,7 @@ export * from './outbox';
 export * from './trilha';
 export * from './previaModelo';
 export * from './ajusteObra';
+export * from './pautaReuniao';
 
 export type Perfil = 'gestor' | 'equipe';
 
