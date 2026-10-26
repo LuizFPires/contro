@@ -323,10 +323,8 @@ function Fase({
         <div className={`${styles.no} ${noClasse}`}>
           {f.status === 'concluida' ? (
             <Icon name="checkGrosso" size={20} strokeWidth={2.6} />
-          ) : f.status === 'execucao' ? (
-            <span>{f.n}</span>
           ) : (
-            <Icon name="cadeado" size={16} strokeWidth={2} />
+            <span>{f.n}</span>
           )}
         </div>
         <div className={`${styles.linha} ${f.status === 'concluida' ? styles.linhaFeita : ''}`} />
