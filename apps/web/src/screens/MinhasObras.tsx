@@ -50,10 +50,12 @@ export function MinhasObras({
     return (
       <NovaObraScreen
         onVoltar={() => setVista('lista')}
-        onCriada={() => {
+        onCriada={(id) => {
           setVista('lista');
-          showToast({ message: 'Obra criada.' });
+          setObraAberta({ id });
+          showToast({ message: 'Obra criada com o cronograma do modelo.' });
         }}
+        onEditarModelos={ehGestor ? () => onIr('modelos') : undefined}
       />
     );
   }

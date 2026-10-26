@@ -3,6 +3,7 @@
 // de cada fase e atividade. A tela só desenha o que sai daqui.
 import type { DataISO } from './calendar';
 import type { AtividadeEstado } from './obra';
+import type { Cronograma } from './schedule';
 
 export type TipoProvidencia = 'contratacao' | 'locacao' | 'compra';
 
@@ -202,4 +203,46 @@ function atividadeTrilha(
     prestador: a.prestador,
     podeConcluir: Boolean(est?.liberada),
   };
+}
+
+export interface FaixaFase {
+  id: string;
+  n: number;
+  titulo: string;
+  /** Dias úteis desde o início da obra (início da 1ª atividade, fim exclusivo da última). */
+  es: number;
+  ef: number;
+  inicio: DataISO;
+  fim: DataISO;
+}
+
+/**
+ * Faixa de cada fase no cronograma (prévia da nova obra): da atividade que começa
+ * primeiro até a que termina por último. Fases sem atividade ficam de fora.
+ */
+export function faixasDeFases(
+  fases: TrilhaFaseEntrada[],
+  atividades: { id: string; fase_id: string; pai_id: string | null }[],
+  cronograma: Cronograma,
+): FaixaFase[] {
+  const out: FaixaFase[] = [];
+  for (const f of fases) {
+    const itens = atividades
+      .filter((a) => a.fase_id === f.id && !a.pai_id)
+      .map((a) => cronograma.porId[a.id])
+      .filter((c): c is NonNullable<typeof c> => Boolean(c));
+    if (!itens.length) continue;
+    const primeira = itens.reduce((x, y) => (y.es < x.es ? y : x));
+    const ultima = itens.reduce((x, y) => (y.ef > x.ef ? y : x));
+    out.push({
+      id: f.id,
+      n: f.ordem,
+      titulo: f.titulo,
+      es: primeira.es,
+      ef: ultima.ef,
+      inicio: primeira.inicio_previsto,
+      fim: ultima.fim_previsto,
+    });
+  }
+  return out;
 }

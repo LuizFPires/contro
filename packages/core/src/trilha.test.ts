@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import type { AtividadeEstado } from './obra';
-import { diaMes, trilhaDeFases, type EntradaTrilha, type TrilhaAtividadeEntrada } from './trilha';
+import { calcularCronograma } from './schedule';
+import {
+  diaMes,
+  faixasDeFases,
+  trilhaDeFases,
+  type EntradaTrilha,
+  type TrilhaAtividadeEntrada,
+} from './trilha';
 
 function est(id: string, p: Partial<AtividadeEstado> = {}): AtividadeEstado {
   return {
@@ -147,5 +154,20 @@ describe('trilhaDeFases', () => {
       ['A', 'B', 'Forro', 'Pintura'].map((id) => [id, est(id, { concluida: true })]),
     );
     expect(trilhaDeFases(entrada(tudo)).every((f) => f.status === 'concluida')).toBe(true);
+  });
+});
+
+describe('faixasDeFases', () => {
+  it('vai do início da 1ª atividade ao fim da última; pula fase vazia e subitens', () => {
+    const atividades = [
+      { id: 'A', fase_id: 'f1', pai_id: null, duracao_du: 2 },
+      { id: 'B', fase_id: 'f2', pai_id: null, duracao_du: 3, predecessoras: ['A'] },
+      { id: 'C', fase_id: 'f2', pai_id: null, duracao_du: 5, predecessoras: ['A'] },
+    ];
+    const cron = calcularCronograma({ inicio: '2026-10-26', atividades });
+    const faixas = faixasDeFases(fases, atividades, cron);
+    expect(faixas.map((f) => f.id)).toEqual(['f1', 'f2']);
+    expect(faixas[0]).toMatchObject({ es: 0, ef: 2, inicio: '2026-10-26', fim: '2026-10-27' });
+    expect(faixas[1]).toMatchObject({ es: 2, ef: 7, inicio: '2026-10-28', fim: '2026-11-03' });
   });
 });

@@ -1,75 +1,314 @@
+/* Nova obra — protótipo aprovado (NOVA OBRA). */
 .screen {
-  padding: var(--contro-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--contro-space-4);
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+.cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 12px 12px 10px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0));
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.voltar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.titulo {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+.corpo {
+  flex: 1;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rotulo {
+  font-size: 14px;
+  font-weight: 700;
+}
+.entrada {
+  min-height: 48px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  border-radius: 12px;
+  padding: 0 14px;
+  font-size: 17px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font-family: inherit;
+}
+.inicios {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.inicio {
+  min-height: 52px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+}
+.inicio strong {
+  font-size: 17px;
+  font-weight: 800;
+}
+.dow {
+  font-size: 12px;
+}
+.inicioAtivo {
+  background: rgb(84 180 176 / 22%);
+  border-color: var(--contro-black);
+}
+.modelos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.modelo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 2px solid rgb(24 24 24 / 16%);
+  background: var(--contro-white);
+  text-align: left;
+  cursor: pointer;
+  color: var(--contro-black);
+  font: inherit;
+}
+.modeloAtivo {
+  border-color: var(--contro-black);
+  background: rgb(84 180 176 / 14%);
+}
+.radio {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--contro-black);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.radio span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.radio .radioOn {
+  background: var(--contro-black);
+}
+.modeloTexto {
+  flex-grow: 1;
+  min-width: 0;
+}
+.modeloNome {
+  display: block;
+  font-weight: 800;
+}
+.modeloSub {
+  display: block;
+  font-size: 14px;
+  color: #464646;
+}
+.modeloNums {
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+  text-align: right;
+}
+.modeloNums span {
+  display: block;
+  font-weight: 600;
+  color: #696969;
+}
+
+.previa {
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.previaTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.previaRotulo {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #696969;
+}
+.previaTitulo {
+  font-weight: 800;
+  font-size: 17px;
+}
+.editar {
+  font-size: 14px;
+  font-weight: 700;
+  min-height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  text-decoration: underline;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  text-align: center;
+}
+.numeros div {
+  background: rgb(24 24 24 / 5%);
+  border-radius: 12px;
+  padding: 8px 4px;
+}
+.numeros strong {
+  display: block;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+.numeros span {
+  font-size: 12px;
+  color: #696969;
+}
+.faixas {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 2px;
+}
+.faixa {
+  display: grid;
+  grid-template-columns: 116px 1fr 90px;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.faixaNome {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.faixaTrilho {
+  height: 10px;
+  background: rgb(24 24 24 / 12%);
+  border-radius: 4px;
+  position: relative;
+}
+.faixaTurquesa,
+.faixaPreta {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 4px;
+}
+.faixaTurquesa {
+  background: var(--contro-turquoise);
+}
+.faixaPreta {
+  background: var(--contro-black);
+}
+.faixaDatas {
+  color: #696969;
+  text-align: right;
+}
+.explica {
+  font-size: 13px;
+  color: #696969;
+  border-top: 1px solid rgb(24 24 24 / 10%);
+  padding-top: 10px;
+}
+.entrega {
+  background: var(--contro-black);
+  color: var(--contro-white);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.entregaRotulo,
+.entregaSemanas {
+  font-size: 13px;
+  color: rgb(255 255 255 / 72%);
+}
+.entregaData {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.entregaSemanas {
+  text-align: right;
 }
 /* Erro sem vermelho (vermelho é só para atraso): texto preto + ícone. */
 .erro {
   display: flex;
   align-items: center;
-  gap: var(--contro-space-2);
+  gap: 8px;
   margin: 0;
-  color: var(--contro-text);
-  font-size: var(--contro-fs-body-sm);
+  font-size: 14px;
   font-weight: 700;
 }
-.topo {
-  display: flex;
-  align-items: center;
-  gap: var(--contro-space-2);
+.rodape {
+  position: sticky;
+  bottom: 0;
+  padding: 10px 20px calc(22px + env(safe-area-inset-bottom, 0));
+  background: var(--contro-white);
+  border-top: 1px solid rgb(24 24 24 / 14%);
 }
-.voltar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--contro-touch);
-  height: var(--contro-touch);
-  border: none;
-  background: transparent;
-  color: var(--contro-text);
-  cursor: pointer;
-  transform: rotate(180deg);
-}
-.titulo {
-  font-size: var(--contro-fs-h1);
-  font-weight: 800;
-  margin: 0;
-}
-.campo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--contro-space-1);
-}
-.label {
-  font-size: var(--contro-fs-body-sm);
-  font-weight: 700;
-}
-.select {
+.criar {
   width: 100%;
-  min-height: var(--contro-control-h);
-  padding: 0 var(--contro-space-4);
-  border: none;
-  border-radius: var(--contro-radius-field);
-  background: var(--contro-surface);
-  box-shadow: inset 0 0 0 1.5px var(--contro-border);
-  font-size: var(--contro-fs-body);
-}
-.previa {
-  background: var(--contro-selected);
-  border-radius: var(--contro-radius-card);
-  padding: var(--contro-space-4);
-}
-.previaTitulo {
+  min-height: 52px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font-size: 17px;
   font-weight: 800;
-  margin: 0 0 var(--contro-space-2);
+  cursor: pointer;
 }
-.previaLinha {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--contro-fs-body-sm);
-  padding: 2px 0;
-}
-.previaLinha strong {
-  font-weight: 800;
+.criar:disabled {
+  opacity: 0.6;
 }

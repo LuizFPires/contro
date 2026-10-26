@@ -1,31 +1,41 @@
-import { useMemo, useState } from 'react';
-import { calcularCronograma, type AtividadeEntrada } from '@contro/core';
-import { Button, Icon, Input } from '@contro/ui';
-import { formatarDataCompleta } from '../../lib/datas';
+import { useEffect, useMemo, useState } from 'react';
+import { calcularCronograma, diaMes, faixasDeFases, type AtividadeEntrada } from '@contro/core';
+import { Icon } from '@contro/ui';
+import { formatarDataCurta } from '../../lib/datas';
 import { useModelos } from '../modelos/useModelos';
 import { useModeloCompleto } from '../modelos/useModeloDetalhe';
 import { proximasSegundas, useGerarObra } from './useObras';
 import styles from './NovaObraScreen.module.css';
 
+/** Nova obra a partir de um modelo (protótipo · NOVA OBRA). */
 export function NovaObraScreen({
   onVoltar,
   onCriada,
+  onEditarModelos,
 }: {
   onVoltar: () => void;
-  onCriada: () => void;
+  onCriada: (obraId: string) => void;
+  /** Só para o gestor: abre os modelos de obra. */
+  onEditarModelos?: () => void;
 }) {
   const { data: modelos } = useModelos();
   const gerar = useGerarObra();
 
-  const segundas = useMemo(() => proximasSegundas(8), []);
+  const segundas = useMemo(() => proximasSegundas(4), []);
   const [nome, setNome] = useState('');
   const [inicio, setInicio] = useState(segundas[0] ?? '');
   const [modeloId, setModeloId] = useState('');
+  const [erro, setErro] = useState<string | null>(null);
+
+  // Começa com o primeiro modelo marcado, como no protótipo.
+  useEffect(() => {
+    if (!modeloId && modelos?.length) setModeloId(modelos[0].id);
+  }, [modelos, modeloId]);
 
   const { data: modelo } = useModeloCompleto(modeloId || null);
 
   const previa = useMemo(() => {
-    if (!modelo) return null;
+    if (!modelo || !inicio) return null;
     const entrada: AtividadeEntrada[] = modelo.atividades.map((a) => ({
       id: a.id,
       duracao_du: a.duracao_du,
@@ -33,115 +43,202 @@ export function NovaObraScreen({
       em_sequencia: a.em_sequencia,
       predecessoras: a.predecessoras,
     }));
-    let total = 0;
-    let entrega = inicio;
     try {
-      const c = calcularCronograma({ inicio, atividades: entrada });
-      total = c.total;
-      entrega = c.entrega;
+      const cron = calcularCronograma({ inicio, atividades: entrada });
+      return {
+        cron,
+        faixas: faixasDeFases(modelo.fases, modelo.atividades, cron),
+        nAtividades: modelo.atividades.filter((a) => !a.pai_id).length,
+        nProvidencias: modelo.atividades.reduce((s, a) => s + a.providencias.length, 0),
+      };
     } catch {
-      /* ignora */
+      return null;
     }
-    const nAtividades = modelo.atividades.filter((a) => !a.pai_id).length;
-    const nLembretes = modelo.atividades.reduce((s, a) => s + a.providencias.length, 0);
-    return { total, entrega, nAtividades, nLembretes };
   }, [modelo, inicio]);
 
-  const [erro, setErro] = useState<string | null>(null);
-
-  const pronto = nome.trim() && inicio && modeloId;
+  const pronto = Boolean(nome.trim() && inicio && modeloId);
 
   function criar() {
+    if (!nome.trim()) {
+      setErro('Digite o nome da unidade.');
+      return;
+    }
     setErro(null);
     gerar.mutate(
       { inicio, nome: nome.trim(), modeloId },
-      {
-        onSuccess: onCriada,
-        onError: (e) => setErro(mensagemErro(e)),
-      },
+      { onSuccess: (id) => onCriada(id), onError: (e) => setErro(mensagemErro(e)) },
     );
   }
 
+  const total = previa?.cron.total || 1;
+  const entrega = previa?.cron.entrega;
+
   return (
     <div className={styles.screen}>
-      <div className={styles.topo}>
+      <header className={styles.cabecalho}>
         <button type="button" className={styles.voltar} aria-label="Voltar" onClick={onVoltar}>
-          <Icon name="chevronRight" size={24} />
+          <Icon name="chevronLeft" size={22} />
         </button>
         <h1 className={styles.titulo}>Nova obra</h1>
-      </div>
+      </header>
 
-      <Input label="Nome da obra" value={nome} onChange={(e) => setNome(e.target.value)} />
+      <div className={styles.corpo}>
+        <div className={styles.campo}>
+          <label htmlFor="nova-unidade" className={styles.rotulo}>
+            Unidade
+          </label>
+          <input
+            id="nova-unidade"
+            className={styles.entrada}
+            value={nome}
+            placeholder="Ex.: CDC Sete Lagoas"
+            onChange={(e) => setNome(e.target.value)}
+          />
+        </div>
 
-      <div className={styles.campo}>
-        <label className={styles.label} htmlFor="nova-inicio">
-          Começa na segunda
-        </label>
-        <select
-          id="nova-inicio"
-          className={styles.select}
-          value={inicio}
-          onChange={(e) => setInicio(e.target.value)}
-        >
-          {segundas.map((s) => (
-            <option key={s} value={s}>
-              {formatarDataCompleta(s)}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className={styles.campo}>
-        <label className={styles.label} htmlFor="nova-modelo">
-          Modelo de obra
-        </label>
-        <select
-          id="nova-modelo"
-          className={styles.select}
-          value={modeloId}
-          onChange={(e) => setModeloId(e.target.value)}
-        >
-          <option value="">Escolha o modelo</option>
-          {(modelos ?? []).map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.nome}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {previa ? (
-        <div className={styles.previa}>
-          <p className={styles.previaTitulo}>Prévia</p>
-          <div className={styles.previaLinha}>
-            <span>Atividades</span>
-            <strong>{previa.nAtividades}</strong>
+        <div className={styles.campo}>
+          <div className={styles.rotulo} id="nova-inicio">
+            Início da obra
           </div>
-          <div className={styles.previaLinha}>
-            <span>Lembretes</span>
-            <strong>{previa.nLembretes}</strong>
-          </div>
-          <div className={styles.previaLinha}>
-            <span>Dias úteis</span>
-            <strong>{previa.total}</strong>
-          </div>
-          <div className={styles.previaLinha}>
-            <span>Entrega</span>
-            <strong>{formatarDataCompleta(previa.entrega)}</strong>
+          <div className={styles.inicios} role="group" aria-labelledby="nova-inicio">
+            {segundas.map((s) => {
+              const [dow, dm] = formatarDataCurta(s).split(' ');
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  aria-pressed={inicio === s}
+                  className={`${styles.inicio} ${inicio === s ? styles.inicioAtivo : ''}`}
+                  onClick={() => setInicio(s)}
+                >
+                  <span className={styles.dow}>{dow}</span>
+                  <strong>{dm}</strong>
+                </button>
+              );
+            })}
           </div>
         </div>
-      ) : null}
 
-      {erro ? (
-        <p className={styles.erro}>
-          <Icon name="alert" size={18} />
-          {erro}
-        </p>
-      ) : null}
+        <div className={styles.campo}>
+          <div className={styles.rotulo} id="nova-modelo">
+            Modelo a seguir
+          </div>
+          <div role="radiogroup" aria-labelledby="nova-modelo" className={styles.modelos}>
+            {(modelos ?? []).map((m) => {
+              const on = m.id === modeloId;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  className={`${styles.modelo} ${on ? styles.modeloAtivo : ''}`}
+                  onClick={() => setModeloId(m.id)}
+                >
+                  <span className={styles.radio}>
+                    <span className={on ? styles.radioOn : ''} />
+                  </span>
+                  <span className={styles.modeloTexto}>
+                    <span className={styles.modeloNome}>{m.nome}</span>
+                    {m.subtitulo ? <span className={styles.modeloSub}>{m.subtitulo}</span> : null}
+                  </span>
+                  <span className={styles.modeloNums}>
+                    {m.dias} d<span>{m.atividades} ativ.</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-      <Button full disabled={!pronto || gerar.isPending} onClick={criar}>
-        {gerar.isPending ? 'Criando…' : 'Criar obra'}
-      </Button>
+        {previa && modelo ? (
+          <div className={styles.previa}>
+            <div className={styles.previaTopo}>
+              <div>
+                <div className={styles.previaRotulo}>Como a obra vai nascer</div>
+                <div className={styles.previaTitulo}>{modelo.nome}</div>
+              </div>
+              {onEditarModelos ? (
+                <button type="button" className={styles.editar} onClick={onEditarModelos}>
+                  Editar modelos
+                </button>
+              ) : null}
+            </div>
+            <div className={styles.numeros}>
+              <div>
+                <strong>{previa.nAtividades}</strong>
+                <span>atividades</span>
+              </div>
+              <div>
+                <strong>{previa.nProvidencias}</strong>
+                <span>providências</span>
+              </div>
+              <div>
+                <strong>{previa.cron.total}</strong>
+                <span>dias úteis</span>
+              </div>
+            </div>
+            <div className={styles.faixas}>
+              {previa.faixas.map((f, i) => (
+                <div key={f.id} className={styles.faixa}>
+                  <span className={styles.faixaNome}>
+                    {f.n}. {f.titulo}
+                  </span>
+                  <span className={styles.faixaTrilho} aria-hidden="true">
+                    <span
+                      className={i % 2 ? styles.faixaPreta : styles.faixaTurquesa}
+                      style={{
+                        left: `${(f.es / total) * 100}%`,
+                        width: `${((f.ef - f.es) / total) * 100}%`,
+                      }}
+                    />
+                  </span>
+                  <span className={styles.faixaDatas}>
+                    {diaMes(f.inicio)}–{diaMes(f.fim)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className={styles.explica}>
+              A obra nasce com prazos, conexões e a lista de contratações, locações e compras de
+              cada atividade, com a data limite para providenciar.
+            </div>
+          </div>
+        ) : null}
+
+        {entrega ? (
+          <div className={styles.entrega}>
+            <div>
+              <div className={styles.entregaRotulo}>Entrega prevista</div>
+              <div className={styles.entregaData}>
+                {diaMes(entrega)}/{entrega.slice(0, 4)}
+              </div>
+            </div>
+            <div className={styles.entregaSemanas}>
+              cerca de {Math.ceil((previa?.cron.total ?? 0) / 5)} semanas
+            </div>
+          </div>
+        ) : null}
+
+        {erro ? (
+          <p className={styles.erro} role="alert">
+            <Icon name="alert" size={18} />
+            {erro}
+          </p>
+        ) : null}
+      </div>
+
+      <div className={styles.rodape}>
+        <button
+          type="button"
+          className={styles.criar}
+          disabled={!modeloId || gerar.isPending}
+          aria-disabled={!pronto}
+          onClick={criar}
+        >
+          {gerar.isPending ? 'Gerando…' : 'Gerar cronograma e abrir obra'}
+        </button>
+      </div>
     </div>
   );
 }
