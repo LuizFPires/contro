@@ -51,6 +51,7 @@ interface ItemSemana {
   tipo: string;
   nome: string;
   sub: string;
+  prestador?: string | null;
   atraso: string | null;
   sugestao: string;
 }
@@ -224,8 +225,11 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
           tipo: 'Concluir',
           nome: a.nome,
           sub: `previsto concluir até ${formatarDataCurta(a.data)}`,
+          prestador: a.prestador ?? null,
           atraso: null,
-          sugestao: `Garantir conclusão: ${a.nome}`,
+          sugestao: a.prestador
+            ? `Confirmar com ${a.prestador} a conclusão`
+            : `Garantir conclusão: ${a.nome}`,
         })),
         ...o.comecar.map((a) => ({
           id: a.atividadeId,
@@ -233,8 +237,11 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
           tipo: 'Começar',
           nome: a.nome,
           sub: `previsto começar ${formatarDataCurta(a.data)}`,
+          prestador: a.prestador ?? null,
           atraso: null,
-          sugestao: `Mobilizar início: ${a.nome}`,
+          sugestao: a.prestador
+            ? `Confirmar com ${a.prestador} o início`
+            : `Mobilizar início: ${a.nome}`,
         })),
         ...o.providenciasAtrasadas.map((p) => ({
           id: p.providenciaId,
@@ -440,7 +447,15 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
                   <div className={styles.cardTopo}>
                     <span className={styles.tipo}>{it.tipo}</span>
                     <b>{it.nome}</b>
-                    <span className={styles.cinza}>{it.sub}</span>
+                    <span className={styles.cinza}>
+                      {it.sub}
+                      {it.prestador ? (
+                        <>
+                          {' '}
+                          · prestador <b className={styles.prestador}>{it.prestador}</b>
+                        </>
+                      ) : null}
+                    </span>
                     {it.atraso ? <Atraso texto={it.atraso} /> : null}
                   </div>
                   <div className={styles.dois}>

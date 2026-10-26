@@ -123,7 +123,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
   1. **Semana passada:** cada atividade prevista recebe **Feito** ou **Não feito**.
      - **Feito** numa atividade liberada conclui na hora, sem foto (com Desfazer); já concluída aparece como "Concluída no app".
      - **Não feito** abre uma tela por cima da pauta: a atividade aparece **atrasada**, com o **impacto no cronograma só simulado** (nova conclusão e nova inauguração, sem alterar nada; para mudar de verdade usa-se "Ajustar prazo") e a **providência para recuperar**: o que fazer, responsável, data da providência e observação livre.
-  2. **Esta semana:** cada item a concluir, começar ou providenciar recebe **Segue o plano** ou **Providência** (mesma tela de providência). Lembrete vencido aparece em vermelho.
+  2. **Esta semana:** cada item a concluir, começar ou providenciar recebe **Segue o plano** ou **Providência** (mesma tela de providência). Lembrete vencido aparece em vermelho; quando a atividade tem prestador, ele aparece no item e a providência já vem "Confirmar com <prestador>…".
   3. **Providências:** as da **reunião anterior** recebem **Feita** (com Desfazer) ou **Não feita**, que abre "Remarcar providência" (novo responsável, data e observação; conta como replanejamento). As **criadas nesta reunião** aparecem com a origem e "Editar"; "+ Nova providência" cria uma solta.
   4. **Observações:** texto livre da obra e um resumo antes de fechar (feitos, não feitos, anteriores em aberto e providências novas por pessoa).
 - **Responsável** é escolhido entre as pessoas do app ou digitado ("+ Outro nome"); o nome digitado vira sugestão. **Data** em atalhos (próximos 5 dias úteis) ou "Outra data".

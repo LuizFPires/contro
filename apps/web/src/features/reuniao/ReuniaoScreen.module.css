@@ -141,6 +141,9 @@
   font-size: 13px;
   color: #696969;
 }
+.prestador {
+  color: var(--contro-black);
+}
 .card {
   background: var(--contro-white);
   border: 1px solid rgb(24 24 24 / 10%);

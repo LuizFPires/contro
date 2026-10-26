@@ -5,6 +5,7 @@ import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { AjustePrazo } from './AjustePrazo';
 import { Camera } from './Camera';
+import { CampoPrestador } from './CampoPrestador';
 import type { ObraCompleta } from './detalhe';
 import { NovaProvidenciaSheet } from './ProvidenciasAba';
 import { useConcluirAtividade, type AoConcluir } from './useConcluirAtividade';
@@ -149,26 +150,12 @@ export function FichaAtividade({
             </button>
           </div>
 
-          <div className={`${styles.prestador} ${a.prestador ? styles.prestadorDefinido : ''}`}>
-            <Icon name="pessoa" size={24} />
-            <div className={styles.prestadorCorpo}>
-              <label htmlFor={`prest-${a.id}`} className={styles.prestadorRotulo}>
-                Prestador da atividade
-              </label>
-              <input
-                id={`prest-${a.id}`}
-                key={a.id}
-                className={styles.prestadorInput}
-                defaultValue={a.prestador ?? ''}
-                placeholder="Opcional · nome de quem executa"
-                onBlur={(e) => {
-                  const v = e.target.value.trim() || null;
-                  if (v !== (a.prestador ?? null))
-                    campo.prestador.mutate({ id: a.id, prestador: v });
-                }}
-              />
-            </div>
-          </div>
+          <CampoPrestador
+            key={a.id}
+            atividadeId={a.id}
+            valor={a.prestador}
+            onSalvar={(v) => campo.prestador.mutate({ id: a.id, prestador: v })}
+          />
 
           <section className={styles.secao}>
             <h3 className={styles.rotulo}>
