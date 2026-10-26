@@ -64,7 +64,12 @@ export function ObraDetalhe({
       <div className={styles.screen}>
         <header className={styles.cabecalho}>
           <div className={styles.topo}>
-            <button type="button" className={styles.voltar} aria-label="Voltar para obras" onClick={onVoltar}>
+            <button
+              type="button"
+              className={styles.voltar}
+              aria-label="Voltar para obras"
+              onClick={onVoltar}
+            >
               <Icon name="chevronLeft" size={22} />
             </button>
             <span className={styles.sub}>Carregando…</span>
@@ -94,7 +99,12 @@ export function ObraDetalhe({
     <div className={styles.screen}>
       <header className={styles.cabecalho}>
         <div className={styles.topo}>
-          <button type="button" className={styles.voltar} aria-label="Voltar para obras" onClick={onVoltar}>
+          <button
+            type="button"
+            className={styles.voltar}
+            aria-label="Voltar para obras"
+            onClick={onVoltar}
+          >
             <Icon name="chevronLeft" size={22} />
           </button>
           <div className={styles.titulo}>
@@ -155,7 +165,9 @@ export function ObraDetalhe({
               <div className={styles.inaugTexto}>
                 <div className={styles.inaugRotulo}>Inauguração</div>
                 <div className={styles.inaugData}>{formatarDataCompleta(obra.entrega)}</div>
-                <div className={ritmo.atrasada ? styles.inaugAtraso : styles.inaugSub}>{inaugSub}</div>
+                <div className={ritmo.atrasada ? styles.inaugAtraso : styles.inaugSub}>
+                  {inaugSub}
+                </div>
               </div>
             </div>
           </div>

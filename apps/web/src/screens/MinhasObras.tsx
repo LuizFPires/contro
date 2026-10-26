@@ -79,7 +79,9 @@ export function MinhasObras({
           <button
             type="button"
             className={styles.perfil}
-            aria-label={nMembros ? `Perfil e ajustes · ${nMembros} membros aguardando` : 'Perfil e ajustes'}
+            aria-label={
+              nMembros ? `Perfil e ajustes · ${nMembros} membros aguardando` : 'Perfil e ajustes'
+            }
             onClick={() => setPerfilAberto(true)}
           >
             <Icon name="pessoa" size={22} />
@@ -156,9 +158,7 @@ export function MinhasObras({
             </span>
             <span>
               <span className={styles.quemNome}>{pessoa?.nome ?? ''}</span>
-              <span className={styles.quemPerfil}>
-                {pessoa ? rotuloPerfil(pessoa.perfil) : ''}
-              </span>
+              <span className={styles.quemPerfil}>{pessoa ? rotuloPerfil(pessoa.perfil) : ''}</span>
             </span>
           </div>
           {ehGestor ? (

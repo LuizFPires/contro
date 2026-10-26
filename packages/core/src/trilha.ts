@@ -126,9 +126,13 @@ export function trilhaDeFases(e: EntradaTrilha): FaseTrilha[] {
       else {
         const primeira = atvs
           .filter((a) => !concluida(a.id))
-          .sort((x, y) => (e.datas[x.id]?.inicio ?? '').localeCompare(e.datas[y.id]?.inicio ?? ''))[0];
+          .sort((x, y) =>
+            (e.datas[x.id]?.inicio ?? '').localeCompare(e.datas[y.id]?.inicio ?? ''),
+          )[0];
         const falta = primeira ? faltam(primeira) : [];
-        info = falta.length ? `Libera quando concluir: ${falta.join(', ')}` : 'Aguardando liberação';
+        info = falta.length
+          ? `Libera quando concluir: ${falta.join(', ')}`
+          : 'Aguardando liberação';
       }
     }
 

@@ -73,7 +73,12 @@ describe('trilhaDeFases', () => {
     const [f1, f2, f3] = trilhaDeFases(entrada(base));
     expect(f1).toMatchObject({ status: 'concluida', rotulo: 'concluída', concluidas: 1, total: 1 });
     expect(f1.info).toBe('Concluída com fotos de todas as etapas');
-    expect(f2).toMatchObject({ status: 'execucao', rotulo: 'em execução', concluidas: 1, total: 2 });
+    expect(f2).toMatchObject({
+      status: 'execucao',
+      rotulo: 'em execução',
+      concluidas: 1,
+      total: 2,
+    });
     expect(f2.info).toBe('1 atividade liberada para executar');
     expect(f3).toMatchObject({ status: 'planejada', rotulo: 'planejada' });
     expect(f3.info).toBe('Libera quando concluir: Forro');
@@ -82,7 +87,11 @@ describe('trilhaDeFases', () => {
   it('textos da atividade: concluída, liberada com datas e prestador, planejada', () => {
     const [, f2, f3] = trilhaDeFases(entrada(base));
     const [b, forro] = f2.atividades;
-    expect(b).toMatchObject({ status: 'concluida', sub: 'Concluída · foto arquivada', prestador: null });
+    expect(b).toMatchObject({
+      status: 'concluida',
+      sub: 'Concluída · foto arquivada',
+      prestador: null,
+    });
     expect(forro).toMatchObject({
       status: 'liberada',
       sub: 'Liberada · 20/10–29/10',

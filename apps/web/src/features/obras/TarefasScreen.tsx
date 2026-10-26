@@ -110,7 +110,9 @@ export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
           </button>
           <div>
             <h1 className={styles.titulo}>Tarefas da equipe</h1>
-            <div className={styles.sub}>Providências das reuniões · dê baixa ao longo da semana</div>
+            <div className={styles.sub}>
+              Providências das reuniões · dê baixa ao longo da semana
+            </div>
           </div>
         </div>
         <div className={styles.chips}>
@@ -265,14 +267,21 @@ function Linha({
           <Icon name="checkGrosso" size={20} strokeWidth={2.6} />
         </button>
       ) : (
-        <button type="button" className={styles.check} aria-label="Concluir tarefa" onClick={onConcluir}>
+        <button
+          type="button"
+          className={styles.check}
+          aria-label="Concluir tarefa"
+          onClick={onConcluir}
+        >
           <Icon name="checkGrosso" size={20} strokeWidth={2.4} />
         </button>
       )}
       <button type="button" className={styles.corpo} aria-label="Editar tarefa" onClick={onEditar}>
         <span className={styles.texto}>{t.texto}</span>
         <span className={styles.meta}>
-          {[obra, t.responsavelNome ?? 'Sem responsável', t.origem_texto].filter(Boolean).join(' · ')}
+          {[obra, t.responsavelNome ?? 'Sem responsável', t.origem_texto]
+            .filter(Boolean)
+            .join(' · ')}
         </span>
         <span className={styles.prazo}>{prazo}</span>
         {repl ? <span className={styles.repl}>{repl}</span> : null}

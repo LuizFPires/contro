@@ -18,5 +18,5 @@ test('cria obra a partir do Modelo 1 e abre a trilha de fases', async ({ page })
   const card = page.getByText(nome);
   await expect(card).toBeVisible();
   await card.click();
-  await expect(page.getByText('Mobilização')).toBeVisible();
+  await expect(page.getByText('Mobilização', { exact: true })).toBeVisible();
 });
