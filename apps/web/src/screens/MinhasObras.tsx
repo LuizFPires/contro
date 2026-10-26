@@ -69,7 +69,7 @@ export function MinhasObras({
     <div className={styles.screen}>
       <header className={styles.cabecalho}>
         <div className={styles.marca}>
-          <Logo on="preto" height={34} />
+          <Logo on="preto" height={30} />
         </div>
         <div className={styles.acoes}>
           {ehGestor ? (
@@ -77,6 +77,11 @@ export function MinhasObras({
               <Icon name="listaModelos" size={18} />
               Modelos
             </button>
+          ) : null}
+          {ehGestor ? (
+            <ProntosParaEnviar
+              onAbrirBoletim={(obraId) => setObraAberta({ id: obraId, boletim: true })}
+            />
           ) : null}
           <button
             type="button"
@@ -127,14 +132,6 @@ export function MinhasObras({
           </span>
         </button>
       </div>
-
-      {ehGestor ? (
-        <div className={styles.prontos}>
-          <ProntosParaEnviar
-            onAbrirBoletim={(obraId) => setObraAberta({ id: obraId, boletim: true })}
-          />
-        </div>
-      ) : null}
 
       {isLoading ? (
         <p className={styles.vazio}>Carregando…</p>
