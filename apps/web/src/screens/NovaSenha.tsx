@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Button, Icon, Input, Simbolo } from '@contro/ui';
+import { Button, Icon, PasswordInput, Simbolo } from '@contro/ui';
 import { supabase } from '../lib/supabase';
 import styles from './Estado.module.css';
 
@@ -35,9 +35,8 @@ export function NovaSenha({ onPronto }: { onPronto: () => void }) {
       <Simbolo size={48} />
       <h1 className={styles.titulo}>Definir nova senha</h1>
       <form className={styles.form} onSubmit={salvar}>
-        <Input
+        <PasswordInput
           label="Nova senha"
-          type="password"
           autoComplete="new-password"
           required
           value={senha}

@@ -98,6 +98,20 @@ const paths = {
       <path d="M4 20v-4h4" />
     </>
   ),
+  olho: (
+    <>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  olhoFechado: (
+    <>
+      <path d="M10.6 6.1A10.9 10.9 0 0 1 12 6c6.5 0 10 6 10 6a16.3 16.3 0 0 1-3.3 3.8" />
+      <path d="M6.3 7.6A16.2 16.2 0 0 0 2 12s3.5 7 10 7a10.7 10.7 0 0 0 4.3-.9" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+      <line x1="3" y1="3" x2="21" y2="21" />
+    </>
+  ),
 } as const;
 
 export type IconName = keyof typeof paths;
