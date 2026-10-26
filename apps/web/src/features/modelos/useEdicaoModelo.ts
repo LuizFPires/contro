@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   addDependencia,
+  atualizarAtividade,
+  excluirFase,
+  type AtividadeEditada,
   criarFase,
   removeAtividade,
   removeDependencia,
@@ -43,7 +46,20 @@ export function useEdicaoModelo(modeloId: string) {
     onSuccess: invalidar,
   });
 
+  const excluirFaseM = useMutation({
+    mutationFn: (id: string) => excluirFase(id),
+    onSuccess: invalidar,
+  });
+  const editarAtv = useMutation({
+    mutationFn: (v: { atv: { id: string; fase_id: string }; dados: AtividadeEditada }) =>
+      atualizarAtividade(modeloId, v.atv, v.dados),
+    onSuccess: invalidar,
+    onError: invalidar,
+  });
+
   return {
+    excluirFase: excluirFaseM,
+    editarAtv,
     duracao,
     ligarDep,
     desligarDep,

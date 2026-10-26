@@ -20,7 +20,10 @@ export function useModelos() {
 
 export function useModelosMutations() {
   const qc = useQueryClient();
-  const invalidar = () => qc.invalidateQueries({ queryKey: KEY });
+  const invalidar = () => {
+    qc.invalidateQueries({ queryKey: KEY });
+    qc.invalidateQueries({ queryKey: ['modelo'] });
+  };
 
   const duplicar = useMutation({
     mutationFn: ({
