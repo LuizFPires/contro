@@ -21,24 +21,31 @@ export function TarefaSheet({
   onFechar,
   onSalvar,
   onExcluir,
+  obras,
 }: {
   aberto: boolean;
   tarefa: TarefaObra | null; // null = nova
   pessoas: PessoaResumo[];
   pendente?: boolean;
   onFechar: () => void;
-  onSalvar: (e: EntradaTarefa) => void;
+  /** Na nova tarefa: escolha a obra (devolvida em `onSalvar`). */
+  onSalvar: (e: EntradaTarefa, obraId?: string) => void;
   onExcluir?: () => void;
+  /** Tela geral de Tarefas: a nova tarefa pede a obra. */
+  obras?: { id: string; nome: string }[];
 }) {
   const [texto, setTexto] = useState('');
   const [responsavelId, setResponsavelId] = useState('');
   const [prazo, setPrazo] = useState(emDias(1));
+  const [obraId, setObraId] = useState('');
+  const pedeObra = !tarefa && Boolean(obras?.length);
 
   useEffect(() => {
     setTexto(tarefa?.texto ?? '');
     setResponsavelId(tarefa?.responsavel_id ?? '');
     setPrazo(tarefa?.prazo ?? emDias(1));
-  }, [tarefa, aberto]);
+    setObraId(obras?.length === 1 ? obras[0].id : '');
+  }, [tarefa, aberto, obras]);
 
   const atalhos = [
     { rotulo: 'Hoje', valor: emDias(0) },
@@ -54,7 +61,29 @@ export function TarefaSheet({
 
   return (
     <BottomSheet open={aberto} title={tarefa ? 'Editar tarefa' : 'Nova tarefa'} onClose={onFechar}>
-      <div className={styles.rodape} style={{ marginTop: 0 }}>
+      {pedeObra ? (
+        <>
+          <p className={styles.rotulo} style={{ marginTop: 0 }}>
+            Obra
+          </p>
+          <select
+            className={styles.data}
+            style={{ width: '100%' }}
+            value={obraId}
+            onChange={(e) => setObraId(e.target.value)}
+            aria-label="Obra"
+          >
+            <option value="">Escolha a obra</option>
+            {obras?.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.nome}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : null}
+
+      <div className={styles.rodape} style={{ marginTop: pedeObra ? 12 : 0 }}>
         <Input label="O que" value={texto} onChange={(e) => setTexto(e.target.value)} />
       </div>
 
@@ -105,14 +134,17 @@ export function TarefaSheet({
       <div className={styles.rodape}>
         <Button
           full
-          disabled={!texto.trim() || !prazo || pendente}
+          disabled={!texto.trim() || !prazo || pendente || (pedeObra && !obraId)}
           onClick={() =>
-            onSalvar({
-              id: tarefa?.id ?? null,
-              texto: texto.trim(),
-              responsavelId: responsavelId || null,
-              prazo,
-            })
+            onSalvar(
+              {
+                id: tarefa?.id ?? null,
+                texto: texto.trim(),
+                responsavelId: responsavelId || null,
+                prazo,
+              },
+              pedeObra ? obraId : undefined,
+            )
           }
         >
           {pendente ? 'Salvando…' : tarefa ? 'Salvar' : 'Criar tarefa'}

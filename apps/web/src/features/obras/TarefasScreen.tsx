@@ -28,6 +28,7 @@ export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
   const acoes = useTarefasAcoes();
   const [filtro, setFiltro] = useState<string>('todos');
   const [editando, setEditando] = useState<TarefaObra | null>(null);
+  const [nova, setNova] = useState(false);
   const [camera, setCamera] = useState<TarefaObra | null>(null);
   const hoje = hojeISO();
 
@@ -78,13 +79,18 @@ export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
     });
   }
 
-  function salvar(e: EntradaTarefa) {
-    const t = editando;
-    if (!t) return;
+  function salvar(e: EntradaTarefa, obraEscolhida?: string) {
+    const obraId = editando?.obra_id ?? obraEscolhida;
+    if (!obraId) return;
+    const nova = !editando;
     acoes.salvar.mutate(
-      { obraId: t.obra_id, entrada: e },
+      { obraId, entrada: e },
       {
-        onSuccess: () => setEditando(null),
+        onSuccess: () => {
+          setEditando(null);
+          setNova(false);
+          if (nova) showToast({ message: 'Tarefa criada' });
+        },
         onError: () => showToast({ message: 'Não foi possível salvar a tarefa' }),
       },
     );
@@ -112,12 +118,21 @@ export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
           <button type="button" className={styles.voltar} aria-label="Voltar" onClick={onVoltar}>
             <Icon name="chevronLeft" size={22} />
           </button>
-          <div>
+          <div className={styles.topoTexto}>
             <h1 className={styles.titulo}>Tarefas da equipe</h1>
             <div className={styles.sub}>
-              Providências das reuniões · dê baixa ao longo da semana
+              O que cada um ficou de fazer · dê baixa ao longo da semana
             </div>
           </div>
+          <button
+            type="button"
+            className={styles.nova}
+            aria-label="Nova tarefa"
+            title="Nova tarefa"
+            onClick={() => setNova(true)}
+          >
+            <Icon name="plus" size={22} strokeWidth={2.4} />
+          </button>
         </div>
         <div className={styles.chips}>
           {[{ id: 'todos', nome: 'Todos', atrasadas: 0 }, ...chips].map((c) => (
@@ -163,17 +178,23 @@ export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
         ))}
         {!carregando && filtrada.length === 0 ? (
           <div className={styles.vazio}>
-            {filtro === 'todos' ? 'Nenhuma tarefa ainda.' : 'Nenhuma tarefa para esta pessoa.'}
+            {filtro === 'todos'
+              ? 'Nenhuma tarefa ainda. Toque no + para criar uma.'
+              : 'Nenhuma tarefa para esta pessoa.'}
           </div>
         ) : null}
       </div>
 
       <TarefaSheet
-        aberto={editando !== null}
+        aberto={editando !== null || nova}
         tarefa={editando}
         pessoas={pessoas}
+        obras={obras.map((o) => ({ id: o.id, nome: o.nome }))}
         pendente={acoes.salvar.isPending}
-        onFechar={() => setEditando(null)}
+        onFechar={() => {
+          setEditando(null);
+          setNova(false);
+        }}
         onSalvar={salvar}
         onExcluir={editando ? () => excluir(editando) : undefined}
       />

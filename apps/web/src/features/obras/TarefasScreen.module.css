@@ -31,6 +31,23 @@
   justify-content: center;
   flex-shrink: 0;
 }
+.topoTexto {
+  flex-grow: 1;
+  min-width: 0;
+}
+.nova {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  border: 0;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 .titulo {
   margin: 0;
   font-weight: 800;
