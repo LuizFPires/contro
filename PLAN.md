@@ -227,6 +227,23 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 
 **Aceite:** 4 boletins e 4 atas gerados pelo app; ≥ 70% das providências cumpridas no prazo; 100% das atividades concluídas com foto.
 
+## M11 · Fidelidade ao protótipo aprovado
+**Objetivo:** as telas do app ficam iguais ao protótipo aprovado (`prototipo/Main.dc.html` e `ModeloCel.dc.html`): visual, navegação e textos. Regras e dados não mudam; os textos derivados saem do core.
+
+- [x] Core: `trilhaDeFases` (status, etiqueta e textos de fase e atividade da trilha) com testes
+- [ ] Obra: cabeçalho preto (nome, "Dia N de M do modelo", %, boletim, barra) e barra inferior Fases · Pendências · Providências · Cronograma com contadores
+- [ ] Obra: trilha de fases (nós com linha, etiqueta "Fase N · status", cartões de atividade com câmera e prestador, tarja de Inauguração)
+- [ ] Início (gestor e equipe): cabeçalho preto com "Modelos" (só gestor) e ícone de perfil (painel com nome, perfil, Boletim automático, Aprovar membros e Sair), blocos Reunião e Tarefas, cartões das obras
+- [ ] Tarefas: tela geral (todas as obras) aberta pelo bloco do início
+- [ ] Obra: Pendências (fila com cartão e lista completa), vistoria e adiar
+- [ ] Obra: Providências, Cronograma e Boletim
+- [ ] Nova obra
+- [ ] Reunião e ata
+- [ ] Folhas: ficha da atividade, câmera, celebração de fase e toast
+- [ ] Modelos no celular (ModeloCel)
+
+**Aceite:** lado a lado com o protótipo, cada tela tem a mesma estrutura, hierarquia, cores e textos; a única diferença intencional é a maquete (E1) omitida.
+
 ---
 
 ## Boletim automático (destrava o débito do M8)
@@ -287,6 +304,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-26 · (M11) **Telas refeitas pelo protótipo aprovado.** As telas tinham estrutura própria (barra global Início/Modelos/Mais, abas em pílula na obra) e não seguiam o protótipo. Decisões: (1) **card e ícone da Maquete 3D omitidos** até a E1 ser aprovada; (2) a aba que o protótipo chama "Suprimentos" se chama **"Providências"** (vale o PRD); (3) sem barra global: **ícone de perfil no cabeçalho do início** abre o painel com Boletim automático, Aprovar membros (só gestor) e Sair (opção A do protótipo de menu); (4) Tarefas saem da obra e viram a tela geral aberta pelo bloco "Tarefas" do início, como no protótipo. · usuário decidiu (1)–(3); (4) segue o protótipo
 - 2026-10-25 · (ajuste dos modelos · PR a abrir) **Providências e antecedências do Modelo 1 calibradas pela base histórica.** A partir da análise do ERP de compras da construtora (25 obras "Contorno do Corpo"; ver `docs/analise-padroes-compras-obras.md` e `docs/proposta-modelo1-ajustes.md`), o Modelo 1 ganhou 14 providências novas/alteradas no gerador `supabase/seeds/gen-modelos.mjs` (propagadas aos Modelos 2 e 3 pelas atividades que cada um mantém): empreiteiro civil global (contratação, 20du — subcontratados são ~51% do valor), locações de canteiro/acesso (banheiro químico, betoneira, martelete, caçamba de limpeza permanente), compra antecipada de equipamentos de ar-condicionado (30du) e materiais de incêndio, agregados no contrapiso, itens de longo prazo nos acabamentos (granito/marmoraria 25du, esquadrias de alumínio 30du), start-up do ar no lugar da compra de evaporadoras, paisagismo na fachada, luminárias 15→20du e enxoval CDC (30du). **Sem mudança de atividades, durações ou dependências** (o motor de cronograma e o `anexoA.test.ts` ficam intactos); muda só dado de seed, não a regra em `packages/core`. Decisão central: itens fabricados/encomendados (esquadrias, granito, AC, enxoval) são **comprados no início e instalados no fim** — por isso antecedências longas. Sugestões deixadas para decisão do usuário (não implementadas): dar data-fim às locações e tratar "Enxoval CDC" como bloco próprio (exigiriam SPEC). · usuário aprovou a proposta
 - 2026-10-25 · (boletim automático · fatia 3 · PR a abrir) **Push por Web Push, com o SW intacto.** Os handlers de `push`/`notificationclick` entram no service worker gerado via `workbox.importScripts('/push-handlers.js')` — não troca a estratégia do vite-plugin-pwa, então o precache/offline do M9-offline fica igual. Assinaturas em `push_subscription` (RLS: cada um só a sua). A Edge Function `enviar-push-boletim` (service role, `npm:web-push`) lê os disparos não notificados, envia aos gestores inscritos, remove assinaturas 404/410 e marca `notificado_em`. O envio depende de deploy (VAPID, segredos, pg_cron+pg_net) — runbook em `supabase/functions/enviar-push-boletim/README.md`. A lista in-app "prontos para enviar" cobre o "avisar" sem depender do push.
 - 2026-10-25 · (boletim automático · fatia 2 · PR a abrir) **Geração agendada por marcador, sem compute server-side de texto.** Como o texto/snapshot do boletim é calculado no core (TS) e a tela Boletim já o monta ao abrir, a fatia 2 não materializa texto no banco: `gerar_disparos_boletim(p_agora)` (SECURITY DEFINER, fuso America/Sao_Paulo) só insere um `boletim_disparo` por obra ativa quando chega o dia/hora de `config_boletim`, com dedup único por (obra, semana, edição). pg_cron roda a cada 15 min e a função checa o horário por dentro (idempotente). A lista "prontos para enviar" e o push consomem esses disparos na fatia 3. Testado por pgTAP (horário, dedup, obra ativa, fechamento).
