@@ -27,6 +27,38 @@ export async function editarPrestador(id: string, prestador: string | null): Pro
   if (error) throw error;
 }
 
+// --- Plano de recuperação da inauguração ---
+
+/** Fixa a inauguração planejada (só se a obra ainda não tiver). */
+export async function fixarEntregaOriginal(obraId: string, data: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('fixar_entrega_original', {
+    p_obra_id: obraId,
+    p_data: data,
+  });
+  if (error) throw error;
+}
+
+export interface MudancasPlano {
+  entregaOriginal: string;
+  duracoes: { atividade_id: string; duracao_du: number }[];
+  defasagens: { atividade_id: string; predecessora_id: string; defasagem_du: number }[];
+  tarefas: { texto: string; atividade_id: string; prazo: string }[];
+}
+
+/** Aplica reduções e paralelismos de uma vez e cria as providências do plano. */
+export async function aplicarPlanoRecuperacao(obraId: string, m: MudancasPlano): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('aplicar_plano_recuperacao', {
+    p_obra_id: obraId,
+    p_entrega_original: m.entregaOriginal,
+    p_duracoes: m.duracoes,
+    p_defasagens: m.defasagens,
+    p_tarefas: m.tarefas,
+  });
+  if (error) throw error;
+}
+
 // --- Editar cronograma da obra (M5): duração e predecessoras da cópia ---
 
 export async function editarDuracao(id: string, du: number): Promise<void> {

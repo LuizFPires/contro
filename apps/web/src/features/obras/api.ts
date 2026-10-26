@@ -2,6 +2,7 @@ import {
   agendaDoDia,
   calcularCronograma,
   estadoObra,
+  previsaoEntrega,
   tarefaAtrasada,
   type AgendaObra,
   type AtividadeEntrada,
@@ -39,6 +40,8 @@ export interface ObraResumo {
   tarefasAtrasadas: number;
   /** "Hoje" da tela inicial: atrasados e o que é para hoje. */
   agenda: AgendaObra;
+  /** Inauguração prevista depois da planejada (null = no prazo). */
+  risco: { original: string; prevista: string; atrasoDu: number } | null;
 }
 
 interface LinhaAtv {
@@ -65,7 +68,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
   const [obrasRes, fasesRes, atvsRes, depsRes, provsRes, tarefasRes] = await Promise.all([
     supabase
       .from('obra')
-      .select('id,nome,modelo_rotulo,inicio')
+      .select('id,nome,modelo_rotulo,inicio,entrega_original')
       .eq('status', 'ativa')
       .is('deleted_at', null),
     supabase.from('obra_fase').select('id,obra_id,ordem,titulo').order('ordem'),
@@ -73,7 +76,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
       .from('obra_atividade')
       .select('id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em')
       .is('deleted_at', null),
-    supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id'),
+    supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id,defasagem_du'),
     supabase
       .from('obra_providencia')
       .select('id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du'),
@@ -91,6 +94,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
     nome: string;
     modelo_rotulo: string;
     inicio: string;
+    entrega_original: string | null;
   }[];
   const fases = (fasesRes.data ?? []) as {
     id: string;
@@ -103,6 +107,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
     obra_id: string;
     atividade_id: string;
     predecessora_id: string;
+    defasagem_du: number;
   }[];
   const provs = (provsRes.data ?? []) as {
     id: string;
@@ -115,10 +120,16 @@ export async function listarObras(): Promise<ObraResumo[]> {
   }[];
 
   const predsPorAtv = new Map<string, string[]>();
+  const defasPorAtv = new Map<string, Record<string, number>>();
   for (const d of deps) {
     const a = predsPorAtv.get(d.atividade_id) ?? [];
     a.push(d.predecessora_id);
     predsPorAtv.set(d.atividade_id, a);
+    if (d.defasagem_du)
+      defasPorAtv.set(d.atividade_id, {
+        ...defasPorAtv.get(d.atividade_id),
+        [d.predecessora_id]: d.defasagem_du,
+      });
   }
   const provPendentePorAtv = new Set<string>();
   for (const p of provs) if (p.status === 'pendente') provPendentePorAtv.add(p.atividade_id);
@@ -149,6 +160,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
       em_sequencia: a.em_sequencia,
       inicio_manual: a.inicio_manual,
       predecessoras: predsPorAtv.get(a.id),
+      defasagens: defasPorAtv.get(a.id),
     }));
 
     let cron;
@@ -213,6 +225,23 @@ export async function listarObras(): Promise<ObraResumo[]> {
       fasesEstado,
       tarefasAbertas: tAbertas.get(o.id) ?? 0,
       tarefasAtrasadas: tAtrasadas.get(o.id) ?? 0,
+      risco: (() => {
+        try {
+          const p = previsaoEntrega({
+            inicio: o.inicio,
+            hoje,
+            atividades: entrada,
+            concluidas,
+            nomes: {},
+            entregaOriginal: o.entrega_original,
+          });
+          return p.atrasoDu > 0
+            ? { original: p.entregaOriginal, prevista: p.entregaPrevista, atrasoDu: p.atrasoDu }
+            : null;
+        } catch {
+          return null;
+        }
+      })(),
       agenda: agendaDoDia({
         inicio: o.inicio,
         hoje,

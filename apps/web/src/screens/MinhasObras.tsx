@@ -35,13 +35,18 @@ export function MinhasObras({
   const { showToast } = useToast();
   const [vista, setVista] = useState<'lista' | 'nova'>('lista');
   const [perfilAberto, setPerfilAberto] = useState(false);
-  const [obraAberta, setObraAberta] = useState<{ id: string; boletim?: boolean } | null>(null);
+  const [obraAberta, setObraAberta] = useState<{
+    id: string;
+    boletim?: boolean;
+    plano?: boolean;
+  } | null>(null);
 
   if (obraAberta) {
     return (
       <ObraDetalhe
         id={obraAberta.id}
         abrirBoletim={obraAberta.boletim}
+        abrirPlano={obraAberta.plano}
         onVoltar={() => setObraAberta(null)}
       />
     );
@@ -103,6 +108,7 @@ export function MinhasObras({
           obras={lista}
           onAbrirObra={(id) => setObraAberta({ id })}
           onAbrirTarefas={() => onIr('tarefas')}
+          onAbrirPlano={(id) => setObraAberta({ id, plano: true })}
         />
       ) : null}
 

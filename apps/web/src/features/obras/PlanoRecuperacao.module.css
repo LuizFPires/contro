@@ -1,0 +1,208 @@
+/* Plano de recuperação (opção A): sugestões com seleção e soma no rodapé. */
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+.cabecalho {
+  padding: 8px 12px 10px;
+  padding-top: calc(8px + env(safe-area-inset-top, 0));
+  background: var(--contro-black);
+  color: var(--contro-white);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.voltar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.titulo {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.sub {
+  font-size: 13px;
+  color: rgb(255 255 255 / 72%);
+}
+.conteudo {
+  flex-grow: 1;
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.alerta {
+  background: var(--contro-white);
+  border: 1.5px solid var(--contro-late);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 15px;
+}
+.alerta s {
+  color: #696969;
+}
+.alertaTitulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--contro-late);
+  font-weight: 800;
+  font-size: 14px;
+}
+.txtAtraso {
+  color: var(--contro-late);
+}
+.ok {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgb(84 180 176 / 18%);
+  font-weight: 700;
+}
+.miuda {
+  font-size: 13px;
+  color: #464646;
+}
+.secao {
+  margin: 4px 0 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: rgb(24 24 24 / 8%);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.sugestao {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--contro-black);
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 12%);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
+}
+.sugestaoOn {
+  border: 1.5px solid var(--contro-black);
+}
+.caixa,
+.caixaOn {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.caixa {
+  border: 2px solid rgb(24 24 24 / 35%);
+}
+.caixaOn {
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.sugTexto {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sugTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+.tag {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: var(--contro-radius-pill);
+  border: 1.5px solid var(--contro-black);
+}
+.sugTitulo {
+  font-size: 15px;
+}
+.precisa {
+  font-size: 12px;
+  color: #464646;
+}
+.rodape {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  background: var(--contro-white);
+  border-top: 1px solid rgb(24 24 24 / 12%);
+  padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.soma {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.dataOk,
+.dataAtraso {
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: var(--contro-radius-pill);
+  font-size: 13px;
+}
+.dataOk {
+  background: rgb(84 180 176 / 25%);
+}
+.dataAtraso {
+  background: rgb(198 40 40 / 10%);
+  color: var(--contro-late);
+}
+.barra {
+  height: 8px;
+  border-radius: var(--contro-radius-pill);
+  background: rgb(24 24 24 / 10%);
+  overflow: hidden;
+}
+.barraFill {
+  height: 100%;
+  border-radius: var(--contro-radius-pill);
+  background: var(--contro-turquoise);
+}
+.aplicar {
+  min-height: var(--contro-control-h);
+  border: 0;
+  border-radius: 12px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.aplicar:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

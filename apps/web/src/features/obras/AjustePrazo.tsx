@@ -49,6 +49,7 @@ export function AjustePrazo({ obra, atividadeId }: { obra: ObraCompleta; ativida
         em_sequencia: x.em_sequencia,
         inicio_manual: x.inicio_manual,
         predecessoras: x.predecessoras,
+        defasagens: x.defasagens,
       })),
     [obra.atividades],
   );
