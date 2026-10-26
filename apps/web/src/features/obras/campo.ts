@@ -14,7 +14,8 @@ export async function marcarSubitem(
   if (error) throw error;
 }
 
-export async function ajustarInicio(id: string, data: string): Promise<void> {
+/** Início manual da atividade; `null` volta ao início pelo cronograma. */
+export async function ajustarInicio(id: string, data: string | null): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('ajustar_inicio', { p_atividade_id: id, p_data: data });
   if (error) throw error;

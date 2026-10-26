@@ -304,36 +304,3 @@
   gap: 12px;
   padding-bottom: 4px;
 }
-.campo {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.campoRotulo {
-  font-size: 13px;
-  font-weight: 700;
-}
-.linha {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.input {
-  flex: 1;
-  min-width: 0;
-  min-height: var(--contro-touch);
-  border: 1.5px solid rgb(24 24 24 / 30%);
-  border-radius: 10px;
-  padding: 0 10px;
-  font-size: 15px;
-  font-family: inherit;
-  background: var(--contro-white);
-  color: var(--contro-black);
-}
-.pred {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 14px;
-}

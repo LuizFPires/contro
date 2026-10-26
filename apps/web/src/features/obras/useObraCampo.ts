@@ -87,7 +87,7 @@ export function useObraCampo(obraId: string) {
     onSuccess: inval,
   });
   const inicio = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: string }) => ajustarInicio(id, data),
+    mutationFn: ({ id, data }: { id: string; data: string | null }) => ajustarInicio(id, data),
     onSuccess: inval,
   });
   const duracao = useMutation({
