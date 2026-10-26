@@ -1,0 +1,210 @@
+/* Tarefas da equipe — protótipo aprovado (TAREFAS). */
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+.cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 10px 12px;
+  padding-top: calc(10px + env(safe-area-inset-top, 0));
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.topo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.voltar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.titulo {
+  margin: 0;
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.3;
+}
+.sub {
+  font-size: 13px;
+  color: rgb(255 255 255 / 72%);
+}
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 10px 4px 2px;
+}
+.chip {
+  flex-shrink: 0;
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border-radius: 99px;
+  border: 1.5px solid rgb(255 255 255 / 40%);
+  background: transparent;
+  color: var(--contro-white);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chipAtivo {
+  background: var(--contro-turquoise);
+  border-color: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.chipAtraso {
+  min-width: 18px;
+  height: 18px;
+  border-radius: 99px;
+  background: var(--contro-late);
+  color: var(--contro-white);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+.resumo {
+  padding: 10px 16px 0;
+  font-size: 13px;
+  color: #464646;
+  font-weight: 700;
+}
+.lista {
+  padding: 8px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.grupoTitulo {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--contro-black);
+}
+.gAtraso {
+  color: var(--contro-late);
+}
+.gFeita {
+  color: #696969;
+}
+.item {
+  background: var(--contro-white);
+  border: 1.5px solid rgb(24 24 24 / 10%);
+  border-left: 6px solid var(--contro-black);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.check,
+.checkFeito {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.check {
+  border: 2px solid var(--contro-black);
+  background: var(--contro-white);
+  color: rgb(24 24 24 / 25%);
+}
+.checkFeito {
+  border: 0;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.corpo {
+  min-width: 0;
+  flex-grow: 1;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 2px 0;
+  cursor: pointer;
+  color: var(--contro-black);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font: inherit;
+}
+.texto {
+  font-weight: 800;
+  font-size: 15px;
+}
+.meta {
+  font-size: 12px;
+  color: #696969;
+}
+.prazo {
+  font-size: 12px;
+  font-weight: 800;
+}
+.repl {
+  font-size: 12px;
+  font-weight: 700;
+  color: #464646;
+}
+.reabrir {
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1.5px solid rgb(24 24 24 / 35%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.atrasada {
+  border-color: var(--contro-late);
+}
+.atrasada .texto,
+.atrasada .prazo {
+  color: var(--contro-late);
+}
+.feita {
+  border-left-color: var(--contro-turquoise);
+}
+.feita .texto {
+  color: #696969;
+  text-decoration: line-through;
+}
+.feita .prazo {
+  color: #696969;
+}
+.vazio {
+  border: 2px dashed rgb(24 24 24 / 25%);
+  border-radius: 16px;
+  padding: 24px 16px;
+  text-align: center;
+  color: #696969;
+}

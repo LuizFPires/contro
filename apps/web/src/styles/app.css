@@ -5,28 +5,13 @@
 .app-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  height: 100dvh;
   background: var(--contro-bg-app);
-}
-
-.app-header {
-  display: flex;
-  align-items: center;
-  gap: var(--contro-space-2);
-  padding: var(--contro-space-3) var(--contro-space-4);
-  background: var(--contro-surface-inverse);
-  color: var(--contro-text-inverse);
-  padding-top: calc(var(--contro-space-3) + env(safe-area-inset-top, 0));
-}
-
-.app-wordmark {
-  font-weight: 800;
-  font-size: var(--contro-fs-h3);
-  letter-spacing: 0.02em;
 }
 
 .app-main {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   /* Segura o overscroll nativo para o "puxar pra atualizar" não brigar com o
      bounce do sistema (ver components/PullToRefresh). */
@@ -39,9 +24,37 @@
   color: var(--contro-muted);
 }
 
-.app-mais {
-  padding: var(--contro-space-4);
+/* Telas secundárias sem cabeçalho próprio (ex.: Modelos): barra preta com voltar */
+.app-tela {
   display: flex;
   flex-direction: column;
-  gap: var(--contro-space-4);
+  min-height: 100%;
+}
+.app-barra {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  padding-top: calc(10px + env(safe-area-inset-top, 0));
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.app-voltar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-barra-titulo {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
 }

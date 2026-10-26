@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button, Logo, TabBar, type TabItem } from '@contro/ui';
+import { Icon } from '@contro/ui';
 import { PullToRefresh } from './components/PullToRefresh';
 import { verificarAtualizacao } from './lib/pwa';
 import { useSession } from './auth/useSession';
@@ -14,14 +14,14 @@ import { supabase } from './lib/supabase';
 import { Login } from './screens/Login';
 import { NovaSenha } from './screens/NovaSenha';
 import { AguardandoAprovacao } from './screens/AguardandoAprovacao';
-import { MinhasObras } from './screens/MinhasObras';
+import { MinhasObras, type DestinoInicio } from './screens/MinhasObras';
+import { TarefasScreen } from './features/obras/TarefasScreen';
 
 export function App() {
   const { carregando, session, recovery, fecharRecovery } = useSession();
   const { data: pessoa, isLoading: perfilCarregando } = usePerfil();
   const qc = useQueryClient();
-  const [tab, setTab] = useState('inicio');
-  const [maisTela, setMaisTela] = useState<'menu' | 'reuniao' | 'config' | 'membros'>('menu');
+  const [tela, setTela] = useState<'inicio' | DestinoInicio>('inicio');
 
   // Recarrega o perfil quando a sessão muda (login/logout/recuperação), para o
   // roteamento de membro/pendente usar sempre o perfil do usuário atual.
@@ -72,57 +72,33 @@ export function App() {
   }
 
   const ehGestor = pessoa.perfil === 'gestor';
-
-  const tabs: TabItem[] = [
-    // "Início" já é a lista "Minhas obras" (não há aba "Obras" separada).
-    { key: 'inicio', label: 'Início', icon: 'home' },
-    // Modelos só aparece para o gestor (a RLS também bloqueia a escrita).
-    ...(ehGestor ? [{ key: 'modelos', label: 'Modelos', icon: 'modelos' } as TabItem] : []),
-    { key: 'mais', label: 'Mais', icon: 'more' },
-  ];
-  const tabAtiva = tabs.some((t) => t.key === tab) ? tab : 'inicio';
+  const voltar = () => setTela('inicio');
 
   return (
     <div className="app-shell">
-      <header className="app-header">
-        <Logo on="preto" height={22} />
-      </header>
-
       <PullToRefresh onRefresh={aoAtualizar}>
-        {tabAtiva === 'inicio' ? <MinhasObras /> : null}
-        {tabAtiva === 'modelos' && ehGestor ? <ModelosScreen /> : null}
-        {tabAtiva === 'mais' ? (
-          maisTela === 'reuniao' ? (
-            <ReuniaoScreen onVoltar={() => setMaisTela('menu')} />
-          ) : maisTela === 'config' && ehGestor ? (
-            <ConfigBoletimScreen onVoltar={() => setMaisTela('menu')} />
-          ) : maisTela === 'membros' && ehGestor ? (
-            <AprovarMembros onVoltar={() => setMaisTela('menu')} />
-          ) : (
-            <div className="app-mais">
-              <p className="app-placeholder" style={{ padding: 0, textAlign: 'left' }}>
-                {pessoa.nome}
-              </p>
-              <Button onClick={() => setMaisTela('reuniao')}>Reunião da semana</Button>
-              {ehGestor ? (
-                <Button variant="tertiary" onClick={() => setMaisTela('config')}>
-                  Boletim automático
-                </Button>
-              ) : null}
-              {ehGestor ? (
-                <Button variant="tertiary" onClick={() => setMaisTela('membros')}>
-                  Aprovar membros
-                </Button>
-              ) : null}
-              <Button variant="tertiary" onClick={() => supabase?.auth.signOut()}>
-                Sair
-              </Button>
-            </div>
-          )
-        ) : null}
+        {tela === 'modelos' && ehGestor ? (
+          <div className="app-tela">
+            <header className="app-barra">
+              <button type="button" className="app-voltar" aria-label="Voltar" onClick={voltar}>
+                <Icon name="chevronLeft" size={22} />
+              </button>
+              <h1 className="app-barra-titulo">Modelos de obra</h1>
+            </header>
+            <ModelosScreen />
+          </div>
+        ) : tela === 'reuniao' ? (
+          <ReuniaoScreen onVoltar={voltar} />
+        ) : tela === 'tarefas' ? (
+          <TarefasScreen onVoltar={voltar} />
+        ) : tela === 'config' && ehGestor ? (
+          <ConfigBoletimScreen onVoltar={voltar} />
+        ) : tela === 'membros' && ehGestor ? (
+          <AprovarMembros onVoltar={voltar} />
+        ) : (
+          <MinhasObras onIr={setTela} onSair={() => supabase?.auth.signOut()} />
+        )}
       </PullToRefresh>
-
-      <TabBar items={tabs} active={tabAtiva} onSelect={setTab} />
       <SyncIndicator />
     </div>
   );

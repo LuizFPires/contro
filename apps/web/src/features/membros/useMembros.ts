@@ -16,12 +16,12 @@ interface Row {
 const KEY = ['membros-pendentes'];
 
 /** Cadastros aguardando aprovação do gestor (pessoa ativo=false). */
-export function useMembrosPendentes() {
+export function useMembrosPendentes(ativo = true) {
   const qc = useQueryClient();
 
   const query = useQuery<MembroPendente[]>({
     queryKey: KEY,
-    enabled: Boolean(supabase),
+    enabled: Boolean(supabase) && ativo,
     queryFn: async () => {
       if (!supabase) return [];
       const { data, error } = await supabase

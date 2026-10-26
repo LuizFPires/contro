@@ -1,44 +1,171 @@
+/* Início / carteira — protótipo aprovado (INÍCIO / CARTEIRA). */
 .screen {
-  padding: var(--contro-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--contro-space-4);
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+
+.cabecalho {
+  padding: 20px 20px 12px;
+  padding-top: calc(20px + env(safe-area-inset-top, 0));
+  background: var(--contro-black);
+  color: var(--contro-white);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.modelos {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border: 1.5px solid rgb(255 255 255 / 40%);
+  border-radius: 12px;
+  background: transparent;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--contro-white);
+  cursor: pointer;
+}
+.perfil {
+  position: relative;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  border: 0;
+  background: rgb(255 255 255 / 14%);
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ponto {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--contro-turquoise);
+  border: 2px solid var(--contro-black);
 }
 
 .topo {
+  padding: 14px 20px 0;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: var(--contro-space-3);
-}
-
-.titulo {
-  font-size: var(--contro-fs-h1);
-  font-weight: 800;
-  margin: 0;
-}
-
-.nova {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
+}
+.titulo {
+  margin: 0;
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 800;
+}
+.nova {
   width: var(--contro-touch);
   height: var(--contro-touch);
-  border: none;
-  border-radius: var(--contro-radius-pill);
-  background: var(--contro-action-primary-bg);
-  color: var(--contro-action-primary-text);
+  border-radius: 50%;
+  border: 0;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.lista {
+.blocos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 20px 4px;
+}
+.blocoReuniao,
+.blocoTarefas {
+  text-align: left;
+  border-radius: 16px;
+  padding: 12px 14px;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: var(--contro-space-3);
+  gap: 2px;
+  min-height: 76px;
+  font: inherit;
+}
+.blocoReuniao {
+  border: 0;
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.blocoTarefas {
+  border: 1px solid rgb(24 24 24 / 10%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+}
+.blocoTitulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 15px;
+}
+.iconeTurquesa {
+  color: var(--contro-turquoise);
+}
+.blocoSub {
+  font-size: 13px;
+  color: rgb(255 255 255 / 75%);
+}
+.blocoSubClaro {
+  font-size: 13px;
+  color: #696969;
+}
+.blocoStatus {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--contro-turquoise);
+}
+.blocoAtraso {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--contro-late);
+}
+.blocoOk {
+  font-size: 12px;
+  font-weight: 800;
+  color: #696969;
+}
+
+.prontos {
+  padding: 8px 20px 0;
+}
+.lista {
+  padding: 8px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .vazio {
   margin-top: var(--contro-space-8);
+  padding: 0 20px;
   text-align: center;
   color: var(--contro-muted);
   display: flex;
@@ -46,16 +173,84 @@
   align-items: center;
   gap: var(--contro-space-3);
 }
-
 .vazio h2 {
   font-size: var(--contro-fs-h3);
   font-weight: 700;
   color: var(--contro-text);
   margin: 0;
 }
-
 .vazio p {
   margin: 0;
   max-width: 28ch;
   font-size: var(--contro-fs-body-sm);
+}
+
+/* ---------- Painel de perfil (opção A) ---------- */
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 4px 8px;
+}
+.quem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgb(24 24 24 / 10%);
+  margin-bottom: 4px;
+}
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.quemNome {
+  display: block;
+  font-weight: 800;
+  font-size: 18px;
+}
+.quemPerfil {
+  display: block;
+  font-size: 14px;
+  color: #696969;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--contro-black);
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+.itemSeparado {
+  border-top: 1px solid rgb(24 24 24 / 10%);
+  margin-top: 4px;
+}
+.itemRotulo {
+  flex-grow: 1;
+  font-weight: 700;
+  font-size: 16px;
+}
+.itemSeta {
+  color: #696969;
+}
+.selo {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
 }

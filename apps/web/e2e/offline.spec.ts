@@ -40,7 +40,7 @@ test('providência offline: otimista, enfileira e sincroniza ao voltar (regra 9)
   await page.getByRole('button', { name: 'Criar obra' }).click();
   await page.getByText(nome).click();
 
-  await page.getByRole('tab', { name: /Providências/ }).click();
+  await page.getByRole('button', { name: /^Providências/ }).click();
   const marcar = page.getByRole('button', { name: 'Marcar' });
   const antes = await marcar.count();
   expect(antes).toBeGreaterThan(0);
