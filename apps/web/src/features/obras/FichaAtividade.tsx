@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { diaMes, duEntre, naObraEm, providenciaAtrasada, providenciarAte } from '@contro/core';
-import { BottomSheet, Button, Icon, useToast } from '@contro/ui';
+import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
+import { AjustePrazo } from './AjustePrazo';
 import { Camera } from './Camera';
 import type { ObraCompleta } from './detalhe';
 import { NovaProvidenciaSheet } from './ProvidenciasAba';
@@ -32,9 +33,6 @@ export function FichaAtividade({
   const campo = useObraCampo(obra.id);
   const conclusao = useConcluirAtividade(obra);
   const { showToast } = useToast();
-  const duracaoRef = useRef<HTMLInputElement>(null);
-  const [inicioData, setInicioData] = useState('');
-  const [novaPred, setNovaPred] = useState('');
   const [novoTipo, setNovoTipo] = useState<Tipo | null>(null);
   const [camera, setCamera] = useState(false);
   const [ajustes, setAjustes] = useState(false);
@@ -55,9 +53,6 @@ export function FichaAtividade({
     const faltam = a.predecessoras
       .filter((p) => !obra.estados[p]?.concluida)
       .map((p) => nomePorId.get(p) ?? p);
-    const predsDisponiveis = obra.atividades.filter(
-      (x) => !x.pai_id && x.id !== a.id && !a.predecessoras.includes(x.id),
-    );
     const libera = obra.atividades
       .filter((x) => !x.pai_id && x.predecessoras.includes(a.id))
       .map((x) => x.nome);
@@ -87,7 +82,6 @@ export function FichaAtividade({
       subitens,
       dependePreds,
       faltam,
-      predsDisponiveis,
       libera,
       subsOk,
       podeConcluir,
@@ -96,7 +90,7 @@ export function FichaAtividade({
   }, [obra, atividadeId]);
 
   if (!dados) return <BottomSheet open={false} onClose={onClose} children={null} />;
-  const { a, est, cron, subitens, dependePreds, faltam, predsDisponiveis, libera, subsOk } = dados;
+  const { a, est, cron, subitens, dependePreds, faltam, libera, subsOk } = dados;
   const { podeConcluir, provs } = dados;
 
   const status = a.concluida_em
@@ -317,130 +311,7 @@ export function FichaAtividade({
               </button>
               {ajustes ? (
                 <div className={styles.ajustesCorpo}>
-                  {subitens.length === 0 ? (
-                    <div className={styles.campo}>
-                      <label htmlFor={`dur-${a.id}`} className={styles.campoRotulo}>
-                        Duração (dias úteis)
-                      </label>
-                      <div className={styles.linha}>
-                        <input
-                          id={`dur-${a.id}`}
-                          key={a.id}
-                          ref={duracaoRef}
-                          type="number"
-                          min={1}
-                          defaultValue={a.duracao_du}
-                          className={styles.input}
-                        />
-                        <Button
-                          variant="tertiary"
-                          onClick={() => {
-                            const du = Number(duracaoRef.current?.value);
-                            if (Number.isInteger(du) && du >= 1)
-                              campo.duracao.mutate(
-                                { id: a.id, du },
-                                {
-                                  onError: () =>
-                                    showToast({ message: 'Não foi possível ajustar a duração' }),
-                                },
-                              );
-                          }}
-                        >
-                          Ajustar
-                        </Button>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className={styles.campo}>
-                    <label htmlFor={`ini-${a.id}`} className={styles.campoRotulo}>
-                      Início manual (feriado, imprevisto)
-                    </label>
-                    <div className={styles.linha}>
-                      <input
-                        id={`ini-${a.id}`}
-                        type="date"
-                        className={styles.input}
-                        value={inicioData}
-                        onChange={(e) => setInicioData(e.target.value)}
-                      />
-                      <Button
-                        variant="tertiary"
-                        disabled={!inicioData}
-                        onClick={() =>
-                          campo.inicio.mutate(
-                            { id: a.id, data: inicioData },
-                            { onSuccess: () => setInicioData('') },
-                          )
-                        }
-                      >
-                        Ajustar
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className={styles.campo}>
-                    <div className={styles.campoRotulo}>Depende de</div>
-                    {dependePreds.map((p) => (
-                      <div key={p.id} className={styles.pred}>
-                        <span>{p.nome}</span>
-                        <button
-                          type="button"
-                          className={styles.remover}
-                          aria-label={`Remover dependência ${p.nome}`}
-                          onClick={() =>
-                            campo.removerPred.mutate(
-                              { atividadeId: a.id, predecessoraId: p.id },
-                              { onError: () => showToast({ message: 'Não foi possível remover' }) },
-                            )
-                          }
-                        >
-                          <Icon name="close" size={16} />
-                        </button>
-                      </div>
-                    ))}
-                    {predsDisponiveis.length > 0 ? (
-                      <div className={styles.linha}>
-                        <select
-                          className={styles.input}
-                          value={novaPred}
-                          onChange={(e) => setNovaPred(e.target.value)}
-                          aria-label="Adicionar predecessora"
-                        >
-                          <option value="">Adicionar…</option>
-                          {predsDisponiveis.map((x) => (
-                            <option key={x.id} value={x.id}>
-                              {x.nome}
-                            </option>
-                          ))}
-                        </select>
-                        <Button
-                          variant="tertiary"
-                          disabled={!novaPred}
-                          onClick={() =>
-                            campo.addPred.mutate(
-                              { atividadeId: a.id, predecessoraId: novaPred },
-                              {
-                                onSuccess: () => setNovaPred(''),
-                                onError: (e) => {
-                                  const err = e as { message?: string; code?: string };
-                                  const ciclo =
-                                    err.code === '23514' || /ciclo/i.test(err.message ?? '');
-                                  showToast({
-                                    message: ciclo
-                                      ? 'Essa dependência criaria um ciclo'
-                                      : 'Não foi possível salvar a dependência',
-                                  });
-                                },
-                              },
-                            )
-                          }
-                        >
-                          Adicionar
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
+                  <AjustePrazo key={a.id} obra={obra} atividadeId={a.id} />
                 </div>
               ) : null}
             </section>

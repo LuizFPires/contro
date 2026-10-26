@@ -1,0 +1,227 @@
+/* Ajustar prazo e dependências pela linha do tempo — protótipo aprovado (opção C). */
+.ajuste {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.linhaTempo {
+  border: 1px solid rgb(24 24 24 / 12%);
+  border-radius: 16px;
+  padding: 12px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dias,
+.trilho {
+  display: grid;
+  grid-template-columns: repeat(15, minmax(0, 1fr));
+  gap: 2px;
+}
+.dias {
+  font-size: 12px;
+  color: #696969;
+  text-align: center;
+}
+.diaHoje {
+  font-weight: 800;
+  color: var(--contro-black);
+}
+.faixa {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rotulo,
+.rotuloEsta {
+  font-size: 12px;
+  font-weight: 700;
+  color: #464646;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rotuloEsta {
+  color: var(--contro-black);
+}
+.trilho {
+  height: 14px;
+  background: rgb(24 24 24 / 5%);
+  border-radius: 4px;
+}
+.barra_antes,
+.barra_esta,
+.barra_depois {
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+.barra_antes {
+  background: rgb(24 24 24 / 35%);
+}
+.barra_esta {
+  background: var(--contro-turquoise);
+  border: 2px solid var(--contro-black);
+}
+.barra_depois {
+  background: var(--contro-white);
+  border: 1.5px dashed rgb(24 24 24 / 50%);
+}
+.legenda {
+  font-size: 12px;
+  color: #696969;
+}
+
+.controles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.controle {
+  border: 1px solid rgb(24 24 24 / 12%);
+  border-radius: 16px;
+  padding: 10px 12px;
+}
+.controleRotulo {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #696969;
+}
+.controleLinha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 4px;
+}
+.controleLinha b {
+  font-size: 15px;
+  text-align: center;
+}
+.seta {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+  color: var(--contro-black);
+  flex-shrink: 0;
+}
+.seta:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.miuda {
+  display: block;
+  font-size: 12px;
+  color: #696969;
+}
+
+.deps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.depsRotulo {
+  font-size: 13px;
+  font-weight: 800;
+}
+.dep {
+  min-height: 40px;
+  padding: 0 8px 0 12px;
+  border-radius: 99px;
+  border: 0;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dep svg {
+  color: var(--contro-turquoise);
+}
+.adicionar {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 99px;
+  border: 1.5px dashed rgb(24 24 24 / 40%);
+  background: var(--contro-white);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  color: var(--contro-black);
+}
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.candidato {
+  min-height: 48px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 14%);
+  background: var(--contro-white);
+  text-align: left;
+  cursor: pointer;
+  color: var(--contro-black);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+}
+.candidato b {
+  font-size: 14px;
+}
+.mais {
+  font-size: 20px;
+  font-weight: 800;
+}
+.impacto {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgb(24 24 24 / 5%);
+}
+.impactoOn {
+  background: rgb(84 180 176 / 16%);
+}
+.botoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.descartar,
+.salvar {
+  min-height: 52px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--contro-black);
+}
+.descartar {
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+}
+.salvar {
+  border: 0;
+  background: var(--contro-turquoise);
+}
+.descartar:disabled,
+.salvar:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
