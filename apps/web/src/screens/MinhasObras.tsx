@@ -40,6 +40,8 @@ export function MinhasObras({
     boletim?: boolean;
     plano?: boolean;
   } | null>(null);
+  // Menu inferior da tela inicial: "Hoje" abre por padrão.
+  const [aba, setAba] = useState<'hoje' | 'obras'>('hoje');
 
   if (obraAberta) {
     return (
@@ -70,6 +72,7 @@ export function MinhasObras({
   const tarAbertas = lista.reduce((s, o) => s + o.tarefasAbertas, 0);
   const tarAtrasadas = lista.reduce((s, o) => s + o.tarefasAtrasadas, 0);
   const nMembros = ehGestor ? (membros.query.data?.length ?? 0) : 0;
+  const nAtrasos = lista.reduce((s, o) => s + o.agenda.atrasados.length, 0);
 
   return (
     <div className={styles.screen}>
@@ -103,66 +106,110 @@ export function MinhasObras({
         </div>
       </header>
 
-      {lista.length ? (
-        <HojeObras
-          obras={lista}
-          onAbrirObra={(id) => setObraAberta({ id })}
-          onAbrirTarefas={() => onIr('tarefas')}
-          onAbrirPlano={(id) => setObraAberta({ id, plano: true })}
-        />
-      ) : null}
+      {aba === 'hoje' ? (
+        isLoading ? (
+          <p className={styles.vazio}>Carregando…</p>
+        ) : lista.length ? (
+          <HojeObras
+            obras={lista}
+            onAbrirObra={(id) => setObraAberta({ id })}
+            onAbrirTarefas={() => onIr('tarefas')}
+            onAbrirPlano={(id) => setObraAberta({ id, plano: true })}
+          />
+        ) : (
+          <div className={styles.vazio}>
+            <Simbolo size={56} />
+            <h2>Nenhuma obra ainda</h2>
+            <p>Crie a primeira obra em “Minhas obras”.</p>
+          </div>
+        )
+      ) : (
+        <>
+          <div className={styles.topo}>
+            <h1 className={styles.titulo}>Minhas obras</h1>
+            <button
+              type="button"
+              className={styles.nova}
+              aria-label="Nova obra a partir do modelo"
+              title="Nova obra a partir do modelo"
+              onClick={() => setVista('nova')}
+            >
+              <Icon name="plus" size={22} strokeWidth={2.4} />
+            </button>
+          </div>
 
-      <div className={styles.topo}>
-        <h1 className={styles.titulo}>Minhas obras</h1>
+          <div className={styles.blocos}>
+            <button type="button" className={styles.blocoReuniao} onClick={() => onIr('reuniao')}>
+              <span className={styles.blocoTitulo}>
+                <Icon
+                  name="calendario"
+                  size={18}
+                  strokeWidth={2}
+                  className={styles.iconeTurquesa}
+                />
+                Reunião
+              </span>
+              <span className={styles.blocoSub}>{formatarDataCurta(segundaISO())} · 16h</span>
+              <span className={styles.blocoStatus}>Abrir pauta da semana</span>
+            </button>
+            <button type="button" className={styles.blocoTarefas} onClick={() => onIr('tarefas')}>
+              <span className={styles.blocoTitulo}>
+                <Icon name="tarefas" size={18} strokeWidth={2} />
+                Tarefas
+              </span>
+              <span className={styles.blocoSubClaro}>{tarAbertas} abertas na equipe</span>
+              <span className={tarAtrasadas ? styles.blocoAtraso : styles.blocoOk}>
+                {tarAtrasadas
+                  ? `${tarAtrasadas} ${tarAtrasadas === 1 ? 'atrasada' : 'atrasadas'}`
+                  : 'nenhuma atrasada'}
+              </span>
+            </button>
+          </div>
+
+          {isLoading ? (
+            <p className={styles.vazio}>Carregando…</p>
+          ) : lista.length ? (
+            <div className={styles.lista}>
+              {lista.map((o) => (
+                <ObraCard key={o.id} obra={o} onAbrir={() => setObraAberta({ id: o.id })} />
+              ))}
+            </div>
+          ) : (
+            <div className={styles.vazio}>
+              <Simbolo size={56} />
+              <h2>Nenhuma obra ainda</h2>
+              <p>Toque no “+” para criar a primeira obra a partir de um modelo.</p>
+            </div>
+          )}
+        </>
+      )}
+
+      <nav className={styles.nav} aria-label="Início">
         <button
           type="button"
-          className={styles.nova}
-          aria-label="Nova obra a partir do modelo"
-          title="Nova obra a partir do modelo"
-          onClick={() => setVista('nova')}
+          className={`${styles.navBtn} ${aba === 'hoje' ? styles.navAtivo : ''}`}
+          aria-current={aba === 'hoje' ? 'page' : undefined}
+          onClick={() => setAba('hoje')}
         >
-          <Icon name="plus" size={22} strokeWidth={2.4} />
+          <Icon name="calendario" size={22} />
+          Hoje
+          {nAtrasos ? (
+            <span className={styles.navBadge}>
+              <span className="sr-only">atrasos: </span>
+              {nAtrasos}
+            </span>
+          ) : null}
         </button>
-      </div>
-
-      <div className={styles.blocos}>
-        <button type="button" className={styles.blocoReuniao} onClick={() => onIr('reuniao')}>
-          <span className={styles.blocoTitulo}>
-            <Icon name="calendario" size={18} strokeWidth={2} className={styles.iconeTurquesa} />
-            Reunião
-          </span>
-          <span className={styles.blocoSub}>{formatarDataCurta(segundaISO())} · 16h</span>
-          <span className={styles.blocoStatus}>Abrir pauta da semana</span>
+        <button
+          type="button"
+          className={`${styles.navBtn} ${aba === 'obras' ? styles.navAtivo : ''}`}
+          aria-current={aba === 'obras' ? 'page' : undefined}
+          onClick={() => setAba('obras')}
+        >
+          <Icon name="obras" size={22} />
+          Minhas obras
         </button>
-        <button type="button" className={styles.blocoTarefas} onClick={() => onIr('tarefas')}>
-          <span className={styles.blocoTitulo}>
-            <Icon name="tarefas" size={18} strokeWidth={2} />
-            Tarefas
-          </span>
-          <span className={styles.blocoSubClaro}>{tarAbertas} abertas na equipe</span>
-          <span className={tarAtrasadas ? styles.blocoAtraso : styles.blocoOk}>
-            {tarAtrasadas
-              ? `${tarAtrasadas} ${tarAtrasadas === 1 ? 'atrasada' : 'atrasadas'}`
-              : 'nenhuma atrasada'}
-          </span>
-        </button>
-      </div>
-
-      {isLoading ? (
-        <p className={styles.vazio}>Carregando…</p>
-      ) : lista.length ? (
-        <div className={styles.lista}>
-          {lista.map((o) => (
-            <ObraCard key={o.id} obra={o} onAbrir={() => setObraAberta({ id: o.id })} />
-          ))}
-        </div>
-      ) : (
-        <div className={styles.vazio}>
-          <Simbolo size={56} />
-          <h2>Nenhuma obra ainda</h2>
-          <p>Toque no “+” para criar a primeira obra a partir de um modelo.</p>
-        </div>
-      )}
+      </nav>
 
       <BottomSheet open={perfilAberto} onClose={() => setPerfilAberto(false)}>
         <div className={styles.painel}>
