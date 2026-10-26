@@ -98,7 +98,9 @@ tarefa(id, obra_id, texto, responsavel_id → pessoa, prazo date,
        status: 'aberta'|'feita', feita_em, feita_por,
        origem_reuniao_id → reuniao null, origem_texto,            -- ex.: 'Reunião 19/10'
        vinculo_tipo: null|'providencia'|'atividade', vinculo_id uuid null,
-       efeito_providencia_id null)                                 -- lembrete marcado por esta tarefa (para reabrir)
+       efeito_providencia_id null,                                 -- lembrete marcado por esta tarefa (para reabrir)
+       observacao text null,                                       -- observação livre (pauta da reunião)
+       responsavel_nome text null)                                 -- nome digitado de quem não tem login (sem responsavel_id); vira sugestao 'pessoa'
 tarefa_evento(id, tarefa_id, tipo: 'criada'|'editada'|'replanejada'|'concluida'|'reaberta'|'excluida', por, em, antes jsonb, depois jsonb)
 ```
 
@@ -246,7 +248,7 @@ Efeito de reabrir: se `efeito_providencia_id` aponta para uma providência `feit
 | `apontar_pendencia(...)`, `resolver_pendencia(id, foto_depois_id)` | gestor, equipe | — |
 | `vistoriar_pendencia(id, aprovado, motivo?)` | gestor, equipe | Bloqueia se `vistoriada_por = resolvida_por` |
 | `adiar_pendencia(id, data, motivo)`, `trazer_pendencia(id)` | gestor, equipe | — |
-| `salvar_tarefa`, `concluir_tarefa`, `reabrir_tarefa`, `excluir_tarefa` | gestor, equipe | Grava `tarefa_evento` |
+| `salvar_tarefa`, `concluir_tarefa`, `reabrir_tarefa`, `excluir_tarefa` | gestor, equipe | Grava `tarefa_evento`. `salvar_tarefa` aceita `p_observacao` e `p_responsavel_nome` (só vale sem `p_responsavel_id`; registra a sugestão) |
 | `fechar_reuniao(id)` | gestor | Materializa `reuniao_obra.snapshot` e gera o PDF da ata |
 | `gerar_boletim(obra_id, edicao)` | sistema (cron) ou usuário | Snapshot, texto do WhatsApp e PDF |
 
