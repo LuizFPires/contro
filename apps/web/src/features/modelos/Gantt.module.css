@@ -1,0 +1,126 @@
+/* Gantt do modelo: coluna das atividades e régua de dias congeladas. */
+.gantt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  --rotulo: 220px;
+}
+.info {
+  min-height: 24px;
+  font-size: 14px;
+  color: var(--contro-black);
+}
+.rolagem {
+  overflow: auto;
+  max-height: 70vh;
+  border: 1px solid var(--contro-border);
+  border-radius: 12px;
+  background: var(--contro-white);
+  overscroll-behavior: contain;
+}
+.grade {
+  display: grid;
+  width: max-content;
+  font-size: 13px;
+}
+.linha {
+  display: contents;
+}
+.cabeca {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 32px;
+  background: var(--contro-white);
+  border-bottom: 1px solid var(--contro-border);
+}
+.canto {
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #464646;
+  border-right: 1px solid var(--contro-border);
+}
+.regua {
+  position: sticky;
+}
+.marca {
+  position: absolute;
+  top: 8px;
+  transform: translateX(2px);
+  font-size: 12px;
+  font-weight: 700;
+  color: #696969;
+  white-space: nowrap;
+}
+.rotulo {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  height: 30px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  background: var(--contro-white);
+  border-right: 1px solid var(--contro-border);
+  border-bottom: 1px solid rgb(24 24 24 / 6%);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rotuloOn {
+  font-weight: 800;
+}
+.trilho {
+  position: relative;
+  height: 30px;
+  border-bottom: 1px solid rgb(24 24 24 / 6%);
+}
+.guia {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--contro-border);
+}
+.barra {
+  position: absolute;
+  top: 7px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: var(--contro-black);
+  cursor: pointer;
+}
+.critica {
+  background: var(--contro-turquoise);
+}
+.barraOn {
+  outline: 2px solid var(--contro-black);
+  outline-offset: 2px;
+}
+.datas {
+  position: absolute;
+  top: 6px;
+  padding: 1px 8px;
+  border-radius: var(--contro-radius-pill);
+  background: var(--contro-black);
+  color: var(--contro-white);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  z-index: 1;
+}
+@media (max-width: 600px) {
+  .gantt {
+    --rotulo: 140px;
+  }
+}
