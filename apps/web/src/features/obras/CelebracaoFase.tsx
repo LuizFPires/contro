@@ -21,7 +21,7 @@ export function CelebracaoFase({
     <div className={styles.overlay} role="dialog" aria-label="Fase concluída" aria-modal="true">
       <div className={styles.pop}>
         <div className={styles.ring}>
-          <Icon name="check" size={34} />
+          <Icon name="checkGrosso" size={36} strokeWidth={2.6} />
         </div>
         <p className={styles.kick}>Fase {dados.ordem} concluída</p>
         <p className={styles.titulo}>{dados.titulo}</p>

@@ -1,30 +1,244 @@
-.secao {
-  margin-bottom: var(--contro-space-4);
+/* Ficha da atividade — protótipo aprovado (FICHA DA ATIVIDADE). */
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
-.rotulo {
-  font-size: var(--contro-fs-caption);
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.tag {
+  font-size: 12px;
   font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--contro-muted);
-  margin: 0 0 var(--contro-space-2);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.tagConcluida {
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.tagAtrasada {
+  background: var(--contro-late);
+  color: var(--contro-white);
+}
+.tagLiberada {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.tagPlanejada {
+  background: rgb(24 24 24 / 8%);
+  color: var(--contro-black);
+}
+.nome {
+  margin: 6px 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 28px;
 }
 .datas {
+  font-size: 14px;
+  color: #696969;
+}
+.datasAtraso {
+  font-size: 14px;
+  color: var(--contro-late);
+  font-weight: 800;
+}
+.fechar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
   display: flex;
-  gap: var(--contro-space-6);
-  font-size: var(--contro-fs-body-sm);
+  align-items: center;
+  justify-content: center;
+  color: var(--contro-black);
+  flex-shrink: 0;
 }
-.datas strong {
+
+.prestador {
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgb(24 24 24 / 6%);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.prestadorDefinido {
+  background: rgb(84 180 176 / 18%);
+}
+.prestadorCorpo {
+  flex-grow: 1;
+  min-width: 0;
+}
+.prestadorRotulo {
   display: block;
-  font-size: var(--contro-fs-caption);
-  color: var(--contro-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #464646;
 }
+.prestadorInput {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: var(--contro-touch);
+  margin-top: 2px;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  border-radius: 10px;
+  padding: 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  background: var(--contro-white);
+  color: var(--contro-black);
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rotulo {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #696969;
+}
+.prov {
+  border: 1.5px solid rgb(24 24 24 / 10%);
+  border-left: 6px solid rgb(24 24 24 / 18%);
+  background: var(--contro-white);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.provAtraso {
+  border-color: var(--contro-late);
+}
+.provFeita {
+  border-left-color: var(--contro-turquoise);
+}
+.provTopo {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+.provTipo {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.sit {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  border: 1px solid rgb(24 24 24 / 35%);
+}
+.sitFeita {
+  background: var(--contro-turquoise);
+  border-color: var(--contro-turquoise);
+}
+.sitAtraso {
+  background: var(--contro-late);
+  border-color: var(--contro-late);
+  color: var(--contro-white);
+}
+.provDesc {
+  font-weight: 800;
+  font-size: 15px;
+}
+.provNaObra {
+  font-size: 13px;
+  font-weight: 700;
+}
+.quando {
+  font-size: 13px;
+  color: #696969;
+}
+.quandoAtraso {
+  font-size: 13px;
+  color: var(--contro-late);
+  font-weight: 800;
+}
+.provAcoes {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.btnMarcar,
+.btnSecundario {
+  flex: 1;
+  min-height: var(--contro-touch);
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--contro-black);
+}
+.btnMarcar {
+  border: 0;
+  background: var(--contro-turquoise);
+}
+.btnSecundario {
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+}
+.remover {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 10px;
+  border: 1.5px solid rgb(24 24 24 / 20%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.vazio {
+  font-size: 14px;
+  color: #696969;
+}
+.novos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 2px;
+}
+.novo {
+  min-height: var(--contro-touch);
+  border-radius: 10px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+
 .linhaCheck {
   display: flex;
   align-items: center;
-  gap: var(--contro-space-2);
+  gap: 8px;
   min-height: var(--contro-touch);
-  font-size: var(--contro-fs-body-sm);
+  font-size: 14px;
 }
 .linhaCheck input {
   width: 22px;
@@ -32,69 +246,94 @@
 }
 .feito {
   text-decoration: line-through;
-  color: var(--contro-muted);
+  color: #696969;
 }
-.prov {
+.relacoes {
+  font-size: 13px;
+  color: #464646;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.concluir {
+  min-height: 52px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.concluir:disabled {
+  opacity: 0.6;
+}
+.bloqueio {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgb(24 24 24 / 6%);
+}
+
+.ajustes {
+  border-top: 1px solid rgb(24 24 24 / 10%);
+  padding-top: 4px;
+}
+.ajustesBtn {
+  width: 100%;
+  min-height: var(--contro-touch);
+  border: 0;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--contro-space-2);
-  min-height: var(--contro-touch);
-  font-size: var(--contro-fs-body-sm);
-}
-.provToggle {
-  border: none;
-  background: var(--contro-selected);
-  box-shadow: inset 0 0 0 1px var(--contro-border);
-  border-radius: var(--contro-radius-pill);
-  padding: var(--contro-space-1) var(--contro-space-3);
-  font-weight: 700;
-  font-size: var(--contro-fs-caption);
-  cursor: pointer;
-  min-height: var(--contro-touch);
-}
-.provFeito {
-  background: var(--contro-turquoise);
+  font-weight: 800;
+  font-size: 14px;
   color: var(--contro-black);
+  cursor: pointer;
+  padding: 0;
 }
-.lista {
-  font-size: var(--contro-fs-body-sm);
-  color: var(--contro-text);
-  margin: 0;
-  padding-left: var(--contro-space-4);
-}
-.ajuste {
+.ajustesCorpo {
   display: flex;
-  gap: var(--contro-space-2);
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.campoRotulo {
+  font-size: 13px;
+  font-weight: 700;
+}
+.linha {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 .input {
   flex: 1;
-  min-height: var(--contro-control-h);
-  padding: 0 var(--contro-space-3);
-  border: none;
-  border-radius: var(--contro-radius-field);
-  background: var(--contro-surface);
-  box-shadow: inset 0 0 0 1.5px var(--contro-border);
-  font-size: var(--contro-fs-body);
+  min-width: 0;
+  min-height: var(--contro-touch);
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  border-radius: 10px;
+  padding: 0 10px;
+  font-size: 15px;
+  font-family: inherit;
+  background: var(--contro-white);
+  color: var(--contro-black);
 }
-.aviso {
-  font-size: var(--contro-fs-body-sm);
-  color: var(--contro-muted);
-  margin: 0 0 var(--contro-space-2);
-}
-.remover {
-  display: inline-flex;
+.pred {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: var(--contro-touch);
-  height: var(--contro-touch);
-  border: none;
-  background: transparent;
-  color: var(--contro-text);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.oculto {
-  display: none;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
 }

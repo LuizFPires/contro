@@ -1,36 +1,59 @@
+/* Câmera — protótipo aprovado (CÂMERA). */
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 60;
   display: flex;
   flex-direction: column;
-  background: #000;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  animation: subir 0.25s ease-out;
+}
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 .topo {
   display: flex;
   align-items: center;
-  gap: var(--contro-space-2);
-  padding: var(--contro-space-3);
-  color: #fff;
+  justify-content: space-between;
+  padding: 16px 12px 8px 16px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0));
 }
-.fechar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--contro-touch);
-  height: var(--contro-touch);
-  border: none;
-  background: transparent;
-  color: #fff;
-  cursor: pointer;
+.titulos {
+  min-width: 0;
+}
+.kicker {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--contro-turquoise);
 }
 .titulo {
-  font-weight: 700;
-  font-size: var(--contro-fs-body);
+  font-weight: 800;
+  font-size: 17px;
+}
+.fechar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 .palco {
   position: relative;
   flex: 1;
+  margin: 6px 12px;
+  border-radius: 20px;
+  background: #2b2b2b;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -50,19 +73,70 @@
   opacity: 0.4;
   pointer-events: none;
 }
+.moldura {
+  position: absolute;
+  inset: 22px;
+  border: 2px dashed var(--contro-turquoise);
+  border-radius: 12px;
+  pointer-events: none;
+}
+.grade {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  pointer-events: none;
+}
+.grade span {
+  border-right: 1px solid rgb(255 255 255 / 15%);
+  border-bottom: 1px solid rgb(255 255 255 / 15%);
+}
+.grade span:nth-child(3n) {
+  border-right: 0;
+}
+.grade span:nth-child(n + 7) {
+  border-bottom: 0;
+}
+.dica {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  font-size: 14px;
+  background: rgb(24 24 24 / 80%);
+  padding: 8px 10px;
+  border-radius: 12px;
+}
 .semCamera {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--contro-space-2);
-  color: #fff;
+  gap: 8px;
   text-align: center;
-  padding: var(--contro-space-4);
+  padding: 16px;
+  color: rgb(255 255 255 / 80%);
+}
+.semCamera p {
+  margin: 0;
 }
 .controles {
-  padding: var(--contro-space-3);
-  padding-bottom: calc(var(--contro-space-4) + env(safe-area-inset-bottom));
-  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 0 calc(30px + env(safe-area-inset-bottom, 0));
+}
+.disparo {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 5px solid var(--contro-white);
+  background: var(--contro-turquoise);
+  cursor: pointer;
+}
+.disparo:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 .inputOculto {
   display: none;

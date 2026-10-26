@@ -239,7 +239,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 - [x] Obra: Providências, Cronograma e Boletim
 - [x] Nova obra
 - [x] Reunião e ata
-- [ ] Folhas: ficha da atividade, câmera, celebração de fase e toast
+- [x] Folhas: ficha da atividade, câmera, celebração de fase e toast
 - [ ] Modelos no celular (ModeloCel)
 
 **Aceite:** lado a lado com o protótipo, cada tela tem a mesma estrutura, hierarquia, cores e textos; a única diferença intencional é a maquete (E1) omitida.

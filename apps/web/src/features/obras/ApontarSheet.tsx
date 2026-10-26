@@ -42,7 +42,15 @@ export function ApontarSheet({
 
   // Passo 1: foto primeiro.
   if (!file) {
-    return <Camera titulo="Apontar pendência" onCapturar={setFile} onCancelar={fechar} />;
+    return (
+      <Camera
+        kicker="Novo apontamento"
+        titulo="Fotografe o problema"
+        dica="Depois da foto você descreve, marca o local e a atividade responsável."
+        onCapturar={setFile}
+        onCancelar={fechar}
+      />
+    );
   }
 
   // Passo 2: descrição.

@@ -123,15 +123,18 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
 }
 
 /** Novo lembrete: só tipo, atividade e descrição (regra 4: sem valor nem fornecedor). */
-function NovaProvidenciaSheet({
+export function NovaProvidenciaSheet({
   obra,
   tipo: tipoInicial,
+  atividadeFixa,
   pendente,
   onFechar,
   onSalvar,
 }: {
   obra: ObraCompleta;
   tipo: Tipo | null;
+  /** Aberta pela ficha: a atividade já vem escolhida. */
+  atividadeFixa?: string;
   pendente: boolean;
   onFechar: () => void;
   onSalvar: (v: { atividadeId: string; tipo: Tipo; descricao: string }) => void;
@@ -148,7 +151,7 @@ function NovaProvidenciaSheet({
     setAbertoPara(tipoInicial);
     if (tipoInicial) {
       setTipo(tipoInicial);
-      setAtividadeId('');
+      setAtividadeId(atividadeFixa ?? '');
       setDescricao('');
       setErro('');
     }
@@ -184,24 +187,30 @@ function NovaProvidenciaSheet({
           </div>
         </div>
 
-        <div className={styles.campo}>
-          <label htmlFor="nova-prov-atv" className={styles.campoRotulo}>
-            Para a atividade
-          </label>
-          <select
-            id="nova-prov-atv"
-            className={styles.entrada}
-            value={atividadeId}
-            onChange={(e) => setAtividadeId(e.target.value)}
-          >
-            <option value="">Escolha a atividade</option>
-            {abertas.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.nome}
-              </option>
-            ))}
-          </select>
-        </div>
+        {atividadeFixa ? (
+          <div className={styles.para}>
+            Para: {obra.atividades.find((a) => a.id === atividadeFixa)?.nome}
+          </div>
+        ) : (
+          <div className={styles.campo}>
+            <label htmlFor="nova-prov-atv" className={styles.campoRotulo}>
+              Para a atividade
+            </label>
+            <select
+              id="nova-prov-atv"
+              className={styles.entrada}
+              value={atividadeId}
+              onChange={(e) => setAtividadeId(e.target.value)}
+            >
+              <option value="">Escolha a atividade</option>
+              {abertas.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className={styles.campo}>
           <label htmlFor="nova-prov-desc" className={styles.campoRotulo}>

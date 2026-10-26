@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, Icon } from '@contro/ui';
+import { Icon } from '@contro/ui';
 import styles from './Camera.module.css';
 
 export interface CameraProps {
   /** Foto do "antes" como ghost (40%) para alinhar o depois. */
   ghostUrl?: string | null;
+  /** Rótulo turquesa acima do título ("Foto de conclusão", "Foto de depois"…). */
+  kicker?: string;
   titulo: string;
+  /** Orientação no rodapé do quadro. */
+  dica?: string;
   pendente?: boolean;
   onCapturar: (file: File) => void;
   onCancelar: () => void;
@@ -16,7 +20,15 @@ export interface CameraProps {
  * Quando getUserMedia não está disponível, cai para a captura nativa de arquivo
  * (sem ghost).
  */
-export function Camera({ ghostUrl, titulo, pendente, onCapturar, onCancelar }: CameraProps) {
+export function Camera({
+  ghostUrl,
+  kicker,
+  titulo,
+  dica,
+  pendente,
+  onCapturar,
+  onCancelar,
+}: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -84,36 +96,51 @@ export function Camera({ ghostUrl, titulo, pendente, onCapturar, onCancelar }: C
   return (
     <div className={styles.overlay} role="dialog" aria-label={titulo}>
       <div className={styles.topo}>
-        <button type="button" className={styles.fechar} aria-label="Cancelar" onClick={onCancelar}>
-          <Icon name="close" size={24} />
+        <div className={styles.titulos}>
+          {kicker ? <div className={styles.kicker}>{kicker}</div> : null}
+          <div className={styles.titulo}>{titulo}</div>
+        </div>
+        <button
+          type="button"
+          className={styles.fechar}
+          aria-label="Fechar câmera"
+          onClick={onCancelar}
+        >
+          <Icon name="close" size={22} />
         </button>
-        <span className={styles.titulo}>{titulo}</span>
       </div>
 
       <div className={styles.palco}>
         {erro ? (
           <div className={styles.semCamera}>
-            <Icon name="alert" size={28} />
-            <p>Câmera indisponível. Use a foto do aparelho.</p>
+            <Icon name="camera" size={28} />
+            <p>Câmera indisponível aqui. Use a foto do aparelho.</p>
           </div>
         ) : (
-          <>
-            <video ref={videoRef} className={styles.video} playsInline muted />
-            {ghostUrl ? <img src={ghostUrl} alt="" className={styles.ghost} /> : null}
-          </>
+          <video ref={videoRef} className={styles.video} playsInline muted />
         )}
+        {ghostUrl ? (
+          <>
+            <img src={ghostUrl} alt="" className={styles.ghost} />
+            <div className={styles.moldura} aria-hidden="true" />
+          </>
+        ) : null}
+        <div className={styles.grade} aria-hidden="true">
+          {Array.from({ length: 9 }, (_, i) => (
+            <span key={i} />
+          ))}
+        </div>
+        {dica ? <div className={styles.dica}>{dica}</div> : null}
       </div>
 
       <div className={styles.controles}>
-        {erro ? (
-          <Button full onClick={() => fileRef.current?.click()} disabled={pendente}>
-            {pendente ? 'Enviando…' : 'Escolher foto'}
-          </Button>
-        ) : (
-          <Button full onClick={capturarDoVideo} disabled={!aoVivo || pendente}>
-            {pendente ? 'Enviando…' : 'Tirar foto'}
-          </Button>
-        )}
+        <button
+          type="button"
+          className={styles.disparo}
+          aria-label={pendente ? 'Enviando foto' : erro ? 'Escolher foto' : 'Tirar foto'}
+          disabled={pendente || (!erro && !aoVivo)}
+          onClick={() => (erro ? fileRef.current?.click() : capturarDoVideo())}
+        />
         <input
           ref={fileRef}
           type="file"

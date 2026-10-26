@@ -11,14 +11,14 @@
 }
 .pop {
   background: var(--contro-surface);
-  border-radius: var(--contro-radius-card);
-  padding: var(--contro-space-5) var(--contro-space-4) var(--contro-space-4);
+  border-radius: 20px;
+  padding: 24px 20px 20px;
   width: 100%;
   max-width: 360px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: var(--contro-space-2);
+  gap: 10px;
   align-items: center;
 }
 .ring {
@@ -40,14 +40,14 @@
   margin: 0;
 }
 .titulo {
-  font-size: var(--contro-fs-h1, 32px);
+  font-size: 32px;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 38px;
   color: var(--contro-text);
   margin: 0;
 }
 .pill {
-  font-size: var(--contro-fs-body);
+  font-size: 17px;
   font-weight: 800;
   background: var(--contro-turquoise, #54b4b0);
   color: var(--contro-black, #181818);
@@ -71,7 +71,7 @@
 }
 .libItem {
   font-weight: 700;
-  font-size: var(--contro-fs-body-sm);
+  font-size: 15px;
   margin: 4px 0 0;
   color: var(--contro-text);
 }

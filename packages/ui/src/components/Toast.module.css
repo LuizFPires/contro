@@ -1,7 +1,7 @@
 .region {
   position: fixed;
   left: 50%;
-  bottom: calc(72px + env(safe-area-inset-bottom, 0));
+  bottom: calc(92px + env(safe-area-inset-bottom, 0));
   transform: translateX(-50%);
   width: min(560px, calc(100% - var(--contro-space-8)));
   z-index: 60;
@@ -12,7 +12,7 @@
   pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: var(--contro-space-3);
+  gap: 10px;
   background: var(--contro-surface-inverse);
   color: var(--contro-text-inverse);
   border-radius: var(--contro-radius-field);
@@ -21,10 +21,22 @@
   animation: rise 0.18s ease;
 }
 
+.marca {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .message {
   flex: 1;
   font-size: var(--contro-fs-body-sm);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .undo {
