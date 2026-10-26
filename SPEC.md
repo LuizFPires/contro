@@ -393,7 +393,7 @@ Os horários do boletim **deixam de ser fixos**: o gestor configura dia e hora (
 
 ## 13. Dados iniciais (seed)
 
-Três modelos de obra: **Modelo 1 · CDC completo · reforma pesada** (as 28 atividades do Anexo A), **Modelo 2 · CDC sem vestiários** (sem as atividades 10, 13, 18 e 19; quem dependia delas herda as predecessoras) e **Modelo 3 · Retrofit leve** (sem 4, 9, 10, 11, 13, 18 e 19; demolição vira "Retiradas pontuais", 2 du). Referência: `prototipo/ModeloCel.dc.html`. Obras de demonstração Eldorado, Pampulha e Betim **apenas em ambiente de homologação**.
+Três modelos de obra: **Modelo 1 · CDC completo · reforma pesada** (as 28 atividades do Anexo A, mais a fase 1 "Orçamento" com 1 atividade e 3 subitens, incluída em 26/10/2026 por `contro_garantir_fase_orcamento`), **Modelo 2 · CDC sem vestiários** (sem as atividades 10, 13, 18 e 19; quem dependia delas herda as predecessoras) e **Modelo 3 · Retrofit leve** (sem 4, 9, 10, 11, 13, 18 e 19; demolição vira "Retiradas pontuais", 2 du). Referência: `prototipo/ModeloCel.dc.html`. Obras de demonstração Eldorado, Pampulha e Betim **apenas em ambiente de homologação**.
 
 ### Anexo A — Modelo 1 · CDC completo (seed)
 
