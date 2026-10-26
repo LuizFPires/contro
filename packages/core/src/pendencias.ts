@@ -1,7 +1,7 @@
 // Pendências de qualidade (SPEC §5). Fila, classificação e a regra de vistoria
 // (regra 5: quem resolveu não vistoria). A transição é garantida no servidor
 // (RPCs); estas funções são a mesma regra para o cliente derivar e desabilitar.
-import type { DataISO } from './calendar';
+import { addDU, type DataISO } from './calendar';
 
 export type StatusPendencia = 'aberta' | 'em_vistoria' | 'fechada';
 export type Criticidade = 'alta' | 'media' | 'baixa';
@@ -69,4 +69,31 @@ export function podeVistoriar(
  */
 export function topoFila(ordens: number[]): number {
   return (ordens.length ? Math.min(...ordens) : 0) - 1;
+}
+
+/** Motivos de adiamento oferecidos na folha "Adiar pendência" (protótipo). */
+export const MOTIVOS_ADIAMENTO = [
+  'Aguardando material',
+  'Aguardando outra equipe',
+  'Local sem acesso',
+  'Outro',
+] as const;
+
+/** Datas para adiar: os próximos 3 dias úteis e o 6º dia útil (≈ uma semana depois). */
+export function opcoesAdiamento(hoje: DataISO): DataISO[] {
+  return [1, 2, 3, 6].map((n) => addDU(hoje, n));
+}
+
+/** "hoje", "1 dia", "4 dias": há quanto tempo (dias corridos) a pendência foi apontada. */
+export function pendenteHa(apontadaEm: DataISO, hoje: DataISO): string {
+  const dias = Math.max(
+    0,
+    Math.round(
+      (Date.parse(`${hoje.slice(0, 10)}T00:00:00Z`) -
+        Date.parse(`${apontadaEm.slice(0, 10)}T00:00:00Z`)) /
+        86_400_000,
+    ),
+  );
+  if (dias === 0) return 'hoje';
+  return dias === 1 ? '1 dia' : `${dias} dias`;
 }

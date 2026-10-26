@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   classificarPendencias,
   estaNaFila,
+  opcoesAdiamento,
+  pendenteHa,
   podeVistoriar,
   topoFila,
   type Pendencia,
@@ -75,5 +77,32 @@ describe('topoFila', () => {
   });
   it('com negativos, segue abaixo do menor', () => {
     expect(topoFila([-2, 0, 5])).toBe(-3);
+  });
+});
+
+describe('opcoesAdiamento', () => {
+  it('sábado: seg, ter, qua e a segunda seguinte (dias úteis)', () => {
+    expect(opcoesAdiamento('2026-10-24')).toEqual([
+      '2026-10-26',
+      '2026-10-27',
+      '2026-10-28',
+      '2026-11-02',
+    ]);
+  });
+  it('quinta: sex, seg, ter e a sexta seguinte', () => {
+    expect(opcoesAdiamento('2026-10-22')).toEqual([
+      '2026-10-23',
+      '2026-10-26',
+      '2026-10-27',
+      '2026-10-30',
+    ]);
+  });
+});
+
+describe('pendenteHa', () => {
+  it('conta dias corridos desde o apontamento (aceita data com hora)', () => {
+    expect(pendenteHa('2026-10-26T09:14:00Z', '2026-10-26')).toBe('hoje');
+    expect(pendenteHa('2026-10-25', '2026-10-26')).toBe('1 dia');
+    expect(pendenteHa('2026-10-22T15:30:00-03:00', '2026-10-26')).toBe('4 dias');
   });
 });
