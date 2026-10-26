@@ -345,22 +345,35 @@
   padding-bottom: 4px;
 }
 
-.concluirAcoes {
+/* Rodapé fixo da ficha (protótipo A1): câmera + "Marcar como resolvida". */
+.rodapeConcluir {
+  position: sticky;
+  bottom: calc(-1 * (var(--contro-space-6) + env(safe-area-inset-bottom, 0)));
+  margin: 12px calc(-1 * var(--contro-space-4)) calc(-1 * var(--contro-space-6));
+  padding: 10px var(--contro-space-4) calc(12px + env(safe-area-inset-bottom, 0));
+  background: var(--contro-white);
+  border-top: 1px solid var(--contro-border);
   display: flex;
-  flex-direction: column;
   gap: 8px;
+  z-index: 2;
 }
-.concluirSemFoto {
-  min-height: 48px;
+.rodapeConcluir .concluir {
+  flex-grow: 1;
+}
+.comFoto {
+  width: 52px;
+  min-height: 52px;
+  flex-shrink: 0;
   border-radius: 12px;
   border: 1.5px solid rgb(24 24 24 / 30%);
   background: var(--contro-white);
   color: var(--contro-black);
-  font-weight: 800;
-  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
-.concluirSemFoto:disabled {
+.comFoto:disabled {
   opacity: 0.6;
 }
 .semFoto {

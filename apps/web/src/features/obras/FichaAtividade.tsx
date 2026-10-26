@@ -257,27 +257,7 @@ export function FichaAtividade({
             </div>
           </div>
 
-          {podeConcluir ? (
-            <div className={styles.concluirAcoes}>
-              <button
-                type="button"
-                className={styles.concluir}
-                disabled={conclusao.pendente}
-                onClick={() => setCamera('concluir')}
-              >
-                <Icon name="camera" size={20} strokeWidth={2} />
-                {conclusao.pendente ? 'Concluindo…' : 'Concluir com foto'}
-              </button>
-              <button
-                type="button"
-                className={styles.concluirSemFoto}
-                disabled={conclusao.pendente}
-                onClick={() => conclusao.concluir(a.id, null, (r, det) => onConcluida(r, det))}
-              >
-                Concluir sem foto
-              </button>
-            </div>
-          ) : a.concluida_em && !a.foto_conclusao_id ? (
+          {a.concluida_em && !a.foto_conclusao_id ? (
             <div className={styles.semFoto}>
               <span>
                 <b>Concluída sem foto</b>
@@ -316,6 +296,30 @@ export function FichaAtividade({
             </section>
           ) : null}
         </div>
+
+        {podeConcluir ? (
+          // Protótipo A1: "resolvido" fixo no rodapé, em toda atividade aberta.
+          <div className={styles.rodapeConcluir}>
+            <button
+              type="button"
+              className={styles.comFoto}
+              aria-label="Concluir com foto"
+              disabled={conclusao.pendente}
+              onClick={() => setCamera('concluir')}
+            >
+              <Icon name="camera" size={22} strokeWidth={2} />
+            </button>
+            <button
+              type="button"
+              className={styles.concluir}
+              disabled={conclusao.pendente}
+              onClick={() => conclusao.concluir(a.id, null, (r, det) => onConcluida(r, det))}
+            >
+              <Icon name="checkGrosso" size={18} strokeWidth={3} />
+              {conclusao.pendente ? 'Concluindo…' : 'Marcar como resolvida'}
+            </button>
+          </div>
+        ) : null}
       </BottomSheet>
 
       <NovaProvidenciaSheet
