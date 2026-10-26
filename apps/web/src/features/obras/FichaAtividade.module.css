@@ -76,6 +76,53 @@
 .prestadorCorpo {
   flex-grow: 1;
   min-width: 0;
+  position: relative;
+}
+.sugestoes {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 5;
+  background: var(--contro-white);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgb(24 24 24 / 22%);
+  overflow: hidden;
+}
+.sugestoesTitulo {
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #696969;
+}
+.sugestao {
+  width: 100%;
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+.sugestao span {
+  font-size: 12px;
+  color: #696969;
+  flex-shrink: 0;
+}
+.sugestao:hover,
+.sugestao:focus-visible {
+  background: rgb(84 180 176 / 16%);
+}
+.sugestaoNovo {
+  border-top: 1px solid rgb(24 24 24 / 10%);
+  font-size: 14px;
 }
 .prestadorRotulo {
   display: block;

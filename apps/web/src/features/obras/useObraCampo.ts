@@ -44,7 +44,11 @@ export function useObraCampo(obraId: string) {
   const prestador = useMutation({
     mutationFn: ({ id, prestador }: { id: string; prestador: string | null }) =>
       editarPrestador(id, prestador),
-    onSuccess: inval,
+    onSuccess: () => {
+      inval();
+      // O nome salvo vira sugestão no banco (trigger): recarrega a lista.
+      void qc.invalidateQueries({ queryKey: ['sugestao', 'prestador'] });
+    },
   });
   // Ação de campo OTIMISTA e offline (regra 9): atualiza o cache na hora, enfileira
   // a op (client_op_id idempotente) e o sync envia ao servidor quando houver sinal.
