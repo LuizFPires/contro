@@ -93,6 +93,8 @@ foto(id, obra_id, storage_path, largura, altura, tirada_em, tirada_por, lat null
 ```
 reuniao(id, data date, hora time default '16:00', status: 'pauta'|'em_andamento'|'fechada', fechada_em, fechada_por)
 reuniao_obra(reuniao_id, obra_id, observacoes text, snapshot jsonb)   -- snapshot do previsto x realizado ao fechar
+obra.entrega_original date null                                -- inauguração planejada (fixar_entrega_original, uma vez)
+obra_dependencia.defasagem_du int default 0 (≤ 0)             -- paralelismo: começa N du antes do fim da predecessora
 tarefa(id, obra_id, texto, responsavel_id → pessoa, prazo date,
        prazo_original date null, replanejamentos int default 0,
        status: 'aberta'|'feita', feita_em, feita_por,
@@ -153,6 +155,8 @@ concluida(a)  = a.concluida_em != null   -- com subitens: só permitido quando t
 avanço com subitens = peso(a) × (Σ dur dos subitens marcados / Σ dur dos subitens)
 predsOk(a)    = todas predecessoras concluídas
 provOk(a)     = todas providências de a com status 'feito'
+ES(a) = max over p (max(EF(p) + defasagem(p,a), ES(p)))      -- defasagem ≤ 0; nunca antes do início da predecessora
+previsão: aberta com EF ≤ decorridos termina hoje; não começada não começa antes de hoje
 liberada(a)   = !concluida                      -- sem atividade bloqueada (26/10/2026); predsOk/provOk não travam
 lembretesPendentes(a) = !concluida && !provOk   -- só aviso
 aguardandoProvidencia(a) = !concluida && predsOk && !provOk

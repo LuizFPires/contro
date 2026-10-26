@@ -1,20 +1,24 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   classificarPendencias,
   diasUteisRestantes,
+  previsaoEntrega,
   ritmoTexto,
   type FaseTrilha,
 } from '@contro/core';
 import { Icon, useToast, type IconName } from '@contro/ui';
-import { formatarDataCompleta } from '../../lib/datas';
+import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { BoletimView } from './BoletimView';
+import { fixarEntregaOriginal } from './campo';
 import { CelebracaoFase, type CelebracaoFaseDados } from './CelebracaoFase';
 import { FichaAtividade } from './FichaAtividade';
 import { GanttAba } from './GanttAba';
 import { PendenciasAba } from './PendenciasAba';
+import { PlanoRecuperacao } from './PlanoRecuperacao';
 import { ProvidenciasAba } from './ProvidenciasAba';
 import { classificarProvidencias } from './providenciasObra';
+import { entradaRecuperacao } from './recuperacaoObra';
 import { useObraDetalhe } from './useObraDetalhe';
 import type { AoConcluir } from './useConcluirAtividade';
 import { useObraCampo } from './useObraCampo';
@@ -35,10 +39,13 @@ export function ObraDetalhe({
   id,
   onVoltar,
   abrirBoletim,
+  abrirPlano,
 }: {
   id: string;
   onVoltar: () => void;
   abrirBoletim?: boolean;
+  /** Abre direto no plano de recuperação (atalho da aba Hoje). */
+  abrirPlano?: boolean;
 }) {
   const { data: obra, isLoading } = useObraDetalhe(id);
   const pendencias = useObraPendencias(id);
@@ -49,6 +56,7 @@ export function ObraDetalhe({
   // O boletim abre dentro da obra (protótipo), pelo ícone do cabeçalho.
   const [aba, setAba] = useState<AbaObra>(abrirBoletim ? 'boletim' : 'fases');
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
+  const [planoAberto, setPlanoAberto] = useState(Boolean(abrirPlano));
 
   const fases = useMemo(() => (obra ? montarTrilha(obra) : []), [obra]);
 
@@ -60,6 +68,17 @@ export function ObraDetalhe({
     () => classificarPendencias(pendencias.query.data ?? [], hojeISO()).fila.length,
     [pendencias.query.data],
   );
+
+  // Inauguração prevista (atrasadas terminam hoje) x a planejada, fixada na obra.
+  const previsao = useMemo(
+    () => (obra ? previsaoEntrega(entradaRecuperacao(obra, hojeISO())) : null),
+    [obra],
+  );
+  // Primeira abertura: guarda a inauguração planejada (base do plano de recuperação).
+  const original = obra && !obra.entrega_original ? previsao?.entregaOriginal : null;
+  useEffect(() => {
+    if (obra && original) void fixarEntregaOriginal(obra.id, original).catch(() => undefined);
+  }, [obra, original]);
 
   if (isLoading || !obra) {
     return (
@@ -103,6 +122,10 @@ export function ObraDetalhe({
       showToast({ message: `"${det.nome}" concluída · +${r.xp} XP`, onUndo: desfazer });
     }
   };
+
+  if (planoAberto) {
+    return <PlanoRecuperacao obra={obra} onVoltar={() => setPlanoAberto(false)} />;
+  }
 
   const pct = Math.round(obra.pct * 100);
   // Fase aberta: a escolhida, senão a atual (como no protótipo).
@@ -164,6 +187,29 @@ export function ObraDetalhe({
       <div className={styles.conteudo}>
         {aba === 'fases' ? (
           <div className={styles.mapa}>
+            {previsao && previsao.atrasoDu > 0 ? (
+              <div className={styles.risco}>
+                <span className={styles.riscoIcone} aria-hidden="true">
+                  <Icon name="relogio" size={18} strokeWidth={2.4} />
+                </span>
+                <span className={styles.riscoTexto}>
+                  <b className={styles.riscoTitulo}>Inauguração em risco</b>
+                  <span>
+                    <s>{formatarDataCurta(previsao.entregaOriginal)}</s> →{' '}
+                    <b className={styles.riscoData}>
+                      {formatarDataCurta(previsao.entregaPrevista)} (+{previsao.atrasoDu} d.u.)
+                    </b>
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className={styles.riscoBtn}
+                  onClick={() => setPlanoAberto(true)}
+                >
+                  Ver plano
+                </button>
+              </div>
+            ) : null}
             {fases.map((f) => (
               <Fase
                 key={f.id}

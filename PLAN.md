@@ -308,6 +308,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-26 · **Plano de recuperação da inauguração** (opção A; entradas: faixa no topo da trilha e card da aba Hoje). Core: defasagem por dependência no motor (`defasagens`), `previsaoEntrega`, `planoRecuperacao` (candidatas de paralelismo e redução nas próximas críticas, escolha gulosa do mínimo que zera o atraso), `simularPlano`, `tarefasDoPlano`. Banco: `obra.entrega_original` (fixada na primeira abertura; obras antigas recebem a data do cronograma atual), `obra_dependencia.defasagem_du` e RPCs `fixar_entrega_original` / `aplicar_plano_recuperacao`, com pgTAP. · usuário
 - 2026-10-26 · **Providências em duas abas: "A providenciar" e "Providenciadas"**. Ao marcar, o item sai da lista e o toast diz "foi para Providenciadas" (com Desfazer). Em "Providenciadas", agrupado por dia, cada item mostra **quem marcou e quando** ("Paulo · hoje às 10:42", de `feito_por`/`feito_em`, que o banco já gravava), com filtro por pessoa e "Reabrir". · usuário
 - 2026-10-26 · **Tela inicial em duas abas** no menu inferior: "Hoje" (padrão, com contador vermelho de atrasos) e "Minhas obras" (nova obra, Reunião, Tarefas e cards das obras). · usuário
 
