@@ -71,7 +71,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 
 ### 5.4 Obra · Fases (mapa do jogo)
 - Trilha vertical com o **pré-obra** e as 6 fases da obra: **Orçamento** e **Mapa de coleta** (pré-obra), Mobilização, Infraestrutura, Fechamentos, Acabamentos, Instalações finais e Entrega.
-  - **Pré-obra** acontece **antes do dia 0** (início da Mobilização) e fica **fora do % e do prazo** da obra; as datas são calculadas para trás e a atividade fica vermelha se passar do fim previsto. A etiqueta da fase diz "pré-obra".
+  - **Pré-obra** acontece **antes do dia 0** (início da Mobilização) e fica **fora do % e do prazo** da obra; as datas são calculadas para trás e a atividade fica vermelha se passar do fim previsto. A etiqueta da fase diz "pré-obra". **Nada do pré-obra trava**: é aviso para o usuário se programar.
   - **Orçamento** (fase 1): atividade com 3 subitens em sequência de 5 dias úteis (Recebimento dos projetos, Levantamento de quantitativos, Montagem da EAP no Grana); termina antes do primeiro mapa.
   - **Mapa de coleta** (fase 2): até 18 tomadas de preço (5 du cada), na ordem de quando cada contratação precisa estar fechada: cada mapa termina em início da atividade que libera − antecedência da contratação. Os da 1ª onda fecham antes do dia 0; os demais seguem durante a obra.
 - Estados de fase: concluída, em execução, planejada e com atraso (vermelho).
