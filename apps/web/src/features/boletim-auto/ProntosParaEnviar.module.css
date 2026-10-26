@@ -1,86 +1,137 @@
-.bloco {
-  background: var(--contro-selected);
-  border-radius: var(--contro-radius-card);
-  padding: var(--contro-space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--contro-space-3);
-}
-
-.titulo {
-  display: flex;
-  align-items: center;
-  gap: var(--contro-space-2);
-  margin: 0;
-  font-weight: 800;
-  font-size: var(--contro-fs-body-sm);
-  color: var(--contro-text);
-}
-
-.lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--contro-space-2);
-}
-
-.item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--contro-space-3);
-  background: var(--contro-surface);
-  border-radius: var(--contro-radius-field);
-  padding: var(--contro-space-3);
-}
-
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.obra {
-  font-size: var(--contro-fs-body);
-  font-weight: 700;
-  color: var(--contro-text);
-}
-
-.meta {
-  font-size: var(--contro-fs-caption);
-  color: var(--contro-muted);
-}
-
-.acoes {
-  display: flex;
-  gap: var(--contro-space-2);
-  flex: none;
-}
-
-.abrir,
-.enviado {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--contro-space-1);
-  min-height: var(--contro-touch);
-  padding: 0 var(--contro-space-3);
-  border: none;
-  border-radius: var(--contro-radius-field);
-  font-size: var(--contro-fs-body-sm);
-  font-weight: 700;
+/* Boletins prontos para enviar: ícone no cabeçalho do início + gaveta (protótipo aprovado). */
+.icone {
+  position: relative;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 12px;
+  border: 0;
+  background: rgb(255 255 255 / 14%);
+  color: var(--contro-white);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
-
-.abrir {
-  background: transparent;
-  color: var(--contro-text);
-  box-shadow: inset 0 0 0 1.5px var(--contro-border);
-}
-
-.enviado {
+.numero {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 99px;
   background: var(--contro-turquoise);
   color: var(--contro-black);
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--contro-black);
+}
+
+/* A gaveta é renderizada dentro do cabeçalho preto: fixa a cor do texto. */
+.gaveta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--contro-black);
+  text-align: left;
+}
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.titulo {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+.explica {
+  font-size: 14px;
+  color: #696969;
+}
+.fechar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--contro-black);
+  flex-shrink: 0;
+}
+.cartao {
+  border: 1px solid rgb(24 24 24 / 12%);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cartaoTopo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.cartaoIcone {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--contro-black);
+  color: var(--contro-turquoise);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cartaoTexto {
+  min-width: 0;
+}
+.obra {
+  font-weight: 800;
+  font-size: 16px;
+}
+.meta {
+  font-size: 13px;
+  color: #696969;
+}
+.acoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.abrir,
+.enviado {
+  min-height: var(--contro-touch);
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.abrir {
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+}
+.enviado {
+  border: 0;
+  background: var(--contro-turquoise);
+}
+.vazio {
+  border: 2px dashed rgb(24 24 24 / 25%);
+  border-radius: 16px;
+  padding: 24px 16px;
+  text-align: center;
+  color: #696969;
 }
