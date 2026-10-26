@@ -28,6 +28,9 @@
 .app-main {
   flex: 1;
   overflow-y: auto;
+  /* Segura o overscroll nativo para o "puxar pra atualizar" não brigar com o
+     bounce do sistema (ver components/PullToRefresh). */
+  overscroll-behavior-y: contain;
 }
 
 .app-placeholder {

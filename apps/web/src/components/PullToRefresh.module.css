@@ -1,0 +1,25 @@
+.indicador {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--contro-muted);
+  padding-bottom: var(--contro-space-2);
+  box-sizing: border-box;
+}
+
+.icone {
+  display: inline-flex;
+  transition: transform 100ms linear;
+}
+
+.girando {
+  display: inline-flex;
+  animation: ptr-girar 0.8s linear infinite;
+}
+
+@keyframes ptr-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
