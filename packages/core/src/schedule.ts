@@ -14,6 +14,11 @@ export interface AtividadeEntrada {
   em_sequencia?: boolean;
   /** Predecessoras (só no nível de atividade; qualquer fase). */
   predecessoras?: string[];
+  /**
+   * Defasagem por predecessora, em dias úteis (≤ 0). -2 = começa 2 dias antes do
+   * fim da predecessora (paralelismo do plano de recuperação). Sem chave = 0.
+   */
+  defasagens?: Record<string, number>;
   /** Ajuste manual de início (feriado/imprevisto). */
   inicio_manual?: DataISO | null;
 }
@@ -147,7 +152,12 @@ export function calcularCronograma(entrada: EntradaCronograma): Cronograma {
   const es = new Map<string, number>();
   const ef = new Map<string, number>();
   for (const a of topo) {
-    const maxPred = Math.max(0, ...(a.predecessoras ?? []).map((p) => ef.get(p) ?? 0));
+    const lag = (p: string) => a.defasagens?.[p] ?? 0;
+    // Com defasagem negativa, começa antes do fim da predecessora, mas nunca antes do início dela.
+    const maxPred = Math.max(
+      0,
+      ...(a.predecessoras ?? []).map((p) => Math.max((ef.get(p) ?? 0) + lag(p), es.get(p) ?? 0)),
+    );
     const offsetManual = a.inicio_manual ? duEntre(entrada.inicio, a.inicio_manual) : 0;
     const esA = Math.max(maxPred, offsetManual);
     es.set(a.id, esA);
@@ -156,12 +166,12 @@ export function calcularCronograma(entrada: EntradaCronograma): Cronograma {
 
   const total = Math.max(0, ...topo.map((a) => ef.get(a.id)!));
 
-  // Sucessoras para o backward pass.
-  const sucessoras = new Map<string, string[]>();
+  // Sucessoras (com a defasagem da ligação) para o backward pass.
+  const sucessoras = new Map<string, { id: string; lag: number }[]>();
   for (const a of topo) sucessoras.set(a.id, []);
   for (const a of topo) {
     for (const p of a.predecessoras ?? []) {
-      if (sucessoras.has(p)) sucessoras.get(p)!.push(a.id);
+      if (sucessoras.has(p)) sucessoras.get(p)!.push({ id: a.id, lag: a.defasagens?.[p] ?? 0 });
     }
   }
 
@@ -171,7 +181,7 @@ export function calcularCronograma(entrada: EntradaCronograma): Cronograma {
   for (let i = topo.length - 1; i >= 0; i--) {
     const a = topo[i];
     const succ = sucessoras.get(a.id)!;
-    const lfA = succ.length > 0 ? Math.min(...succ.map((s) => ls.get(s)!)) : total;
+    const lfA = succ.length > 0 ? Math.min(...succ.map((s) => ls.get(s.id)! - s.lag)) : total;
     lf.set(a.id, lfA);
     ls.set(a.id, lfA - dur.get(a.id)!);
   }

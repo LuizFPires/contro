@@ -20,6 +20,7 @@ export * from './previaModelo';
 export * from './ajusteObra';
 export * from './pautaReuniao';
 export * from './agendaDia';
+export * from './recuperacao';
 
 export type Perfil = 'gestor' | 'equipe';
 
