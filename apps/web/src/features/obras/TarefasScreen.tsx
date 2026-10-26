@@ -51,7 +51,8 @@ export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
   );
 
   const quem = filtro === 'todos' ? 'Equipe' : (chips.find((c) => c.id === filtro)?.nome ?? '');
-  const resumo = `${quem}: ${atrasadas.length + abertas.length} abertas · ${atrasadas.length} atrasadas · ${concluidas.length} concluídas`;
+  const nAbertas = atrasadas.length + abertas.length;
+  const resumo = `${quem}: ${nAbertas} ${nAbertas === 1 ? 'aberta' : 'abertas'} · ${atrasadas.length} ${atrasadas.length === 1 ? 'atrasada' : 'atrasadas'} · ${concluidas.length} ${concluidas.length === 1 ? 'concluída' : 'concluídas'}`;
 
   const alvo = (t: TarefaObra) => ({ obraId: t.obra_id, id: t.id });
 
