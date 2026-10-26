@@ -23,6 +23,9 @@ export interface ObraProv {
   antecedencia_du: number;
   na_obra_em: string | null;
   manual: boolean;
+  /** Quando e quem marcou como providenciado (null enquanto pendente). */
+  feito_em: string | null;
+  feito_por_nome: string | null;
 }
 export interface ObraAtv {
   id: string;
@@ -85,7 +88,10 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     supabase.from('obra_dependencia').select('atividade_id,predecessora_id').eq('obra_id', id),
     supabase
       .from('obra_providencia')
-      .select('id,atividade_id,tipo,descricao,status,antecedencia_du,na_obra_em,manual')
+      .select(
+        'id,atividade_id,tipo,descricao,status,antecedencia_du,na_obra_em,manual,feito_em,' +
+          'feito:pessoa!feito_por(nome)',
+      )
       .eq('obra_id', id),
   ]);
 
@@ -105,7 +111,11 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     predsPorAtv.set(d.atividade_id, arr);
   }
   const provPorAtv = new Map<string, ObraProv[]>();
-  for (const pr of (pRes.data ?? []) as ObraProv[]) {
+  for (const linha of (pRes.data ?? []) as unknown as (Omit<ObraProv, 'feito_por_nome'> & {
+    feito: { nome: string } | null;
+  })[]) {
+    const { feito, ...resto } = linha;
+    const pr: ObraProv = { ...resto, feito_por_nome: feito?.nome ?? null };
     const arr = provPorAtv.get(pr.atividade_id) ?? [];
     arr.push(pr);
     provPorAtv.set(pr.atividade_id, arr);

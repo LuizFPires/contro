@@ -61,13 +61,22 @@ export function useObraCampo(obraId: string) {
     onMutate: async ({ id, feito }: { id: string; feito: boolean }) => {
       await qc.cancelQueries({ queryKey: ['obra', obraId] });
       const prev = qc.getQueryData<ObraCompleta>(['obra', obraId]);
+      // Quem marcou: a pessoa logada (o servidor grava o mesmo em feito_por).
+      const eu = qc.getQueryData<{ nome: string } | null>(['perfil'])?.nome ?? null;
       if (prev) {
         qc.setQueryData<ObraCompleta>(['obra', obraId], {
           ...prev,
           atividades: prev.atividades.map((a) => ({
             ...a,
             providencias: a.providencias.map((p) =>
-              p.id === id ? { ...p, status: feito ? 'feito' : 'pendente' } : p,
+              p.id === id
+                ? {
+                    ...p,
+                    status: feito ? 'feito' : 'pendente',
+                    feito_em: feito ? new Date().toISOString() : null,
+                    feito_por_nome: feito ? eu : null,
+                  }
+                : p,
             ),
           })),
         });

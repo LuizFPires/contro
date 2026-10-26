@@ -33,6 +33,8 @@ test('providência offline: otimista, enfileira e sincroniza ao voltar (regra 9)
   await login(page);
 
   const nome = `Obra Offline ${Date.now()}`;
+  // A tela inicial abre em "Hoje"; a nova obra fica na aba "Minhas obras".
+  await page.getByRole('button', { name: 'Minhas obras' }).click();
   await page.getByRole('button', { name: 'Nova obra' }).click();
   await page.getByLabel('Unidade').fill(nome);
   await page.getByRole('radio', { name: /Modelo 1 · CDC completo/ }).click();

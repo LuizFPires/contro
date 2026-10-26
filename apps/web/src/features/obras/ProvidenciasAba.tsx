@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react';
-import { BottomSheet, useToast } from '@contro/ui';
+import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import type { ObraCompleta } from './detalhe';
-import { classificarProvidencias, type ItemProvidencia } from './providenciasObra';
+import {
+  classificarProvidencias,
+  type ItemProvidencia,
+  type ItemProvidenciado,
+} from './providenciasObra';
 import { useObraCampo } from './useObraCampo';
 import styles from './ProvidenciasAba.module.css';
 
@@ -14,16 +18,31 @@ const TIPOS: { tipo: Tipo; rotulo: string }[] = [
   { tipo: 'compra', rotulo: 'Compra' },
 ];
 
+const p2 = (n: number) => String(n).padStart(2, '0');
+/** Dia local (ISO) de um instante. */
+const diaLocal = (d: Date) => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+/** "hoje às 10:42" ou "sex 23/10 às 16:30". */
+function quandoFeito(iso: string | null, hoje: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const dia = diaLocal(d);
+  const hora = `${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  return `${dia === hoje ? 'hoje' : formatarDataCurta(dia)} às ${hora}`;
+}
+
 /** Providências da obra (protótipo · SUPRIMENTOS, aqui chamada "Providências"). */
 export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
   const campo = useObraCampo(obra.id);
   const { showToast } = useToast();
   const [novo, setNovo] = useState<Tipo | null>(null);
+  const [vista, setVista] = useState<'abertas' | 'feitas'>('abertas');
+  const [pessoa, setPessoa] = useState<string | null>(null);
 
   const { atrasadas, aProvidenciar, feitas } = useMemo(
     () => classificarProvidencias(obra, hojeISO()),
     [obra],
   );
+  const hojeLocal = diaLocal(new Date());
 
   function marcar(it: ItemProvidencia) {
     campo.providencia.mutate(
@@ -31,8 +50,21 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
       {
         onSuccess: () =>
           showToast({
-            message: `${it.tipoTxt} providenciada`,
+            message: `${it.descricao} providenciado · foi para Providenciadas`,
             onUndo: () => campo.providencia.mutate({ id: it.id, feito: false }),
+          }),
+      },
+    );
+  }
+
+  function reabrir(it: ItemProvidenciado) {
+    campo.providencia.mutate(
+      { id: it.id, feito: false },
+      {
+        onSuccess: () =>
+          showToast({
+            message: `${it.descricao} voltou para A providenciar`,
+            onUndo: () => campo.providencia.mutate({ id: it.id, feito: true }),
           }),
       },
     );
@@ -42,6 +74,27 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
     { titulo: 'Atrasados', atraso: true, itens: atrasadas },
     { titulo: 'A providenciar', atraso: false, itens: aProvidenciar },
   ].filter((g) => g.itens.length);
+  const nAbertas = atrasadas.length + aProvidenciar.length;
+
+  // Providenciadas: filtro por quem marcou e grupos por dia.
+  const pessoas = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const f of feitas) {
+      const k = f.feitoPor ?? 'Sem registro';
+      m.set(k, (m.get(k) ?? 0) + 1);
+    }
+    return [...m.entries()];
+  }, [feitas]);
+  const filtradas = pessoa
+    ? feitas.filter((f) => (f.feitoPor ?? 'Sem registro') === pessoa)
+    : feitas;
+  const porDia: { dia: string; itens: ItemProvidenciado[] }[] = [];
+  for (const f of filtradas) {
+    const dia = f.feitoEm ? diaLocal(new Date(f.feitoEm)) : '';
+    const g = porDia[porDia.length - 1];
+    if (g && g.dia === dia) g.itens.push(f);
+    else porDia.push({ dia, itens: [f] });
+  }
 
   return (
     <div className={styles.aba}>
@@ -53,55 +106,144 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
         </div>
       </div>
 
-      <div className={styles.novos}>
-        {TIPOS.map((t) => (
-          <button
-            key={t.tipo}
-            type="button"
-            className={styles.novo}
-            onClick={() => setNovo(t.tipo)}
-          >
-            + {t.rotulo}
-          </button>
-        ))}
+      <div className={styles.vistas} role="tablist" aria-label="Providências">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={vista === 'abertas'}
+          className={`${styles.vista} ${vista === 'abertas' ? styles.vistaOn : ''}`}
+          onClick={() => setVista('abertas')}
+        >
+          A providenciar · {nAbertas}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={vista === 'feitas'}
+          className={`${styles.vista} ${vista === 'feitas' ? styles.vistaOn : ''}`}
+          onClick={() => setVista('feitas')}
+        >
+          <Icon name="checkGrosso" size={16} strokeWidth={3} />
+          Providenciadas · {feitas.length}
+        </button>
       </div>
 
-      {grupos.map((g) => (
-        <section key={g.titulo} className={styles.grupo}>
-          <h3 className={`${styles.grupoTitulo} ${g.atraso ? styles.atraso : ''}`}>
-            {g.titulo} · {g.itens.length}
-          </h3>
-          {g.itens.map((it) => (
-            <div key={it.id} className={`${styles.item} ${it.atrasada ? styles.itemAtraso : ''}`}>
-              <div className={styles.linhaTipo}>
-                <span className={styles.tipo}>{it.tipoTxt}</span>
-                <span className={`${styles.situacao} ${it.atrasada ? styles.sitAtraso : ''}`}>
-                  {it.atrasada ? 'Atrasado' : 'A providenciar'}
-                </span>
-              </div>
-              <div className={styles.desc}>{it.descricao}</div>
-              <div className={styles.para}>Para: {it.atividade}</div>
-              <div className={styles.naObra}>
-                Precisa estar na obra {formatarDataCurta(it.naObra)}
-              </div>
-              <div className={it.atrasada ? styles.quandoAtraso : styles.quando}>
-                {it.atrasada
-                  ? `ATRASADO · era para providenciar até ${formatarDataCurta(it.providenciarAte)}`
-                  : `Providenciar até ${formatarDataCurta(it.providenciarAte)} (${it.antecedenciaDu} dias úteis antes)`}
-              </div>
-              <button type="button" className={styles.marcar} onClick={() => marcar(it)}>
-                Marcar como providenciado
+      {vista === 'abertas' ? (
+        <>
+          <div className={styles.novos}>
+            {TIPOS.map((t) => (
+              <button
+                key={t.tipo}
+                type="button"
+                className={styles.novo}
+                onClick={() => setNovo(t.tipo)}
+              >
+                + {t.rotulo}
               </button>
-            </div>
+            ))}
+          </div>
+
+          {grupos.map((g) => (
+            <section key={g.titulo} className={styles.grupo}>
+              <h3 className={`${styles.grupoTitulo} ${g.atraso ? styles.atraso : ''}`}>
+                {g.titulo} · {g.itens.length}
+              </h3>
+              {g.itens.map((it) => (
+                <div
+                  key={it.id}
+                  className={`${styles.item} ${it.atrasada ? styles.itemAtraso : ''}`}
+                >
+                  <div className={styles.linhaTipo}>
+                    <span className={styles.tipo}>{it.tipoTxt}</span>
+                    <span className={`${styles.situacao} ${it.atrasada ? styles.sitAtraso : ''}`}>
+                      {it.atrasada ? 'Atrasado' : 'A providenciar'}
+                    </span>
+                  </div>
+                  <div className={styles.desc}>{it.descricao}</div>
+                  <div className={styles.para}>Para: {it.atividade}</div>
+                  <div className={styles.naObra}>
+                    Precisa estar na obra {formatarDataCurta(it.naObra)}
+                  </div>
+                  <div className={it.atrasada ? styles.quandoAtraso : styles.quando}>
+                    {it.atrasada
+                      ? `ATRASADO · era para providenciar até ${formatarDataCurta(it.providenciarAte)}`
+                      : `Providenciar até ${formatarDataCurta(it.providenciarAte)} (${it.antecedenciaDu} dias úteis antes)`}
+                  </div>
+                  <button type="button" className={styles.marcar} onClick={() => marcar(it)}>
+                    Marcar como providenciado
+                  </button>
+                </div>
+              ))}
+            </section>
           ))}
-        </section>
-      ))}
 
-      {grupos.length === 0 ? <div className={styles.vazio}>Nada a providenciar agora.</div> : null}
+          {grupos.length === 0 ? (
+            <div className={styles.vazio}>Nada a providenciar agora.</div>
+          ) : null}
+        </>
+      ) : (
+        <>
+          {pessoas.length > 1 ? (
+            <div className={styles.pessoas} role="group" aria-label="Quem providenciou">
+              <button
+                type="button"
+                aria-pressed={pessoa === null}
+                className={`${styles.pessoa} ${pessoa === null ? styles.pessoaOn : ''}`}
+                onClick={() => setPessoa(null)}
+              >
+                Todos
+              </button>
+              {pessoas.map(([nome, n]) => (
+                <button
+                  key={nome}
+                  type="button"
+                  aria-pressed={pessoa === nome}
+                  className={`${styles.pessoa} ${pessoa === nome ? styles.pessoaOn : ''}`}
+                  onClick={() => setPessoa(pessoa === nome ? null : nome)}
+                >
+                  {nome} · {n}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
-      <div className={styles.rodape}>
-        {feitas} {feitas === 1 ? 'lembrete já providenciado' : 'lembretes já providenciados'}
-      </div>
+          {porDia.map((g) => (
+            <section key={g.dia || 'sem-data'} className={styles.grupo}>
+              <h3 className={styles.grupoTitulo}>
+                {!g.dia
+                  ? 'Sem data registrada'
+                  : g.dia === hojeLocal
+                    ? `Hoje · ${formatarDataCurta(g.dia)}`
+                    : formatarDataCurta(g.dia)}
+              </h3>
+              {g.itens.map((f) => (
+                <div key={f.id} className={styles.feita}>
+                  <span className={styles.feitaIcone} role="img" aria-label="Providenciado">
+                    <Icon name="checkGrosso" size={16} strokeWidth={3} />
+                  </span>
+                  <div className={styles.feitaTexto}>
+                    <span className={styles.tipo}>{f.tipoTxt}</span>
+                    <b>{f.descricao}</b>
+                    <span className={styles.para}>Para: {f.atividade}</span>
+                    <span className={styles.quem}>
+                      <Icon name="pessoa" size={14} strokeWidth={2.2} />
+                      {f.feitoPor ?? 'Sem registro de quem marcou'}
+                      {f.feitoEm ? ` · ${quandoFeito(f.feitoEm, hojeLocal)}` : ''}
+                    </span>
+                  </div>
+                  <button type="button" className={styles.reabrir} onClick={() => reabrir(f)}>
+                    Reabrir
+                  </button>
+                </div>
+              ))}
+            </section>
+          ))}
+
+          {feitas.length === 0 ? (
+            <div className={styles.vazio}>Nenhum lembrete providenciado ainda.</div>
+          ) : null}
+        </>
+      )}
 
       <NovaProvidenciaSheet
         obra={obra}
