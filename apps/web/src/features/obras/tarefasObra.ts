@@ -1,3 +1,4 @@
+import { nomeCurto } from '@contro/core';
 import type { StatusTarefa } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
@@ -51,7 +52,7 @@ export async function loadTarefas(obraId: string): Promise<TarefaObra[]> {
     obra_id: l.obra_id,
     texto: l.texto,
     responsavel_id: l.responsavel_id,
-    responsavelNome: l.responsavel?.nome ?? l.responsavel_nome ?? null,
+    responsavelNome: nomeCurto(l.responsavel?.nome ?? l.responsavel_nome) || null,
     observacao: l.observacao,
     prazo: l.prazo,
     prazo_original: l.prazo_original,

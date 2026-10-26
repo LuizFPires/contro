@@ -106,7 +106,8 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - Aba **Providências** da obra agrupada em Atrasados (vermelho) e A providenciar, com o botão "Marcar como providenciado".
 - Lembretes avisam o que contratar, alugar ou comprar a tempo, mas **não travam** a atividade: ela pode ser concluída com lembrete pendente.
 
-### 5.7 Pendências (qualidade)
+### 5.7 Check list (pendências de qualidade)
+- Na obra, a aba se chama **Check list** e fica depois de Cronograma (abas: Fases, Providências, Cronograma, Check list). Um botão **"i"** explica como funciona.
 - Alternância **Fila | Lista completa**, com as contagens.
 - **Fila:** pilha de cards com a foto do antes, criticidade, local, atividade e quem apontou.
   - Arrastar para a direita, ou o botão "Resolvida", abre a câmera com a **foto do antes em transparência** (ghost) para alinhar a foto de depois. A pendência vai para "Em vistoria".

@@ -9,6 +9,7 @@ import { useObras } from '../features/obras/useObras';
 import { usePerfil } from '../features/perfil/usePerfil';
 import { useMembrosPendentes } from '../features/membros/useMembros';
 import { ProntosParaEnviar } from '../features/boletim-auto/ProntosParaEnviar';
+import { EditarNome } from './EditarNome';
 import { formatarDataCurta } from '../lib/datas';
 import styles from './MinhasObras.module.css';
 
@@ -35,6 +36,7 @@ export function MinhasObras({
   const { showToast } = useToast();
   const [vista, setVista] = useState<'lista' | 'nova'>('lista');
   const [perfilAberto, setPerfilAberto] = useState(false);
+  const [editarNome, setEditarNome] = useState(false);
   const [obraAberta, setObraAberta] = useState<{
     id: string;
     boletim?: boolean;
@@ -243,9 +245,23 @@ export function MinhasObras({
               />
             </>
           ) : null}
+          <ItemMenu
+            icon="pessoa"
+            rotulo="Editar meu nome"
+            onClick={() => {
+              setPerfilAberto(false);
+              setEditarNome(true);
+            }}
+          />
           <ItemMenu icon="sair" rotulo="Sair" separado onClick={onSair} semSeta />
         </div>
       </BottomSheet>
+
+      <EditarNome
+        aberto={editarNome}
+        atual={pessoa?.nome ?? ''}
+        onFechar={() => setEditarNome(false)}
+      />
     </div>
   );
 }

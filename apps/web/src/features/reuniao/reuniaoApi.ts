@@ -5,6 +5,7 @@ import {
   tarefaAtrasada,
   type AtividadeEntrada,
   type AtividadeSemana,
+  nomeCurto,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { hojeISO } from '../obras/api';
@@ -299,7 +300,7 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
       obraId: t.obra_id,
       origem: t.origem_texto,
       texto: t.texto,
-      pessoa: t.responsavel?.nome ?? t.responsavel_nome ?? 'Sem responsável',
+      pessoa: nomeCurto(t.responsavel?.nome ?? t.responsavel_nome) || 'Sem responsável',
       prazo: t.prazo,
       atrasado: tarefaAtrasada(t, hoje),
       concluido: t.status === 'feita',

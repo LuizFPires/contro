@@ -7,6 +7,7 @@ import { hojeISO } from './api';
 import { AdiarSheet } from './AdiarSheet';
 import { ApontarSheet } from './ApontarSheet';
 import { Camera } from './Camera';
+import { ChecklistInfo } from './ChecklistInfo';
 import { PendenciaDeck } from './PendenciaDeck';
 import type { ObraCompleta } from './detalhe';
 import type { PendenciaObra } from './pendenciasObra';
@@ -65,6 +66,8 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
     );
   }
 
+  const [info, setInfo] = useState(false);
+
   return (
     <div className={styles.aba}>
       <div className={styles.topo}>
@@ -88,6 +91,15 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
             Lista completa · {lista.length}
           </button>
         </div>
+        <button
+          type="button"
+          className={styles.infoBtn}
+          aria-label="Como funciona o Check list"
+          title="Como funciona"
+          onClick={() => setInfo(true)}
+        >
+          <Icon name="info" size={20} strokeWidth={2} />
+        </button>
         <button
           type="button"
           className={styles.apontar}
@@ -277,6 +289,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
         onFechar={() => setAdiar(null)}
         onConfirmar={confirmarAdiar}
       />
+      <ChecklistInfo aberto={info} onFechar={() => setInfo(false)} />
     </div>
   );
 }

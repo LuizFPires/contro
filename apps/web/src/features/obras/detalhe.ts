@@ -7,6 +7,7 @@ import {
   type AtividadeCronograma,
   type AtividadeEntrada,
   type AtividadeEstado,
+  nomeCurto,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { hojeISO } from './api';
@@ -150,7 +151,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     feito: { nome: string } | null;
   })[]) {
     const { feito, ...resto } = linha;
-    const pr: ObraProv = { ...resto, feito_por_nome: feito?.nome ?? null };
+    const pr: ObraProv = { ...resto, feito_por_nome: nomeCurto(feito?.nome) || null };
     const arr = provPorAtv.get(pr.atividade_id) ?? [];
     arr.push(pr);
     provPorAtv.set(pr.atividade_id, arr);
