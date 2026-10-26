@@ -21,10 +21,21 @@ export interface ItemProvidencia {
   atrasada: boolean;
 }
 
+export interface ItemProvidenciado {
+  id: string;
+  tipoTxt: string;
+  descricao: string;
+  atividade: string;
+  /** Instante em que foi marcado (ISO com hora). */
+  feitoEm: string | null;
+  feitoPor: string | null;
+}
+
 export interface ProvidenciasClassificadas {
   atrasadas: ItemProvidencia[];
   aProvidenciar: ItemProvidencia[];
-  feitas: number;
+  /** Já providenciadas, da mais recente para a mais antiga. */
+  feitas: ItemProvidenciado[];
 }
 
 /** Classifica as providências da obra uma vez (usado pela aba e pelo badge). */
@@ -38,14 +49,21 @@ export function classificarProvidencias(
 
   const atrasadas: ItemProvidencia[] = [];
   const aProvidenciar: ItemProvidencia[] = [];
-  let feitas = 0;
+  const feitas: ItemProvidenciado[] = [];
 
   for (const a of obra.atividades) {
     if (a.pai_id) continue;
     const es = obra.cron.porId[a.id]?.es ?? 0;
     for (const p of a.providencias) {
       if (p.status === 'feito') {
-        feitas += 1;
+        feitas.push({
+          id: p.id,
+          tipoTxt: TIPO[p.tipo],
+          descricao: p.descricao,
+          atividade: nomePorId.get(a.id) ?? '',
+          feitoEm: p.feito_em,
+          feitoPor: p.feito_por_nome,
+        });
         continue;
       }
       const atrasada = providenciaAtrasada({
@@ -71,5 +89,6 @@ export function classificarProvidencias(
       (atrasada ? atrasadas : aProvidenciar).push(item);
     }
   }
+  feitas.sort((x, y) => (y.feitoEm ?? '').localeCompare(x.feitoEm ?? ''));
   return { atrasadas, aProvidenciar, feitas };
 }
