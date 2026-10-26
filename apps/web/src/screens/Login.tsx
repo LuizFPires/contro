@@ -1,3 +1,4 @@
+import { temNomeESobrenome } from '@contro/core';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Button, Icon, Input, Logo, PasswordInput } from '@contro/ui';
@@ -73,8 +74,8 @@ export function Login() {
           );
         } else if (error) setErro('Não foi possível entrar. Confira e-mail e senha.');
       } else if (modo === 'signup') {
-        if (!nome.trim()) {
-          setErro('Informe seu nome.');
+        if (!temNomeESobrenome(nome)) {
+          setErro('Informe nome e sobrenome.');
           return;
         }
         if (senha !== confirmar) {
@@ -146,7 +147,7 @@ export function Login() {
 
           {modo === 'signup' ? (
             <Input
-              label="Nome"
+              label="Nome e sobrenome"
               autoComplete="name"
               required
               value={nome}

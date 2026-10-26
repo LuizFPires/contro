@@ -30,9 +30,10 @@ type AbaObra = 'fases' | 'pendencias' | 'providencias' | 'cronograma' | 'boletim
 
 const ABAS: { key: Exclude<AbaObra, 'boletim'>; label: string; icon: IconName }[] = [
   { key: 'fases', label: 'Fases', icon: 'fases' },
-  { key: 'pendencias', label: 'Pendências', icon: 'pendencias' },
   { key: 'providencias', label: 'Providências', icon: 'providencias' },
   { key: 'cronograma', label: 'Cronograma', icon: 'cronograma' },
+  // Pendências de qualidade, com o nome "Check list" (pedido do usuário).
+  { key: 'pendencias', label: 'Check list', icon: 'pendencias' },
 ];
 
 export function ObraDetalhe({

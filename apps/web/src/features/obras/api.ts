@@ -7,6 +7,7 @@ import {
   tarefaAtrasada,
   type AgendaObra,
   type AtividadeEntrada,
+  nomeCurto,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
@@ -321,7 +322,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
             texto: t.texto,
             prazo: t.prazo,
             aberta: t.status === 'aberta',
-            pessoa: t.responsavel?.nome ?? t.responsavel_nome ?? null,
+            pessoa: nomeCurto(t.responsavel?.nome ?? t.responsavel_nome) || null,
           })),
       }),
     };

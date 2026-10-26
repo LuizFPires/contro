@@ -1,3 +1,4 @@
+import { nomeCurto } from '@contro/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { enfileirar } from '../../lib/sync';
 import {
@@ -62,7 +63,7 @@ export function useObraCampo(obraId: string) {
       await qc.cancelQueries({ queryKey: ['obra', obraId] });
       const prev = qc.getQueryData<ObraCompleta>(['obra', obraId]);
       // Quem marcou: a pessoa logada (o servidor grava o mesmo em feito_por).
-      const eu = qc.getQueryData<{ nome: string } | null>(['perfil'])?.nome ?? null;
+      const eu = nomeCurto(qc.getQueryData<{ nome: string } | null>(['perfil'])?.nome) || null;
       if (prev) {
         qc.setQueryData<ObraCompleta>(['obra', obraId], {
           ...prev,

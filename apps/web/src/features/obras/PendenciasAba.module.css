@@ -287,3 +287,32 @@
   font-weight: 700;
   color: #464646;
 }
+
+/* Botão "i" e o "Como funciona" do Check list. */
+.infoBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.info {
+  font-size: 15px;
+  line-height: 1.5;
+}
+.info p {
+  margin: 0 0 10px;
+}
+.info ol {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

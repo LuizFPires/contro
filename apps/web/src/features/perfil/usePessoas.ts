@@ -1,3 +1,4 @@
+import { nomeCurto } from '@contro/core';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 
@@ -20,7 +21,8 @@ export function usePessoas() {
         .eq('ativo', true)
         .is('deleted_at', null)
         .order('nome');
-      return (data ?? []) as PessoaResumo[];
+      // Etiquetas usam o nome curto (Luiz F, Rodrigo M).
+      return ((data ?? []) as PessoaResumo[]).map((p) => ({ ...p, nome: nomeCurto(p.nome) }));
     },
   });
 }
