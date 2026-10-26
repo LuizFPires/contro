@@ -1,238 +1,123 @@
 import { useState } from 'react';
-import { BottomSheet, Button, Card, Icon, Input, useToast } from '@contro/ui';
+import { BottomSheet, Icon, useToast } from '@contro/ui';
+import { ModeloFases } from './ModeloFases';
 import { useModelos, useModelosMutations } from './useModelos';
-import { ModeloDetalhe } from './ModeloDetalhe';
-import type { ModeloResumo } from './api';
-import styles from './ModelosScreen.module.css';
+import styles from './Modelos.module.css';
 
-type Sheet =
-  | null
-  | { tipo: 'novo' }
-  | { tipo: 'renomear'; modelo: ModeloResumo }
-  | { tipo: 'excluir'; modelo: ModeloResumo };
-
-export function ModelosScreen() {
+/** Modelos de obra (protótipo · ModeloCel · MODELOS). Só o gestor chega aqui. */
+export function ModelosScreen({ onVoltar }: { onVoltar: () => void }) {
   const { data: modelos, isLoading } = useModelos();
-  const { duplicar, renomear, excluir, restaurar } = useModelosMutations();
+  const { duplicar } = useModelosMutations();
   const { showToast } = useToast();
-  const [sheet, setSheet] = useState<Sheet>(null);
   const [aberto, setAberto] = useState<string | null>(null);
+  const [novo, setNovo] = useState(false);
 
   if (aberto) {
-    return <ModeloDetalhe id={aberto} onVoltar={() => setAberto(null)} />;
+    return <ModeloFases id={aberto} onVoltar={() => setAberto(null)} onAbrir={setAberto} />;
   }
 
-  function apagar(m: ModeloResumo) {
-    setSheet(null);
-    excluir.mutate(m.id, {
-      onSuccess: () =>
-        showToast({
-          message: `"${m.nome}" excluído · obras que já usam continuam iguais`,
-          onUndo: () =>
-            restaurar.mutate(m.id, {
-              onError: (e) => showToast({ message: (e as Error).message }),
-            }),
-        }),
-      onError: (e) => showToast({ message: (e as Error).message }),
-    });
+  function criar(origem: string | null, nome: string, subtitulo: string | null) {
+    duplicar.mutate(
+      { origem, nome, subtitulo },
+      {
+        onSuccess: (id) => {
+          setNovo(false);
+          setAberto(id);
+          showToast({ message: 'Modelo criado · toque em Editar para dar nome e subtítulo' });
+        },
+        onError: (e) => showToast({ message: (e as Error).message }),
+      },
+    );
   }
+
+  const lista = modelos ?? [];
 
   return (
     <div className={styles.screen}>
-      <div className={styles.topo}>
-        <h1 className={styles.titulo}>Modelos de obra</h1>
-        <button
-          type="button"
-          className={styles.novo}
-          aria-label="Novo modelo"
-          onClick={() => setSheet({ tipo: 'novo' })}
-        >
-          <Icon name="plus" size={24} />
+      <header className={styles.cabecalho}>
+        <div className={styles.barraTopo}>
+          <button
+            type="button"
+            className={styles.iconeBtn}
+            aria-label="Voltar ao início"
+            onClick={onVoltar}
+          >
+            <Icon name="chevronLeft" size={22} />
+          </button>
+          <div className={styles.sobretitulo}>Contorno do Corpo</div>
+        </div>
+        <div className={styles.titulos}>
+          <h1 className={styles.titulo}>Modelos de obra</h1>
+          <div className={styles.texto}>Ao iniciar uma obra, você escolhe qual modelo seguir.</div>
+        </div>
+      </header>
+
+      <div className={styles.lista}>
+        {isLoading ? <p className={styles.vazio}>Carregando…</p> : null}
+        {lista.map((m, i) => (
+          <button
+            key={m.id}
+            type="button"
+            className={styles.cartao}
+            onClick={() => setAberto(m.id)}
+          >
+            <span className={styles.numero}>{i + 1}</span>
+            <span className={styles.cartaoCorpo}>
+              <span className={styles.cartaoNome}>{m.nome}</span>
+              <span className={styles.cartaoSub}>{m.subtitulo || 'sem subtítulo'}</span>
+              <span className={styles.chips}>
+                <span className={styles.chipTurquesa}>{m.dias} dias úteis</span>
+                <span className={styles.chip}>{m.atividades} atividades</span>
+                <span className={styles.chip}>
+                  {m.obras
+                    ? `usado em ${m.obras} ${m.obras === 1 ? 'obra' : 'obras'}`
+                    : 'ainda não usado'}
+                </span>
+              </span>
+            </span>
+            <Icon name="seta" size={20} className={styles.seta} />
+          </button>
+        ))}
+      </div>
+
+      <div className={styles.rodape}>
+        <button type="button" className={styles.btnPrimario} onClick={() => setNovo(true)}>
+          <Icon name="plus" size={22} strokeWidth={2.4} />
+          Novo modelo
         </button>
       </div>
 
-      {isLoading ? (
-        <p className={styles.vazio}>Carregando…</p>
-      ) : (
-        <div className={styles.lista}>
-          {(modelos ?? []).map((m) => (
-            <Card key={m.id}>
-              <div className={styles.card}>
-                <div
-                  className={styles.info}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setAberto(m.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') setAberto(m.id);
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <h2 className={styles.nome}>{m.nome}</h2>
-                  {m.subtitulo ? <p className={styles.sub}>{m.subtitulo}</p> : null}
-                  <p className={styles.meta}>
-                    {m.dias} dias úteis · {m.atividades} atividades
-                  </p>
-                </div>
-                <div className={styles.acoes}>
-                  <button
-                    type="button"
-                    className={styles.acao}
-                    aria-label={`Duplicar ${m.nome}`}
-                    onClick={() =>
-                      duplicar.mutate(
-                        { origem: m.id, nome: `${m.nome} (cópia)`, subtitulo: m.subtitulo },
-                        { onSuccess: () => showToast({ message: 'Modelo duplicado.' }) },
-                      )
-                    }
-                  >
-                    <Icon name="duplicar" size={22} />
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.acao}
-                    aria-label={`Renomear ${m.nome}`}
-                    onClick={() => setSheet({ tipo: 'renomear', modelo: m })}
-                  >
-                    <Icon name="editar" size={22} />
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.acao}
-                    aria-label={`Excluir ${m.nome}`}
-                    onClick={() => setSheet({ tipo: 'excluir', modelo: m })}
-                  >
-                    <Icon name="lixeira" size={22} />
-                  </button>
-                </div>
-              </div>
-            </Card>
+      <BottomSheet open={novo} onClose={() => setNovo(false)}>
+        <div className={styles.folha}>
+          <h2 className={styles.folhaTitulo}>Começar o novo modelo a partir de</h2>
+          {lista.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              className={styles.base}
+              disabled={duplicar.isPending}
+              onClick={() => criar(m.id, `Cópia de ${m.nome}`, m.subtitulo)}
+            >
+              <span>
+                <b>Cópia de {m.nome}</b>
+                <small>{m.subtitulo || 'sem subtítulo'}</small>
+              </span>
+              <em>{m.dias} d</em>
+            </button>
           ))}
+          <button
+            type="button"
+            className={`${styles.base} ${styles.baseBranco}`}
+            disabled={duplicar.isPending}
+            onClick={() => criar(null, 'Novo modelo', null)}
+          >
+            <span>
+              <b>Em branco</b>
+              <small>Sem fases nem atividades · você cria as fases em seguida</small>
+            </span>
+          </button>
         </div>
-      )}
-
-      <BottomSheet open={sheet?.tipo === 'novo'} title="Novo modelo" onClose={() => setSheet(null)}>
-        <NovoModeloForm
-          modelos={modelos ?? []}
-          onSalvar={(origem, nome, subtitulo) =>
-            duplicar.mutate(
-              { origem, nome, subtitulo },
-              {
-                onSuccess: () => {
-                  setSheet(null);
-                  showToast({ message: 'Modelo criado.' });
-                },
-              },
-            )
-          }
-        />
       </BottomSheet>
-
-      <BottomSheet
-        open={sheet?.tipo === 'renomear'}
-        title="Renomear modelo"
-        onClose={() => setSheet(null)}
-      >
-        {sheet?.tipo === 'renomear' ? (
-          <RenomearForm
-            modelo={sheet.modelo}
-            onSalvar={(nome, subtitulo) =>
-              renomear.mutate(
-                { id: sheet.modelo.id, nome, subtitulo },
-                { onSuccess: () => setSheet(null) },
-              )
-            }
-          />
-        ) : null}
-      </BottomSheet>
-
-      <BottomSheet
-        open={sheet?.tipo === 'excluir'}
-        title="Excluir modelo"
-        onClose={() => setSheet(null)}
-      >
-        {sheet?.tipo === 'excluir' ? (
-          <div className={styles.form}>
-            <p className={styles.confirmTexto}>
-              Excluir <strong>{sheet.modelo.nome}</strong>? As obras que já usam esse modelo
-              continuam iguais. Dá para desfazer logo depois.
-            </p>
-            <Button full onClick={() => apagar(sheet.modelo)}>
-              Excluir
-            </Button>
-            <Button variant="tertiary" full onClick={() => setSheet(null)}>
-              Cancelar
-            </Button>
-          </div>
-        ) : null}
-      </BottomSheet>
-    </div>
-  );
-}
-
-function NovoModeloForm({
-  modelos,
-  onSalvar,
-}: {
-  modelos: ModeloResumo[];
-  onSalvar: (origem: string | null, nome: string, subtitulo: string | null) => void;
-}) {
-  const [origem, setOrigem] = useState('');
-  const [nome, setNome] = useState('');
-  const [subtitulo, setSubtitulo] = useState('');
-  return (
-    <div className={styles.form}>
-      <div>
-        <label className={styles.campoLabel} htmlFor="novo-origem">
-          Partir de
-        </label>
-        <select
-          id="novo-origem"
-          className={styles.select}
-          value={origem}
-          onChange={(e) => setOrigem(e.target.value)}
-        >
-          <option value="">Em branco</option>
-          {modelos.map((m) => (
-            <option key={m.id} value={m.id}>
-              Copiar de: {m.nome}
-            </option>
-          ))}
-        </select>
-      </div>
-      <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
-      <Input label="Subtítulo" value={subtitulo} onChange={(e) => setSubtitulo(e.target.value)} />
-      <Button
-        full
-        disabled={!nome.trim()}
-        onClick={() => onSalvar(origem || null, nome.trim(), subtitulo.trim() || null)}
-      >
-        Criar modelo
-      </Button>
-    </div>
-  );
-}
-
-function RenomearForm({
-  modelo,
-  onSalvar,
-}: {
-  modelo: ModeloResumo;
-  onSalvar: (nome: string, subtitulo: string | null) => void;
-}) {
-  const [nome, setNome] = useState(modelo.nome);
-  const [subtitulo, setSubtitulo] = useState(modelo.subtitulo ?? '');
-  return (
-    <div className={styles.form}>
-      <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
-      <Input label="Subtítulo" value={subtitulo} onChange={(e) => setSubtitulo(e.target.value)} />
-      <Button
-        full
-        disabled={!nome.trim()}
-        onClick={() => onSalvar(nome.trim(), subtitulo.trim() || null)}
-      >
-        Salvar
-      </Button>
     </div>
   );
 }

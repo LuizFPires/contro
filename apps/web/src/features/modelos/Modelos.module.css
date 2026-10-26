@@ -1,0 +1,392 @@
+/* Modelos de obra no celular — protótipo aprovado (prototipo/ModeloCel.dc.html). */
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+.cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  padding: 16px 16px 18px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.barraTopo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.iconeBtn {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 12px;
+  border: 0;
+  background: transparent;
+  color: var(--contro-white);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sobretitulo {
+  flex-grow: 1;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 72%);
+}
+.editar {
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(255 255 255 / 40%);
+  background: transparent;
+  color: var(--contro-white);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.titulos {
+  padding: 0 6px;
+}
+.kicker {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--contro-turquoise);
+}
+.titulo {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+.subtitulo {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--contro-turquoise);
+}
+.texto {
+  font-size: 15px;
+  color: rgb(255 255 255 / 80%);
+}
+.miudo {
+  font-size: 14px;
+  color: rgb(255 255 255 / 80%);
+  margin-top: 2px;
+}
+
+.lista {
+  flex: 1;
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cartao {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgb(24 24 24 / 10%);
+  background: var(--contro-white);
+  text-align: left;
+  cursor: pointer;
+  color: var(--contro-black);
+  font: inherit;
+}
+.cartao:active {
+  transform: scale(0.98);
+}
+.numero {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 12px;
+  background: var(--contro-black);
+  color: var(--contro-turquoise);
+  font-weight: 800;
+  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.numeroP {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+.cartaoCorpo {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cartaoNome {
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.2;
+}
+.cartaoNomeP {
+  font-weight: 800;
+  font-size: 17px;
+}
+.cartaoSub {
+  font-size: 15px;
+  color: #464646;
+}
+.cartaoInfo {
+  font-size: 14px;
+  color: #696969;
+}
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.chip,
+.chipTurquesa {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: rgb(24 24 24 / 7%);
+}
+.chipTurquesa {
+  background: rgb(84 180 176 / 30%);
+}
+.seta {
+  margin-top: 12px;
+  flex-shrink: 0;
+}
+.faixa {
+  display: block;
+  position: relative;
+  height: 6px;
+  margin-top: 8px;
+  background: rgb(24 24 24 / 7%);
+  border-radius: 3px;
+}
+.faixa span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--contro-turquoise);
+  border-radius: 3px;
+}
+.tracejado {
+  min-height: 56px;
+  border-radius: 16px;
+  border: 2px dashed rgb(24 24 24 / 35%);
+  background: transparent;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--contro-black);
+  cursor: pointer;
+}
+.vazio {
+  padding: 28px 12px;
+  text-align: center;
+  color: #464646;
+}
+
+/* Linha de atividade da fase */
+.atv {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgb(24 24 24 / 10%);
+  background: var(--contro-white);
+  text-align: left;
+  cursor: pointer;
+  color: var(--contro-black);
+  font: inherit;
+}
+.atvIdx {
+  min-width: 34px;
+  font-weight: 800;
+  color: #696969;
+  padding-top: 1px;
+}
+.atvCorpo {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.atvNome {
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1.25;
+}
+.atvDep {
+  font-size: 14px;
+  color: #464646;
+}
+.atvDur {
+  text-align: right;
+  flex-shrink: 0;
+}
+.atvDur strong {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+.atvDur span {
+  font-size: 13px;
+  color: #696969;
+}
+.atvDur small {
+  display: block;
+  font-size: 12px;
+  color: #696969;
+}
+
+/* Rodapé fixo */
+.rodape {
+  position: sticky;
+  bottom: 0;
+  padding: 12px 16px calc(24px + env(safe-area-inset-bottom, 0));
+  background: linear-gradient(rgb(246 246 246 / 0%), var(--contro-bg-app) 30%);
+}
+.nota {
+  text-align: center;
+  font-size: 13px;
+  color: #464646;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btnPrimario,
+.btnPreto {
+  width: 100%;
+  min-height: 56px;
+  border-radius: 16px;
+  border: 0;
+  font-weight: 800;
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btnPrimario {
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  box-shadow: 0 8px 20px rgb(24 24 24 / 18%);
+}
+.btnPreto {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.btnPrimario:disabled,
+.btnPreto:disabled {
+  opacity: 0.6;
+}
+
+/* Folhas */
+.folha {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.folhaTitulo {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+.rotulo {
+  font-weight: 800;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.campo {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 56px;
+  border: 2px solid rgb(24 24 24 / 25%);
+  border-radius: 14px;
+  padding: 0 16px;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--contro-black);
+  background: var(--contro-white);
+}
+.campo:focus {
+  border-color: var(--contro-black);
+  outline: none;
+}
+.btnContorno,
+.btnConfirma {
+  min-height: 52px;
+  border-radius: 14px;
+  border: 1.5px solid var(--contro-black);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 15px;
+}
+.btnConfirma {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.btnContorno:disabled {
+  opacity: 0.5;
+}
+.base {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1.5px solid rgb(24 24 24 / 16%);
+  background: var(--contro-white);
+  text-align: left;
+  cursor: pointer;
+  color: var(--contro-black);
+  font: inherit;
+}
+.baseBranco {
+  border: 2px dashed rgb(24 24 24 / 35%);
+}
+.base b {
+  display: block;
+}
+.base small {
+  font-size: 14px;
+  color: #464646;
+}
+.base em {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Icon } from '@contro/ui';
 import { PullToRefresh } from './components/PullToRefresh';
 import { verificarAtualizacao } from './lib/pwa';
 import { useSession } from './auth/useSession';
@@ -78,15 +77,7 @@ export function App() {
     <div className="app-shell">
       <PullToRefresh onRefresh={aoAtualizar}>
         {tela === 'modelos' && ehGestor ? (
-          <div className="app-tela">
-            <header className="app-barra">
-              <button type="button" className="app-voltar" aria-label="Voltar" onClick={voltar}>
-                <Icon name="chevronLeft" size={22} />
-              </button>
-              <h1 className="app-barra-titulo">Modelos de obra</h1>
-            </header>
-            <ModelosScreen />
-          </div>
+          <ModelosScreen onVoltar={voltar} />
         ) : tela === 'reuniao' ? (
           <ReuniaoScreen onVoltar={voltar} />
         ) : tela === 'tarefas' ? (

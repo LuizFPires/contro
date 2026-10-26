@@ -1,416 +1,726 @@
 import { useMemo, useState } from 'react';
-import { durSubitens, type AtividadeEntrada } from '@contro/core';
-import { Button, Icon, Input } from '@contro/ui';
-import type { Fase, NovaAtividade } from './detalhe';
+import { durSubitens, previaAtividadeModelo, type AtividadeEntrada } from '@contro/core';
+import { Icon } from '@contro/ui';
+import type { ModeloCompleto } from './detalhe';
+import type { AtividadeEditada } from './edicao';
 import { useSugestoesAtividade } from './useModeloDetalhe';
 import styles from './AssistenteAtividade.module.css';
 
+type Tipo = 'contratacao' | 'locacao' | 'compra';
 interface Subitem {
   nome: string;
   duracao_du: number;
   em_sequencia: boolean;
 }
 interface Prov {
-  tipo: 'contratacao' | 'locacao' | 'compra';
+  tipo: Tipo;
   descricao: string;
   antecedencia_du: number;
 }
-interface CandidatoPred {
-  id: string;
-  nome: string;
-  fase_id: string;
-}
 
-const PASSOS = ['Nome', 'Prazo', 'Começa depois de', 'Providências', 'Revisão'];
-const TIPOS: { v: Prov['tipo']; r: string }[] = [
-  { v: 'contratacao', r: 'Contratação' },
-  { v: 'locacao', r: 'Locação' },
-  { v: 'compra', r: 'Compra' },
-];
+const TIPO_ROTULO: Record<Tipo, string> = {
+  contratacao: 'Contratação',
+  locacao: 'Locação',
+  compra: 'Compra',
+};
+const TIPO_EXEMPLO: Record<Tipo, string> = {
+  contratacao: 'Ex.: eletricista',
+  locacao: 'Ex.: plataforma elevatória',
+  compra: 'Ex.: porcelanato',
+};
+const PRAZOS = [1, 2, 3, 5, 8, 10];
+const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
 
+/**
+ * Assistente de 5 passos para lançar ou editar atividade no modelo (regra 13;
+ * protótipo · ModeloCel · ASSISTENTE). Editar abre direto na revisão.
+ */
 export function AssistenteAtividade({
-  fases,
-  fasePadrao,
-  candidatosPred,
+  modelo,
+  faseId,
+  editarId,
+  numeros,
   salvando,
   onSalvar,
+  onRemover,
   onFechar,
 }: {
-  modeloId: string;
-  fases: Fase[];
-  fasePadrao: string;
-  candidatosPred: CandidatoPred[];
+  modelo: ModeloCompleto;
+  faseId: string;
+  /** Id da atividade em edição; null = nova. */
+  editarId: string | null;
+  /** Número (#) de cada atividade de topo no modelo. */
+  numeros: Map<string, number>;
   salvando: boolean;
-  onSalvar: (a: Omit<NovaAtividade, 'modeloId'>) => void;
+  onSalvar: (dados: AtividadeEditada) => void;
+  onRemover?: () => void;
   onFechar: () => void;
 }) {
   const { data: sugestoes } = useSugestoesAtividade();
-  const [passo, setPasso] = useState(0);
-  const [nome, setNome] = useState('');
-  const [faseId, setFaseId] = useState(fasePadrao || fases[0]?.id || '');
-  const [temSubitens, setTemSubitens] = useState(false);
-  const [duracao, setDuracao] = useState(1);
-  const [subitens, setSubitens] = useState<Subitem[]>([]);
-  const [preds, setPreds] = useState<Set<string>>(new Set());
-  const [provs, setProvs] = useState<Prov[]>([]);
-  const [abaFase, setAbaFase] = useState(fases[0]?.id ?? '');
+  const original = editarId ? modelo.atividades.find((a) => a.id === editarId) : undefined;
+  const editando = Boolean(original);
+
+  const [passo, setPasso] = useState(editando ? 5 : 1);
+  const [nome, setNome] = useState(original?.nome ?? '');
+  const [duracao, setDuracao] = useState(original?.duracao_du ?? 1);
+  const [subitens, setSubitens] = useState<Subitem[]>(() =>
+    modelo.atividades
+      .filter((a) => a.pai_id && a.pai_id === editarId)
+      .sort((a, b) => a.ordem - b.ordem)
+      .map((s) => ({ nome: s.nome, duracao_du: s.duracao_du, em_sequencia: s.em_sequencia })),
+  );
+  const [preds, setPreds] = useState<string[]>(original?.predecessoras ?? []);
+  const [provs, setProvs] = useState<Prov[]>(
+    () =>
+      original?.providencias.map((p) => ({
+        tipo: p.tipo,
+        descricao: p.descricao,
+        antecedencia_du: p.antecedencia_du,
+      })) ?? [],
+  );
+  const [abaFase, setAbaFase] = useState(faseId);
   const [busca, setBusca] = useState('');
+  const [confirmaRemover, setConfirmaRemover] = useState(false);
+  const [aviso, setAviso] = useState('');
 
-  const duracaoCalc = useMemo(() => {
-    if (!temSubitens) return duracao;
-    const entrada: AtividadeEntrada[] = subitens.map((s, i) => ({
-      id: String(i),
-      duracao_du: s.duracao_du,
-      em_sequencia: s.em_sequencia,
+  const nFase = (id: string) => modelo.fases.findIndex((f) => f.id === id) + 1;
+  const fase = modelo.fases.find((f) => f.id === faseId);
+  const topo = modelo.atividades.filter((a) => !a.pai_id);
+  const nomeDe = (id: string) =>
+    `#${numeros.get(id) ?? '?'} ${topo.find((a) => a.id === id)?.nome ?? ''}`;
+
+  const dur = subitens.length
+    ? durSubitens(
+        subitens.map((s, i) => ({
+          id: String(i),
+          duracao_du: s.duracao_du,
+          em_sequencia: s.em_sequencia,
+        })),
+      )
+    : duracao;
+
+  // Quem depende desta atividade (direta ou indiretamente) não pode ser predecessora: evita ciclo.
+  const bloqueadas = useMemo(() => {
+    const out = new Set<string>();
+    if (!editarId) return out;
+    const succ = new Map<string, string[]>();
+    for (const a of topo)
+      for (const p of a.predecessoras) succ.set(p, [...(succ.get(p) ?? []), a.id]);
+    const pilha = [editarId];
+    while (pilha.length) {
+      const x = pilha.pop() as string;
+      if (out.has(x)) continue;
+      out.add(x);
+      pilha.push(...(succ.get(x) ?? []));
+    }
+    return out;
+  }, [editarId, topo]);
+
+  const previa = useMemo(() => {
+    const entrada: AtividadeEntrada[] = modelo.atividades.map((a) => ({
+      id: a.id,
+      duracao_du: a.duracao_du,
+      pai_id: a.pai_id,
+      em_sequencia: a.em_sequencia,
+      predecessoras: a.predecessoras,
     }));
-    return durSubitens(entrada);
-  }, [temSubitens, duracao, subitens]);
+    try {
+      return previaAtividadeModelo(entrada, {
+        id: editarId ?? undefined,
+        duracao_du: dur,
+        predecessoras: preds,
+      });
+    } catch {
+      return null;
+    }
+  }, [modelo, editarId, dur, preds]);
 
-  const faseTitulo = (id: string) => fases.find((f) => f.id === id)?.titulo ?? '';
-  const nomePred = (id: string) => candidatosPred.find((c) => c.id === id)?.nome ?? id;
+  const podeAvancar = passo !== 1 || nome.trim().length > 0;
 
-  const podeAvancar =
-    (passo === 0 && nome.trim().length > 0 && faseId) ||
-    (passo === 1 && duracaoCalc >= 1 && (!temSubitens || subitens.length > 0)) ||
-    passo === 2 ||
-    passo === 3 ||
-    passo === 4;
-
-  function salvar() {
+  function avancar() {
+    if (!podeAvancar) {
+      setAviso('Dê um nome para a atividade');
+      return;
+    }
+    setAviso('');
+    if (passo < 5) {
+      setPasso(editando ? 5 : passo + 1);
+      return;
+    }
     onSalvar({
-      faseId,
       nome: nome.trim(),
-      duracaoDu: duracaoCalc,
-      subitens: temSubitens ? subitens : [],
-      predecessoras: [...preds],
-      providencias: provs,
+      duracaoDu: dur,
+      subitens: subitens.map((s) => ({ ...s, nome: s.nome.trim() || 'Subitem' })),
+      predecessoras: preds,
+      providencias: provs
+        .filter((p) => p.descricao.trim())
+        .map((p) => ({ ...p, descricao: p.descricao.trim() })),
     });
   }
 
-  const candidatosDaAba = candidatosPred.filter(
-    (c) => c.fase_id === abaFase && c.nome.toLowerCase().includes(busca.trim().toLowerCase()),
-  );
+  function voltar() {
+    if (editando) {
+      if (passo === 5) onFechar();
+      else setPasso(5);
+    } else if (passo > 1) setPasso(passo - 1);
+    else onFechar();
+  }
+
+  const termo = busca.trim().toLowerCase();
+  const candidatos = topo
+    .filter((a) => !bloqueadas.has(a.id) && a.id !== editarId)
+    .filter((a) =>
+      termo
+        ? a.nome.toLowerCase().includes(termo) ||
+          String(numeros.get(a.id)) === termo.replace('#', '')
+        : a.fase_id === abaFase,
+    )
+    .sort((a, b) => (numeros.get(a.id) ?? 0) - (numeros.get(b.id) ?? 0));
+  const nBloq = bloqueadas.size - (editarId ? 1 : 0);
+  const faseAba = modelo.fases.find((f) => f.id === abaFase);
+
+  const sugs = (sugestoes ?? [])
+    .filter((s) => !nome.trim() || s.toLowerCase().includes(nome.trim().toLowerCase()))
+    .slice(0, 6);
 
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="Nova atividade">
+    <div
+      className={styles.overlay}
+      role="dialog"
+      aria-modal="true"
+      aria-label={editando ? 'Editar atividade' : 'Nova atividade'}
+    >
       <div className={styles.topo}>
-        <button type="button" className={styles.fechar} aria-label="Fechar" onClick={onFechar}>
+        <button
+          type="button"
+          className={styles.iconeBtn}
+          aria-label={passo > 1 && !(editando && passo === 5) ? 'Passo anterior' : 'Voltar à fase'}
+          onClick={voltar}
+        >
+          <Icon name="chevronLeft" size={22} />
+        </button>
+        <div className={styles.topoTexto}>
+          <div className={styles.sup}>
+            {editando
+              ? `Editar #${numeros.get(editarId as string)}`
+              : `Nova atividade · passo ${passo} de 5`}
+          </div>
+          <div className={styles.tit}>
+            Fase {nFase(faseId)} · {fase?.titulo}
+          </div>
+        </div>
+        <button
+          type="button"
+          className={styles.iconeBtn}
+          aria-label="Fechar sem salvar"
+          onClick={onFechar}
+        >
           <Icon name="close" size={22} />
         </button>
-        <span className={styles.passoTitulo}>{PASSOS[passo]}</span>
-        <span className={styles.passoContador}>
-          {passo + 1}/{PASSOS.length}
-        </span>
       </div>
-      <div className={styles.progresso}>
-        <div
-          className={styles.progressoFill}
-          style={{ width: `${((passo + 1) / PASSOS.length) * 100}%` }}
-        />
-      </div>
+      {!editando ? (
+        <div className={styles.passos} aria-hidden="true">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <span key={n} className={n <= passo ? styles.passoOn : ''} />
+          ))}
+        </div>
+      ) : null}
 
       <div className={styles.corpo}>
-        {passo === 0 ? (
-          <>
-            <div>
-              <Input
-                label="Nome da atividade"
-                list="sug-atv"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-              />
-              <datalist id="sug-atv">
-                {(sugestoes ?? []).map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
-            </div>
-            <div>
-              <label className={styles.label} htmlFor="asst-fase">
-                Fase
-              </label>
-              <select
-                id="asst-fase"
-                className={styles.select}
-                value={faseId}
-                onChange={(e) => setFaseId(e.target.value)}
-              >
-                {fases.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.titulo}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </>
+        {passo === 1 ? (
+          <div className={styles.etapa}>
+            <h2 className={styles.pergunta}>Qual é a atividade?</h2>
+            <input
+              className={styles.campo}
+              value={nome}
+              placeholder="Digite ou escolha abaixo"
+              aria-label="Nome da atividade"
+              onChange={(e) => setNome(e.target.value)}
+            />
+            {!editando && sugs.length ? (
+              <>
+                <div className={styles.secao}>Já usadas nos modelos</div>
+                <div className={styles.sugestoes}>
+                  {sugs.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className={`${styles.sugestao} ${s.toLowerCase() === nome.trim().toLowerCase() ? styles.sugestaoOn : ''}`}
+                      onClick={() => {
+                        setNome(s);
+                        setPasso(2);
+                      }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </div>
         ) : null}
 
-        {passo === 1 ? (
-          <>
-            <label className={styles.opcao}>
-              <input
-                type="checkbox"
-                checked={temSubitens}
-                onChange={(e) => setTemSubitens(e.target.checked)}
-              />
-              Dividir em subitens
-            </label>
-            {!temSubitens ? (
-              <div>
-                <span className={styles.label}>Duração (dias úteis)</span>
-                <div className={styles.stepper}>
+        {passo === 2 ? (
+          <div className={styles.etapa}>
+            <h2 className={styles.pergunta}>Quantos dias úteis?</h2>
+            {subitens.length === 0 ? (
+              <>
+                <div className={styles.contador}>
                   <button
                     type="button"
-                    className={styles.stepBtn}
-                    aria-label="Menos"
+                    className={styles.redondo}
+                    aria-label="Menos um dia"
                     onClick={() => setDuracao((d) => Math.max(1, d - 1))}
                   >
                     −
                   </button>
-                  <span className={styles.stepVal}>{duracao}</span>
+                  <span className={styles.contadorValor}>
+                    <strong>{duracao}</strong>
+                    <span>dias úteis</span>
+                  </span>
                   <button
                     type="button"
-                    className={styles.stepBtn}
-                    aria-label="Mais"
+                    className={styles.redondo}
+                    aria-label="Mais um dia"
                     onClick={() => setDuracao((d) => d + 1)}
                   >
                     +
                   </button>
                 </div>
+                <div className={styles.prazos}>
+                  {PRAZOS.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      aria-pressed={duracao === n}
+                      className={`${styles.prazo} ${duracao === n ? styles.prazoOn : ''}`}
+                      onClick={() => setDuracao(n)}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : null}
+            <div className={styles.caixa}>
+              <div className={styles.caixaTopo}>
+                <span>
+                  <b>Dividir em subitens</b>
+                  <span className={styles.miuda}>Ex.: demolição de alvenaria, forro e piso</span>
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={subitens.length > 0}
+                  aria-label="Dividir em subitens"
+                  className={`${styles.chave} ${subitens.length ? styles.chaveOn : ''}`}
+                  onClick={() =>
+                    setSubitens((s) =>
+                      s.length
+                        ? []
+                        : [
+                            {
+                              nome: `${nome.trim() || 'Subitem'} · parte 1`,
+                              duracao_du: duracao,
+                              em_sequencia: true,
+                            },
+                            { nome: 'Parte 2', duracao_du: 1, em_sequencia: true },
+                          ],
+                    )
+                  }
+                >
+                  <span />
+                </button>
               </div>
-            ) : (
-              <>
-                {subitens.map((s, i) => (
-                  <div key={i} className={styles.sub}>
-                    <div className={styles.subNome}>
-                      <Input
-                        label={`Subitem ${i + 1}`}
-                        value={s.nome}
-                        onChange={(e) =>
-                          setSubitens((arr) =>
-                            arr.map((x, j) => (j === i ? { ...x, nome: e.target.value } : x)),
-                          )
-                        }
-                      />
-                      <div className={styles.linha} style={{ marginTop: 8 }}>
-                        <div className={styles.stepper}>
-                          <button
-                            type="button"
-                            className={styles.stepBtn}
-                            aria-label="Menos"
-                            onClick={() =>
-                              setSubitens((arr) =>
-                                arr.map((x, j) =>
-                                  j === i ? { ...x, duracao_du: Math.max(1, x.duracao_du - 1) } : x,
-                                ),
-                              )
-                            }
-                          >
-                            −
-                          </button>
-                          <span className={styles.stepVal}>{s.duracao_du}</span>
-                          <button
-                            type="button"
-                            className={styles.stepBtn}
-                            aria-label="Mais"
-                            onClick={() =>
-                              setSubitens((arr) =>
-                                arr.map((x, j) =>
-                                  j === i ? { ...x, duracao_du: x.duracao_du + 1 } : x,
-                                ),
-                              )
-                            }
-                          >
-                            +
-                          </button>
-                        </div>
-                        <label className={styles.opcao}>
-                          <input
-                            type="checkbox"
-                            checked={!s.em_sequencia}
-                            onChange={(e) =>
-                              setSubitens((arr) =>
-                                arr.map((x, j) =>
-                                  j === i ? { ...x, em_sequencia: !e.target.checked } : x,
-                                ),
-                              )
-                            }
-                          />
-                          Em paralelo
-                        </label>
-                      </div>
-                    </div>
+              {subitens.map((s, i) => (
+                <div key={i} className={styles.subitem}>
+                  <div className={styles.linha}>
+                    <input
+                      className={`${styles.campo} ${styles.campoMenor}`}
+                      value={s.nome}
+                      aria-label="Nome do subitem"
+                      onChange={(e) =>
+                        setSubitens((arr) =>
+                          arr.map((x, j) => (j === i ? { ...x, nome: e.target.value } : x)),
+                        )
+                      }
+                    />
                     <button
                       type="button"
                       className={styles.remover}
                       aria-label="Remover subitem"
                       onClick={() => setSubitens((arr) => arr.filter((_, j) => j !== i))}
                     >
-                      <Icon name="lixeira" size={20} />
+                      <Icon name="close" size={20} />
                     </button>
                   </div>
-                ))}
-                <button
-                  type="button"
-                  className={styles.adicionar}
-                  onClick={() =>
-                    setSubitens((arr) => [...arr, { nome: '', duracao_du: 1, em_sequencia: true }])
-                  }
-                >
-                  <Icon name="plus" size={18} /> Adicionar subitem
-                </button>
-                <p className={styles.label}>Prazo calculado: {duracaoCalc} dias úteis</p>
-              </>
-            )}
-          </>
-        ) : null}
-
-        {passo === 2 ? (
-          <>
-            <Input
-              label="Buscar atividade"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-            />
-            <div className={styles.abas}>
-              {fases.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  className={`${styles.aba} ${abaFase === f.id ? styles.abaAtiva : ''}`}
-                  onClick={() => setAbaFase(f.id)}
-                >
-                  {f.titulo}
-                </button>
-              ))}
-            </div>
-            {candidatosDaAba.map((c) => (
-              <label key={c.id} className={styles.opcao}>
-                <input
-                  type="checkbox"
-                  checked={preds.has(c.id)}
-                  onChange={(e) =>
-                    setPreds((s) => {
-                      const n = new Set(s);
-                      if (e.target.checked) n.add(c.id);
-                      else n.delete(c.id);
-                      return n;
-                    })
-                  }
-                />
-                {c.nome}
-              </label>
-            ))}
-            {candidatosDaAba.length === 0 ? (
-              <p className={styles.label}>Nenhuma atividade nesta fase.</p>
-            ) : null}
-          </>
-        ) : null}
-
-        {passo === 3 ? (
-          <>
-            {provs.map((p, i) => (
-              <div key={i} className={styles.sub}>
-                <div className={styles.subNome}>
                   <div className={styles.linha}>
-                    <select
-                      className={styles.select}
-                      value={p.tipo}
-                      onChange={(e) =>
-                        setProvs((arr) =>
+                    <button
+                      type="button"
+                      className={styles.quadrado}
+                      aria-label="Menos um dia"
+                      onClick={() =>
+                        setSubitens((arr) =>
                           arr.map((x, j) =>
-                            j === i ? { ...x, tipo: e.target.value as Prov['tipo'] } : x,
+                            j === i ? { ...x, duracao_du: Math.max(1, x.duracao_du - 1) } : x,
                           ),
                         )
                       }
                     >
-                      {TIPOS.map((t) => (
-                        <option key={t.v} value={t.v}>
-                          {t.r}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div style={{ marginTop: 8 }}>
-                    <Input
-                      label="O que"
-                      value={p.descricao}
-                      onChange={(e) =>
-                        setProvs((arr) =>
-                          arr.map((x, j) => (j === i ? { ...x, descricao: e.target.value } : x)),
+                      −
+                    </button>
+                    <span className={styles.dias}>{s.duracao_du} d</span>
+                    <button
+                      type="button"
+                      className={styles.quadrado}
+                      aria-label="Mais um dia"
+                      onClick={() =>
+                        setSubitens((arr) =>
+                          arr.map((x, j) => (j === i ? { ...x, duracao_du: x.duracao_du + 1 } : x)),
                         )
                       }
-                    />
+                    >
+                      +
+                    </button>
+                    {i > 0 ? (
+                      <div className={styles.segmento} role="group" aria-label="Quando começa">
+                        <button
+                          type="button"
+                          aria-pressed={s.em_sequencia}
+                          className={s.em_sequencia ? styles.segOn : ''}
+                          onClick={() =>
+                            setSubitens((arr) =>
+                              arr.map((x, j) => (j === i ? { ...x, em_sequencia: true } : x)),
+                            )
+                          }
+                        >
+                          Depois
+                        </button>
+                        <button
+                          type="button"
+                          aria-pressed={!s.em_sequencia}
+                          className={!s.em_sequencia ? styles.segOn : ''}
+                          onClick={() =>
+                            setSubitens((arr) =>
+                              arr.map((x, j) => (j === i ? { ...x, em_sequencia: false } : x)),
+                            )
+                          }
+                        >
+                          Junto
+                        </button>
+                      </div>
+                    ) : (
+                      <span className={styles.miuda}>abre a atividade</span>
+                    )}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className={styles.remover}
-                  aria-label="Remover providência"
-                  onClick={() => setProvs((arr) => arr.filter((_, j) => j !== i))}
-                >
-                  <Icon name="lixeira" size={20} />
-                </button>
+              ))}
+              {subitens.length ? (
+                <>
+                  <button
+                    type="button"
+                    className={styles.tracejado}
+                    onClick={() =>
+                      setSubitens((arr) => [
+                        ...arr,
+                        { nome: `Parte ${arr.length + 1}`, duracao_du: 1, em_sequencia: true },
+                      ])
+                    }
+                  >
+                    + Subitem
+                  </button>
+                  <div className={styles.total}>
+                    Total calculado: <b>{dur} dias úteis</b>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {passo === 3 ? (
+          <div className={styles.etapa}>
+            <h2 className={styles.pergunta}>Começa depois de quê?</h2>
+            <div className={styles.explica}>
+              Marque o que precisa estar pronto antes. Vale atividade de qualquer fase.
+            </div>
+            {preds.length ? (
+              <div className={styles.selecionadas}>
+                {preds.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={styles.selecionada}
+                    aria-label={`Desmarcar ${nomeDe(p)}`}
+                    onClick={() => setPreds((arr) => arr.filter((x) => x !== p))}
+                  >
+                    <span>{nomeDe(p)}</span>
+                    <Icon name="close" size={16} />
+                  </button>
+                ))}
               </div>
-            ))}
-            <button
-              type="button"
-              className={styles.adicionar}
-              onClick={() =>
-                setProvs((arr) => [...arr, { tipo: 'compra', descricao: '', antecedencia_du: 0 }])
-              }
-            >
-              <Icon name="plus" size={18} /> Adicionar providência
-            </button>
-          </>
+            ) : null}
+            <input
+              className={`${styles.campo} ${styles.busca}`}
+              value={busca}
+              placeholder="Buscar em todas as fases"
+              aria-label="Buscar atividade"
+              onChange={(e) => setBusca(e.target.value)}
+            />
+            {!termo ? (
+              <div className={styles.abas}>
+                {modelo.fases.map((f) => {
+                  const marcadas = preds.filter(
+                    (p) => topo.find((a) => a.id === p)?.fase_id === f.id,
+                  ).length;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      aria-pressed={abaFase === f.id}
+                      className={`${styles.aba} ${abaFase === f.id ? styles.abaOn : ''}`}
+                      onClick={() => setAbaFase(f.id)}
+                    >
+                      Fase {nFase(f.id)}
+                      {f.id === faseId ? ' · esta' : ''}
+                      {marcadas ? <span className={styles.abaN}>{marcadas}</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+            <div className={styles.secao}>
+              {termo
+                ? `${candidatos.length} encontradas`
+                : `Fase ${nFase(abaFase)} · ${faseAba?.titulo ?? ''}`}
+            </div>
+            {candidatos.length === 0 ? (
+              <div className={styles.explica}>Nenhuma atividade encontrada.</div>
+            ) : null}
+            {candidatos.map((a) => {
+              const on = preds.includes(a.id);
+              const c = modelo.cronograma.porId[a.id];
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  role="checkbox"
+                  aria-checked={on}
+                  className={`${styles.opcao} ${on ? styles.opcaoOn : ''}`}
+                  onClick={() =>
+                    setPreds((arr) => (on ? arr.filter((x) => x !== a.id) : [...arr, a.id]))
+                  }
+                >
+                  <span className={`${styles.caixinha} ${on ? styles.caixinhaOn : ''}`}>
+                    {on ? <Icon name="check" size={16} strokeWidth={3} /> : null}
+                  </span>
+                  <span className={styles.opcaoTexto}>
+                    <b>
+                      #{numeros.get(a.id)} {a.nome}
+                    </b>
+                    <span className={styles.miuda}>
+                      {a.fase_id !== faseId ? `Fase ${nFase(a.fase_id)} · ` : ''}termina no D
+                      {c?.ef ?? '?'}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+            {editando && nBloq > 0 ? (
+              <div className={styles.miuda}>
+                Não aparecem {plural(nBloq, 'atividade que depende', 'atividades que dependem')}{' '}
+                desta, para não criar um ciclo.
+              </div>
+            ) : null}
+          </div>
         ) : null}
 
         {passo === 4 ? (
-          <div className={styles.resumo}>
-            <div className={styles.resumoItem}>
-              <strong>Atividade</strong>
-              {nome} · {faseTitulo(faseId)}
+          <div className={styles.etapa}>
+            <h2 className={styles.pergunta}>Precisa providenciar algo antes?</h2>
+            <div className={styles.explica}>Vira lembrete na obra. Sem valor nem fornecedor.</div>
+            {provs.map((p, i) => (
+              <div key={i} className={styles.caixa}>
+                <div className={styles.caixaTopo}>
+                  <span className={`${styles.tipo} ${styles[`tipo_${p.tipo}`]}`}>
+                    {TIPO_ROTULO[p.tipo]}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.remover}
+                    aria-label="Remover lembrete"
+                    onClick={() => setProvs((arr) => arr.filter((_, j) => j !== i))}
+                  >
+                    <Icon name="close" size={20} />
+                  </button>
+                </div>
+                <input
+                  className={`${styles.campo} ${styles.campoMenor}`}
+                  value={p.descricao}
+                  placeholder={TIPO_EXEMPLO[p.tipo]}
+                  aria-label="O que providenciar"
+                  onChange={(e) =>
+                    setProvs((arr) =>
+                      arr.map((x, j) => (j === i ? { ...x, descricao: e.target.value } : x)),
+                    )
+                  }
+                />
+                <div className={styles.linha}>
+                  <button
+                    type="button"
+                    className={styles.quadrado}
+                    aria-label="Menos um dia"
+                    onClick={() =>
+                      setProvs((arr) =>
+                        arr.map((x, j) =>
+                          j === i
+                            ? { ...x, antecedencia_du: Math.max(0, x.antecedencia_du - 1) }
+                            : x,
+                        ),
+                      )
+                    }
+                  >
+                    −
+                  </button>
+                  <span className={styles.dias}>{p.antecedencia_du} d</span>
+                  <button
+                    type="button"
+                    className={styles.quadrado}
+                    aria-label="Mais um dia"
+                    onClick={() =>
+                      setProvs((arr) =>
+                        arr.map((x, j) =>
+                          j === i ? { ...x, antecedencia_du: x.antecedencia_du + 1 } : x,
+                        ),
+                      )
+                    }
+                  >
+                    +
+                  </button>
+                  <span className={styles.miuda}>antes de começar</span>
+                </div>
+              </div>
+            ))}
+            <div className={styles.novos}>
+              {(Object.keys(TIPO_ROTULO) as Tipo[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  className={styles.novo}
+                  onClick={() =>
+                    setProvs((arr) => [
+                      ...arr,
+                      { tipo: t, descricao: '', antecedencia_du: t === 'locacao' ? 3 : 7 },
+                    ])
+                  }
+                >
+                  <span className={`${styles.mais} ${styles[`tipo_${t}`]}`}>+</span>
+                  {TIPO_ROTULO[t]}
+                </button>
+              ))}
             </div>
-            <div className={styles.resumoItem}>
-              <strong>Prazo</strong>
-              {duracaoCalc} dias úteis
-              {temSubitens ? ` (${subitens.length} subitens)` : ''}
-            </div>
-            <div className={styles.resumoItem}>
-              <strong>Começa depois de</strong>
-              {preds.size === 0 ? 'Nada (começa no início)' : [...preds].map(nomePred).join(', ')}
-            </div>
-            <div className={styles.resumoItem}>
-              <strong>Providências</strong>
-              {provs.length === 0
-                ? 'Nenhuma'
-                : provs
-                    .map((p) => `${TIPOS.find((t) => t.v === p.tipo)?.r}: ${p.descricao}`)
-                    .join('; ')}
-            </div>
+          </div>
+        ) : null}
+
+        {passo === 5 ? (
+          <div className={styles.etapa}>
+            <h2 className={styles.pergunta}>
+              {editando ? nome || 'Atividade' : 'Confere e salva'}
+            </h2>
+            {previa ? (
+              <div className={styles.linhaTempo}>
+                <div className={styles.linhaTempoTopo}>
+                  <span>
+                    D{previa.diaInicio} → D{previa.diaFim}
+                  </span>
+                  <span>{previa.texto}</span>
+                </div>
+                <div className={styles.linhaTempoBarra} aria-hidden="true">
+                  <span
+                    style={{
+                      left: `${((previa.diaInicio - 1) / (previa.totalDepois || 1)) * 100}%`,
+                      width: `${(dur / (previa.totalDepois || 1)) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ) : null}
+            {[
+              { rot: 'Atividade', val: nome.trim() || 'sem nome', ir: 1 },
+              {
+                rot: 'Prazo',
+                val: `${dur} dias úteis${subitens.length ? ` · ${plural(subitens.length, 'subitem', 'subitens')}` : ''}`,
+                ir: 2,
+              },
+              {
+                rot: 'Começa depois de',
+                val: preds.length ? preds.map(nomeDe).join(', ') : 'início da obra',
+                ir: 3,
+              },
+              {
+                rot: 'Providências',
+                val: provs.length
+                  ? provs
+                      .map((p) => `${TIPO_ROTULO[p.tipo]}${p.descricao ? `: ${p.descricao}` : ''}`)
+                      .join(' · ')
+                  : 'nenhuma',
+                ir: 4,
+              },
+            ].map((r) => (
+              <button
+                key={r.rot}
+                type="button"
+                className={styles.resumo}
+                onClick={() => setPasso(r.ir)}
+              >
+                <span className={styles.resumoTexto}>
+                  <span className={styles.secao}>{r.rot}</span>
+                  <b>{r.val}</b>
+                </span>
+                <span className={styles.alterar}>Alterar</span>
+              </button>
+            ))}
+            {editando && onRemover ? (
+              <button
+                type="button"
+                className={confirmaRemover ? styles.removerConfirma : styles.removerAtv}
+                disabled={salvando}
+                onClick={() => (confirmaRemover ? onRemover() : setConfirmaRemover(true))}
+              >
+                {confirmaRemover ? 'Toque de novo para remover' : 'Remover atividade'}
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>
 
+      {aviso ? (
+        <div className={styles.aviso} role="alert">
+          {aviso}
+        </div>
+      ) : null}
       <div className={styles.rodape}>
-        {passo > 0 ? (
-          <Button variant="tertiary" onClick={() => setPasso((p) => p - 1)}>
-            Voltar
-          </Button>
-        ) : (
-          <Button variant="tertiary" onClick={onFechar}>
-            Cancelar
-          </Button>
-        )}
-        {passo < PASSOS.length - 1 ? (
-          <Button disabled={!podeAvancar} onClick={() => setPasso((p) => p + 1)}>
-            Continuar
-          </Button>
-        ) : (
-          <Button disabled={salvando} onClick={salvar}>
-            {salvando ? 'Salvando…' : 'Salvar atividade'}
-          </Button>
-        )}
+        {!editando && (passo === 3 || passo === 4) ? (
+          <button type="button" className={styles.pular} onClick={() => setPasso(passo + 1)}>
+            Pular
+          </button>
+        ) : null}
+        <button
+          type="button"
+          className={`${styles.avancar} ${podeAvancar ? '' : styles.avancarOff}`}
+          disabled={salvando}
+          onClick={avancar}
+        >
+          {salvando
+            ? 'Salvando…'
+            : editando
+              ? passo === 5
+                ? 'Salvar alterações'
+                : 'Ok'
+              : passo === 5
+                ? 'Salvar atividade'
+                : 'Continuar'}
+        </button>
       </div>
     </div>
   );
