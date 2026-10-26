@@ -7,6 +7,8 @@ export interface Fase {
   id: string;
   ordem: number;
   titulo: string;
+  /** Pré-obra (antes do dia 0): só avisa, não trava nem entra no prazo. */
+  preliminar: boolean;
 }
 export interface Providencia {
   id: string;
@@ -23,6 +25,9 @@ export interface AtividadeDetalhe {
   duracao_du: number;
   pai_id: string | null;
   em_sequencia: boolean;
+  /** Pré-obra: a atividade da obra que esta etapa prepara (ex.: mapa de coleta). */
+  mapa_alvo_id: string | null;
+  mapa_antecedencia_du: number | null;
   predecessoras: string[];
   providencias: Providencia[];
 }
@@ -43,16 +48,25 @@ export interface NovaAtividade {
   subitens: { nome: string; duracao_du: number; em_sequencia: boolean }[];
   predecessoras: string[];
   providencias: { tipo: string; descricao: string; antecedencia_du: number }[];
+  /** Pré-obra: atividade que prepara e quantos dias úteis antes do início dela termina. */
+  mapaAlvoId?: string | null;
+  mapaAntecedenciaDu?: number | null;
 }
 
 export async function loadModeloCompleto(id: string): Promise<ModeloCompleto | null> {
   if (!supabase) return null;
   const [mRes, fRes, aRes, dRes, pRes] = await Promise.all([
     supabase.from('modelo').select('id,nome,subtitulo').eq('id', id).maybeSingle(),
-    supabase.from('modelo_fase').select('id,ordem,titulo').eq('modelo_id', id).order('ordem'),
+    supabase
+      .from('modelo_fase')
+      .select('id,ordem,titulo,preliminar')
+      .eq('modelo_id', id)
+      .order('ordem'),
     supabase
       .from('modelo_atividade')
-      .select('id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia')
+      .select(
+        'id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,mapa_alvo_id,mapa_antecedencia_du',
+      )
       .eq('modelo_id', id)
       .order('ordem'),
     supabase.from('modelo_dependencia').select('atividade_id,predecessora_id').eq('modelo_id', id),
@@ -86,13 +100,18 @@ export async function loadModeloCompleto(id: string): Promise<ModeloCompleto | n
     providencias: provsPorAtv.get(a.id) ?? [],
   }));
 
-  const entrada: AtividadeEntrada[] = atividades.map((a) => ({
-    id: a.id,
-    duracao_du: a.duracao_du,
-    pai_id: a.pai_id,
-    em_sequencia: a.em_sequencia,
-    predecessoras: a.predecessoras,
-  }));
+  // O cronograma do modelo é o da obra: o pré-obra fica antes do dia 0.
+  const fases = (fRes.data ?? []) as Fase[];
+  const pre = new Set(fases.filter((f) => f.preliminar).map((f) => f.id));
+  const entrada: AtividadeEntrada[] = atividades
+    .filter((a) => !pre.has(a.fase_id))
+    .map((a) => ({
+      id: a.id,
+      duracao_du: a.duracao_du,
+      pai_id: a.pai_id,
+      em_sequencia: a.em_sequencia,
+      predecessoras: a.predecessoras,
+    }));
 
   let cronograma: Cronograma;
   try {
@@ -105,7 +124,7 @@ export async function loadModeloCompleto(id: string): Promise<ModeloCompleto | n
     id: m.id,
     nome: m.nome,
     subtitulo: m.subtitulo,
-    fases: (fRes.data ?? []) as Fase[],
+    fases,
     atividades,
     cronograma,
   };
@@ -123,6 +142,13 @@ export async function salvarAtividade(a: NovaAtividade): Promise<string> {
     p_providencias: a.providencias,
   });
   if (error) throw error;
+  if (a.mapaAlvoId) {
+    const r = await supabase
+      .from('modelo_atividade')
+      .update({ mapa_alvo_id: a.mapaAlvoId, mapa_antecedencia_du: a.mapaAntecedenciaDu ?? 0 })
+      .eq('id', data as string);
+    if (r.error) throw r.error;
+  }
   return data as string;
 }
 

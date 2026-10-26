@@ -23,7 +23,7 @@ shadow_port = 54820
 
 [db.seed]
 enabled = true
-sql_paths = ["./seed.sql", "./seeds/modelos.sql"]
+sql_paths = ["./seed.sql", "./seeds/modelos.sql", "./seeds/pre_obra.sql"]
 
 [auth]
 enable_signup = true

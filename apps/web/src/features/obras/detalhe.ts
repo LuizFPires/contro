@@ -1,7 +1,9 @@
 import {
   calcularCronograma,
+  cronogramaPreObra,
   diaDaObra,
   estadoObra,
+  type DatasPreObra,
   type AtividadeCronograma,
   type AtividadeEntrada,
   type AtividadeEstado,
@@ -13,6 +15,8 @@ export interface ObraFase {
   id: string;
   ordem: number;
   titulo: string;
+  /** Pré-obra (Orçamento, Mapa de coleta): antes do dia 0, fora do % e do prazo. */
+  preliminar: boolean;
 }
 export interface ObraProv {
   id: string;
@@ -40,6 +44,11 @@ export interface ObraAtv {
   /** Foto da conclusão; null = concluída sem foto (ou aberta). */
   foto_conclusao_id: string | null;
   prestador: string | null;
+  /** Mapa de coleta: a atividade da obra que ele libera e a antecedência. */
+  mapa_alvo_id: string | null;
+  mapa_antecedencia_du: number | null;
+  /** Está numa fase de pré-obra (calculada no carregamento). */
+  preObra: boolean;
   predecessoras: string[];
   /** Defasagem por predecessora (≤ 0 = paralelismo do plano de recuperação). */
   defasagens: Record<string, number>;
@@ -62,6 +71,8 @@ export interface ObraCompleta {
     entrega: string;
   };
   estados: Record<string, AtividadeEstado>;
+  /** Datas do pré-obra (antes do dia 0), por atividade. */
+  pre: Record<string, DatasPreObra>;
   dia: { n: number; m: number };
   entrega: string;
   pct: number;
@@ -80,11 +91,16 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
       .eq('id', id)
       .is('deleted_at', null)
       .maybeSingle(),
-    supabase.from('obra_fase').select('id,ordem,titulo').eq('obra_id', id).order('ordem'),
+    supabase
+      .from('obra_fase')
+      .select('id,ordem,titulo,preliminar')
+      .eq('obra_id', id)
+      .order('ordem'),
     supabase
       .from('obra_atividade')
       .select(
-        'id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,foto_conclusao_id,prestador',
+        'id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,foto_conclusao_id,prestador,' +
+          'mapa_alvo_id,mapa_antecedencia_du',
       )
       .eq('obra_id', id)
       .is('deleted_at', null)
@@ -139,24 +155,30 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     provPorAtv.set(pr.atividade_id, arr);
   }
 
+  const fases = (fRes.data ?? []) as ObraFase[];
+  const faseePre = new Set(fases.filter((f) => f.preliminar).map((f) => f.id));
   const atividades: ObraAtv[] = (
-    (aRes.data ?? []) as Omit<ObraAtv, 'predecessoras' | 'providencias'>[]
+    (aRes.data ?? []) as unknown as Omit<ObraAtv, 'predecessoras' | 'providencias' | 'preObra'>[]
   ).map((a) => ({
     ...a,
+    preObra: faseePre.has(a.fase_id),
     predecessoras: predsPorAtv.get(a.id) ?? [],
     defasagens: defasPorAtv.get(a.id) ?? {},
     providencias: provPorAtv.get(a.id) ?? [],
   }));
 
-  const entrada: AtividadeEntrada[] = atividades.map((a) => ({
-    id: a.id,
-    duracao_du: a.duracao_du,
-    pai_id: a.pai_id,
-    em_sequencia: a.em_sequencia,
-    inicio_manual: a.inicio_manual,
-    predecessoras: a.predecessoras,
-    defasagens: a.defasagens,
-  }));
+  // O cronograma da obra (%, prazo, inauguração) não inclui o pré-obra.
+  const entrada: AtividadeEntrada[] = atividades
+    .filter((a) => !a.preObra)
+    .map((a) => ({
+      id: a.id,
+      duracao_du: a.duracao_du,
+      pai_id: a.pai_id,
+      em_sequencia: a.em_sequencia,
+      inicio_manual: a.inicio_manual,
+      predecessoras: a.predecessoras,
+      defasagens: a.defasagens,
+    }));
   let cron;
   try {
     cron = calcularCronograma({ inicio: o.inicio, atividades: entrada });
@@ -180,6 +202,34 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     provOk,
   });
 
+  // Pré-obra: datas para trás a partir do dia 0; atrasa se passou do fim previsto.
+  const pre = cronogramaPreObra(
+    o.inicio,
+    cron,
+    atividades
+      .filter((a) => a.preObra)
+      .map((a) => ({
+        id: a.id,
+        pai_id: a.pai_id,
+        duracao_du: a.duracao_du,
+        em_sequencia: a.em_sequencia,
+        mapaAlvoId: a.mapa_alvo_id,
+        mapaAntecedenciaDu: a.mapa_antecedencia_du,
+      })),
+  );
+  const estados: Record<string, AtividadeEstado> = { ...est.atividades };
+  for (const a of atividades) {
+    if (!a.preObra || a.pai_id || !pre[a.id]) continue;
+    const concluida = Boolean(a.concluida_em);
+    estados[a.id] = {
+      id: a.id,
+      concluida,
+      liberada: !concluida,
+      lembretesPendentes: false,
+      atrasada: !concluida && pre[a.id].fim_previsto < hoje,
+    };
+  }
+
   return {
     id: o.id,
     nome: o.nome,
@@ -187,10 +237,11 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     modelo_rotulo: o.modelo_rotulo,
     xp: o.xp,
     entrega_original: o.entrega_original,
-    fases: (fRes.data ?? []) as ObraFase[],
+    fases,
     atividades,
     cron,
-    estados: est.atividades,
+    estados,
+    pre,
     dia: diaDaObra(o.inicio, hoje, cron.total),
     entrega: est.indicadores.entrega,
     pct: est.indicadores.real,

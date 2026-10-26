@@ -4,7 +4,8 @@ import type { ObraCompleta } from './detalhe';
 /** Trilha de fases da obra (core) a partir da obra carregada. */
 export function montarTrilha(obra: ObraCompleta): FaseTrilha[] {
   const topo = obra.atividades.filter((a) => !a.pai_id);
-  return trilhaDeFases({
+  const pre = new Set(obra.fases.filter((f) => f.preliminar).map((f) => f.id));
+  const trilha = trilhaDeFases({
     fases: obra.fases,
     atividades: topo.map((a) => ({
       id: a.id,
@@ -18,8 +19,18 @@ export function montarTrilha(obra: ObraCompleta): FaseTrilha[] {
         .map((p) => ({ tipo: p.tipo, descricao: p.descricao })),
     })),
     estados: obra.estados,
-    datas: Object.fromEntries(
-      obra.cron.itens.map((it) => [it.id, { inicio: it.inicio_previsto, fim: it.fim_previsto }]),
-    ),
+    datas: {
+      ...Object.fromEntries(
+        Object.entries(obra.pre).map(([id, d]) => [
+          id,
+          { inicio: d.inicio_previsto, fim: d.fim_previsto },
+        ]),
+      ),
+      ...Object.fromEntries(
+        obra.cron.itens.map((it) => [it.id, { inicio: it.inicio_previsto, fim: it.fim_previsto }]),
+      ),
+    },
   });
+  // Pré-obra (antes do dia 0) vem marcado na etiqueta da fase.
+  return trilha.map((f) => (pre.has(f.id) ? { ...f, rotulo: `pré-obra · ${f.rotulo}` } : f));
 }

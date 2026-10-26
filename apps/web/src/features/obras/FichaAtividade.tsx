@@ -47,7 +47,8 @@ export function FichaAtividade({
     const decorridos = duEntre(obra.inicio, hoje);
     const iniciada = hoje >= obra.inicio;
     const est = obra.estados[a.id];
-    const cron = obra.cron.porId[a.id];
+    // Pré-obra (antes do dia 0) tem as datas calculadas à parte.
+    const cron = obra.cron.porId[a.id] ?? obra.pre[a.id];
     const es = cron?.es ?? 0;
     const subitens = obra.atividades.filter((x) => x.pai_id === a.id);
     const nomePorId = new Map(obra.atividades.map((x) => [x.id, x.nome]));
@@ -255,6 +256,13 @@ export function FichaAtividade({
             <div>
               <strong>Vem depois:</strong> {libera.length ? libera.join(', ') : 'nada'}
             </div>
+            {a.mapa_alvo_id ? (
+              <div>
+                <strong>Libera:</strong>{' '}
+                {obra.atividades.find((x) => x.id === a.mapa_alvo_id)?.nome ?? '—'} (contratar até o
+                fim do mapa)
+              </div>
+            ) : null}
           </div>
 
           {a.concluida_em && !a.foto_conclusao_id ? (
@@ -277,7 +285,7 @@ export function FichaAtividade({
             </div>
           ) : null}
 
-          {!a.concluida_em ? (
+          {!a.concluida_em && !a.preObra ? (
             <section className={styles.ajustes}>
               <button
                 type="button"

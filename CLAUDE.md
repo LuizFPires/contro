@@ -5,7 +5,7 @@ Guia para o Claude Code trabalhar neste repositório. Leia este arquivo inteiro 
 ## O que é
 O CONTRO é um app (PWA, mobile first) para planejar e acompanhar as obras de reforma das unidades Contorno do Corpo.
 
-Cada obra nasce de um **modelo de obra** escolhido entre os modelos salvos (ex.: Modelo 1 · CDC completo, com 28 atividades em 6 fases, prazos médios em dias úteis, dependências e lembretes de providência) e é conduzida como um jogo de fases:
+Cada obra nasce de um **modelo de obra** escolhido entre os modelos salvos (ex.: Modelo 1 · CDC completo, com 28 atividades em 6 fases de obra, precedidas do pré-obra: Orçamento e Mapa de coleta, prazos médios em dias úteis, dependências e lembretes de providência) e é conduzida como um jogo de fases:
 - concluir atividade **com ou sem foto** (sem foto, dá para anexar depois);
 - resolver pendência com **antes e depois**;
 - lembretes de contratação, locação e compra;

@@ -130,7 +130,8 @@ function motivoAtividade(obra: ObraCompleta, id: string): string | null {
 function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados {
   const dec = obra.decorridos;
   const iniciada = dec > 0 || hojeISO() >= obra.inicio;
-  const topo = obra.atividades.filter((a) => !a.pai_id);
+  // Reunião: cronograma da obra (o pré-obra entra pela trilha e pelo Hoje).
+  const topo = obra.atividades.filter((a) => !a.pai_id && !a.preObra);
   const nomePorId = new Map(obra.atividades.map((a) => [a.id, a.nome]));
   const prestadorDe = (id: string) => obra.atividades.find((a) => a.id === id)?.prestador ?? null;
 
@@ -233,15 +234,17 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
     providenciasAtrasadas,
     atividadesAtrasadas,
     inicio: obra.inicio,
-    entradaCronograma: obra.atividades.map((x) => ({
-      id: x.id,
-      duracao_du: x.duracao_du,
-      pai_id: x.pai_id,
-      em_sequencia: x.em_sequencia,
-      inicio_manual: x.inicio_manual,
-      predecessoras: x.predecessoras,
-      defasagens: x.defasagens,
-    })),
+    entradaCronograma: obra.atividades
+      .filter((x) => !x.preObra)
+      .map((x) => ({
+        id: x.id,
+        duracao_du: x.duracao_du,
+        pai_id: x.pai_id,
+        em_sequencia: x.em_sequencia,
+        inicio_manual: x.inicio_manual,
+        predecessoras: x.predecessoras,
+        defasagens: x.defasagens,
+      })),
   };
 }
 

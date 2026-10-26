@@ -93,6 +93,8 @@ foto(id, obra_id, storage_path, largura, altura, tirada_em, tirada_por, lat null
 ```
 reuniao(id, data date, hora time default '16:00', status: 'pauta'|'em_andamento'|'fechada', fechada_em, fechada_por)
 reuniao_obra(reuniao_id, obra_id, observacoes text, snapshot jsonb)   -- snapshot do previsto x realizado ao fechar
+modelo_fase/obra_fase.preliminar bool                         -- pré-obra: antes do dia 0, fora do % e do prazo
+modelo_atividade/obra_atividade.mapa_alvo_id, mapa_antecedencia_du  -- mapa de coleta: fim = ES(alvo) − antecedência
 obra.entrega_original date null                                -- inauguração planejada (fixar_entrega_original, uma vez)
 obra_dependencia.defasagem_du int default 0 (≤ 0)             -- paralelismo: começa N du antes do fim da predecessora
 tarefa(id, obra_id, texto, responsavel_id → pessoa, prazo date,
@@ -397,7 +399,7 @@ Os horários do boletim **deixam de ser fixos**: o gestor configura dia e hora (
 
 ## 13. Dados iniciais (seed)
 
-Três modelos de obra: **Modelo 1 · CDC completo · reforma pesada** (as 28 atividades do Anexo A), **Modelo 2 · CDC sem vestiários** (sem as atividades 10, 13, 18 e 19; quem dependia delas herda as predecessoras) e **Modelo 3 · Retrofit leve** (sem 4, 9, 10, 11, 13, 18 e 19; demolição vira "Retiradas pontuais", 2 du). Referência: `prototipo/ModeloCel.dc.html`. Obras de demonstração Eldorado, Pampulha e Betim **apenas em ambiente de homologação**.
+Três modelos de obra: **Modelo 1 · CDC completo · reforma pesada** (as 28 atividades do Anexo A, precedidas do pré-obra — fase 1 "Orçamento" e fase 2 "Mapa de coleta" — incluído em 26/10/2026 por `contro_garantir_pre_obra`), **Modelo 2 · CDC sem vestiários** (sem as atividades 10, 13, 18 e 19; quem dependia delas herda as predecessoras) e **Modelo 3 · Retrofit leve** (sem 4, 9, 10, 11, 13, 18 e 19; demolição vira "Retiradas pontuais", 2 du). Referência: `prototipo/ModeloCel.dc.html`. Obras de demonstração Eldorado, Pampulha e Betim **apenas em ambiente de homologação**.
 
 ### Anexo A — Modelo 1 · CDC completo (seed)
 

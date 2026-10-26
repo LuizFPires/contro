@@ -29,6 +29,7 @@ const TIPO_EXEMPLO: Record<Tipo, string> = {
   compra: 'Ex.: porcelanato',
 };
 const PRAZOS = [1, 2, 3, 5, 8, 10];
+const ANTECEDENCIAS = [0, 3, 5, 7, 10, 15, 20, 30];
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
 
 /**
@@ -70,6 +71,8 @@ export function AssistenteAtividade({
       .map((s) => ({ nome: s.nome, duracao_du: s.duracao_du, em_sequencia: s.em_sequencia })),
   );
   const [preds, setPreds] = useState<string[]>(original?.predecessoras ?? []);
+  const [alvo, setAlvo] = useState<string | null>(original?.mapa_alvo_id ?? null);
+  const [antecedencia, setAntecedencia] = useState(original?.mapa_antecedencia_du ?? 5);
   const [provs, setProvs] = useState<Prov[]>(
     () =>
       original?.providencias.map((p) => ({
@@ -85,6 +88,9 @@ export function AssistenteAtividade({
 
   const nFase = (id: string) => modelo.fases.findIndex((f) => f.id === id) + 1;
   const fase = modelo.fases.find((f) => f.id === faseId);
+  // Pré-obra: não tem "começa depois de"; diz o que prepara (só aviso, nunca trava).
+  const preObra = Boolean(fase?.preliminar);
+  const fasesPre = new Set(modelo.fases.filter((f) => f.preliminar).map((f) => f.id));
   const topo = modelo.atividades.filter((a) => !a.pai_id);
   const nomeDe = (id: string) =>
     `#${numeros.get(id) ?? '?'} ${topo.find((a) => a.id === id)?.nome ?? ''}`;
@@ -151,7 +157,9 @@ export function AssistenteAtividade({
       nome: nome.trim(),
       duracaoDu: dur,
       subitens: subitens.map((s) => ({ ...s, nome: s.nome.trim() || 'Subitem' })),
-      predecessoras: preds,
+      predecessoras: preObra ? [] : preds,
+      mapaAlvoId: preObra ? alvo : null,
+      mapaAntecedenciaDu: preObra && alvo ? antecedencia : null,
       providencias: provs
         .filter((p) => p.descricao.trim())
         .map((p) => ({ ...p, descricao: p.descricao.trim() })),
@@ -438,7 +446,83 @@ export function AssistenteAtividade({
           </div>
         ) : null}
 
-        {passo === 3 ? (
+        {passo === 3 && preObra ? (
+          <div className={styles.etapa}>
+            <h2 className={styles.pergunta}>O que esta etapa prepara?</h2>
+            <div className={styles.explica}>
+              Pré-obra: escolha a atividade da obra que esta etapa libera (ex.: o mapa de coleta do
+              eletricista prepara a Infra de elétrica). Ela termina antes do início dessa atividade.
+              É só um aviso para se programar: nada trava.
+            </div>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={alvo === null}
+              className={`${styles.opcao} ${alvo === null ? styles.opcaoOn : ''}`}
+              onClick={() => setAlvo(null)}
+            >
+              <span className={`${styles.caixinha} ${alvo === null ? styles.caixinhaOn : ''}`}>
+                {alvo === null ? <Icon name="check" size={16} strokeWidth={3} /> : null}
+              </span>
+              <span className={styles.opcaoTexto}>
+                <b>Nenhuma em especial</b>
+                <span className={styles.miuda}>
+                  Termina antes da primeira etapa que prepara algo
+                </span>
+              </span>
+            </button>
+            <div className={styles.secao}>Libera qual atividade da obra?</div>
+            {topo
+              .filter((a) => !fasesPre.has(a.fase_id))
+              .sort((a, b) => (numeros.get(a.id) ?? 0) - (numeros.get(b.id) ?? 0))
+              .map((a) => {
+                const on = alvo === a.id;
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    className={`${styles.opcao} ${on ? styles.opcaoOn : ''}`}
+                    onClick={() => setAlvo(a.id)}
+                  >
+                    <span className={`${styles.caixinha} ${on ? styles.caixinhaOn : ''}`}>
+                      {on ? <Icon name="check" size={16} strokeWidth={3} /> : null}
+                    </span>
+                    <span className={styles.opcaoTexto}>
+                      <b>
+                        #{numeros.get(a.id)} {a.nome}
+                      </b>
+                      <span className={styles.miuda}>
+                        Fase {nFase(a.fase_id)} · começa no D
+                        {modelo.cronograma.porId[a.id]?.es ?? '?'}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            {alvo ? (
+              <>
+                <div className={styles.secao}>Fechar quantos dias úteis antes do início dela?</div>
+                <div className={styles.abas}>
+                  {ANTECEDENCIAS.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      aria-pressed={antecedencia === n}
+                      className={`${styles.aba} ${antecedencia === n ? styles.abaOn : ''}`}
+                      onClick={() => setAntecedencia(n)}
+                    >
+                      {n === 0 ? 'no dia' : `${n} du`}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+
+        {passo === 3 && !preObra ? (
           <div className={styles.etapa}>
             <h2 className={styles.pergunta}>Começa depois de quê?</h2>
             <div className={styles.explica}>
@@ -627,7 +711,7 @@ export function AssistenteAtividade({
             <h2 className={styles.pergunta}>
               {editando ? nome || 'Atividade' : 'Confere e salva'}
             </h2>
-            {previa ? (
+            {previa && !preObra ? (
               <div className={styles.linhaTempo}>
                 <div className={styles.linhaTempoTopo}>
                   <span>
@@ -652,11 +736,19 @@ export function AssistenteAtividade({
                 val: `${dur} dias úteis${subitens.length ? ` · ${plural(subitens.length, 'subitem', 'subitens')}` : ''}`,
                 ir: 2,
               },
-              {
-                rot: 'Começa depois de',
-                val: preds.length ? preds.map(nomeDe).join(', ') : 'início da obra',
-                ir: 3,
-              },
+              preObra
+                ? {
+                    rot: 'Prepara (pré-obra · só aviso)',
+                    val: alvo
+                      ? `${nomeDe(alvo)} · fecha ${antecedencia ? `${antecedencia} du antes` : 'no dia'} do início`
+                      : 'nenhuma em especial',
+                    ir: 3,
+                  }
+                : {
+                    rot: 'Começa depois de',
+                    val: preds.length ? preds.map(nomeDe).join(', ') : 'início da obra',
+                    ir: 3,
+                  },
               {
                 rot: 'Providências',
                 val: provs.length
