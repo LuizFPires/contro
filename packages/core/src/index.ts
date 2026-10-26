@@ -16,6 +16,7 @@ export * from './boletim';
 export * from './boletimAgenda';
 export * from './outbox';
 export * from './trilha';
+export * from './previaModelo';
 
 export type Perfil = 'gestor' | 'equipe';
 

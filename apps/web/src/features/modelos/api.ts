@@ -11,6 +11,7 @@ export interface ModeloResumo {
   ordem: number;
   dias: number; // total em dias úteis (via core)
   atividades: number; // nº de atividades de topo
+  obras: number; // obras (não excluídas) criadas a partir dele
 }
 
 interface LinhaAtividade {
@@ -28,11 +29,16 @@ interface LinhaDependencia {
 /** Lista os modelos ativos com dias (via core) e nº de atividades. Sem N+1. */
 export async function listarModelos(): Promise<ModeloResumo[]> {
   if (!supabase) return [];
-  const [modelosRes, atvsRes, depsRes] = await Promise.all([
+  const [modelosRes, atvsRes, depsRes, obrasRes] = await Promise.all([
     supabase.from('modelo').select('id,nome,subtitulo,ordem').order('ordem'),
     supabase.from('modelo_atividade').select('id,modelo_id,duracao_du,pai_id,em_sequencia'),
     supabase.from('modelo_dependencia').select('atividade_id,predecessora_id'),
+    supabase.from('obra').select('modelo_id').is('deleted_at', null),
   ]);
+  const obrasPorModelo = new Map<string, number>();
+  for (const o of (obrasRes.data ?? []) as { modelo_id: string | null }[]) {
+    if (o.modelo_id) obrasPorModelo.set(o.modelo_id, (obrasPorModelo.get(o.modelo_id) ?? 0) + 1);
+  }
 
   const modelos = (modelosRes.data ?? []) as ModeloResumo[];
   const atvs = (atvsRes.data ?? []) as LinhaAtividade[];
@@ -73,6 +79,7 @@ export async function listarModelos(): Promise<ModeloResumo[]> {
       ordem: m.ordem,
       dias,
       atividades: lista.filter((a) => !a.pai_id).length,
+      obras: obrasPorModelo.get(m.id) ?? 0,
     };
   });
 }

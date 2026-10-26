@@ -23,38 +23,3 @@
   text-align: center;
   color: var(--contro-muted);
 }
-
-/* Telas secundárias sem cabeçalho próprio (ex.: Modelos): barra preta com voltar */
-.app-tela {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-}
-.app-barra {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 12px;
-  padding-top: calc(10px + env(safe-area-inset-top, 0));
-  background: var(--contro-black);
-  color: var(--contro-white);
-}
-.app-voltar {
-  width: var(--contro-touch);
-  height: var(--contro-touch);
-  border: 0;
-  background: transparent;
-  color: var(--contro-white);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.app-barra-titulo {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 800;
-}
