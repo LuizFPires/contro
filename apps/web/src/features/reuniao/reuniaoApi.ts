@@ -47,6 +47,8 @@ export interface ItemAtv {
   nome: string;
   data: string; // ISO (fim ou início previsto)
   atividadeId: string;
+  /** Prestador da atividade (ficha), se definido. */
+  prestador?: string | null;
 }
 export interface ItemPassada {
   atividadeId: string;
@@ -133,6 +135,7 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
   const iniciada = dec > 0 || hojeISO() >= obra.inicio;
   const topo = obra.atividades.filter((a) => !a.pai_id);
   const nomePorId = new Map(obra.atividades.map((a) => [a.id, a.nome]));
+  const prestadorDe = (id: string) => obra.atividades.find((a) => a.id === id)?.prestador ?? null;
 
   const semanaEntrada: (AtividadeSemana & { nome: string })[] = topo.map((a) => {
     const c = obra.cron.porId[a.id];
@@ -152,11 +155,13 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
     nome: a.nome,
     data: cronOf(a.id)?.fim_previsto ?? obra.inicio,
     atividadeId: a.id,
+    prestador: prestadorDe(a.id),
   }));
   const comecar: ItemAtv[] = sem.comecar.map((a) => ({
     nome: a.nome,
     data: cronOf(a.id)?.inicio_previsto ?? obra.inicio,
     atividadeId: a.id,
+    prestador: prestadorDe(a.id),
   }));
   const passadaConcluir: ItemPassada[] = sem.passadaConcluir.map((a) => ({
     atividadeId: a.id,
