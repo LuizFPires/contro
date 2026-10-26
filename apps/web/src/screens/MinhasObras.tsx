@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { rotuloPerfil } from '@contro/core';
 import { BottomSheet, Icon, Logo, Simbolo, useToast, type IconName } from '@contro/ui';
 import { ObraCard } from '../features/obras/ObraCard';
+import { HojeObras } from '../features/obras/HojeObras';
 import { ObraDetalhe } from '../features/obras/ObraDetalhe';
 import { NovaObraScreen } from '../features/obras/NovaObraScreen';
 import { useObras } from '../features/obras/useObras';
@@ -96,6 +97,14 @@ export function MinhasObras({
           </button>
         </div>
       </header>
+
+      {lista.length ? (
+        <HojeObras
+          obras={lista}
+          onAbrirObra={(id) => setObraAberta({ id })}
+          onAbrirTarefas={() => onIr('tarefas')}
+        />
+      ) : null}
 
       <div className={styles.topo}>
         <h1 className={styles.titulo}>Minhas obras</h1>

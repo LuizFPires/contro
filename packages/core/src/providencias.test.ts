@@ -20,7 +20,7 @@ describe('providências (SPEC 4.4)', () => {
     expect(naObraEm(INICIO, 5)).toBe(addDU(INICIO, 5));
   });
 
-  it('atrasada quando pendente, obra iniciada e decorridos >= limite', () => {
+  it('atrasada quando pendente, obra iniciada e o dia limite já passou', () => {
     expect(
       providenciaAtrasada({
         status: 'pendente',
@@ -43,6 +43,7 @@ describe('providências (SPEC 4.4)', () => {
       antecedenciaDu: 3,
     };
     expect(providenciaAtrasada(base)).toBe(false); // 5 < limite 7
+    expect(providenciaAtrasada({ ...base, decorridos: 7 })).toBe(false); // no dia limite ainda vale
     expect(providenciaAtrasada({ ...base, decorridos: 8, status: 'feito' })).toBe(false);
     expect(providenciaAtrasada({ ...base, decorridos: 8, atividadeConcluida: true })).toBe(false);
     expect(providenciaAtrasada({ ...base, decorridos: 8, obraIniciada: false })).toBe(false);

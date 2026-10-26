@@ -1,7 +1,9 @@
 import {
+  agendaDoDia,
   calcularCronograma,
   estadoObra,
   tarefaAtrasada,
+  type AgendaObra,
   type AtividadeEntrada,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
@@ -35,11 +37,14 @@ export interface ObraResumo {
   fasesEstado: FaseEstado[];
   tarefasAbertas: number;
   tarefasAtrasadas: number;
+  /** "Hoje" da tela inicial: atrasados e o que é para hoje. */
+  agenda: AgendaObra;
 }
 
 interface LinhaAtv {
   id: string;
   obra_id: string;
+  nome: string;
   fase_id: string;
   duracao_du: number;
   pai_id: string | null;
@@ -66,13 +71,17 @@ export async function listarObras(): Promise<ObraResumo[]> {
     supabase.from('obra_fase').select('id,obra_id,ordem,titulo').order('ordem'),
     supabase
       .from('obra_atividade')
-      .select('id,obra_id,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em')
+      .select('id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em')
       .is('deleted_at', null),
     supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id'),
-    supabase.from('obra_providencia').select('obra_id,atividade_id,status'),
+    supabase
+      .from('obra_providencia')
+      .select('id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du'),
     supabase
       .from('tarefa')
-      .select('obra_id,prazo,status')
+      .select(
+        'id,obra_id,texto,prazo,status,responsavel_nome,responsavel:pessoa!responsavel_id(nome)',
+      )
       .eq('status', 'aberta')
       .is('deleted_at', null),
   ]);
@@ -96,9 +105,13 @@ export async function listarObras(): Promise<ObraResumo[]> {
     predecessora_id: string;
   }[];
   const provs = (provsRes.data ?? []) as {
+    id: string;
     obra_id: string;
     atividade_id: string;
-    status: string;
+    tipo: 'contratacao' | 'locacao' | 'compra';
+    descricao: string;
+    status: 'pendente' | 'feito';
+    antecedencia_du: number;
   }[];
 
   const predsPorAtv = new Map<string, string[]>();
@@ -110,10 +123,14 @@ export async function listarObras(): Promise<ObraResumo[]> {
   const provPendentePorAtv = new Set<string>();
   for (const p of provs) if (p.status === 'pendente') provPendentePorAtv.add(p.atividade_id);
 
-  const tarefas = (tarefasRes.data ?? []) as {
+  const tarefas = (tarefasRes.data ?? []) as unknown as {
+    id: string;
     obra_id: string;
+    texto: string;
     prazo: string;
     status: 'aberta' | 'feita';
+    responsavel_nome: string | null;
+    responsavel: { nome: string } | null;
   }[];
   const tAbertas = new Map<string, number>();
   const tAtrasadas = new Map<string, number>();
@@ -196,6 +213,41 @@ export async function listarObras(): Promise<ObraResumo[]> {
       fasesEstado,
       tarefasAbertas: tAbertas.get(o.id) ?? 0,
       tarefasAtrasadas: tAtrasadas.get(o.id) ?? 0,
+      agenda: agendaDoDia({
+        inicio: o.inicio,
+        hoje,
+        decorridos: est.indicadores.decorridos,
+        atividades: minhasAtvs
+          .filter((a) => !a.pai_id && cron.porId[a.id])
+          .map((a) => ({
+            id: a.id,
+            nome: a.nome,
+            es: cron.porId[a.id].es,
+            inicio_previsto: cron.porId[a.id].inicio_previsto,
+            fim_previsto: cron.porId[a.id].fim_previsto,
+            concluida: Boolean(a.concluida_em),
+            atrasada: Boolean(est.atividades[a.id]?.atrasada),
+          })),
+        providencias: provs
+          .filter((p) => p.obra_id === o.id)
+          .map((p) => ({
+            id: p.id,
+            atividadeId: p.atividade_id,
+            tipo: p.tipo,
+            descricao: p.descricao,
+            status: p.status,
+            antecedenciaDu: p.antecedencia_du,
+          })),
+        tarefas: tarefas
+          .filter((t) => t.obra_id === o.id)
+          .map((t) => ({
+            id: t.id,
+            texto: t.texto,
+            prazo: t.prazo,
+            aberta: t.status === 'aberta',
+            pessoa: t.responsavel?.nome ?? t.responsavel_nome ?? null,
+          })),
+      }),
     };
   });
 }

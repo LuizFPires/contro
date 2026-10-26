@@ -1,0 +1,161 @@
+/* "Hoje" na tela inicial (opção A): cards por obra, recolhíveis. */
+.hoje {
+  padding: 14px 16px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.titulo {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+.resumo,
+.resumoAtraso {
+  margin: -6px 0 0;
+  font-size: 14px;
+  color: #464646;
+}
+.resumoAtraso {
+  font-weight: 700;
+}
+.card {
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.cardAtraso {
+  border-color: rgb(198 40 40 / 40%);
+}
+.cabeca {
+  width: 100%;
+  min-height: 60px;
+  padding: 12px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.cabecaTexto {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nomeLinha {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.nome {
+  font-size: 17px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ritmo,
+.ritmoAtraso {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.ritmoAtraso,
+.txtAtraso {
+  color: var(--contro-late);
+}
+.contagem {
+  font-size: 13px;
+  color: #696969;
+}
+.contagem .txtAtraso {
+  font-weight: 800;
+}
+.corpo {
+  padding: 0 14px 8px;
+  display: flex;
+  flex-direction: column;
+}
+.faixa,
+.faixaAtraso {
+  margin-top: 6px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.faixa {
+  background: rgb(24 24 24 / 8%);
+}
+.faixaAtraso {
+  background: var(--contro-late);
+  color: var(--contro-white);
+}
+.linha {
+  min-height: 56px;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid rgb(24 24 24 / 8%);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.linha:last-child {
+  border-bottom: 0;
+}
+.linhaTexto {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 15px;
+}
+.tipo,
+.tipoAtraso {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #696969;
+}
+.tipoAtraso {
+  color: var(--contro-late);
+}
+.detalhe,
+.detalheAtraso {
+  font-size: 13px;
+  color: #696969;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.detalheAtraso {
+  color: var(--contro-late);
+  font-weight: 700;
+}
+.seta {
+  color: rgb(24 24 24 / 45%);
+  flex-shrink: 0;
+}

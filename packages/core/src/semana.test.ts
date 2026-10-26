@@ -63,8 +63,9 @@ describe('providenciarNaSemana', () => {
     // decorridos=5 → não atrasada (5 < 9) e limite 9 < 10
     expect(providenciarNaSemana({ ...base, decorridos: 5 })).toBe(true);
   });
-  it('exclui atrasada (decorridos >= limite)', () => {
-    expect(providenciarNaSemana({ ...base, decorridos: 9 })).toBe(false);
+  it('exclui atrasada (o dia limite já passou); no dia limite ainda entra', () => {
+    expect(providenciarNaSemana({ ...base, decorridos: 10 })).toBe(false);
+    expect(providenciarNaSemana({ ...base, decorridos: 9 })).toBe(true);
   });
   it('exclui já feita', () => {
     expect(providenciarNaSemana({ ...base, status: 'feito', decorridos: 5 })).toBe(false);

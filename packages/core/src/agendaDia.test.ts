@@ -1,0 +1,134 @@
+import { describe, expect, it } from 'vitest';
+import { agendaDoDia, resumoDoDia, type EntradaAgenda } from './agendaDia';
+
+const INICIO = '2026-10-19'; // segunda
+const HOJE = '2026-10-26'; // segunda seguinte: decorridos 5
+
+function entrada(p: Partial<EntradaAgenda> = {}): EntradaAgenda {
+  return {
+    inicio: INICIO,
+    hoje: HOJE,
+    decorridos: 5,
+    atividades: [
+      // Mobilização: es 0, terminou sex 23/10 e não foi concluída → atrasada.
+      {
+        id: 'mob',
+        nome: 'Mobilização',
+        es: 0,
+        inicio_previsto: '2026-10-19',
+        fim_previsto: '2026-10-23',
+        concluida: false,
+        atrasada: true,
+      },
+      // Demolição: começa hoje (es 5).
+      {
+        id: 'dem',
+        nome: 'Demolições',
+        es: 5,
+        inicio_previsto: '2026-10-26',
+        fim_previsto: '2026-10-30',
+        concluida: false,
+        atrasada: false,
+      },
+      // Forro: termina hoje.
+      {
+        id: 'for',
+        nome: 'Forro',
+        es: 3,
+        inicio_previsto: '2026-10-22',
+        fim_previsto: '2026-10-26',
+        concluida: false,
+        atrasada: false,
+      },
+      // Pintura: futura, concluída fora de ordem não aparece.
+      {
+        id: 'pin',
+        nome: 'Pintura',
+        es: 10,
+        inicio_previsto: '2026-11-02',
+        fim_previsto: '2026-11-06',
+        concluida: true,
+        atrasada: false,
+      },
+    ],
+    providencias: [
+      // limite 5-3 = 2 (qua 21/10): passou → atraso.
+      {
+        id: 'p1',
+        atividadeId: 'dem',
+        tipo: 'locacao',
+        descricao: 'Caçamba',
+        status: 'pendente',
+        antecedenciaDu: 3,
+      },
+      // limite 10-5 = 5 (hoje): para hoje.
+      {
+        id: 'p2',
+        atividadeId: 'pin',
+        tipo: 'compra',
+        descricao: 'Tinta',
+        status: 'pendente',
+        antecedenciaDu: 5,
+      },
+      {
+        id: 'p3',
+        atividadeId: 'for',
+        tipo: 'compra',
+        descricao: 'Placas',
+        status: 'feito',
+        antecedenciaDu: 0,
+      },
+    ],
+    tarefas: [
+      { id: 't1', texto: 'Fechar o pintor', prazo: '2026-10-21', aberta: true, pessoa: 'Paulo' },
+      { id: 't2', texto: 'Confirmar caçamba', prazo: HOJE, aberta: true, pessoa: 'Rafael' },
+      { id: 't3', texto: 'Já feita', prazo: '2026-10-20', aberta: false, pessoa: 'Paulo' },
+    ],
+    ...p,
+  };
+}
+
+describe('agendaDoDia', () => {
+  it('atrasados: atividade, lembrete e tarefa vencidos, do mais antigo para o mais novo', () => {
+    const { atrasados } = agendaDoDia(entrada());
+    expect(atrasados.map((i) => [i.tipo, i.nome, i.data])).toEqual([
+      ['locacao', 'Caçamba', '2026-10-21'],
+      ['tarefa', 'Fechar o pintor', '2026-10-21'],
+      ['concluir', 'Mobilização', '2026-10-23'],
+    ]);
+    expect(atrasados.every((i) => i.atraso)).toBe(true);
+  });
+
+  it('para hoje: concluir, começar, lembrete com prazo hoje e tarefa de hoje', () => {
+    const { hoje } = agendaDoDia(entrada());
+    expect(hoje.map((i) => [i.tipo, i.nome])).toEqual([
+      ['concluir', 'Forro'],
+      ['comecar', 'Demolições'],
+      ['tarefa', 'Confirmar caçamba'],
+    ]);
+    expect(hoje.find((i) => i.tipo === 'tarefa')?.pessoa).toBe('Rafael');
+  });
+
+  it('lembrete de atividade concluída não aparece; prazo hoje ainda não é atraso', () => {
+    const e = entrada({
+      atividades: entrada().atividades.map((a) =>
+        a.id === 'pin' ? { ...a, concluida: false } : a,
+      ),
+    });
+    const { hoje, atrasados } = agendaDoDia(e);
+    expect(hoje.some((i) => i.nome === 'Tinta')).toBe(true);
+    expect(atrasados.some((i) => i.nome === 'Tinta')).toBe(false);
+  });
+});
+
+describe('resumoDoDia', () => {
+  it('conta atrasos, coisas para hoje e obras com algo', () => {
+    const a = agendaDoDia(entrada());
+    expect(resumoDoDia([a, { atrasados: [], hoje: [] }])).toBe(
+      '3 atrasos e 3 coisas para hoje em 1 obra',
+    );
+    expect(resumoDoDia([{ atrasados: [], hoje: [] }])).toBe(
+      'Nada atrasado nem previsto para hoje.',
+    );
+  });
+});
