@@ -42,14 +42,16 @@ export function AjustePrazo({ obra, atividadeId }: { obra: ObraCompleta; ativida
 
   const entrada: AtividadeEntrada[] = useMemo(
     () =>
-      obra.atividades.map((x) => ({
-        id: x.id,
-        duracao_du: x.duracao_du,
-        pai_id: x.pai_id,
-        em_sequencia: x.em_sequencia,
-        inicio_manual: x.inicio_manual,
-        predecessoras: x.predecessoras,
-      })),
+      obra.atividades
+        .filter((x) => !x.preObra)
+        .map((x) => ({
+          id: x.id,
+          duracao_du: x.duracao_du,
+          pai_id: x.pai_id,
+          em_sequencia: x.em_sequencia,
+          inicio_manual: x.inicio_manual,
+          predecessoras: x.predecessoras,
+        })),
     [obra.atividades],
   );
 
@@ -66,7 +68,7 @@ export function AjustePrazo({ obra, atividadeId }: { obra: ObraCompleta; ativida
     }
   }, [obra.inicio, entrada, atividadeId, dur, esManual, preds]);
 
-  const topo = obra.atividades.filter((x) => !x.pai_id);
+  const topo = obra.atividades.filter((x) => !x.pai_id && !x.preObra);
   const nome = (id: string) => topo.find((x) => x.id === id)?.nome ?? '';
 
   // Quem depende desta (direta ou indiretamente) não pode virar predecessora.

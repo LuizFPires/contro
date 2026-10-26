@@ -1,6 +1,7 @@
 import {
   agendaDoDia,
   calcularCronograma,
+  cronogramaPreObra,
   estadoObra,
   tarefaAtrasada,
   type AgendaObra,
@@ -51,6 +52,8 @@ interface LinhaAtv {
   em_sequencia: boolean;
   inicio_manual: string | null;
   concluida_em: string | null;
+  mapa_alvo_id: string | null;
+  mapa_antecedencia_du: number | null;
 }
 
 export async function listarUnidades(): Promise<Unidade[]> {
@@ -68,10 +71,13 @@ export async function listarObras(): Promise<ObraResumo[]> {
       .select('id,nome,modelo_rotulo,inicio')
       .eq('status', 'ativa')
       .is('deleted_at', null),
-    supabase.from('obra_fase').select('id,obra_id,ordem,titulo').order('ordem'),
+    supabase.from('obra_fase').select('id,obra_id,ordem,titulo,preliminar').order('ordem'),
     supabase
       .from('obra_atividade')
-      .select('id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em')
+      .select(
+        'id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,' +
+          'mapa_alvo_id,mapa_antecedencia_du',
+      )
       .is('deleted_at', null),
     supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id'),
     supabase
@@ -97,8 +103,9 @@ export async function listarObras(): Promise<ObraResumo[]> {
     obra_id: string;
     ordem: number;
     titulo: string;
+    preliminar: boolean;
   }[];
-  const atvs = (atvsRes.data ?? []) as LinhaAtv[];
+  const atvs = (atvsRes.data ?? []) as unknown as LinhaAtv[];
   const deps = (depsRes.data ?? []) as {
     obra_id: string;
     atividade_id: string;
@@ -140,8 +147,12 @@ export async function listarObras(): Promise<ObraResumo[]> {
   }
 
   return obras.map((o) => {
-    const minhasFases = fases.filter((f) => f.obra_id === o.id).sort((a, b) => a.ordem - b.ordem);
-    const minhasAtvs = atvs.filter((a) => a.obra_id === o.id);
+    const todasFases = fases.filter((f) => f.obra_id === o.id).sort((a, b) => a.ordem - b.ordem);
+    // Pré-obra (Orçamento, Mapa de coleta) fica fora do cronograma, do % e das fases do card.
+    const fasesPre = new Set(todasFases.filter((f) => f.preliminar).map((f) => f.id));
+    const minhasFases = todasFases.filter((f) => !f.preliminar);
+    const atvsPre = atvs.filter((a) => a.obra_id === o.id && fasesPre.has(a.fase_id));
+    const minhasAtvs = atvs.filter((a) => a.obra_id === o.id && !fasesPre.has(a.fase_id));
     const entrada: AtividadeEntrada[] = minhasAtvs.map((a) => ({
       id: a.id,
       duracao_du: a.duracao_du,
@@ -201,7 +212,9 @@ export async function listarObras(): Promise<ObraResumo[]> {
       modelo_rotulo: o.modelo_rotulo,
       inicio: o.inicio,
       faseAtual: minhasFases.find((f) => f.id === faseAtualId)?.titulo ?? null,
-      faseAtualN: faseAtualId ? minhasFases.findIndex((f) => f.id === faseAtualId) + 1 : null,
+      faseAtualN: faseAtualId
+        ? (todasFases.find((f) => f.id === faseAtualId)?.ordem ?? null)
+        : null,
       nFases: minhasFases.length,
       atividadesAtrasadas: cron.itens.filter(
         (it) => faseDaAtv.has(it.id) && est.atividades[it.id]?.atrasada,
@@ -227,7 +240,35 @@ export async function listarObras(): Promise<ObraResumo[]> {
             fim_previsto: cron.porId[a.id].fim_previsto,
             concluida: Boolean(a.concluida_em),
             atrasada: Boolean(est.atividades[a.id]?.atrasada),
-          })),
+          }))
+          .concat(
+            (() => {
+              // Pré-obra: datas para trás a partir do dia 0; atrasa se passou do fim.
+              const pre = cronogramaPreObra(
+                o.inicio,
+                cron,
+                atvsPre.map((a) => ({
+                  id: a.id,
+                  pai_id: a.pai_id,
+                  duracao_du: a.duracao_du,
+                  em_sequencia: a.em_sequencia,
+                  mapaAlvoId: a.mapa_alvo_id,
+                  mapaAntecedenciaDu: a.mapa_antecedencia_du,
+                })),
+              );
+              return atvsPre
+                .filter((a) => !a.pai_id && pre[a.id])
+                .map((a) => ({
+                  id: a.id,
+                  nome: a.nome,
+                  es: pre[a.id].es,
+                  inicio_previsto: pre[a.id].inicio_previsto,
+                  fim_previsto: pre[a.id].fim_previsto,
+                  concluida: Boolean(a.concluida_em),
+                  atrasada: !a.concluida_em && pre[a.id].fim_previsto < hoje,
+                }));
+            })(),
+          ),
         providencias: provs
           .filter((p) => p.obra_id === o.id)
           .map((p) => ({

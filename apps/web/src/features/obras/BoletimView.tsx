@@ -45,7 +45,7 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
     const hoje = hojeISO();
     const dec = obra.decorridos;
     const iniciada = dec > 0 || hoje >= obra.inicio;
-    const topo = obra.atividades.filter((a) => !a.pai_id);
+    const topo = obra.atividades.filter((a) => !a.pai_id && !a.preObra);
     const cronOf = (id: string) => obra.cron.porId[id];
     // Sem atividade bloqueada: o motivo de não ter começado é só o lembrete pendente.
     const motivo = (id: string): string | null =>
