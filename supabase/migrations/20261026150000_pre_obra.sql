@@ -89,6 +89,77 @@ begin
 end;
 $$;
 
+-- Duplicar modelo também copia o pré-obra (marca da fase e alvo dos mapas).
+create or replace function duplicar_modelo(
+  p_origem uuid,
+  p_nome text,
+  p_subtitulo text default null
+)
+returns uuid
+language plpgsql
+set search_path = ''
+as $$
+declare
+  v_new uuid := extensions.gen_random_uuid();
+  v_ordem int;
+begin
+  if public.contro_perfil() is distinct from 'gestor' then
+    raise exception 'Só o gestor edita modelos' using errcode = '42501';
+  end if;
+
+  select coalesce(max(ordem), 0) + 1 into v_ordem from public.modelo where deleted_at is null;
+
+  insert into public.modelo (id, nome, subtitulo, ordem, criado_de_id)
+  values (v_new, p_nome, p_subtitulo, v_ordem, p_origem);
+
+  if p_origem is null then
+    return v_new; -- modelo em branco
+  end if;
+
+  -- Fases
+  insert into public.modelo_fase (id, modelo_id, ordem, titulo, preliminar)
+  select extensions.uuid_generate_v5(v_new, f.id::text), v_new, f.ordem, f.titulo, f.preliminar
+  from public.modelo_fase f
+  where f.modelo_id = p_origem;
+
+  -- Atividades (pais antes dos subitens, para o trigger de 1 nível)
+  insert into public.modelo_atividade (
+    id, modelo_id, fase_id, ordem, nome, duracao_du, pai_id, em_sequencia,
+    mapa_alvo_id, mapa_antecedencia_du
+  )
+  select extensions.uuid_generate_v5(v_new, a.id::text), v_new,
+         extensions.uuid_generate_v5(v_new, a.fase_id::text),
+         a.ordem, a.nome, a.duracao_du,
+         case when a.pai_id is null then null
+              else extensions.uuid_generate_v5(v_new, a.pai_id::text) end,
+         a.em_sequencia,
+         case when a.mapa_alvo_id is null then null
+              else extensions.uuid_generate_v5(v_new, a.mapa_alvo_id::text) end,
+         a.mapa_antecedencia_du
+  from public.modelo_atividade a
+  where a.modelo_id = p_origem
+  order by (a.pai_id is not null);
+
+  -- Dependências
+  insert into public.modelo_dependencia (modelo_id, atividade_id, predecessora_id)
+  select v_new,
+         extensions.uuid_generate_v5(v_new, d.atividade_id::text),
+         extensions.uuid_generate_v5(v_new, d.predecessora_id::text)
+  from public.modelo_dependencia d
+  where d.modelo_id = p_origem;
+
+  -- Providências
+  insert into public.modelo_providencia (id, modelo_id, atividade_id, tipo, descricao, antecedencia_du)
+  select extensions.uuid_generate_v5(v_new, pr.id::text), v_new,
+         extensions.uuid_generate_v5(v_new, pr.atividade_id::text),
+         pr.tipo, pr.descricao, pr.antecedencia_du
+  from public.modelo_providencia pr
+  where pr.modelo_id = p_origem;
+
+  return v_new;
+end;
+$$;
+
 -- Insere as fases do pré-obra onde ainda não houver (idempotente). Também é
 -- chamada pelo seed de homologação (os modelos do seed chegam depois).
 create or replace function contro_garantir_pre_obra()

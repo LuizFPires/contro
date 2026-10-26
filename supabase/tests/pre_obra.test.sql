@@ -3,7 +3,7 @@
 -- Requer o seed de homologação (Modelo 1 + unidades Contorno).
 
 begin;
-select plan(5);
+select plan(6);
 
 select is(
   (select string_agg(f.titulo, ' | ' order by f.ordem) from modelo_fase f join modelo m on m.id = f.modelo_id
@@ -44,6 +44,17 @@ select is(
    where o.nome = 'Obra Pré-obra' and a.nome = 'Equipamentos de ar-condicionado'),
   30,
   'antecedência copiada do modelo'
+);
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000f7","role":"authenticated"}';
+create temp table copia as select duplicar_modelo((select id from modelo where nome = 'Modelo 1 · CDC completo'), 'Cópia Pré-obra') as id;
+reset role;
+select is(
+  (select count(*)::int from modelo_atividade a join modelo_atividade alvo on alvo.id = a.mapa_alvo_id
+   where a.modelo_id = (select id from copia) and alvo.modelo_id = (select id from copia)),
+  18,
+  'duplicar modelo copia os mapas apontando para a cópia'
 );
 
 select * from finish();
