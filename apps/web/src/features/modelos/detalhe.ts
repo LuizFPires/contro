@@ -25,9 +25,9 @@ export interface AtividadeDetalhe {
   duracao_du: number;
   pai_id: string | null;
   em_sequencia: boolean;
-  /** Pré-obra: a atividade da obra que esta etapa prepara (ex.: mapa de coleta). */
-  mapa_alvo_id: string | null;
+  /** Pré-obra: antecedência do mapa (null = não é mapa) e as atividades que ele libera. */
   mapa_antecedencia_du: number | null;
+  mapaLibera: string[];
   predecessoras: string[];
   providencias: Providencia[];
 }
@@ -48,14 +48,14 @@ export interface NovaAtividade {
   subitens: { nome: string; duracao_du: number; em_sequencia: boolean }[];
   predecessoras: string[];
   providencias: { tipo: string; descricao: string; antecedencia_du: number }[];
-  /** Pré-obra: atividade que prepara e quantos dias úteis antes do início dela termina. */
-  mapaAlvoId?: string | null;
+  /** Pré-obra: atividades que libera e quantos dias úteis antes da mais cedo termina. */
+  mapaLibera?: string[];
   mapaAntecedenciaDu?: number | null;
 }
 
 export async function loadModeloCompleto(id: string): Promise<ModeloCompleto | null> {
   if (!supabase) return null;
-  const [mRes, fRes, aRes, dRes, pRes] = await Promise.all([
+  const [mRes, fRes, aRes, dRes, pRes, lRes] = await Promise.all([
     supabase.from('modelo').select('id,nome,subtitulo').eq('id', id).maybeSingle(),
     supabase
       .from('modelo_fase')
@@ -64,9 +64,7 @@ export async function loadModeloCompleto(id: string): Promise<ModeloCompleto | n
       .order('ordem'),
     supabase
       .from('modelo_atividade')
-      .select(
-        'id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,mapa_alvo_id,mapa_antecedencia_du',
-      )
+      .select('id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,mapa_antecedencia_du')
       .eq('modelo_id', id)
       .order('ordem'),
     supabase.from('modelo_dependencia').select('atividade_id,predecessora_id').eq('modelo_id', id),
@@ -74,7 +72,11 @@ export async function loadModeloCompleto(id: string): Promise<ModeloCompleto | n
       .from('modelo_providencia')
       .select('id,atividade_id,tipo,descricao,antecedencia_du')
       .eq('modelo_id', id),
+    supabase.from('modelo_mapa_libera').select('mapa_id,atividade_id').eq('modelo_id', id),
   ]);
+  const liberaPorMapa = new Map<string, string[]>();
+  for (const l of (lRes.data ?? []) as { mapa_id: string; atividade_id: string }[])
+    liberaPorMapa.set(l.mapa_id, [...(liberaPorMapa.get(l.mapa_id) ?? []), l.atividade_id]);
 
   const m = mRes.data as { id: string; nome: string; subtitulo: string | null } | null;
   if (!m) return null;
@@ -93,9 +95,10 @@ export async function loadModeloCompleto(id: string): Promise<ModeloCompleto | n
   }
 
   const atividades: AtividadeDetalhe[] = (
-    (aRes.data ?? []) as Omit<AtividadeDetalhe, 'predecessoras' | 'providencias'>[]
+    (aRes.data ?? []) as Omit<AtividadeDetalhe, 'predecessoras' | 'providencias' | 'mapaLibera'>[]
   ).map((a) => ({
     ...a,
+    mapaLibera: liberaPorMapa.get(a.id) ?? [],
     predecessoras: predsPorAtv.get(a.id) ?? [],
     providencias: provsPorAtv.get(a.id) ?? [],
   }));
@@ -142,12 +145,21 @@ export async function salvarAtividade(a: NovaAtividade): Promise<string> {
     p_providencias: a.providencias,
   });
   if (error) throw error;
-  if (a.mapaAlvoId) {
+  if (a.mapaLibera?.length) {
+    const novo = data as string;
     const r = await supabase
       .from('modelo_atividade')
-      .update({ mapa_alvo_id: a.mapaAlvoId, mapa_antecedencia_du: a.mapaAntecedenciaDu ?? 0 })
-      .eq('id', data as string);
+      .update({ mapa_antecedencia_du: a.mapaAntecedenciaDu ?? 0 })
+      .eq('id', novo);
     if (r.error) throw r.error;
+    const l = await supabase.from('modelo_mapa_libera').insert(
+      a.mapaLibera.map((atividade_id) => ({
+        modelo_id: a.modeloId,
+        mapa_id: novo,
+        atividade_id,
+      })),
+    );
+    if (l.error) throw l.error;
   }
   return data as string;
 }

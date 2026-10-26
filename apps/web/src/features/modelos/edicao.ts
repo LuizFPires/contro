@@ -66,8 +66,8 @@ export interface AtividadeEditada {
   subitens: { nome: string; duracao_du: number; em_sequencia: boolean }[];
   predecessoras: string[];
   providencias: { tipo: string; descricao: string; antecedencia_du: number }[];
-  /** Pré-obra: atividade que prepara e quantos dias úteis antes do início dela termina. */
-  mapaAlvoId?: string | null;
+  /** Pré-obra: atividades que libera e quantos dias úteis antes da mais cedo termina. */
+  mapaLibera?: string[];
   mapaAntecedenciaDu?: number | null;
 }
 
@@ -108,11 +108,25 @@ export async function atualizarAtividade(
       .update({
         nome: e.nome,
         duracao_du: e.duracaoDu,
-        mapa_alvo_id: e.mapaAlvoId ?? null,
-        mapa_antecedencia_du: e.mapaAlvoId ? (e.mapaAntecedenciaDu ?? 0) : null,
+        mapa_antecedencia_du: e.mapaLibera?.length ? (e.mapaAntecedenciaDu ?? 0) : null,
       })
       .eq('id', atv.id),
   );
+
+  // Pré-obra: o que o mapa libera (troca a lista inteira).
+  if (e.mapaLibera) {
+    ok(await sb.from('modelo_mapa_libera').delete().eq('mapa_id', atv.id));
+    if (e.mapaLibera.length)
+      ok(
+        await sb.from('modelo_mapa_libera').insert(
+          e.mapaLibera.map((atividade_id) => ({
+            modelo_id: modeloId,
+            mapa_id: atv.id,
+            atividade_id,
+          })),
+        ),
+      );
+  }
 
   // 3) Subitens (um nível só): troca a lista inteira.
   ok(await sb.from('modelo_atividade').delete().eq('pai_id', atv.id));

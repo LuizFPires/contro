@@ -71,7 +71,7 @@ export function AssistenteAtividade({
       .map((s) => ({ nome: s.nome, duracao_du: s.duracao_du, em_sequencia: s.em_sequencia })),
   );
   const [preds, setPreds] = useState<string[]>(original?.predecessoras ?? []);
-  const [alvo, setAlvo] = useState<string | null>(original?.mapa_alvo_id ?? null);
+  const [alvos, setAlvos] = useState<string[]>(original?.mapaLibera ?? []);
   const [antecedencia, setAntecedencia] = useState(original?.mapa_antecedencia_du ?? 5);
   const [provs, setProvs] = useState<Prov[]>(
     () =>
@@ -158,8 +158,8 @@ export function AssistenteAtividade({
       duracaoDu: dur,
       subitens: subitens.map((s) => ({ ...s, nome: s.nome.trim() || 'Subitem' })),
       predecessoras: preObra ? [] : preds,
-      mapaAlvoId: preObra ? alvo : null,
-      mapaAntecedenciaDu: preObra && alvo ? antecedencia : null,
+      mapaLibera: preObra ? alvos : undefined,
+      mapaAntecedenciaDu: preObra && alvos.length ? antecedencia : null,
       providencias: provs
         .filter((p) => p.descricao.trim())
         .map((p) => ({ ...p, descricao: p.descricao.trim() })),
@@ -448,43 +448,44 @@ export function AssistenteAtividade({
 
         {passo === 3 && preObra ? (
           <div className={styles.etapa}>
-            <h2 className={styles.pergunta}>O que esta etapa prepara?</h2>
+            <h2 className={styles.pergunta}>O que esta etapa libera?</h2>
             <div className={styles.explica}>
-              Pré-obra: escolha a atividade da obra que esta etapa libera (ex.: o mapa de coleta do
-              eletricista prepara a Infra de elétrica). Ela termina antes do início dessa atividade.
-              É só um aviso para se programar: nada trava.
+              Pré-obra: marque as atividades da obra que esta etapa libera (ex.: o mapa do
+              empreiteiro civil libera mobilização, demolições, alvenarias e contrapiso). Ela
+              termina antes da mais cedo delas. É só um aviso para se programar: nada trava.
             </div>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={alvo === null}
-              className={`${styles.opcao} ${alvo === null ? styles.opcaoOn : ''}`}
-              onClick={() => setAlvo(null)}
-            >
-              <span className={`${styles.caixinha} ${alvo === null ? styles.caixinhaOn : ''}`}>
-                {alvo === null ? <Icon name="check" size={16} strokeWidth={3} /> : null}
-              </span>
-              <span className={styles.opcaoTexto}>
-                <b>Nenhuma em especial</b>
-                <span className={styles.miuda}>
-                  Termina antes da primeira etapa que prepara algo
-                </span>
-              </span>
-            </button>
-            <div className={styles.secao}>Libera qual atividade da obra?</div>
+            {alvos.length ? (
+              <div className={styles.selecionadas}>
+                {alvos.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={styles.selecionada}
+                    aria-label={`Desmarcar ${nomeDe(p)}`}
+                    onClick={() => setAlvos((arr) => arr.filter((x) => x !== p))}
+                  >
+                    <span>{nomeDe(p)}</span>
+                    <Icon name="close" size={16} />
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className={styles.secao}>Atividades da obra</div>
             {topo
               .filter((a) => !fasesPre.has(a.fase_id))
               .sort((a, b) => (numeros.get(a.id) ?? 0) - (numeros.get(b.id) ?? 0))
               .map((a) => {
-                const on = alvo === a.id;
+                const on = alvos.includes(a.id);
                 return (
                   <button
                     key={a.id}
                     type="button"
-                    role="radio"
+                    role="checkbox"
                     aria-checked={on}
                     className={`${styles.opcao} ${on ? styles.opcaoOn : ''}`}
-                    onClick={() => setAlvo(a.id)}
+                    onClick={() =>
+                      setAlvos((arr) => (on ? arr.filter((x) => x !== a.id) : [...arr, a.id]))
+                    }
                   >
                     <span className={`${styles.caixinha} ${on ? styles.caixinhaOn : ''}`}>
                       {on ? <Icon name="check" size={16} strokeWidth={3} /> : null}
@@ -501,9 +502,9 @@ export function AssistenteAtividade({
                   </button>
                 );
               })}
-            {alvo ? (
+            {alvos.length ? (
               <>
-                <div className={styles.secao}>Fechar quantos dias úteis antes do início dela?</div>
+                <div className={styles.secao}>Fechar quantos dias úteis antes da mais cedo?</div>
                 <div className={styles.abas}>
                   {ANTECEDENCIAS.map((n) => (
                     <button
@@ -738,9 +739,9 @@ export function AssistenteAtividade({
               },
               preObra
                 ? {
-                    rot: 'Prepara (pré-obra · só aviso)',
-                    val: alvo
-                      ? `${nomeDe(alvo)} · fecha ${antecedencia ? `${antecedencia} du antes` : 'no dia'} do início`
+                    rot: 'Libera (pré-obra · só aviso)',
+                    val: alvos.length
+                      ? `${alvos.map(nomeDe).join(', ')} · fecha ${antecedencia ? `${antecedencia} du antes` : 'no dia'}`
                       : 'nenhuma em especial',
                     ir: 3,
                   }

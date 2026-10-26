@@ -23,26 +23,36 @@ describe('deslocarDU', () => {
 
 describe('cronogramaPreObra', () => {
   const pre = cronogramaPreObra(INICIO, cron, [
-    { id: 'orc', duracao_du: 15 },
-    { id: 's1', pai_id: 'orc', duracao_du: 5, em_sequencia: true },
-    { id: 's2', pai_id: 'orc', duracao_du: 5, em_sequencia: true },
-    { id: 's3', pai_id: 'orc', duracao_du: 5, em_sequencia: true },
-    // Equipamentos de ar: contratar até ES(ar)=2 − 30 = dia −28.
-    { id: 'm1', duracao_du: 5, mapaAlvoId: 'ar', mapaAntecedenciaDu: 30 },
-    // Locações: contratar até ES(mob)=0 − 3 = dia −3.
-    { id: 'm2', duracao_du: 5, mapaAlvoId: 'mob', mapaAntecedenciaDu: 3 },
+    // Orçamento: 3 atividades em sequência.
+    { id: 'o1', duracao_du: 5 },
+    { id: 'o2', duracao_du: 5, predecessoras: ['o1'] },
+    { id: 'o3', duracao_du: 5, predecessoras: ['o2'] },
+    // Equipamentos de ar: libera ar (ES 2) − 30 = dia −28.
+    { id: 'm1', duracao_du: 5, mapaAlvos: ['ar'], mapaAntecedenciaDu: 30 },
+    // Empreiteiro: libera mob (ES 0) e ar (ES 2) → vale a mais cedo: 0 − 3 = dia −3.
+    { id: 'm2', duracao_du: 5, mapaAlvos: ['ar', 'mob'], mapaAntecedenciaDu: 3 },
   ]);
 
-  it('mapa termina quando a contratação precisa estar fechada', () => {
+  it('mapa termina antes da mais cedo das atividades que libera', () => {
     expect(pre.m1).toMatchObject({ es: -33, ef: -28 });
     expect(pre.m2).toMatchObject({ es: -8, ef: -3 });
     expect(pre.m2.fim_previsto).toBe(deslocarDU(INICIO, -4));
   });
 
-  it('Orçamento termina antes do primeiro mapa e os subitens seguem em sequência', () => {
-    expect(pre.orc).toMatchObject({ es: -48, ef: -33 });
-    expect(pre.s1).toMatchObject({ es: -48, ef: -43 });
-    expect(pre.s3).toMatchObject({ es: -38, ef: -33 });
-    expect(pre.orc.inicio_previsto < pre.m1.inicio_previsto).toBe(true);
+  it('Orçamento termina antes do primeiro mapa, na sequência #1 → #2 → #3', () => {
+    expect(pre.o3).toMatchObject({ es: -38, ef: -33 });
+    expect(pre.o2).toMatchObject({ es: -43, ef: -38 });
+    expect(pre.o1).toMatchObject({ es: -48, ef: -43 });
+    expect(pre.o1.inicio_previsto < pre.m1.inicio_previsto).toBe(true);
+  });
+
+  it('subitens seguem dentro da atividade', () => {
+    const p = cronogramaPreObra(INICIO, cron, [
+      { id: 'x', duracao_du: 10 },
+      { id: 'x1', pai_id: 'x', duracao_du: 4, em_sequencia: true },
+      { id: 'x2', pai_id: 'x', duracao_du: 6, em_sequencia: true },
+    ]);
+    expect(p.x).toMatchObject({ es: -10, ef: 0 });
+    expect(p.x2).toMatchObject({ es: -6, ef: 0 });
   });
 });

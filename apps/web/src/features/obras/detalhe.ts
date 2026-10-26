@@ -44,9 +44,9 @@ export interface ObraAtv {
   /** Foto da conclusão; null = concluída sem foto (ou aberta). */
   foto_conclusao_id: string | null;
   prestador: string | null;
-  /** Mapa de coleta: a atividade da obra que ele libera e a antecedência. */
-  mapa_alvo_id: string | null;
+  /** Mapa de coleta: antecedência (null = não é mapa) e as atividades que libera. */
   mapa_antecedencia_du: number | null;
+  mapaLibera: string[];
   /** Está numa fase de pré-obra (calculada no carregamento). */
   preObra: boolean;
   predecessoras: string[];
@@ -84,7 +84,7 @@ export interface ObraCompleta {
 export async function loadObra(id: string): Promise<ObraCompleta | null> {
   if (!supabase) return null;
   const hoje = hojeISO();
-  const [oRes, fRes, aRes, dRes, pRes] = await Promise.all([
+  const [oRes, fRes, aRes, dRes, pRes, lRes] = await Promise.all([
     supabase
       .from('obra')
       .select('id,nome,inicio,modelo_rotulo,xp,entrega_original')
@@ -100,7 +100,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
       .from('obra_atividade')
       .select(
         'id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,foto_conclusao_id,prestador,' +
-          'mapa_alvo_id,mapa_antecedencia_du',
+          'mapa_antecedencia_du',
       )
       .eq('obra_id', id)
       .is('deleted_at', null)
@@ -116,6 +116,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
           'feito:pessoa!feito_por(nome)',
       )
       .eq('obra_id', id),
+    supabase.from('obra_mapa_libera').select('mapa_id,atividade_id').eq('obra_id', id),
   ]);
 
   const o = oRes.data as {
@@ -157,11 +158,18 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
 
   const fases = (fRes.data ?? []) as ObraFase[];
   const faseePre = new Set(fases.filter((f) => f.preliminar).map((f) => f.id));
+  const liberaPorMapa = new Map<string, string[]>();
+  for (const l of (lRes.data ?? []) as { mapa_id: string; atividade_id: string }[])
+    liberaPorMapa.set(l.mapa_id, [...(liberaPorMapa.get(l.mapa_id) ?? []), l.atividade_id]);
   const atividades: ObraAtv[] = (
-    (aRes.data ?? []) as unknown as Omit<ObraAtv, 'predecessoras' | 'providencias' | 'preObra'>[]
+    (aRes.data ?? []) as unknown as Omit<
+      ObraAtv,
+      'predecessoras' | 'providencias' | 'preObra' | 'mapaLibera'
+    >[]
   ).map((a) => ({
     ...a,
     preObra: faseePre.has(a.fase_id),
+    mapaLibera: liberaPorMapa.get(a.id) ?? [],
     predecessoras: predsPorAtv.get(a.id) ?? [],
     defasagens: defasPorAtv.get(a.id) ?? {},
     providencias: provPorAtv.get(a.id) ?? [],
@@ -213,7 +221,8 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
         pai_id: a.pai_id,
         duracao_du: a.duracao_du,
         em_sequencia: a.em_sequencia,
-        mapaAlvoId: a.mapa_alvo_id,
+        predecessoras: a.predecessoras,
+        mapaAlvos: a.mapaLibera,
         mapaAntecedenciaDu: a.mapa_antecedencia_du,
       })),
   );

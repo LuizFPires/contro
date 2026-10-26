@@ -134,8 +134,8 @@ export function FaseModelo({
                     </span>
                   ))}
                 <span className={styles.atvDep}>
-                  {a.mapa_alvo_id
-                    ? `pré-obra · prepara #${idx.get(a.mapa_alvo_id) ?? '?'} · fecha ${a.mapa_antecedencia_du ? `${a.mapa_antecedencia_du} du antes` : 'no dia'}`
+                  {a.mapaLibera.length
+                    ? `pré-obra · libera ${a.mapaLibera.map((x) => `#${idx.get(x) ?? '?'}`).join(', ')} · fecha ${a.mapa_antecedencia_du ? `${a.mapa_antecedencia_du} du antes` : 'no dia'}`
                     : a.predecessoras.length
                       ? `depois de ${a.predecessoras.map((p) => `#${idx.get(p) ?? '?'}`).join(', ')}`
                       : modelo.fases.find((f) => f.id === a.fase_id)?.preliminar
