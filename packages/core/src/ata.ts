@@ -32,3 +32,39 @@ export function textoAtaWhatsapp(dataFmt: string, obras: ObraAta[]): string {
   L.push('Ata completa (PDF) no app CONTRO.');
   return L.join('\n');
 }
+
+/** Providência registrada em reunião (tarefa com origem "Reunião dd/mm"). */
+export interface ProvidenciaReuniao {
+  origem: string | null;
+  concluida: boolean;
+  atrasada: boolean;
+}
+
+/** Origem gravada nas providências criadas numa reunião ("Reunião 26/10"). */
+export function origemReuniao(dataDiaMes: string): string {
+  return `Reunião ${dataDiaMes}`;
+}
+
+/** É uma providência de reunião anterior: veio de reunião, mas não da atual. */
+export function deReuniaoAnterior(
+  p: Pick<ProvidenciaReuniao, 'origem'>,
+  origemAtual: string,
+): boolean {
+  return Boolean(p.origem?.startsWith('Reunião ')) && p.origem !== origemAtual;
+}
+
+/**
+ * Indicadores do topo da reunião e da ata (protótipo): providências de reuniões
+ * anteriores cumpridas e atrasadas, e as novas registradas nesta reunião.
+ */
+export function resumoReuniao(
+  providencias: ProvidenciaReuniao[],
+  origemAtual: string,
+): { cumpridas: number; atrasadas: number; novas: number } {
+  const anteriores = providencias.filter((p) => deReuniaoAnterior(p, origemAtual));
+  return {
+    cumpridas: anteriores.filter((p) => p.concluida).length,
+    atrasadas: anteriores.filter((p) => p.atrasada).length,
+    novas: providencias.filter((p) => p.origem === origemAtual).length,
+  };
+}
