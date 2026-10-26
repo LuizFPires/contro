@@ -126,9 +126,13 @@ export function FaseModelo({
               <span className={styles.atvCorpo}>
                 <span className={styles.atvNome}>{a.nome}</span>
                 <span className={styles.atvDep}>
-                  {a.predecessoras.length
-                    ? `depois de ${a.predecessoras.map((p) => `#${idx.get(p) ?? '?'}`).join(', ')}`
-                    : 'começa no início da obra'}
+                  {a.mapa_alvo_id
+                    ? `pré-obra · prepara #${idx.get(a.mapa_alvo_id) ?? '?'} · fecha ${a.mapa_antecedencia_du ? `${a.mapa_antecedencia_du} du antes` : 'no dia'}`
+                    : a.predecessoras.length
+                      ? `depois de ${a.predecessoras.map((p) => `#${idx.get(p) ?? '?'}`).join(', ')}`
+                      : modelo.fases.find((f) => f.id === a.fase_id)?.preliminar
+                        ? 'pré-obra · antes do dia 0'
+                        : 'começa no início da obra'}
                 </span>
                 {tags.length || c?.critico ? (
                   <span className={styles.chips}>

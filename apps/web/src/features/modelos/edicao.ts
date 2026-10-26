@@ -66,6 +66,9 @@ export interface AtividadeEditada {
   subitens: { nome: string; duracao_du: number; em_sequencia: boolean }[];
   predecessoras: string[];
   providencias: { tipo: string; descricao: string; antecedencia_du: number }[];
+  /** Pré-obra: atividade que prepara e quantos dias úteis antes do início dela termina. */
+  mapaAlvoId?: string | null;
+  mapaAntecedenciaDu?: number | null;
 }
 
 /**
@@ -102,7 +105,12 @@ export async function atualizarAtividade(
   ok(
     await sb
       .from('modelo_atividade')
-      .update({ nome: e.nome, duracao_du: e.duracaoDu })
+      .update({
+        nome: e.nome,
+        duracao_du: e.duracaoDu,
+        mapa_alvo_id: e.mapaAlvoId ?? null,
+        mapa_antecedencia_du: e.mapaAlvoId ? (e.mapaAntecedenciaDu ?? 0) : null,
+      })
       .eq('id', atv.id),
   );
 
