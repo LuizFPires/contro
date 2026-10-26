@@ -11,7 +11,14 @@
   color: var(--contro-text);
 }
 
+.wrap {
+  position: relative;
+  display: flex;
+}
+
 .input {
+  flex: 1;
+  width: 100%;
   min-height: var(--contro-control-h);
   padding: 0 var(--contro-space-4);
   border: none;
@@ -20,6 +27,19 @@
   box-shadow: inset 0 0 0 1.5px var(--contro-border);
   font-size: var(--contro-fs-body);
   color: var(--contro-text);
+}
+
+/* Espaço à direita para o adorno (ex.: botão de revelar senha). */
+.input.comTrailing {
+  padding-right: calc(var(--contro-touch) + var(--contro-space-1));
+}
+
+.trailing {
+  position: absolute;
+  right: var(--contro-space-1);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
 }
 
 .input::placeholder {

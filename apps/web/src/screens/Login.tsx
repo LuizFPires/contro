@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Button, Icon, Input, Logo } from '@contro/ui';
+import { Button, Icon, Input, Logo, PasswordInput } from '@contro/ui';
 import { supabase } from '../lib/supabase';
 import { supabaseConfigurado } from '../lib/env';
 import styles from './Login.module.css';
@@ -18,6 +18,7 @@ export function Login() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [confirmar, setConfirmar] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -26,6 +27,7 @@ export function Login() {
     setModo(m);
     setErro(null);
     setMsg(null);
+    setConfirmar('');
   }
 
   async function onSubmit(e: FormEvent) {
@@ -44,6 +46,10 @@ export function Login() {
       } else if (modo === 'signup') {
         if (!nome.trim()) {
           setErro('Informe seu nome.');
+          return;
+        }
+        if (senha !== confirmar) {
+          setErro('As senhas não conferem.');
           return;
         }
         const { data, error } = await supabase.auth.signUp({
@@ -130,13 +136,22 @@ export function Login() {
           />
 
           {modo !== 'forgot' ? (
-            <Input
+            <PasswordInput
               label="Senha"
-              type="password"
               autoComplete={modo === 'signup' ? 'new-password' : 'current-password'}
               required
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
+            />
+          ) : null}
+
+          {modo === 'signup' ? (
+            <PasswordInput
+              label="Repita a senha"
+              autoComplete="new-password"
+              required
+              value={confirmar}
+              onChange={(e) => setConfirmar(e.target.value)}
             />
           ) : null}
 

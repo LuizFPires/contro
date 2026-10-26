@@ -5,7 +5,8 @@ import { GESTOR } from './global-setup';
 export async function login(page: Page): Promise<void> {
   await page.goto('/');
   await page.getByLabel('E-mail').fill(GESTOR.email);
-  await page.getByLabel('Senha').fill(GESTOR.senha);
+  // exact: o botão de revelar tem aria-label "Mostrar senha" (contém "Senha").
+  await page.getByLabel('Senha', { exact: true }).fill(GESTOR.senha);
   await page.getByRole('button', { name: 'Entrar' }).click();
   await expect(page.getByText('Minhas obras')).toBeVisible();
 }

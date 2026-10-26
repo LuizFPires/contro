@@ -9,6 +9,8 @@ export type { CardProps } from './components/Card';
 
 export { Input } from './components/Input';
 export type { InputProps } from './components/Input';
+export { PasswordInput } from './components/PasswordInput';
+export type { PasswordInputProps } from './components/PasswordInput';
 
 export { Segmented } from './components/Segmented';
 export type { SegmentedProps, SegmentedOption } from './components/Segmented';
