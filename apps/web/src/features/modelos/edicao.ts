@@ -118,15 +118,13 @@ export async function atualizarAtividade(
     ok(await sb.from('modelo_mapa_libera').delete().eq('mapa_id', atv.id));
     if (e.mapaLibera.length)
       ok(
-        await sb
-          .from('modelo_mapa_libera')
-          .insert(
-            e.mapaLibera.map((atividade_id) => ({
-              modelo_id: modeloId,
-              mapa_id: atv.id,
-              atividade_id,
-            })),
-          ),
+        await sb.from('modelo_mapa_libera').insert(
+          e.mapaLibera.map((atividade_id) => ({
+            modelo_id: modeloId,
+            mapa_id: atv.id,
+            atividade_id,
+          })),
+        ),
       );
   }
 

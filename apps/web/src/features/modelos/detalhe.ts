@@ -152,15 +152,13 @@ export async function salvarAtividade(a: NovaAtividade): Promise<string> {
       .update({ mapa_antecedencia_du: a.mapaAntecedenciaDu ?? 0 })
       .eq('id', novo);
     if (r.error) throw r.error;
-    const l = await supabase
-      .from('modelo_mapa_libera')
-      .insert(
-        a.mapaLibera.map((atividade_id) => ({
-          modelo_id: a.modeloId,
-          mapa_id: novo,
-          atividade_id,
-        })),
-      );
+    const l = await supabase.from('modelo_mapa_libera').insert(
+      a.mapaLibera.map((atividade_id) => ({
+        modelo_id: a.modeloId,
+        mapa_id: novo,
+        atividade_id,
+      })),
+    );
     if (l.error) throw l.error;
   }
   return data as string;
