@@ -6,7 +6,7 @@ Guia para o Claude Code trabalhar neste repositório. Leia este arquivo inteiro 
 O CONTRO é um app (PWA, mobile first) para planejar e acompanhar as obras de reforma das unidades Contorno do Corpo.
 
 Cada obra nasce de um **modelo de obra** escolhido entre os modelos salvos (ex.: Modelo 1 · CDC completo, com 28 atividades em 6 fases, prazos médios em dias úteis, dependências e lembretes de providência) e é conduzida como um jogo de fases:
-- concluir atividade **com foto**;
+- concluir atividade **com ou sem foto** (sem foto, dá para anexar depois);
 - resolver pendência com **antes e depois**;
 - lembretes de contratação, locação e compra;
 - boletim semanal pelo WhatsApp e em PDF;
@@ -49,7 +49,7 @@ pnpm lint && pnpm typecheck
 ## Regras que não podem ser quebradas
 1. **Regra de domínio só em `packages/core`.** Telas e pdf-service importam do core e nunca recalculam por conta própria. Toda função do core tem teste.
 2. **Cronograma em dias úteis de segunda a sexta, sem feriados.** Não crie cadastro de feriados (decisão do produto); o usuário ajusta datas manualmente com `inicio_manual`. Nunca use dias corridos.
-3. **Atividade liberada = predecessoras concluídas E lembretes providenciados.** Só conclui **com foto**. Atividade com subitens tem prazo derivado dos subitens (sequência ou paralelo) e só conclui depois de todos os subitens marcados. Subitem tem um nível só.
+3. **Atividade liberada = predecessoras concluídas E lembretes providenciados.** Conclui **com ou sem foto** (decisão do usuário em 26/10/2026): sem foto, fica "Concluída · sem foto" e a foto pode ser anexada depois. Atividade com subitens tem prazo derivado dos subitens (sequência ou paralelo) e só conclui depois de todos os subitens marcados. Subitem tem um nível só.
 4. **Lembretes de contratação, locação e compra não têm valor nem fornecedor.** Só tipo, descrição, data na obra e status (pendente/feito). Não adicione esses campos (decisão do produto: isso é de outro sistema).
 5. **Pendência só fecha com foto de depois aprovada por outra pessoa** (vistoriador ≠ quem resolveu).
 6. **Obra é cópia do modelo escolhido.** Editar a obra nunca altera o modelo, e editar um modelo nunca altera obras já criadas. Não há versões nem "publicar": há vários modelos salvos (nome + subtítulo).

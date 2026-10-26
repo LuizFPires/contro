@@ -12,6 +12,7 @@ export function montarTrilha(obra: ObraCompleta): FaseTrilha[] {
       nome: a.nome,
       predecessoras: a.predecessoras,
       prestador: a.prestador,
+      temFoto: Boolean(a.foto_conclusao_id),
       providenciasPendentes: a.providencias
         .filter((p) => p.status === 'pendente')
         .map((p) => ({ tipo: p.tipo, descricao: p.descricao })),

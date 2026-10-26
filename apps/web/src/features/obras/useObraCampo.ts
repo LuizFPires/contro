@@ -104,38 +104,82 @@ export function useObraCampo(obraId: string) {
       removerPredecessora(obraId, v.atividadeId, v.predecessoraId),
     onSuccess: inval,
   });
-  // Conclusão OTIMISTA e offline: guarda a foto no Dexie (sobe em 2º plano),
-  // enfileira a op (idempotente) e marca a atividade concluída na hora. A fase/XP
-  // são calculados no cliente e devolvidos para a celebração.
+  // Patch otimista de uma atividade na obra em cache (cancela refetch, guarda o anterior).
+  const patchAtv = async (
+    atividadeId: string,
+    troca: (a: ObraCompleta['atividades'][number]) => ObraCompleta['atividades'][number],
+    xp = 0,
+  ) => {
+    await qc.cancelQueries({ queryKey: ['obra', obraId] });
+    const prev = qc.getQueryData<ObraCompleta>(['obra', obraId]);
+    if (prev) {
+      qc.setQueryData<ObraCompleta>(['obra', obraId], {
+        ...prev,
+        xp: Math.max(0, prev.xp + xp),
+        atividades: prev.atividades.map((a) => (a.id === atividadeId ? troca(a) : a)),
+      });
+    }
+    return { prev };
+  };
+  const reverter = (ctx: { prev?: ObraCompleta } | undefined) => {
+    if (ctx?.prev) qc.setQueryData(['obra', obraId], ctx.prev);
+  };
+
+  // Conclusão OTIMISTA e offline, COM ou SEM foto: a foto (se houver) fica no
+  // Dexie e sobe em 2º plano; a op é idempotente. Fase/XP vêm do core.
   const concluir = useMutation({
     networkMode: 'always',
     mutationFn: async (v: {
       atividadeId: string;
-      file: File;
+      file: File | null;
       faseFechada?: boolean;
       xp?: number;
     }) => {
-      const fotoLocalId = await guardarFotoLocal(obraId, v.file);
+      const fotoLocalId = v.file ? await guardarFotoLocal(obraId, v.file) : null;
       await enfileirar('concluir_atividade', { obraId, atividadeId: v.atividadeId, fotoLocalId });
       return { xp: v.xp ?? 50, fase_fechada: v.faseFechada ?? false };
     },
-    onMutate: async (v) => {
-      await qc.cancelQueries({ queryKey: ['obra', obraId] });
-      const prev = qc.getQueryData<ObraCompleta>(['obra', obraId]);
-      if (prev) {
-        qc.setQueryData<ObraCompleta>(['obra', obraId], {
-          ...prev,
-          xp: prev.xp + (v.xp ?? 50),
-          atividades: prev.atividades.map((a) =>
-            a.id === v.atividadeId ? { ...a, concluida_em: new Date().toISOString() } : a,
-          ),
-        });
-      }
-      return { prev };
+    onMutate: (v) =>
+      patchAtv(
+        v.atividadeId,
+        (a) => ({
+          ...a,
+          concluida_em: new Date().toISOString(),
+          // Marca "com foto" na hora; o id real chega quando a foto sobe.
+          foto_conclusao_id: v.file ? 'pendente' : null,
+        }),
+        v.xp ?? 50,
+      ),
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+
+  // Anexar a foto a uma atividade concluída sem foto (otimista e offline).
+  const anexarFoto = useMutation({
+    networkMode: 'always',
+    mutationFn: async (v: { atividadeId: string; file: File }) => {
+      const fotoLocalId = await guardarFotoLocal(obraId, v.file);
+      await enfileirar('anexar_foto_conclusao', {
+        obraId,
+        atividadeId: v.atividadeId,
+        fotoLocalId,
+      });
     },
-    onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(['obra', obraId], ctx.prev);
-    },
+    onMutate: (v) => patchAtv(v.atividadeId, (a) => ({ ...a, foto_conclusao_id: 'pendente' })),
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+
+  // "Desfazer" da conclusão (regra 10): reabre na hora e devolve o XP.
+  const desfazer = useMutation({
+    networkMode: 'always',
+    mutationFn: (v: { atividadeId: string; xp: number }) =>
+      enfileirar('desfazer_conclusao', { obraId, atividadeId: v.atividadeId }),
+    onMutate: (v) =>
+      patchAtv(
+        v.atividadeId,
+        (a) => ({ ...a, concluida_em: null, foto_conclusao_id: null }),
+        -v.xp,
+      ),
+    onError: (_e, _v, ctx) => reverter(ctx),
   });
 
   return {
@@ -149,5 +193,7 @@ export function useObraCampo(obraId: string) {
     addPred,
     removerPred,
     concluir,
+    anexarFoto,
+    desfazer,
   };
 }

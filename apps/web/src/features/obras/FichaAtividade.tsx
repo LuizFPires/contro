@@ -34,7 +34,8 @@ export function FichaAtividade({
   const conclusao = useConcluirAtividade(obra);
   const { showToast } = useToast();
   const [novoTipo, setNovoTipo] = useState<Tipo | null>(null);
-  const [camera, setCamera] = useState(false);
+  // Câmera para concluir ou para anexar a foto a uma conclusão sem foto.
+  const [camera, setCamera] = useState<'concluir' | 'anexar' | null>(null);
   const [ajustes, setAjustes] = useState(false);
 
   const dados = useMemo(() => {
@@ -285,15 +286,43 @@ export function FichaAtividade({
           </div>
 
           {podeConcluir ? (
-            <button
-              type="button"
-              className={styles.concluir}
-              disabled={conclusao.pendente}
-              onClick={() => setCamera(true)}
-            >
-              <Icon name="camera" size={20} strokeWidth={2} />
-              {conclusao.pendente ? 'Concluindo…' : 'Concluir com foto'}
-            </button>
+            <div className={styles.concluirAcoes}>
+              <button
+                type="button"
+                className={styles.concluir}
+                disabled={conclusao.pendente}
+                onClick={() => setCamera('concluir')}
+              >
+                <Icon name="camera" size={20} strokeWidth={2} />
+                {conclusao.pendente ? 'Concluindo…' : 'Concluir com foto'}
+              </button>
+              <button
+                type="button"
+                className={styles.concluirSemFoto}
+                disabled={conclusao.pendente}
+                onClick={() => conclusao.concluir(a.id, null, (r, det) => onConcluida(r, det))}
+              >
+                Concluir sem foto
+              </button>
+            </div>
+          ) : a.concluida_em && !a.foto_conclusao_id ? (
+            <div className={styles.semFoto}>
+              <span>
+                <b>Concluída sem foto</b>
+                <span className={styles.semFotoTexto}>
+                  Anexe a foto quando puder, para o registro da etapa.
+                </span>
+              </span>
+              <button
+                type="button"
+                className={styles.anexar}
+                disabled={campo.anexarFoto.isPending}
+                onClick={() => setCamera('anexar')}
+              >
+                <Icon name="camera" size={18} strokeWidth={2} />
+                Anexar foto
+              </button>
+            </div>
           ) : bloqueio ? (
             <div className={styles.bloqueio}>{bloqueio}</div>
           ) : null}
@@ -336,18 +365,45 @@ export function FichaAtividade({
         }
       />
 
-      {camera ? (
+      {camera === 'concluir' ? (
         <Camera
           kicker="Foto de conclusão"
           titulo={a.nome}
           dica="Uma foto por ambiente. Ela vira o registro da etapa e libera as próximas atividades."
           pendente={conclusao.pendente}
-          onCancelar={() => setCamera(false)}
+          onCancelar={() => setCamera(null)}
           onCapturar={(file) =>
             conclusao.concluir(a.id, file, (r, det) => {
-              setCamera(false);
+              setCamera(null);
               onConcluida(r, det);
             })
+          }
+          onSemFoto={() =>
+            conclusao.concluir(a.id, null, (r, det) => {
+              setCamera(null);
+              onConcluida(r, det);
+            })
+          }
+        />
+      ) : null}
+      {camera === 'anexar' ? (
+        <Camera
+          kicker="Foto de conclusão"
+          titulo={a.nome}
+          dica="A atividade já está concluída. Esta foto fica como registro da etapa."
+          pendente={campo.anexarFoto.isPending}
+          onCancelar={() => setCamera(null)}
+          onCapturar={(file) =>
+            campo.anexarFoto.mutate(
+              { atividadeId: a.id, file },
+              {
+                onSuccess: () => {
+                  setCamera(null);
+                  showToast({ message: 'Foto anexada à conclusão' });
+                },
+                onError: () => showToast({ message: 'Não foi possível anexar a foto' }),
+              },
+            )
           }
         />
       ) : null}

@@ -230,7 +230,7 @@ Efeito de reabrir: se `efeito_providencia_id` aponta para uma providência `feit
 
 **Providência:** `pendente ⇄ feito`. A edição permite descrição, data na obra e status.
 
-**Atividade:** `planejada → liberada → concluída` (com foto). Reabrir a atividade fica para a v1.1, com permissão de gestor.
+**Atividade:** `planejada → liberada → concluída` (com ou sem foto; sem foto, a foto pode ser anexada depois por `anexar_foto_conclusao`). O "Desfazer" do toast reabre a atividade por `desfazer_conclusao` (só quem concluiu e enquanto nenhuma sucessora foi concluída); reabrir em geral, pelo gestor, fica para a v1.1.
 
 ## 6. Operações (RPC / Edge Functions)
 

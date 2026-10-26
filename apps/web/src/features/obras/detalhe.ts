@@ -34,6 +34,8 @@ export interface ObraAtv {
   em_sequencia: boolean;
   inicio_manual: string | null;
   concluida_em: string | null;
+  /** Foto da conclusão; null = concluída sem foto (ou aberta). */
+  foto_conclusao_id: string | null;
   prestador: string | null;
   predecessoras: string[];
   providencias: ObraProv[];
@@ -75,7 +77,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     supabase
       .from('obra_atividade')
       .select(
-        'id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,prestador',
+        'id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,foto_conclusao_id,prestador',
       )
       .eq('obra_id', id)
       .is('deleted_at', null)

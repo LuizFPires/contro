@@ -18,6 +18,7 @@ import { ProvidenciasAba } from './ProvidenciasAba';
 import { classificarProvidencias } from './providenciasObra';
 import { useObraDetalhe } from './useObraDetalhe';
 import { useConcluirAtividade, type AoConcluir } from './useConcluirAtividade';
+import { useObraCampo } from './useObraCampo';
 import { useObraPendencias } from './useObraPendencias';
 import type { ObraCompleta } from './detalhe';
 import { montarTrilha } from './trilhaObra';
@@ -44,6 +45,7 @@ export function ObraDetalhe({
   const { data: obra, isLoading } = useObraDetalhe(id);
   const pendencias = useObraPendencias(id);
   const { showToast } = useToast();
+  const campo = useObraCampo(id);
   const [faseAberta, setFaseAberta] = useState<string | null>(null);
   const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
   const [cameraAtvId, setCameraAtvId] = useState<string | null>(null);
@@ -82,9 +84,11 @@ export function ObraDetalhe({
     );
   }
 
-  // Concluída com foto: celebra se fechou a fase; senão, avisa o que liberou.
+  // Concluída (com ou sem foto): celebra se fechou a fase; senão, avisa o que
+  // liberou, com Desfazer (regra 10).
   const aoConcluir: AoConcluir = (r, det) => {
     setFichaAtvId(null);
+    const desfazer = () => campo.desfazer.mutate({ atividadeId: det.atividadeId, xp: r.xp });
     if (r.fase_fechada) {
       setCelebra({
         ordem: det.faseOrdem ?? 0,
@@ -94,9 +98,12 @@ export function ObraDetalhe({
         proxOrdem: det.proxOrdem,
       });
     } else if (det.libera.length) {
-      showToast({ message: `"${det.nome}" concluída · liberou ${det.libera.join(', ')}` });
+      showToast({
+        message: `"${det.nome}" concluída · liberou ${det.libera.join(', ')}`,
+        onUndo: desfazer,
+      });
     } else {
-      showToast({ message: `"${det.nome}" concluída · +${r.xp} XP` });
+      showToast({ message: `"${det.nome}" concluída · +${r.xp} XP`, onUndo: desfazer });
     }
   };
 
@@ -273,6 +280,12 @@ function CameraConclusao({
       onCancelar={onFechar}
       onCapturar={(file) =>
         conclusao.concluir(atividadeId, file, (r, det) => {
+          onFechar();
+          onConcluida(r, det);
+        })
+      }
+      onSemFoto={() =>
+        conclusao.concluir(atividadeId, null, (r, det) => {
           onFechar();
           onConcluida(r, det);
         })

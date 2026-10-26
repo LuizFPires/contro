@@ -259,16 +259,41 @@ export async function restaurarTarefa(id: string, clientOpId?: string): Promise<
   if (error) throw error;
 }
 
-/** Conclui a atividade com a foto já enviada (idempotente por client_op_id). */
+/** Conclui a atividade, com a foto já enviada ou sem foto (idempotente por client_op_id). */
 export async function concluirAtividade(
   atividadeId: string,
-  fotoId: string,
+  fotoId: string | null,
   clientOpId?: string,
 ): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('concluir_atividade', {
     p_atividade_id: atividadeId,
     p_foto_id: fotoId,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}
+
+/** Anexa a foto (já enviada) a uma atividade concluída sem foto. */
+export async function anexarFotoConclusao(
+  atividadeId: string,
+  fotoId: string,
+  clientOpId?: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('anexar_foto_conclusao', {
+    p_atividade_id: atividadeId,
+    p_foto_id: fotoId,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}
+
+/** Desfaz a conclusão (só quem concluiu; nenhuma sucessora concluída). */
+export async function desfazerConclusao(atividadeId: string, clientOpId?: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('desfazer_conclusao', {
+    p_atividade_id: atividadeId,
     p_client_op_id: clientOpId ?? null,
   });
   if (error) throw error;

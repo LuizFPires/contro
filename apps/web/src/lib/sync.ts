@@ -2,8 +2,10 @@ import { aposTentativa, classificarErro, proximaOp } from '@contro/core';
 import type { QueryClient } from '@tanstack/react-query';
 import {
   adiarPendencia,
+  anexarFotoConclusao,
   apontarPendencia,
   concluirAtividade,
+  desfazerConclusao,
   concluirTarefa,
   excluirTarefa,
   marcarProvidencia,
@@ -30,10 +32,18 @@ type Handler = (payload: Record<string, unknown>, opId: string) => Promise<void>
 const DISPATCH: Record<string, Handler> = {
   marcar_providencia: (p, opId) => marcarProvidencia(p.id as string, p.feito as boolean, opId),
   concluir_atividade: async (p, opId) => {
-    const fotoId = await subirFotoLocal(p.fotoLocalId as string); // upload com retomada
+    // Foto opcional: sem fotoLocalId, conclui sem foto.
+    const local = (p.fotoLocalId as string | null) ?? null;
+    const fotoId = local ? await subirFotoLocal(local) : null; // upload com retomada
     await concluirAtividade(p.atividadeId as string, fotoId, opId);
+    if (local) await removerFotoLocal(local);
+  },
+  anexar_foto_conclusao: async (p, opId) => {
+    const fotoId = await subirFotoLocal(p.fotoLocalId as string); // upload com retomada
+    await anexarFotoConclusao(p.atividadeId as string, fotoId, opId);
     await removerFotoLocal(p.fotoLocalId as string);
   },
+  desfazer_conclusao: (p, opId) => desfazerConclusao(p.atividadeId as string, opId),
   marcar_subitem: (p, opId) => marcarSubitem(p.subitemId as string, p.feito as boolean, opId),
   concluir_tarefa: (p, opId) => concluirTarefa(p.id as string, opId),
   reabrir_tarefa: (p, opId) => reabrirTarefa(p.id as string, opId),
