@@ -59,6 +59,12 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - Card por obra: nome, fase atual, % real, barra de 6 segmentos (uma por fase), etiqueta de ritmo, data de entrega e aviso em vermelho de atividades e lembretes atrasados.
 - Não há cards de XP nem de contadores gerais na tela inicial (decisão do usuário: o foco é a obra).
 
+### 5.1b Plano de recuperação da inauguração
+- A obra guarda a **inauguração planejada** (fixada na primeira abertura). A **inauguração prevista** considera que toda atividade aberta que já devia ter terminado termina hoje e empurra as seguintes.
+- Quando a prevista passa da planejada, aparece **"Inauguração em risco"** no topo da trilha da obra e no card da obra na aba Hoje, com "Ver plano".
+- **Plano de recuperação** (opção A): sugestões nas **próximas atividades críticas** (ainda não começadas), de dois tipos: **paralelismo** (começar até 2 dias úteis antes do fim da predecessora crítica) e **redução de prazo** (~20%, mín. 1 dia, reforçando a equipe). Cada uma mostra quanto recupera, o que precisa e o risco; o app já marca o mínimo que volta à data planejada. Nada começa antes de hoje.
+- **Aplicar** grava as mudanças no cronograma da obra (com evento) e cria uma providência (tarefa) por sugestão, com prazo 2 dias úteis antes do novo início.
+
 ### 5.2 Nova obra a partir de um modelo
 - Informa a unidade, a segunda-feira de início e **escolhe o modelo a seguir** (lista com nome, subtítulo, atividades e dias úteis de cada modelo salvo).
 - Mostra a prévia: número de atividades, número de lembretes, dias úteis, fases com datas e entrega prevista.
