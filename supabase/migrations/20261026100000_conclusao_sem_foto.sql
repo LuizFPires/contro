@@ -29,6 +29,14 @@ begin
     return jsonb_build_object('xp', 0, 'fase_fechada', false, 'repetida', true);
   end if;
 
+  -- Trava a atividade e as predecessoras de uma vez, em ordem de id: concluir e
+  -- desfazer concorrentes rodam em fila, sem deadlock (desfazer trava o mesmo par).
+  perform 1 from public.obra_atividade
+  where id = p_atividade_id
+     or id in (select predecessora_id from public.obra_dependencia where atividade_id = p_atividade_id)
+  order by id
+  for update;
+
   select obra_id, fase_id into v_obra, v_fase
   from public.obra_atividade where id = p_atividade_id and deleted_at is null and pai_id is null;
   if v_obra is null then
@@ -106,7 +114,8 @@ begin
 
   select obra_id into v_obra
   from public.obra_atividade
-  where id = p_atividade_id and deleted_at is null and pai_id is null and concluida_em is not null;
+  where id = p_atividade_id and deleted_at is null and pai_id is null and concluida_em is not null
+  for update;
   if v_obra is null then
     raise exception 'Só atividade concluída recebe foto de conclusão' using errcode = '42501';
   end if;
@@ -153,6 +162,14 @@ begin
   if not public.contro_op_nova(p_client_op_id) then
     return;
   end if;
+
+  -- Trava a atividade e as sucessoras de uma vez, em ordem de id (mesmo par que
+  -- concluir_atividade trava): sem corrida e sem deadlock.
+  perform 1 from public.obra_atividade
+  where id = p_atividade_id
+     or id in (select atividade_id from public.obra_dependencia where predecessora_id = p_atividade_id)
+  order by id
+  for update;
 
   select obra_id, fase_id, concluida_por, foto_conclusao_id
   into v_obra, v_fase, v_por, v_foto
