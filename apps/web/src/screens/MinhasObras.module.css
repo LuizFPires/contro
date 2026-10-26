@@ -251,3 +251,55 @@
   background: var(--contro-turquoise);
   color: var(--contro-black);
 }
+
+/* Menu inferior da tela inicial: Hoje (padrão) e Minhas obras. */
+.nav {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  border-top: 1px solid rgb(24 24 24 / 14%);
+  background: var(--contro-white);
+  padding: 6px 12px max(8px, env(safe-area-inset-bottom, 0px));
+}
+.navBtn {
+  position: relative;
+  min-height: 56px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--contro-black);
+}
+.navAtivo {
+  background: rgb(84 180 176 / 22%);
+  font-weight: 800;
+}
+.navBadge {
+  position: absolute;
+  top: 4px;
+  left: calc(50% + 8px);
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 99px;
+  background: var(--contro-late);
+  color: var(--contro-white);
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
