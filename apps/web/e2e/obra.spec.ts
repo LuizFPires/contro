@@ -6,17 +6,15 @@ test('cria obra a partir do Modelo 1 e abre a trilha de fases', async ({ page })
   const nome = `Obra E2E ${Date.now()}`;
 
   await page.getByRole('button', { name: 'Nova obra' }).click();
-  await page.getByLabel('Nome da obra').fill(nome);
-  await page.getByLabel('Modelo de obra').selectOption({ label: 'Modelo 1 · CDC completo' });
+  await page.getByLabel('Unidade').fill(nome);
+  await page.getByRole('radio', { name: /Modelo 1 · CDC completo/ }).click();
 
   // A prévia é calculada pelo core (ex.: 28 atividades).
-  await expect(page.getByText('Prévia')).toBeVisible();
+  await expect(page.getByText('Como a obra vai nascer')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Criar obra' }).click();
+  await page.getByRole('button', { name: 'Gerar cronograma e abrir obra' }).click();
 
-  // Volta para a lista com a obra criada; abre e vê a trilha de fases.
-  const card = page.getByText(nome);
-  await expect(card).toBeVisible();
-  await card.click();
+  // A obra criada abre direto (protótipo) e mostra a trilha de fases.
+  await expect(page.getByRole('heading', { name: nome })).toBeVisible();
   await expect(page.getByText('Mobilização', { exact: true })).toBeVisible();
 });

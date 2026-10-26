@@ -34,11 +34,11 @@ test('providência offline: otimista, enfileira e sincroniza ao voltar (regra 9)
 
   const nome = `Obra Offline ${Date.now()}`;
   await page.getByRole('button', { name: 'Nova obra' }).click();
-  await page.getByLabel('Nome da obra').fill(nome);
-  await page.getByLabel('Modelo de obra').selectOption({ label: 'Modelo 1 · CDC completo' });
-  await expect(page.getByText('Prévia')).toBeVisible();
-  await page.getByRole('button', { name: 'Criar obra' }).click();
-  await page.getByText(nome).click();
+  await page.getByLabel('Unidade').fill(nome);
+  await page.getByRole('radio', { name: /Modelo 1 · CDC completo/ }).click();
+  await expect(page.getByText('Como a obra vai nascer')).toBeVisible();
+  await page.getByRole('button', { name: 'Gerar cronograma e abrir obra' }).click();
+  await expect(page.getByRole('heading', { name: nome })).toBeVisible();
 
   await page.getByRole('button', { name: /^Providências/ }).click();
   const marcar = page.getByRole('button', { name: 'Marcar' });
