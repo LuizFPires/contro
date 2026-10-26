@@ -20,11 +20,12 @@ piloto (M10): uma obra real do início ao fim, com reunião e boletim pelo app p
 
 ## Bloqueadores do go-live (fazer antes do piloto)
 Dependem de acesso do usuário (Supabase/Vercel) — ver **DEPLOY.md**:
-- [ ] Aplicar as **migrations M0–M8** no Supabase (`supabase db push`).
-- [ ] Ligar **pg_cron** e agendar os jobs (pauta da reunião; devolver adiadas).
-- [ ] Configurar **env** na Vercel (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) e **deploy**.
-- [ ] Ligar **Auth** e-mail/senha; **promover o primeiro gestor**.
-- [ ] Fumaça: criar obra, concluir atividade com foto, abrir reunião e boletim.
+- [x] **Migrations** aplicadas em produção (as 36, até a do cadastro por e-mail) e o histórico registrado com `supabase migration repair` em 26/10/2026. Daqui em diante, migration nova sobe com `npx supabase db push`.
+- [x] **pg_cron** ligado e os 3 jobs agendados em 26/10/2026: `pendencia-devolver-adiadas` (00:10 UTC), `reuniao-abrir-pauta` (seg 15:30 UTC = 12:30 de Brasília) e `boletim-gerar-disparos` (a cada 15 min). O pg_cron roda em UTC.
+- [x] **Vercel**: env configurado e deploy automático a cada merge no `main`.
+- [x] **Auth** e-mail/senha ligado; 2 gestores e 1 pessoa da equipe ativos; bucket `fotos` criado.
+- [ ] Fumaça em produção: criar obra, concluir atividade com foto, apontar e vistoriar pendência, abrir reunião e gerar ata, abrir boletim (até 26/10/2026, nenhuma atividade tinha sido concluída com foto em produção).
+- [ ] Push do boletim automático: gerar VAPID, `VITE_VAPID_PUBLIC_KEY` na Vercel, segredos e deploy da função `enviar-push-boletim`, ligar `pg_net` (runbook em `supabase/functions/enviar-push-boletim/README.md`). Sem isso, os boletins prontos aparecem só na lista "prontos para enviar" do início.
 
 ## Débitos conhecidos (não travam o piloto)
 - **PDF** por HTML imprimível; `pdf-service` (Playwright, SPEC §8.2) não implementado.
