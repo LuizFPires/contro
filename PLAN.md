@@ -49,16 +49,16 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## M1 · Modelos de obra e motor de cronograma
 **Objetivo:** o gestor mantém vários modelos de obra, e o core calcula o cronograma de qualquer obra.
 
-- [ ] `core/calendar.ts`: `addDU`, `duEntre` em dias úteis de segunda a sexta (**sem feriados**)
-- [ ] `core/schedule.ts`: forward pass (ES/EF), backward pass (LS, folga, crítico), datas a partir do início e entrega
-- [ ] Subitens: `dur()` pelo vão (sequência ou paralelo) e `inicio_manual` no forward pass
-- [ ] Testes: Modelo 1 (28 atividades, total 54 du), Modelo 2 e Modelo 3 derivados, ciclo rejeitado, subitens de Demolições (5 du), início manual empurrando as sucessoras, dependência múltipla
-- [ ] Migrations `modelo`, `modelo_fase`, `modelo_atividade`, `modelo_dependencia`, `modelo_providencia` + RLS (só gestor escreve; equipe lê)
-- [ ] `core/schedule.ts` por ordenação topológica (dependência entre quaisquer fases) e detecção de ciclo
-- [ ] Seed dos modelos 1 (CDC completo), 2 (CDC sem vestiários) e 3 (Retrofit leve) a partir do Anexo A
-- [ ] Tela **Modelos** (celular, só gestor): lista com nome, subtítulo, dias e uso; novo (cópia ou em branco), duplicar, renomear nome/subtítulo, excluir com Desfazer
-- [ ] **Assistente de atividade** em 5 passos (nome com sugestões, prazo, começa depois de com abas por fase e busca, providências, revisão); editar abre na revisão
-- [ ] Tela `/modelo` (desktop, complementar):
+- [x] `core/calendar.ts`: `addDU`, `duEntre` em dias úteis de segunda a sexta (**sem feriados**)
+- [x] `core/schedule.ts`: forward pass (ES/EF), backward pass (LS, folga, crítico), datas a partir do início e entrega
+- [x] Subitens: `dur()` pelo vão (sequência ou paralelo) e `inicio_manual` no forward pass
+- [x] Testes: Modelo 1 (28 atividades, total 54 du), Modelo 2 e Modelo 3 derivados, ciclo rejeitado, subitens de Demolições (5 du), início manual empurrando as sucessoras, dependência múltipla
+- [x] Migrations `modelo`, `modelo_fase`, `modelo_atividade`, `modelo_dependencia`, `modelo_providencia` + RLS (só gestor escreve; equipe lê)
+- [x] `core/schedule.ts` por ordenação topológica (dependência entre quaisquer fases) e detecção de ciclo
+- [x] Seed dos modelos 1 (CDC completo), 2 (CDC sem vestiários) e 3 (Retrofit leve) a partir do Anexo A
+- [x] Tela **Modelos** (celular, só gestor): lista com nome, subtítulo, dias e uso; novo (cópia ou em branco), duplicar, renomear nome/subtítulo, excluir com Desfazer
+- [x] **Assistente de atividade** em 5 passos (nome com sugestões, prazo, começa depois de com abas por fase e busca, providências, revisão); editar abre na revisão
+- [~] Tela `/modelo` (desktop, complementar): tabela por fase com Gantt e caminho crítico, aberta por "Ver tabela completa com Gantt" na tela do modelo; criar/renomear fase, duração − / +, ligar/desligar predecessora e excluir atividade na tabela; subitens, providências padrão e excluir fase pelo fluxo do celular (assistente e folha da fase):
   - tabela por fase;
   - **fases:** renomear (clique no nome), criar e excluir (confirmação com a contagem de atividades + "Desfazer");
   - **subitens:** incluir, renomear, prazo − / +, em sequência ou em paralelo, remover; prazo do pai calculado;
@@ -71,6 +71,8 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 - [ ] Substituir os prazos provisórios pelo histórico real (Q6); o usuário ajusta direto no editor do Modelo
 
 **Aceite:** no celular, o gestor duplica o Modelo 1 como "Modelo 4 · CDC sem vestiários", inclui uma atividade com 3 subitens ligada a uma atividade de outra fase e vê prazo, total e folga recalcularem na hora. A lista de predecessoras não oferece quem depende da atividade. Uma obra criada antes continua igual. No perfil Equipe de obra, a tela Modelos não aparece e a escrita é recusada pela RLS.
+
+> **Marcado em 26/10/2026 (arrumação do PLAN):** os itens do M1 já estavam implementados e testados (motor em `packages/core`, `anexoA.test.ts`, migrations e seed dos Modelos 1–3), só não tinham sido marcados. Segue aberto o Q6 (prazos reais).
 
 ## M2 · Obra: criar, carteira, fases e conclusão com foto
 **Objetivo:** o engenheiro cria a obra em < 2 min e conclui atividades com foto.
@@ -306,7 +308,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
-- 2026-10-26 · (M11 · modelos no celular) **O editor desktop de modelos (tabela + Gantt) saiu**: o fluxo agora é o do protótipo `ModeloCel` (modelos → fases → atividades → assistente de 5 passos). **Editar uma atividade** abre o assistente direto na revisão (regra 13) e grava pelo cliente sob RLS, dependências primeiro (se o anti-ciclo recusar, nada mais muda); as outras trocas (nome, duração, subitens, lembretes) não são transacionais entre si. **Remover atividade, excluir fase e excluir modelo** pedem um segundo toque de confirmação (como no protótipo); só o modelo tem Desfazer, porque atividade e fase são apagadas de fato no modelo (as obras já criadas não mudam). O modelo **em branco** nasce sem fases (a RPC `duplicar_modelo` não cria fases). · segue o protótipo
+- 2026-10-26 · (M11 · modelos no celular) O fluxo principal agora é o do protótipo `ModeloCel` (modelos → fases → atividades → assistente de 5 passos); a **tabela com Gantt** (visão de computador, complementar) continua acessível por "Ver tabela completa com Gantt" na tela do modelo (chegou a sair no PR #45 e voltou a pedido do usuário). **Editar uma atividade** abre o assistente direto na revisão (regra 13) e grava pelo cliente sob RLS, dependências primeiro (se o anti-ciclo recusar, nada mais muda); as outras trocas (nome, duração, subitens, lembretes) não são transacionais entre si. **Remover atividade, excluir fase e excluir modelo** pedem um segundo toque de confirmação (como no protótipo); só o modelo tem Desfazer, porque atividade e fase são apagadas de fato no modelo (as obras já criadas não mudam). O modelo **em branco** nasce sem fases (a RPC `duplicar_modelo` não cria fases). · segue o protótipo
 - 2026-10-26 · (M11 · telas de campo) Diferenças intencionais em relação ao protótipo: ficha da atividade mantém "Ajustar prazo e dependências" (recolhível) para não perder início manual, duração e predecessoras; cronograma ganhou "Abrir ficha da atividade"; reunião/ata sem linha de participantes (não é registrado); boletim sem "sai toda segunda às 7h" (o horário é configurável); atraso na tarja de Inauguração em #FF8A80 sobre o preto, como no protótipo. · segue o protótipo
 - 2026-10-26 · (M11) **Telas refeitas pelo protótipo aprovado.** As telas tinham estrutura própria (barra global Início/Modelos/Mais, abas em pílula na obra) e não seguiam o protótipo. Decisões: (1) **card e ícone da Maquete 3D omitidos** até a E1 ser aprovada; (2) a aba que o protótipo chama "Suprimentos" se chama **"Providências"** (vale o PRD); (3) sem barra global: **ícone de perfil no cabeçalho do início** abre o painel com Boletim automático, Aprovar membros (só gestor) e Sair (opção A do protótipo de menu); (4) Tarefas saem da obra e viram a tela geral aberta pelo bloco "Tarefas" do início, como no protótipo. · usuário decidiu (1)–(3); (4) segue o protótipo
 - 2026-10-25 · (ajuste dos modelos · PR a abrir) **Providências e antecedências do Modelo 1 calibradas pela base histórica.** A partir da análise do ERP de compras da construtora (25 obras "Contorno do Corpo"; ver `docs/analise-padroes-compras-obras.md` e `docs/proposta-modelo1-ajustes.md`), o Modelo 1 ganhou 14 providências novas/alteradas no gerador `supabase/seeds/gen-modelos.mjs` (propagadas aos Modelos 2 e 3 pelas atividades que cada um mantém): empreiteiro civil global (contratação, 20du — subcontratados são ~51% do valor), locações de canteiro/acesso (banheiro químico, betoneira, martelete, caçamba de limpeza permanente), compra antecipada de equipamentos de ar-condicionado (30du) e materiais de incêndio, agregados no contrapiso, itens de longo prazo nos acabamentos (granito/marmoraria 25du, esquadrias de alumínio 30du), start-up do ar no lugar da compra de evaporadoras, paisagismo na fachada, luminárias 15→20du e enxoval CDC (30du). **Sem mudança de atividades, durações ou dependências** (o motor de cronograma e o `anexoA.test.ts` ficam intactos); muda só dado de seed, não a regra em `packages/core`. Decisão central: itens fabricados/encomendados (esquadrias, granito, AC, enxoval) são **comprados no início e instalados no fim** — por isso antecedências longas. Sugestões deixadas para decisão do usuário (não implementadas): dar data-fim às locações e tratar "Enxoval CDC" como bloco próprio (exigiriam SPEC). · usuário aprovou a proposta

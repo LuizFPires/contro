@@ -390,3 +390,13 @@
   font-weight: 800;
   flex-shrink: 0;
 }
+.linkTabela {
+  min-height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}

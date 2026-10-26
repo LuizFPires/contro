@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { faixasDeFases } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { FaseModelo } from './FaseModelo';
+import { ModeloEditor } from './ModeloEditor';
 import { useEdicaoModelo } from './useEdicaoModelo';
 import { useModeloCompleto } from './useModeloDetalhe';
 import { useModelos, useModelosMutations } from './useModelos';
@@ -28,6 +29,7 @@ export function ModeloFases({
   const [nome, setNome] = useState('');
   const [sub, setSub] = useState('');
   const [confirmaExcluir, setConfirmaExcluir] = useState(false);
+  const [tabela, setTabela] = useState(false);
 
   if (isLoading || !modelo) {
     return (
@@ -47,6 +49,11 @@ export function ModeloFases({
         </header>
       </div>
     );
+  }
+
+  // Visão complementar (computador): tabela por fase com Gantt e caminho crítico.
+  if (tabela) {
+    return <ModeloEditor id={id} onVoltar={() => setTabela(false)} />;
   }
 
   if (faseAberta && modelo.fases.some((f) => f.id === faseAberta)) {
@@ -177,6 +184,9 @@ export function ModeloFases({
           }
         >
           + Nova fase
+        </button>
+        <button type="button" className={styles.linkTabela} onClick={() => setTabela(true)}>
+          Ver tabela completa com Gantt (melhor no computador)
         </button>
       </div>
 
