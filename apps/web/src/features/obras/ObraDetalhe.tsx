@@ -20,9 +20,9 @@ import { useObraPendencias } from './useObraPendencias';
 import { montarTrilha } from './trilhaObra';
 import styles from './ObraDetalhe.module.css';
 
-type AbaObra = 'fases' | 'pendencias' | 'providencias' | 'cronograma';
+type AbaObra = 'fases' | 'pendencias' | 'providencias' | 'cronograma' | 'boletim';
 
-const ABAS: { key: AbaObra; label: string; icon: IconName }[] = [
+const ABAS: { key: Exclude<AbaObra, 'boletim'>; label: string; icon: IconName }[] = [
   { key: 'fases', label: 'Fases', icon: 'fases' },
   { key: 'pendencias', label: 'Pendências', icon: 'pendencias' },
   { key: 'providencias', label: 'Providências', icon: 'providencias' },
@@ -43,8 +43,8 @@ export function ObraDetalhe({
   const { showToast } = useToast();
   const [faseAberta, setFaseAberta] = useState<string | null>(null);
   const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
-  const [aba, setAba] = useState<AbaObra>('fases');
-  const [boletimAberto, setBoletimAberto] = useState(abrirBoletim ?? false);
+  // O boletim abre dentro da obra (protótipo), pelo ícone do cabeçalho.
+  const [aba, setAba] = useState<AbaObra>(abrirBoletim ? 'boletim' : 'fases');
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
 
   const fases = useMemo(() => (obra ? montarTrilha(obra) : []), [obra]);
@@ -76,10 +76,6 @@ export function ObraDetalhe({
         </header>
       </div>
     );
-  }
-
-  if (boletimAberto) {
-    return <BoletimView obra={obra} onFechar={() => setBoletimAberto(false)} />;
   }
 
   const pct = Math.round(obra.pct * 100);
@@ -118,10 +114,11 @@ export function ObraDetalhe({
           </div>
           <button
             type="button"
-            className={styles.iconeBtn}
+            className={`${styles.iconeBtn} ${aba === 'boletim' ? styles.iconeAtivo : ''}`}
             aria-label="Boletim da semana"
+            aria-pressed={aba === 'boletim'}
             title="Boletim da semana"
-            onClick={() => setBoletimAberto(true)}
+            onClick={() => setAba(aba === 'boletim' ? 'fases' : 'boletim')}
           >
             <Icon name="documento" size={20} />
           </button>
@@ -174,6 +171,7 @@ export function ObraDetalhe({
         {aba === 'pendencias' ? <PendenciasAba obra={obra} /> : null}
         {aba === 'providencias' ? <ProvidenciasAba obra={obra} /> : null}
         {aba === 'cronograma' ? <GanttAba obra={obra} onAbrir={setFichaAtvId} /> : null}
+        {aba === 'boletim' ? <BoletimView obra={obra} /> : null}
       </div>
 
       <nav className={styles.nav} aria-label="Seções da obra">

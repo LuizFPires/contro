@@ -191,6 +191,8 @@ const paths = {
       <path d="M16 11l2 2 4-4" />
     </>
   ),
+  whatsapp: <path d="M4 20l1.3-4A8 8 0 1112 20a8 8 0 01-4-1z" />,
+  baixar: <path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 20h14" />,
   sair: (
     <>
       <path d="M14 4h4a2 2 0 012 2v12a2 2 0 01-2 2h-4" />
