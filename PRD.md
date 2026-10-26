@@ -67,7 +67,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 ### 5.4 Obra · Fases (mapa do jogo)
 - Trilha vertical com as 6 fases: Mobilização, Infraestrutura, Fechamentos, Acabamentos, Instalações finais e Entrega.
 - Estados de fase: concluída, em execução, planejada e com atraso (vermelho).
-- Ao expandir uma fase, as atividades aparecem com estado (concluída, atrasada ou a executar, com as datas previstas e o lembrete que falta, se houver), o prestador (quando informado) e um botão de câmera para **concluir** em toda atividade aberta (com foto ou, na própria câmera, "Concluir sem foto"). Concluída sem foto aparece como "Concluída · sem foto". **Não existe atividade bloqueada.**
+- Ao expandir uma fase, as atividades aparecem com estado (concluída, atrasada ou a executar, com as datas previstas e o lembrete que falta, se houver), o prestador (quando informado) sem botão de câmera no card: concluir (com ou sem foto) é pela ficha, ao tocar no item. Concluída sem foto aparece como "Concluída · sem foto". **Não existe atividade bloqueada.**
 - Tocar na atividade abre a **ficha da atividade** (5.5).
 - Ao concluir a última atividade de uma fase: **celebração** de fase concluída com a lista do que foi liberado.
 - No fim da trilha, **tarja preta da Inauguração** com a data por extenso, os dias úteis restantes e, se houver atraso, quanto o ritmo atual atrasa.

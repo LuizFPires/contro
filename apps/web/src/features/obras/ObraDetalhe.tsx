@@ -10,17 +10,15 @@ import { formatarDataCompleta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { BoletimView } from './BoletimView';
 import { CelebracaoFase, type CelebracaoFaseDados } from './CelebracaoFase';
-import { Camera } from './Camera';
 import { FichaAtividade } from './FichaAtividade';
 import { GanttAba } from './GanttAba';
 import { PendenciasAba } from './PendenciasAba';
 import { ProvidenciasAba } from './ProvidenciasAba';
 import { classificarProvidencias } from './providenciasObra';
 import { useObraDetalhe } from './useObraDetalhe';
-import { useConcluirAtividade, type AoConcluir } from './useConcluirAtividade';
+import type { AoConcluir } from './useConcluirAtividade';
 import { useObraCampo } from './useObraCampo';
 import { useObraPendencias } from './useObraPendencias';
-import type { ObraCompleta } from './detalhe';
 import { montarTrilha } from './trilhaObra';
 import styles from './ObraDetalhe.module.css';
 
@@ -48,7 +46,6 @@ export function ObraDetalhe({
   const campo = useObraCampo(id);
   const [faseAberta, setFaseAberta] = useState<string | null>(null);
   const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
-  const [cameraAtvId, setCameraAtvId] = useState<string | null>(null);
   // O boletim abre dentro da obra (protótipo), pelo ícone do cabeçalho.
   const [aba, setAba] = useState<AbaObra>(abrirBoletim ? 'boletim' : 'fases');
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
@@ -174,12 +171,6 @@ export function ObraDetalhe({
                 aberta={aberta === f.id}
                 onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
                 onAbrir={setFichaAtvId}
-                onFotografar={(id) => {
-                  // Com subitens por marcar, a conclusão passa pela ficha (regra 3).
-                  const pendentes = obra.atividades.some((x) => x.pai_id === id && !x.concluida_em);
-                  if (pendentes) setFichaAtvId(id);
-                  else setCameraAtvId(id);
-                }}
               />
             ))}
 
@@ -243,54 +234,8 @@ export function ObraDetalhe({
         onConcluida={aoConcluir}
       />
 
-      {cameraAtvId ? (
-        <CameraConclusao
-          obra={obra}
-          atividadeId={cameraAtvId}
-          onFechar={() => setCameraAtvId(null)}
-          onConcluida={aoConcluir}
-        />
-      ) : null}
-
       {celebra ? <CelebracaoFase dados={celebra} onFechar={() => setCelebra(null)} /> : null}
     </div>
-  );
-}
-
-/** Câmera aberta direto pelo botão da trilha (protótipo): conclui a atividade com foto. */
-function CameraConclusao({
-  obra,
-  atividadeId,
-  onFechar,
-  onConcluida,
-}: {
-  obra: ObraCompleta;
-  atividadeId: string;
-  onFechar: () => void;
-  onConcluida: AoConcluir;
-}) {
-  const conclusao = useConcluirAtividade(obra);
-  const nome = obra.atividades.find((a) => a.id === atividadeId)?.nome ?? '';
-  return (
-    <Camera
-      kicker="Foto de conclusão"
-      titulo={nome}
-      dica="Uma foto por ambiente. Ela vira o registro da etapa e libera as próximas atividades."
-      pendente={conclusao.pendente}
-      onCancelar={onFechar}
-      onCapturar={(file) =>
-        conclusao.concluir(atividadeId, file, (r, det) => {
-          onFechar();
-          onConcluida(r, det);
-        })
-      }
-      onSemFoto={() =>
-        conclusao.concluir(atividadeId, null, (r, det) => {
-          onFechar();
-          onConcluida(r, det);
-        })
-      }
-    />
   );
 }
 
@@ -299,13 +244,11 @@ function Fase({
   aberta,
   onToggle,
   onAbrir,
-  onFotografar,
 }: {
   fase: FaseTrilha;
   aberta: boolean;
   onToggle: () => void;
   onAbrir: (id: string) => void;
-  onFotografar: (id: string) => void;
 }) {
   const noClasse =
     f.status === 'concluida'
@@ -370,16 +313,6 @@ function Fase({
                     </span>
                   ) : null}
                 </button>
-                {a.podeConcluir ? (
-                  <button
-                    type="button"
-                    className={styles.camera}
-                    aria-label={`Concluir ${a.nome} com foto`}
-                    onClick={() => onFotografar(a.id)}
-                  >
-                    <Icon name="camera" size={18} strokeWidth={2} />
-                  </button>
-                ) : null}
               </div>
             ))}
           </div>
