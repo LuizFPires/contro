@@ -124,10 +124,7 @@ function motivoAtividade(obra: ObraCompleta, id: string): string | null {
   const e = obra.estados[id];
   if (!e) return null;
   if (e.concluida) return null;
-  if (e.liberada) return 'liberada';
-  if (!e.predsOk) return 'aguarda predecessoras';
-  if (!e.provOk) return 'aguarda providências';
-  return null;
+  return e.lembretesPendentes ? 'falta providenciar' : null;
 }
 
 function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados {
@@ -177,9 +174,10 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
     nome: a.nome,
     tipo: 'comecar',
     data: cronOf(a.id)?.inicio_previsto ?? obra.inicio,
-    ok: a.concluida || a.liberada,
+    // "Começou" não é registrado no app: a reunião pergunta.
+    ok: a.concluida,
     liberada: a.liberada,
-    motivo: a.concluida || a.liberada ? null : motivoAtividade(obra, a.id),
+    motivo: a.concluida ? null : motivoAtividade(obra, a.id),
   }));
 
   const providenciar: ItemProv[] = [];

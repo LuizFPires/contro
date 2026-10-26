@@ -146,9 +146,6 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     inicio: o.inicio,
     hoje,
     cronograma: cron,
-    predecessoras: Object.fromEntries(
-      cron.itens.map((it) => [it.id, predsPorAtv.get(it.id) ?? []]),
-    ),
     concluidas,
     provOk,
   });

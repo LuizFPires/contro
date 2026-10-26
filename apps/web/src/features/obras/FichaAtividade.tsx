@@ -52,14 +52,12 @@ export function FichaAtividade({
     const subitens = obra.atividades.filter((x) => x.pai_id === a.id);
     const nomePorId = new Map(obra.atividades.map((x) => [x.id, x.nome]));
     const dependePreds = a.predecessoras.map((p) => ({ id: p, nome: nomePorId.get(p) ?? p }));
-    const faltam = a.predecessoras
-      .filter((p) => !obra.estados[p]?.concluida)
-      .map((p) => nomePorId.get(p) ?? p);
     const libera = obra.atividades
       .filter((x) => !x.pai_id && x.predecessoras.includes(a.id))
       .map((x) => x.nome);
-    const subsOk = subitens.every((s) => s.concluida_em);
-    const podeConcluir = Boolean(est?.liberada) && subsOk && !a.concluida_em;
+    // Sem atividade bloqueada: toda atividade aberta pode ser concluída (os
+    // subitens abertos são marcados junto, no servidor).
+    const podeConcluir = !a.concluida_em;
     const provs = a.providencias.map((p) => {
       const feito = p.status === 'feito';
       return {
@@ -83,38 +81,25 @@ export function FichaAtividade({
       cron,
       subitens,
       dependePreds,
-      faltam,
       libera,
-      subsOk,
       podeConcluir,
       provs,
     };
   }, [obra, atividadeId]);
 
   if (!dados) return <BottomSheet open={false} onClose={onClose} children={null} />;
-  const { a, est, cron, subitens, dependePreds, faltam, libera, subsOk } = dados;
+  const { a, est, cron, subitens, dependePreds, libera } = dados;
   const { podeConcluir, provs } = dados;
 
   const status = a.concluida_em
     ? { txt: 'Concluída', cls: styles.tagConcluida }
     : est?.atrasada
       ? { txt: 'Atrasada', cls: styles.tagAtrasada }
-      : est?.liberada
-        ? { txt: 'Liberada', cls: styles.tagLiberada }
-        : est?.aguardandoProvidencia
-          ? { txt: 'Aguardando providência', cls: styles.tagPlanejada }
-          : { txt: 'Planejada', cls: styles.tagPlanejada };
+      : cron && cron.inicio_previsto <= hojeISO()
+        ? { txt: 'Em andamento', cls: styles.tagLiberada }
+        : { txt: 'Planejada', cls: styles.tagPlanejada };
 
   const nFeitas = provs.filter((x) => x.feito).length;
-  const bloqueio = a.concluida_em
-    ? null
-    : subitens.length > 0 && !subsOk && est?.liberada
-      ? 'Marque todos os subitens para concluir.'
-      : !est?.predsOk
-        ? `Libera quando concluir: ${faltam.join(', ')}`
-        : !est?.provOk
-          ? 'Libera quando todos os lembretes desta atividade estiverem providenciados.'
-          : null;
 
   function alternarProv(id: string, feito: boolean, tipoTxt: string) {
     campo.providencia.mutate(
@@ -268,7 +253,7 @@ export function FichaAtividade({
               {dependePreds.length ? dependePreds.map((p) => p.nome).join(', ') : 'nada'}
             </div>
             <div>
-              <strong>Libera:</strong> {libera.length ? libera.join(', ') : 'nada'}
+              <strong>Vem depois:</strong> {libera.length ? libera.join(', ') : 'nada'}
             </div>
           </div>
 
@@ -310,8 +295,6 @@ export function FichaAtividade({
                 Anexar foto
               </button>
             </div>
-          ) : bloqueio ? (
-            <div className={styles.bloqueio}>{bloqueio}</div>
           ) : null}
 
           {!a.concluida_em ? (
@@ -356,7 +339,7 @@ export function FichaAtividade({
         <Camera
           kicker="Foto de conclusão"
           titulo={a.nome}
-          dica="Uma foto por ambiente. Ela vira o registro da etapa e libera as próximas atividades."
+          dica="Uma foto por ambiente. Ela vira o registro da etapa."
           pendente={conclusao.pendente}
           onCancelar={() => setCamera(null)}
           onCapturar={(file) =>

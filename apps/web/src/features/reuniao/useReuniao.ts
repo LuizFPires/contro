@@ -38,7 +38,7 @@ export function useReuniao(data: string) {
     onSuccess: inval,
   });
 
-  /** "Feito" numa atividade liberada da semana passada: conclui sem foto. */
+  /** "Feito" numa atividade da semana passada: conclui sem foto. */
   const concluirAtv = useMutation({
     mutationFn: (atividadeId: string) => concluirAtividade(atividadeId, null),
     onSuccess: () => {

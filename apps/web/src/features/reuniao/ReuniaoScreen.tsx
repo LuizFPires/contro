@@ -164,12 +164,6 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
       setSemAcao(marcar(semAcao, it.atividadeId, true));
       return;
     }
-    if (!it.liberada) {
-      showToast({
-        message: `Ainda não dá para concluir: ${it.motivo ?? 'atividade não liberada'}`,
-      });
-      return;
-    }
     concluirAtv.mutate(it.atividadeId, {
       onSuccess: () =>
         showToast({

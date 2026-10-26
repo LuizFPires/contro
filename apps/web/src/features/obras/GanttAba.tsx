@@ -11,9 +11,7 @@ function clamp(v: number, lo: number, hi: number): number {
 const SITUACAO: Record<StatusAtividadeTrilha, string> = {
   concluida: 'Concluída',
   atrasada: 'Atrasada',
-  liberada: 'Liberada',
-  aguardando: 'Aguardando providência',
-  planejada: 'Planejada',
+  liberada: 'A executar',
 };
 
 /** Cronograma por fase (protótipo · CRONOGRAMA): barras, linha de hoje e detalhe ao tocar. */
@@ -47,16 +45,11 @@ export function GanttAba({
           Concluída
         </span>
         <span>
-          <i className={styles.liberada} />
-          Liberada
+          <i className={styles.liberada} />A executar
         </span>
         <span className={styles.lgAtraso}>
           <i className={styles.atrasada} />
           Atrasada
-        </span>
-        <span>
-          <i className={styles.planejada} />
-          Planejada
         </span>
         <span>
           <i className={styles.lgHoje} />
@@ -76,7 +69,7 @@ export function GanttAba({
               const sel = aberta === t.id;
               const left = c ? (c.es / total) * 100 : 0;
               const width = c ? Math.max((c.dur / total) * 100, 2) : 2;
-              const cor = t.status === 'aguardando' ? 'planejada' : t.status;
+              const cor = t.status;
               const provs = a?.providencias ?? [];
               const feitas = provs.filter((p) => p.status === 'feito').length;
               const deps = (a?.predecessoras ?? []).map((p) => porId.get(p)?.nome).filter(Boolean);

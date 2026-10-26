@@ -319,13 +319,6 @@
 .concluir:disabled {
   opacity: 0.6;
 }
-.bloqueio {
-  font-size: 14px;
-  font-weight: 700;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgb(24 24 24 / 6%);
-}
 
 .ajustes {
   border-top: 1px solid rgb(24 24 24 / 10%);
