@@ -47,7 +47,20 @@ export function NovaObraScreen({
     return { total, entrega, nAtividades, nLembretes };
   }, [modelo, inicio]);
 
+  const [erro, setErro] = useState<string | null>(null);
+
   const pronto = nome.trim() && inicio && modeloId;
+
+  function criar() {
+    setErro(null);
+    gerar.mutate(
+      { inicio, nome: nome.trim(), modeloId },
+      {
+        onSuccess: onCriada,
+        onError: (e) => setErro(mensagemErro(e)),
+      },
+    );
+  }
 
   return (
     <div className={styles.screen}>
@@ -119,15 +132,23 @@ export function NovaObraScreen({
         </div>
       ) : null}
 
-      <Button
-        full
-        disabled={!pronto || gerar.isPending}
-        onClick={() =>
-          gerar.mutate({ inicio, nome: nome.trim(), modeloId }, { onSuccess: onCriada })
-        }
-      >
+      {erro ? (
+        <p className={styles.erro}>
+          <Icon name="alert" size={18} />
+          {erro}
+        </p>
+      ) : null}
+
+      <Button full disabled={!pronto || gerar.isPending} onClick={criar}>
         {gerar.isPending ? 'Criando…' : 'Criar obra'}
       </Button>
     </div>
   );
+}
+
+/** Mensagem legível a partir de um erro do Supabase/PostgREST. */
+function mensagemErro(e: unknown): string {
+  const err = e as { message?: string; code?: string } | null;
+  const base = err?.message?.trim() || 'Não foi possível criar a obra. Tente de novo.';
+  return err?.code ? `${base} (${err.code})` : base;
 }
