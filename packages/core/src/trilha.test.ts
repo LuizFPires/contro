@@ -157,6 +157,27 @@ describe('trilhaDeFases', () => {
   });
 });
 
+describe('trilhaDeFases · conclusão sem foto', () => {
+  it('marca a atividade e a fase concluídas sem foto', () => {
+    const tudo = Object.fromEntries(
+      ['A', 'B', 'Forro', 'Pintura'].map((id) => [id, est(id, { concluida: true })]),
+    );
+    const e = entrada(tudo, {
+      atividades: [
+        atv('A', 'f1', { temFoto: false }),
+        atv('B', 'f2'),
+        atv('Forro', 'f2', { temFoto: true }),
+        atv('Pintura', 'f3'),
+      ],
+    });
+    const [f1, f2] = trilhaDeFases(e);
+    expect(f1.atividades[0]).toMatchObject({ sub: 'Concluída · sem foto', semFoto: true });
+    expect(f1.info).toBe('Concluída · 1 atividade sem foto');
+    expect(f2.atividades[1]).toMatchObject({ sub: 'Concluída · foto arquivada', semFoto: false });
+    expect(f2.info).toBe('Concluída com fotos de todas as etapas');
+  });
+});
+
 describe('faixasDeFases', () => {
   it('vai do início da 1ª atividade ao fim da última; pula fase vazia e subitens', () => {
     const atividades = [

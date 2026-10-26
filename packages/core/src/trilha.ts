@@ -21,6 +21,8 @@ export interface TrilhaAtividadeEntrada {
   prestador: string | null;
   /** Providências ainda pendentes da atividade, na ordem em que aparecem. */
   providenciasPendentes: { tipo: TipoProvidencia; descricao: string }[];
+  /** Concluída com foto (a foto é opcional; ausente = com foto). */
+  temFoto?: boolean;
 }
 
 export interface EntradaTrilha {
@@ -47,8 +49,10 @@ export interface AtividadeTrilha {
   sub: string;
   /** Prestador para o chip (só enquanto não concluída). */
   prestador: string | null;
-  /** Liberada para concluir com foto (botão de câmera). */
+  /** Liberada para concluir (botão de câmera; a foto é opcional). */
   podeConcluir: boolean;
+  /** Concluída sem foto (dá para anexar depois). */
+  semFoto: boolean;
 }
 
 export interface FaseTrilha {
@@ -118,7 +122,11 @@ export function trilhaDeFases(e: EntradaTrilha): FaseTrilha[] {
     const liberadas = atividades.filter((a) => a.podeConcluir).length;
 
     let info: string;
-    if (status === 'concluida') info = 'Concluída com fotos de todas as etapas';
+    const semFoto = atividades.filter((x) => x.semFoto).length;
+    if (status === 'concluida')
+      info = semFoto
+        ? `Concluída · ${plural(semFoto, 'atividade sem foto', 'atividades sem foto')}`
+        : 'Concluída com fotos de todas as etapas';
     else if (liberadas > 0)
       info = `${plural(liberadas, 'atividade liberada', 'atividades liberadas')} para executar`;
     else {
@@ -167,9 +175,10 @@ function atividadeTrilha(
       id: a.id,
       nome: a.nome,
       status: 'concluida',
-      sub: 'Concluída · foto arquivada',
+      sub: a.temFoto === false ? 'Concluída · sem foto' : 'Concluída · foto arquivada',
       prestador: null,
       podeConcluir: false,
+      semFoto: a.temFoto === false,
     };
   }
 
@@ -202,6 +211,7 @@ function atividadeTrilha(
     sub,
     prestador: a.prestador,
     podeConcluir: Boolean(est?.liberada),
+    semFoto: false,
   };
 }
 

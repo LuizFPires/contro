@@ -10,6 +10,8 @@ export interface CameraProps {
   titulo: string;
   /** Orientação no rodapé do quadro. */
   dica?: string;
+  /** Se presente, mostra "Concluir sem foto" abaixo do disparo (foto opcional). */
+  onSemFoto?: () => void;
   pendente?: boolean;
   onCapturar: (file: File) => void;
   onCancelar: () => void;
@@ -25,6 +27,7 @@ export function Camera({
   kicker,
   titulo,
   dica,
+  onSemFoto,
   pendente,
   onCapturar,
   onCancelar,
@@ -141,6 +144,11 @@ export function Camera({
           disabled={pendente || (!erro && !aoVivo)}
           onClick={() => (erro ? fileRef.current?.click() : capturarDoVideo())}
         />
+        {onSemFoto ? (
+          <button type="button" className={styles.semFoto} disabled={pendente} onClick={onSemFoto}>
+            Concluir sem foto
+          </button>
+        ) : null}
         <input
           ref={fileRef}
           type="file"

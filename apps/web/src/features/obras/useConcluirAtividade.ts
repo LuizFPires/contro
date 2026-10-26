@@ -3,6 +3,7 @@ import type { ObraCompleta } from './detalhe';
 import { useObraCampo } from './useObraCampo';
 
 export interface ConclusaoDetalhe {
+  atividadeId: string;
   nome: string;
   libera: string[];
   faseOrdem: number | null;
@@ -13,13 +14,14 @@ export interface ConclusaoDetalhe {
 export type AoConcluir = (r: { xp: number; fase_fechada: boolean }, det: ConclusaoDetalhe) => void;
 
 /**
- * Concluir atividade com foto (regra 3). O fechamento de fase e o XP vêm do core
+ * Concluir atividade, com ou sem foto (regra 3: a foto é opcional). O fechamento de fase e o XP vêm do core
  * (espelham o servidor); usado pela ficha e pelo botão de câmera da trilha.
  */
 export function useConcluirAtividade(obra: ObraCompleta) {
   const campo = useObraCampo(obra.id);
 
-  function concluir(atividadeId: string, file: File, aoConcluir: AoConcluir) {
+  /** Conclui com foto (`file`) ou sem foto (`null`). */
+  function concluir(atividadeId: string, file: File | null, aoConcluir: AoConcluir) {
     const a = obra.atividades.find((x) => x.id === atividadeId);
     if (!a) return;
     const fase = obra.fases.find((f) => f.id === a.fase_id);
@@ -42,6 +44,7 @@ export function useConcluirAtividade(obra: ObraCompleta) {
       {
         onSuccess: (r) =>
           aoConcluir(r, {
+            atividadeId: a.id,
             nome: a.nome,
             libera,
             faseOrdem: fase?.ordem ?? null,

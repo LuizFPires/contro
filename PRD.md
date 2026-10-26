@@ -10,7 +10,7 @@ O **CONTRO** é o app de planejamento rápido e acompanhamento rápido das obras
 
 As obras são muito parecidas: mesma sequência, mesmo escopo e os mesmos encadeamentos. Por isso cada nova obra nasce no primeiro dia com o cronograma pronto, puxado de um **modelo de obra** escolhido entre os modelos salvos pelo gestor (ex.: "Modelo 1 · CDC completo", "Modelo 2 · CDC sem vestiários"), com atividades, prazos médios, conexões e lembretes de providência.
 
-A partir daí o app conduz a obra como um **jogo de fases**. A equipe avança de fase conforme conclui atividades com foto, resolve pendências arrastando cards e se organiza toda semana por um **boletim** e por uma **reunião com ata** gerada pelo próprio app.
+A partir daí o app conduz a obra como um **jogo de fases**. A equipe avança de fase conforme conclui atividades (com foto sempre que possível), resolve pendências arrastando cards e se organiza toda semana por um **boletim** e por uma **reunião com ata** gerada pelo próprio app.
 
 Frase-guia: *planejar em um minuto, acompanhar em um olhar, provar com foto.*
 
@@ -28,7 +28,7 @@ Frase-guia: *planejar em um minuto, acompanhar em um olhar, provar com foto.*
 |---|---|---|
 | Planejar rápido | Tempo para criar uma obra a partir do modelo | < 2 minutos |
 | Liberar a sequência sem travas | Atividades que começam atrasadas por falta de providência | redução de 50% em relação à linha de base |
-| Prova de execução | Atividades concluídas com foto | 100% |
+| Prova de execução | Atividades concluídas com foto (a foto é opcional; as sem foto ficam marcadas e podem recebê-la depois) | ≥ 90% |
 | Pendências fechadas com evidência | Pendências fechadas com antes e depois vistoriado | 100% |
 | Reunião produtiva | Providências da semana anterior cumpridas no prazo | ≥ 70% |
 | Comunicação semanal | Boletins enviados por obra por semana | 1 por obra (segunda) |
@@ -41,7 +41,7 @@ São **dois perfis de acesso** apenas:
 | Perfil | Quem é | O que faz no CONTRO |
 |---|---|---|
 | **Gestor** | Diretoria e gestão de obras | **Tudo**: vê todas as obras, conduz a reunião e aprova a ata, e é o único que **cria, edita, duplica e exclui modelos de obra** |
-| **Equipe de obra** | Engenheiro, mestre/encarregado, compras e demais da obra | O app do dia a dia, **tudo menos editar modelos**: cria obra escolhendo um modelo, conclui atividades com foto, aponta, resolve e vistoria pendências, marca lembretes, dá baixa e replaneja tarefas |
+| **Equipe de obra** | Engenheiro, mestre/encarregado, compras e demais da obra | O app do dia a dia, **tudo menos editar modelos**: cria obra escolhendo um modelo, conclui atividades (com ou sem foto), aponta, resolve e vistoria pendências, marca lembretes, dá baixa e replaneja tarefas |
 
 A função de cada pessoa (engenheiro, mestre, compras) é só um rótulo (`papel_texto`) para atribuições e relatórios; não muda o acesso.
 
@@ -67,7 +67,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 ### 5.4 Obra · Fases (mapa do jogo)
 - Trilha vertical com as 6 fases: Mobilização, Infraestrutura, Fechamentos, Acabamentos, Instalações finais e Entrega.
 - Estados de fase: concluída, em execução, planejada e com atraso (vermelho).
-- Ao expandir uma fase, as atividades aparecem com estado (concluída, liberada, aguardando providência, planejada ou atrasada), o prestador (quando informado) e um botão de câmera para **concluir com foto** quando liberada.
+- Ao expandir uma fase, as atividades aparecem com estado (concluída, liberada, aguardando providência, planejada ou atrasada), o prestador (quando informado) e um botão de câmera para **concluir** quando liberada (com foto ou, na própria câmera, "Concluir sem foto"). Concluída sem foto aparece como "Concluída · sem foto".
 - Tocar na atividade abre a **ficha da atividade** (5.5).
 - Ao concluir a última atividade de uma fase: **celebração** de fase concluída com a lista do que foi liberado.
 - No fim da trilha, **tarja preta da Inauguração** com a data por extenso, os dias úteis restantes e, se houver atraso, quanto o ritmo atual atrasa.
@@ -76,14 +76,14 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - Situação, datas previstas e duração.
 - **Subitens** (quando a atividade tem): checklist com o prazo de cada um.
   - Marcar um subitem não exige foto (é opcional).
-  - A atividade só pode ser concluída **com foto** depois de todos os subitens marcados.
+  - A atividade só pode ser concluída depois de todos os subitens marcados (com ou sem foto).
 - **Ajustar início (manual):** empurra a atividade para uma data posterior, por exemplo por feriado, chuva ou liberação do shopping.
   - As sucessoras se deslocam junto.
   - O ajuste fica registrado na atividade: "início ajustado manualmente de dd/mm para dd/mm".
 - **Prestador da atividade:** campo de texto opcional com o nome de quem executa. Não tem valor nem vínculo com compras.
 - Lista **"Para começar"**: os lembretes da atividade, com o botão "+ Contratação / + Locação / + Compra".
 - Depende de / Libera.
-- Botão "Concluir com foto" quando liberada; caso contrário, o motivo do bloqueio.
+- Botões "Concluir com foto" e "Concluir sem foto" quando liberada; concluída sem foto, "Anexar foto"; caso contrário, o motivo do bloqueio.
 
 ### 5.6 Providências (lembretes de contratação, locação e compra)
 - Cada lembrete tem só: **tipo**, **o que providenciar**, **data em que precisa estar na obra** (padrão: início da atividade, editável) e **situação** (A providenciar ou Providenciado).
@@ -168,7 +168,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - Instagram.
 - Custos, medições financeiras e notas fiscais.
 - Integração com o WARBRA ou o ioo. Previsto como conector futuro (v2).
-- Apontamento de % parcial livre. Na v1, a atividade sem subitens é binária (conclui com foto); com subitens, o avanço parcial vem dos subitens marcados.
+- Apontamento de % parcial livre. Na v1, a atividade sem subitens é binária (conclui com ou sem foto); com subitens, o avanço parcial vem dos subitens marcados.
 - Calendário de feriados (decisão: ajuste manual).
 
 ## 7. Regras de negócio (resumo; detalhe no SPEC)
@@ -176,7 +176,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 1. Toda obra é cópia do **modelo escolhido** ao criá-la. Editar a obra não altera o modelo, e editar o modelo não altera obras já criadas. Só o perfil **Gestor** edita modelos.
 2. Cronograma em **dias úteis de segunda a sexta, sem cadastro de feriados**. Feriado ou imprevisto se resolve com **ajuste manual** da data de início da atividade, e as sucessoras acompanham.
 3. Atividade **liberada** = predecessoras concluídas **e** lembretes providenciados.
-4. Atividade só é **concluída com foto**.
+4. Atividade é **concluída com ou sem foto**; sem foto fica marcada e pode receber a foto depois.
 5. Atividade **atrasada** = não concluída e término previsto já passou.
 6. Lembrete **atrasado** = não providenciado e "providenciar até" já passou.
 7. Pendência só fecha com **foto de depois aprovada por outra pessoa**.
