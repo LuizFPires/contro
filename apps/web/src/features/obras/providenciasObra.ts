@@ -1,4 +1,4 @@
-import { duEntre, providenciaAtrasada, providenciarAte } from '@contro/core';
+import { duEntre, naObraEm, providenciaAtrasada, providenciarAte } from '@contro/core';
 import type { ObraCompleta } from './detalhe';
 
 const TIPO: Record<string, string> = {
@@ -9,9 +9,15 @@ const TIPO: Record<string, string> = {
 
 export interface ItemProvidencia {
   id: string;
+  tipo: 'contratacao' | 'locacao' | 'compra';
+  tipoTxt: string;
+  descricao: string;
   rotulo: string;
   atividade: string;
   providenciarAte: string;
+  /** Data em que precisa estar na obra (início previsto da atividade ou ajuste manual). */
+  naObra: string;
+  antecedenciaDu: number;
   atrasada: boolean;
 }
 
@@ -52,9 +58,14 @@ export function classificarProvidencias(
       });
       const item: ItemProvidencia = {
         id: p.id,
+        tipo: p.tipo,
+        tipoTxt: TIPO[p.tipo],
+        descricao: p.descricao,
         rotulo: `${TIPO[p.tipo]}: ${p.descricao}`,
         atividade: nomePorId.get(a.id) ?? '',
         providenciarAte: providenciarAte(obra.inicio, es, p.antecedencia_du),
+        naObra: naObraEm(obra.inicio, es, p.na_obra_em),
+        antecedenciaDu: p.antecedencia_du,
         atrasada,
       };
       (atrasada ? atrasadas : aProvidenciar).push(item);
