@@ -243,6 +243,11 @@
   font-size: 14px;
   color: #464646;
 }
+.atvSubitem {
+  display: block;
+  font-size: 13px;
+  color: #464646;
+}
 .atvDur {
   text-align: right;
   flex-shrink: 0;

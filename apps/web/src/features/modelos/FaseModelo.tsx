@@ -125,6 +125,14 @@ export function FaseModelo({
               <span className={styles.atvIdx}>#{idx.get(a.id)}</span>
               <span className={styles.atvCorpo}>
                 <span className={styles.atvNome}>{a.nome}</span>
+                {modelo.atividades
+                  .filter((x) => x.pai_id === a.id)
+                  .sort((x, y) => x.ordem - y.ordem)
+                  .map((s) => (
+                    <span key={s.id} className={styles.atvSubitem}>
+                      ↳ {s.nome} · {s.duracao_du} du{s.em_sequencia ? '' : ' (paralelo)'}
+                    </span>
+                  ))}
                 <span className={styles.atvDep}>
                   {a.mapa_alvo_id
                     ? `pré-obra · prepara #${idx.get(a.mapa_alvo_id) ?? '?'} · fecha ${a.mapa_antecedencia_du ? `${a.mapa_antecedencia_du} du antes` : 'no dia'}`

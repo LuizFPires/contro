@@ -217,6 +217,12 @@ export function ObraDetalhe({
                 aberta={aberta === f.id}
                 onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
                 onAbrir={setFichaAtvId}
+                subitensDe={(id) =>
+                  obra.atividades
+                    .filter((x) => x.pai_id === id)
+                    .sort((x, y) => x.ordem - y.ordem)
+                    .map((x) => ({ id: x.id, nome: x.nome, feito: Boolean(x.concluida_em) }))
+                }
               />
             ))}
 
@@ -290,11 +296,14 @@ function Fase({
   aberta,
   onToggle,
   onAbrir,
+  subitensDe,
 }: {
   fase: FaseTrilha;
   aberta: boolean;
   onToggle: () => void;
   onAbrir: (id: string) => void;
+  /** Subitens da atividade, para listar embaixo dela na trilha. */
+  subitensDe: (id: string) => { id: string; nome: string; feito: boolean }[];
 }) {
   const noClasse =
     f.status === 'concluida'
@@ -352,6 +361,20 @@ function Fase({
                 <button type="button" className={styles.atvTexto} onClick={() => onAbrir(a.id)}>
                   <span className={styles.atvNome}>{a.nome}</span>
                   <span className={styles.atvSub}>{a.sub}</span>
+                  {subitensDe(a.id).length ? (
+                    <span className={styles.subitens}>
+                      {subitensDe(a.id).map((s) => (
+                        <span key={s.id} className={s.feito ? styles.subFeito : styles.subitem}>
+                          <Icon
+                            name={s.feito ? 'checkGrosso' : 'seta'}
+                            size={12}
+                            strokeWidth={s.feito ? 3 : 2.2}
+                          />
+                          {s.nome}
+                        </span>
+                      ))}
+                    </span>
+                  ) : null}
                   {a.prestador ? (
                     <span className={styles.prestador}>
                       <Icon name="pessoa" size={12} strokeWidth={2.2} />
