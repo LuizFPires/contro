@@ -48,3 +48,18 @@ export function duEntre(a: DataISO, b: DataISO): number {
   }
   return conta;
 }
+
+/**
+ * Desloca `n` dias úteis a partir de `data`, para frente (n > 0) ou para trás
+ * (n < 0). Usado pelo pré-obra, que acontece antes do dia 0 da obra.
+ */
+export function deslocarDU(data: DataISO, n: number): DataISO {
+  if (n >= 0) return addDU(data, n);
+  let d = parse(data);
+  let voltados = 0;
+  while (voltados < -n) {
+    d = somaDias(d, -1);
+    if (ehDiaUtil(d)) voltados += 1;
+  }
+  return format(d);
+}
