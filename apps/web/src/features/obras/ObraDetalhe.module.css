@@ -1,199 +1,453 @@
+/* Tela da obra — fiel ao protótipo aprovado (prototipo/Main.dc.html · OBRA). */
 .screen {
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  background: var(--contro-bg-app);
 }
+
+/* ---------- Cabeçalho preto ---------- */
 .cabecalho {
-  padding: var(--contro-space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--contro-space-2);
-  background: var(--contro-surface);
-  box-shadow: 0 1px 0 var(--contro-border);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 10px 12px 12px;
+  padding-top: calc(10px + env(safe-area-inset-top, 0));
+  background: var(--contro-black);
+  color: var(--contro-white);
 }
 .topo {
   display: flex;
   align-items: center;
-  gap: var(--contro-space-2);
+  gap: 2px;
 }
 .voltar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: var(--contro-touch);
   height: var(--contro-touch);
-  border: none;
+  border: 0;
   background: transparent;
-  color: var(--contro-text);
+  color: var(--contro-white);
   cursor: pointer;
-  transform: rotate(180deg);
-}
-.nome {
-  flex: 1;
-  font-size: var(--contro-fs-h2);
-  font-weight: 800;
-  margin: 0;
-}
-.boletim {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--contro-touch);
-  height: var(--contro-touch);
-  border: none;
-  background: transparent;
-  color: var(--contro-muted);
-  cursor: pointer;
-}
-.linhaDia {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-.dia {
-  font-size: var(--contro-fs-body-sm);
-  color: var(--contro-muted);
-  font-weight: 700;
-}
-.pct {
-  font-size: var(--contro-fs-h2);
-  font-weight: 800;
-}
-.barra {
-  height: 8px;
-  border-radius: 4px;
-  background: var(--contro-progress-track);
-  overflow: hidden;
-}
-.barraFill {
-  height: 100%;
-  background: var(--contro-progress-fill);
-}
-
-.trilha {
-  flex: 1;
-  padding: var(--contro-space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--contro-space-3);
-}
-.faseBtn {
-  display: flex;
-  align-items: center;
-  gap: var(--contro-space-3);
-  width: 100%;
-  border: none;
-  background: var(--contro-surface);
-  box-shadow: inset 0 0 0 1px var(--contro-border);
-  border-radius: var(--contro-radius-card);
-  padding: var(--contro-space-3) var(--contro-space-4);
-  cursor: pointer;
-  text-align: left;
-  min-height: var(--contro-touch);
-}
-.faseIcone {
-  display: inline-flex;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--contro-radius-pill);
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.concluida {
+.titulo {
+  min-width: 0;
+  flex-grow: 1;
+}
+.nome {
+  margin: 0;
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sub {
+  font-size: 13px;
+  color: rgb(255 255 255 / 72%);
+}
+.pct {
+  font-size: 28px;
+  font-weight: 800;
+  padding-right: 4px;
+  line-height: 1;
+}
+.pct span {
+  font-size: 15px;
+}
+.iconeBtn {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 12%);
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+.barra {
+  height: 6px;
+  background: rgb(255 255 255 / 18%);
+  border-radius: 99px;
+  margin: 8px 8px 0;
+  overflow: hidden;
+}
+.barraFill {
+  height: 100%;
+  background: var(--contro-turquoise);
+}
+
+.conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Mapa de fases ---------- */
+.mapa {
+  padding: 14px 16px 20px;
+}
+.fase {
+  display: flex;
+  gap: 12px;
+}
+.trilho {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 44px;
+  flex-shrink: 0;
+}
+.no {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.noConcluida {
   background: var(--contro-turquoise);
   color: var(--contro-black);
 }
-.execucao {
-  background: var(--contro-selected);
-  color: var(--contro-turquoise);
-  box-shadow: inset 0 0 0 2px var(--contro-turquoise);
+.noAtual {
+  width: 44px;
+  height: 44px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  box-shadow: 0 0 0 5px rgb(84 180 176 / 55%);
 }
-.atraso {
-  background: transparent;
-  color: var(--contro-late);
-  box-shadow: inset 0 0 0 2px var(--contro-late);
+.noAtraso {
+  background: var(--contro-late);
+  color: var(--contro-white);
 }
-.planejada {
-  background: var(--contro-progress-track);
-  color: var(--contro-muted);
+.anelAtraso {
+  box-shadow: 0 0 0 5px rgb(198 40 40 / 25%);
 }
-.faseInfo {
-  flex: 1;
+.noPlanejada {
+  background: var(--contro-white);
+  color: rgb(24 24 24 / 60%);
+  border: 2px solid rgb(24 24 24 / 25%);
+}
+.linha {
+  width: 3px;
+  flex-grow: 1;
+  min-height: 14px;
+  background: rgb(24 24 24 / 14%);
+  border-radius: 2px;
+  margin: 4px 0;
+}
+.linhaFeita {
+  background: var(--contro-turquoise);
+}
+
+.faseCorpo {
+  flex-grow: 1;
   min-width: 0;
+  padding-bottom: 14px;
+}
+.faseBtn {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  cursor: pointer;
+  color: var(--contro-black);
+  min-height: var(--contro-touch);
+  display: flex;
+  flex-direction: column;
+}
+.etiquetas {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.etiqueta {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.et_concluida {
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.et_execucao {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.et_planejada {
+  background: rgb(24 24 24 / 8%);
+  color: var(--contro-black);
+}
+.etAtraso {
+  background: var(--contro-late);
+  color: var(--contro-white);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.faseLinha {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
 }
 .faseTitulo {
+  font-size: 20px;
   font-weight: 800;
+  line-height: 26px;
 }
-.faseEstado {
-  font-size: var(--contro-fs-caption);
-  color: var(--contro-muted);
+.faseProg {
+  font-size: 14px;
   font-weight: 700;
+  color: #696969;
 }
+.faseInfo {
+  font-size: 14px;
+  color: #696969;
+}
+
+/* ---------- Atividades da fase ---------- */
 .atividades {
   display: flex;
   flex-direction: column;
-  gap: var(--contro-space-1);
-  padding: var(--contro-space-2) var(--contro-space-2) var(--contro-space-2) var(--contro-space-8);
+  gap: 6px;
+  margin-top: 6px;
+  animation: subir 0.25s ease-out;
+}
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 .atv {
+  background: var(--contro-white);
+  border: 1.5px solid rgb(24 24 24 / 10%);
+  border-radius: 12px;
+  padding: 6px 8px 6px 10px;
   display: flex;
   align-items: center;
-  gap: var(--contro-space-2);
-  width: 100%;
-  border: none;
+  gap: 8px;
+}
+.atvIcone {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgb(24 24 24 / 8%);
+  color: rgb(24 24 24 / 60%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.atvTexto {
+  flex-grow: 1;
+  min-width: 0;
+  text-align: left;
+  border: 0;
   background: transparent;
   cursor: pointer;
-  padding: var(--contro-space-2);
-  border-radius: var(--contro-radius-field);
-  text-align: left;
+  padding: 4px 0;
   min-height: var(--contro-touch);
+  color: var(--contro-black);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 .atvNome {
-  flex: 1;
-  font-weight: 600;
-  font-size: var(--contro-fs-body-sm);
+  font-weight: 700;
+  font-size: 15px;
 }
-.atvConcluida {
-  color: var(--contro-turquoise);
+.atvSub {
+  font-size: 13px;
+  color: #696969;
 }
-.atvAtrasada {
-  color: var(--contro-late);
-  font-weight: 800;
+.prestador {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 3px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: rgb(24 24 24 / 6%);
 }
-.motivo {
-  font-size: var(--contro-fs-caption);
-  color: var(--contro-muted);
+.camera {
+  min-height: var(--contro-touch);
+  min-width: var(--contro-touch);
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
 }
-.inauguracao {
-  margin: var(--contro-space-4);
-  margin-top: 0;
+
+.atv_concluida .atvIcone {
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.atv_concluida .atvNome {
+  color: #696969;
+}
+.atv_liberada {
+  background: rgb(84 180 176 / 12%);
+  border-color: var(--contro-turquoise);
+}
+.atv_liberada .atvIcone {
   background: var(--contro-black);
   color: var(--contro-white);
-  border-radius: var(--contro-radius-card);
-  padding: var(--contro-space-4);
-  text-align: center;
 }
-.inauguracao strong {
-  display: block;
-  font-size: var(--contro-fs-h3);
+.atv_atrasada {
+  background: rgb(198 40 40 / 6%);
+  border-color: var(--contro-late);
+}
+.atv_atrasada .atvIcone {
+  background: var(--contro-late);
+  color: var(--contro-white);
+}
+.atv_atrasada .atvNome,
+.atv_atrasada .atvSub {
+  color: var(--contro-late);
+}
+.atv_atrasada .atvSub {
   font-weight: 800;
 }
-.inauguracao span {
-  font-size: var(--contro-fs-body-sm);
-  opacity: 0.85;
+
+/* ---------- Selos e Inauguração ---------- */
+.selos {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0 0 56px;
+}
+.selo {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 99px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.inauguracao {
+  margin: 16px 0 4px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.inaugIcone {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 12px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.inaugTexto {
+  flex-grow: 1;
+  min-width: 0;
+}
+.inaugRotulo {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--contro-turquoise);
 }
 .inaugData {
-  display: block;
-}
-.inaugMeta {
-  display: block;
-  margin-top: 2px;
-}
-.inaugAtraso {
-  display: block;
-  margin-top: 2px;
-  color: var(--contro-white);
+  font-size: 22px;
   font-weight: 800;
-  opacity: 1;
+  line-height: 1.15;
+}
+.inaugSub {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgb(255 255 255 / 72%);
+}
+/* Atraso sobre fundo preto: tom claro do vermelho de atraso (protótipo). */
+.inaugAtraso {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ff8a80;
+}
+
+/* ---------- Barra inferior ---------- */
+.nav {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  border-top: 1px solid rgb(24 24 24 / 14%);
+  background: var(--contro-white);
+  padding: 6px 8px calc(18px + env(safe-area-inset-bottom, 0));
+}
+.navBtn {
+  position: relative;
+  min-height: 52px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--contro-black);
+}
+.navAtivo {
+  background: rgb(84 180 176 / 22%);
+}
+.badge {
+  position: absolute;
+  top: 3px;
+  left: 58%;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 99px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.badgeAtraso {
+  background: var(--contro-late);
 }

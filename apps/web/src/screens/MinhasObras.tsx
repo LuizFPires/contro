@@ -13,17 +13,12 @@ export function MinhasObras() {
   const { data: pessoa } = usePerfil();
   const { showToast } = useToast();
   const [vista, setVista] = useState<'lista' | 'nova'>('lista');
-  const [obraAberta, setObraAberta] = useState<{
-    id: string;
-    aba?: 'tarefas';
-    boletim?: boolean;
-  } | null>(null);
+  const [obraAberta, setObraAberta] = useState<{ id: string; boletim?: boolean } | null>(null);
 
   if (obraAberta) {
     return (
       <ObraDetalhe
         id={obraAberta.id}
-        abaInicial={obraAberta.aba}
         abrirBoletim={obraAberta.boletim}
         onVoltar={() => setObraAberta(null)}
       />
@@ -73,7 +68,6 @@ export function MinhasObras() {
               key={o.id}
               obra={o}
               onAbrir={() => setObraAberta({ id: o.id })}
-              onAbrirTarefas={() => setObraAberta({ id: o.id, aba: 'tarefas' })}
             />
           ))}
         </div>
