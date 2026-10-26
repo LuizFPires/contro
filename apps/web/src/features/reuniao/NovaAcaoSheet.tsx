@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { origemReuniao } from '@contro/core';
 import { BottomSheet, Button, Input } from '@contro/ui';
 import type { PessoaResumo } from '../perfil/usePessoas';
 import type { EntradaTarefa } from '../obras/campo';
@@ -164,7 +165,7 @@ export function NovaAcaoSheet({
               prazo,
               vinculoTipo: vinculo?.tipo ?? null,
               vinculoId: vinculo?.id ?? null,
-              origemTexto: `Reunião ${dataFmt}`,
+              origemTexto: origemReuniao(dataFmt),
             })
           }
         >

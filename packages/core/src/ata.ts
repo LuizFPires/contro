@@ -40,9 +40,9 @@ export interface ProvidenciaReuniao {
   atrasada: boolean;
 }
 
-/** Origem gravada nas providências criadas numa reunião ("Reunião 26/10"). */
-export function origemReuniao(dataDiaMes: string): string {
-  return `Reunião ${dataDiaMes}`;
+/** Origem gravada nas providências criadas numa reunião ("Reunião seg 26/10"). */
+export function origemReuniao(dataFmt: string): string {
+  return `Reunião ${dataFmt}`;
 }
 
 /** É uma providência de reunião anterior: veio de reunião, mas não da atual. */

@@ -8,6 +8,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { hojeISO } from '../obras/api';
 import { loadObra, type ObraCompleta } from '../obras/detalhe';
+import { montarTrilha } from '../obras/trilhaObra';
 
 export async function abrirReuniao(data: string): Promise<string> {
   if (!supabase) throw new Error('Sem conexão');
@@ -64,6 +65,9 @@ export interface ReuniaoObraDados {
   nome: string;
   modeloRotulo: string;
   pct: number;
+  previstoSexta: number;
+  /** "Fase 3 · Fechamentos", ou "concluída". */
+  faseAtual: string;
   ritmoDias: number;
   entrega: string;
   observacoes: string;
@@ -77,6 +81,10 @@ export interface ReuniaoObraDados {
 }
 
 export interface TarefaAtrib {
+  id: string;
+  obraId: string;
+  /** "Reunião seg 26/10" quando veio de uma reunião. */
+  origem: string | null;
   texto: string;
   pessoa: string;
   prazo: string | null;
@@ -176,11 +184,15 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
       atividadeId: a.id,
     }));
 
+  const faseAtual = montarTrilha(obra).find((f) => f.status === 'execucao');
+
   return {
     obraId: obra.id,
     nome: obra.nome,
     modeloRotulo: obra.modelo_rotulo,
     pct: obra.pct,
+    previstoSexta: obra.previstoSexta,
+    faseAtual: faseAtual ? `Fase ${faseAtual.n} · ${faseAtual.titulo}` : 'concluída',
     ritmoDias: obra.ritmoDias,
     entrega: obra.entrega,
     observacoes,
@@ -217,17 +229,23 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
     const hoje = hojeISO();
     const { data: tData } = await supabase
       .from('tarefa')
-      .select('texto,status,prazo,responsavel:pessoa!responsavel_id(nome)')
+      .select('id,obra_id,origem_texto,texto,status,prazo,responsavel:pessoa!responsavel_id(nome)')
       .in('obra_id', obraIds)
       .is('deleted_at', null);
     tarefas = (
       (tData ?? []) as unknown as {
+        id: string;
+        obra_id: string;
+        origem_texto: string | null;
         texto: string;
         status: 'aberta' | 'feita';
         prazo: string;
         responsavel: { nome: string } | null;
       }[]
     ).map((t) => ({
+      id: t.id,
+      obraId: t.obra_id,
+      origem: t.origem_texto,
       texto: t.texto,
       pessoa: t.responsavel?.nome ?? 'Sem responsável',
       prazo: t.prazo,

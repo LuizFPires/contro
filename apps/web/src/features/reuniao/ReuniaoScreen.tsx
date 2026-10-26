@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
-import { ritmoTexto } from '@contro/core';
+import { deReuniaoAnterior, origemReuniao, resumoReuniao, ritmoTexto } from '@contro/core';
 import { Icon, useToast } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
 import { usePessoas } from '../perfil/usePessoas';
-import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
+import { formatarDataCurta } from '../../lib/datas';
 import { AtaView } from './AtaView';
 import { NovaAcaoSheet } from './NovaAcaoSheet';
 import { useReuniao } from './useReuniao';
-import type { ReuniaoObraDados } from './reuniaoApi';
+import type { ReuniaoObraDados, TarefaAtrib } from './reuniaoApi';
 import styles from './ReuniaoScreen.module.css';
 
 /** Segunda-feira da semana corrente (ISO). */
@@ -18,6 +18,13 @@ function segundaISO(): string {
   return d.toISOString().slice(0, 10);
 }
 
+const TIPO: Record<string, string> = {
+  contratacao: 'Contratação',
+  locacao: 'Locação',
+  compra: 'Compra',
+};
+
+/** Reunião semanal (protótipo · REUNIÃO SEMANAL): pauta por obra e ata. */
 export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
   const data = useMemo(segundaISO, []);
   const { data: pessoa } = usePerfil();
@@ -26,24 +33,32 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
   const { query, observacao, fechar, criarAcao } = useReuniao(data);
   const [ataAberta, setAtaAberta] = useState(false);
   const [acaoObra, setAcaoObra] = useState<ReuniaoObraDados | null>(null);
+  const [aberta, setAberta] = useState<string | null>(null);
 
   const reuniao = query.data;
   const obras = useMemo(() => reuniao?.obras ?? [], [reuniao]);
+  const tarefas = useMemo(() => reuniao?.tarefas ?? [], [reuniao]);
   const fechada = reuniao?.status === 'fechada';
   const ehGestor = pessoa?.perfil === 'gestor';
+  const origemAtual = origemReuniao(formatarDataCurta(data));
 
-  const kpis = useMemo(() => {
-    let aProvidenciar = 0;
-    let atrasadas = 0;
-    for (const o of obras) {
-      aProvidenciar += o.providenciar.length;
-      atrasadas += o.providenciasAtrasadas.length;
-    }
-    return { obras: obras.length, aProvidenciar, atrasadas };
-  }, [obras]);
+  const resumo = useMemo(
+    () =>
+      resumoReuniao(
+        tarefas.map((t) => ({ origem: t.origem, concluida: t.concluido, atrasada: t.atrasado })),
+        origemAtual,
+      ),
+    [tarefas, origemAtual],
+  );
+  // Obra aberta: a escolhida, senão a primeira (como no protótipo).
+  const obraAberta = aberta ?? obras[0]?.obraId ?? null;
 
-  function concluirReuniao() {
+  function gerarAta() {
     if (!reuniao) return;
+    if (fechada) {
+      setAtaAberta(true);
+      return;
+    }
     const snapshots = obras.map((o) => ({
       obra_id: o.obraId,
       snapshot: { pct: o.pct, ritmoDias: o.ritmoDias, entrega: o.entrega },
@@ -66,33 +81,52 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
 
   return (
     <div className={styles.screen}>
-      <div className={styles.topo}>
-        <button type="button" className={styles.voltar} aria-label="Voltar" onClick={onVoltar}>
-          <Icon name="chevronRight" size={24} />
-        </button>
-        <div>
-          <h1 className={styles.titulo}>Reunião da semana</h1>
-          <p className={styles.sub}>{formatarDataCompleta(data)} · 16h</p>
-        </div>
-      </div>
-
-      {query.isLoading ? (
-        <p className={styles.vazio}>Montando a pauta…</p>
-      ) : query.isError ? (
-        <p className={styles.vazio}>Não foi possível montar a pauta. Tente de novo.</p>
-      ) : (
-        <>
-          <div className={styles.kpis}>
-            <Kpi n={kpis.obras} rotulo="obras" />
-            <Kpi n={kpis.aProvidenciar} rotulo="a providenciar" />
-            <Kpi n={kpis.atrasadas} rotulo="atrasadas" atraso />
+      <header className={styles.cabecalho}>
+        <div className={styles.topo}>
+          <button type="button" className={styles.voltar} aria-label="Voltar" onClick={onVoltar}>
+            <Icon name="chevronLeft" size={22} />
+          </button>
+          <div>
+            <h1 className={styles.titulo}>Reunião semanal</h1>
+            <div className={styles.sub}>
+              Segunda {formatarDataCurta(data).split(' ')[1]} · 16h ·{' '}
+              {fechada ? 'ata gerada' : 'ata em construção'}
+            </div>
           </div>
+        </div>
+        <div className={styles.kpis}>
+          <div className={styles.kpi}>
+            <strong>{resumo.cumpridas}</strong>
+            <span>providências cumpridas</span>
+          </div>
+          <div className={`${styles.kpi} ${resumo.atrasadas ? styles.kpiAtraso : ''}`}>
+            <strong>{resumo.atrasadas}</strong>
+            <span>providências atrasadas</span>
+          </div>
+          <div className={`${styles.kpi} ${styles.kpiNovas}`}>
+            <strong>{resumo.novas}</strong>
+            <span>novas nesta reunião</span>
+          </div>
+        </div>
+      </header>
 
-          {obras.map((o) => (
-            <ObraCard
+      <div className={styles.lista}>
+        {query.isLoading ? (
+          <p className={styles.vazio}>Montando a pauta…</p>
+        ) : query.isError ? (
+          <p className={styles.vazio}>Não foi possível montar a pauta. Tente de novo.</p>
+        ) : obras.length === 0 ? (
+          <p className={styles.vazio}>Nenhuma obra em andamento para a pauta.</p>
+        ) : (
+          obras.map((o) => (
+            <ObraPauta
               key={o.obraId}
               o={o}
+              tarefas={tarefas.filter((t) => t.obraId === o.obraId)}
+              origemAtual={origemAtual}
+              aberta={obraAberta === o.obraId}
               fechada={fechada}
+              onToggle={() => setAberta(obraAberta === o.obraId ? '' : o.obraId)}
               onNovaAcao={() => setAcaoObra(o)}
               onObservacao={(texto) =>
                 reuniao &&
@@ -102,26 +136,28 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
                 )
               }
             />
-          ))}
+          ))
+        )}
+      </div>
 
-          {fechada ? (
-            <button type="button" className={styles.ata} onClick={() => setAtaAberta(true)}>
-              Ver ata
-            </button>
-          ) : ehGestor ? (
-            <button
-              type="button"
-              className={styles.fechar}
-              disabled={fechar.isPending}
-              onClick={concluirReuniao}
-            >
-              {fechar.isPending ? 'Fechando…' : 'Fechar reunião e gerar ata'}
-            </button>
-          ) : (
-            <p className={styles.vazio}>Só o gestor fecha a reunião.</p>
-          )}
-        </>
-      )}
+      <div className={styles.rodape}>
+        {fechada || ehGestor ? (
+          <button
+            type="button"
+            className={styles.gerar}
+            disabled={!reuniao || fechar.isPending}
+            onClick={gerarAta}
+          >
+            {fechada
+              ? 'Ver ata da reunião'
+              : fechar.isPending
+                ? 'Gerando…'
+                : 'Gerar ata da reunião'}
+          </button>
+        ) : (
+          <p className={styles.soGestor}>O gestor gera a ata ao fim da reunião.</p>
+        )}
+      </div>
 
       <NovaAcaoSheet
         aberto={Boolean(acaoObra)}
@@ -137,7 +173,7 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
             {
               onSuccess: () => {
                 setAcaoObra(null);
-                showToast({ message: 'Registrado na reunião' });
+                showToast({ message: 'Providência registrada na ata' });
               },
               onError: () => showToast({ message: 'Não foi possível registrar' }),
             },
@@ -148,139 +184,176 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
   );
 }
 
-function Kpi({ n, rotulo, atraso }: { n: number; rotulo: string; atraso?: boolean }) {
-  return (
-    <div className={styles.kpi}>
-      <span className={`${styles.kpiN} ${atraso && n > 0 ? styles.kpiAtraso : ''}`}>{n}</span>
-      <span className={styles.kpiR}>{rotulo}</span>
-    </div>
-  );
+function iniciais(nome: string): string {
+  return nome
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join('');
 }
 
-const TIPO: Record<string, string> = {
-  contratacao: 'Contratação',
-  locacao: 'Locação',
-  compra: 'Compra',
-};
-
-function ObraCard({
+function ObraPauta({
   o,
+  tarefas,
+  origemAtual,
+  aberta,
   fechada,
+  onToggle,
   onObservacao,
   onNovaAcao,
 }: {
   o: ReuniaoObraDados;
+  tarefas: TarefaAtrib[];
+  origemAtual: string;
+  aberta: boolean;
   fechada: boolean;
+  onToggle: () => void;
   onObservacao: (texto: string) => void;
   onNovaAcao: () => void;
 }) {
   const ritmo = ritmoTexto(o.ritmoDias, true);
+  const passada = [
+    ...o.passadaConcluir.map((p) => ({
+      ok: p.ok,
+      t: `${p.ok ? 'Concluída' : 'Não concluída'}: ${p.nome}`,
+      s: p.ok ? null : (p.motivo ?? null),
+    })),
+    ...o.passadaComecar.map((p) => ({
+      ok: p.ok,
+      t: `${p.ok ? 'Começou' : 'Não começou'}: ${p.nome}`,
+      s: p.ok ? null : (p.motivo ?? null),
+    })),
+  ];
+  const anteriores = tarefas.filter((t) => deReuniaoAnterior(t, origemAtual));
+  const novas = tarefas.filter((t) => t.origem === origemAtual);
+  const nomes = (xs: { nome: string }[]) =>
+    xs.length ? xs.map((x) => x.nome).join(', ') : 'nada previsto';
+  const pedir = o.providenciar.length
+    ? o.providenciar.map((p) => `${TIPO[p.tipo]}: ${p.descricao}`).join(', ')
+    : 'nada a fechar';
+
   return (
-    <div className={styles.card}>
-      <div className={styles.faixa}>{o.nome}</div>
-      <div className={styles.corpo}>
-        <p className={styles.ind}>
-          {Math.round(o.pct * 100)}% ·{' '}
-          <span className={ritmo.atrasada ? styles.atraso : ''}>{ritmo.texto}</span> · entrega{' '}
-          {formatarDataCurta(o.entrega)}
-        </p>
+    <div className={styles.obra}>
+      <button type="button" className={styles.obraBtn} aria-expanded={aberta} onClick={onToggle}>
+        <span className={styles.obraTexto}>
+          <span className={styles.obraNome}>{o.nome}</span>
+          <span className={styles.obraInd}>
+            Real {Math.round(o.pct * 100)}% · previsto sexta {Math.round(o.previstoSexta * 100)}% ·{' '}
+            {o.faseAtual}
+          </span>
+        </span>
+        <span className={ritmo.atrasada ? styles.ritmoAtraso : styles.ritmo}>{ritmo.texto}</span>
+      </button>
 
-        {o.atividadesAtrasadas.length > 0 ? (
-          <Secao titulo={`Atrasos (${o.atividadesAtrasadas.length})`} atraso>
-            {o.atividadesAtrasadas.map((a, i) => (
-              <Linha key={i} texto={a.nome} meta={`era ${formatarDataCurta(a.data)}`} atraso />
+      {aberta ? (
+        <div className={styles.obraCorpo}>
+          <section>
+            <h3 className={styles.secao}>Semana passada · previsto x realizado</h3>
+            {passada.map((x, i) => (
+              <div key={i} className={styles.passada}>
+                <span className={x.ok ? styles.icOk : styles.icNao}>
+                  <Icon name={x.ok ? 'checkGrosso' : 'close'} size={14} strokeWidth={2.6} />
+                </span>
+                <div>
+                  <span className={x.ok ? styles.passadaOk : styles.passadaNao}>{x.t}</span>
+                  {x.s ? <div className={styles.miuda}>{x.s}</div> : null}
+                </div>
+              </div>
             ))}
-          </Secao>
-        ) : null}
+            {passada.length === 0 ? (
+              <div className={styles.miuda}>
+                Nada previsto para concluir ou começar na semana passada.
+              </div>
+            ) : null}
+          </section>
 
-        {o.passadaConcluir.length + o.passadaComecar.length > 0 ? (
-          <Secao titulo="Semana passada">
-            {o.passadaConcluir.map((p, i) => (
-              <Linha
-                key={`c${i}`}
-                texto={p.nome}
-                meta={p.ok ? 'concluída' : `não · ${p.motivo ?? '—'}`}
-                atraso={!p.ok}
-              />
-            ))}
-            {o.passadaComecar.map((p, i) => (
-              <Linha
-                key={`b${i}`}
-                texto={p.nome}
-                meta={p.ok ? 'começou' : `não · ${p.motivo ?? '—'}`}
-                atraso={!p.ok}
-              />
-            ))}
-          </Secao>
-        ) : null}
+          <section>
+            <h3 className={styles.secao}>Providências da reunião anterior</h3>
+            {anteriores.map((t) => {
+              const tag = t.concluido ? 'Feita' : t.atrasado ? 'Atrasada' : 'No prazo';
+              return (
+                <div key={t.id} className={styles.anterior}>
+                  <div className={styles.anteriorTexto}>
+                    <span
+                      className={
+                        t.concluido ? styles.feita : t.atrasado ? styles.txtAtraso : styles.forte
+                      }
+                    >
+                      {t.texto}
+                    </span>
+                    <div className={styles.miuda}>
+                      {t.pessoa} · prazo {t.prazo ? formatarDataCurta(t.prazo) : '—'}
+                    </div>
+                  </div>
+                  <span
+                    className={`${styles.tag} ${t.concluido ? styles.tagFeita : t.atrasado ? styles.tagAtraso : ''}`}
+                  >
+                    {tag}
+                  </span>
+                </div>
+              );
+            })}
+            {anteriores.length === 0 ? (
+              <div className={styles.miuda}>Nenhuma providência anterior.</div>
+            ) : null}
+          </section>
 
-        <Secao titulo="Esta semana">
-          {o.concluir.map((a, i) => (
-            <Linha
-              key={`cc${i}`}
-              texto={a.nome}
-              meta={`concluir até ${formatarDataCurta(a.data)}`}
+          <section>
+            <h3 className={styles.secao}>Esta semana</h3>
+            <div className={styles.semana}>
+              <div>
+                <b>Concluir:</b> {nomes(o.concluir)}
+              </div>
+              <div>
+                <b>Começar:</b> {nomes(o.comecar)}
+              </div>
+              <div>
+                <b>Contratar/comprar:</b> {pedir}
+              </div>
+            </div>
+          </section>
+
+          <section className={styles.obsBloco}>
+            <label htmlFor={`obs-${o.obraId}`} className={styles.secao}>
+              Avanços e observações da reunião
+            </label>
+            <textarea
+              id={`obs-${o.obraId}`}
+              className={styles.obs}
+              rows={3}
+              defaultValue={o.observacoes}
+              disabled={fechada}
+              placeholder="Ex.: forro avançou 60%; azulejista mobilizado na quinta"
+              onBlur={(e) => {
+                if (e.target.value !== o.observacoes) onObservacao(e.target.value);
+              }}
             />
-          ))}
-          {o.comecar.map((a, i) => (
-            <Linha key={`bb${i}`} texto={a.nome} meta={`começar ${formatarDataCurta(a.data)}`} />
-          ))}
-          {o.providenciar.map((p, i) => (
-            <Linha
-              key={`pp${i}`}
-              texto={`${TIPO[p.tipo]}: ${p.descricao}`}
-              meta={p.naObraEm ? `na obra ${formatarDataCurta(p.naObraEm)}` : 'providenciar'}
-            />
-          ))}
-          {o.concluir.length + o.comecar.length + o.providenciar.length === 0 ? (
-            <p className={styles.nada}>Nada previsto.</p>
-          ) : null}
-        </Secao>
+          </section>
 
-        <p className={styles.rotulo}>Observações</p>
-        <textarea
-          className={styles.obs}
-          defaultValue={o.observacoes}
-          disabled={fechada}
-          placeholder="O que ficou combinado…"
-          onBlur={(e) => {
-            if (e.target.value !== o.observacoes) onObservacao(e.target.value);
-          }}
-        />
-
-        {!fechada ? (
-          <button type="button" className={styles.novaAcao} onClick={onNovaAcao}>
-            <Icon name="plus" size={16} />
-            Providência / tarefa
-          </button>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-function Secao({
-  titulo,
-  atraso,
-  children,
-}: {
-  titulo: string;
-  atraso?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={styles.secao}>
-      <p className={`${styles.secaoTitulo} ${atraso ? styles.atraso : ''}`}>{titulo}</p>
-      {children}
-    </div>
-  );
-}
-
-function Linha({ texto, meta, atraso }: { texto: string; meta: string; atraso?: boolean }) {
-  return (
-    <div className={styles.linha}>
-      <span className={styles.linhaTexto}>{texto}</span>
-      <span className={`${styles.linhaMeta} ${atraso ? styles.atraso : ''}`}>{meta}</span>
+          <section>
+            <h3 className={styles.secao}>Novas providências</h3>
+            {novas.map((t) => (
+              <div key={t.id} className={styles.nova}>
+                <span className={styles.avatar} aria-hidden="true">
+                  {iniciais(t.pessoa)}
+                </span>
+                <div>
+                  <b>{t.texto}</b>
+                  <div className={styles.miuda}>
+                    {t.pessoa} · até {t.prazo ? formatarDataCurta(t.prazo) : '—'}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!fechada ? (
+              <button type="button" className={styles.addProv} onClick={onNovaAcao}>
+                + Providência com responsável e prazo
+              </button>
+            ) : null}
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }
