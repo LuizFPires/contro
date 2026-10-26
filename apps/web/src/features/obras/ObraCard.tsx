@@ -1,62 +1,55 @@
 import { ritmoTexto } from '@contro/core';
-import { Card } from '@contro/ui';
+import { Icon } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import type { ObraResumo } from './api';
 import styles from './ObraCard.module.css';
 
-export function ObraCard({
-  obra,
-  onAbrir,
-  onAbrirTarefas,
-}: {
-  obra: ObraResumo;
-  onAbrir: () => void;
-  onAbrirTarefas?: () => void;
-}) {
+export function ObraCard({ obra, onAbrir }: { obra: ObraResumo; onAbrir: () => void }) {
   const ritmo = ritmoTexto(obra.ritmoDias, true);
+  const n = obra.atividadesAtrasadas;
+  const faseTxt =
+    obra.faseAtualN && obra.faseAtual
+      ? `Em execução · Fase ${obra.faseAtualN} de ${obra.nFases} · ${obra.faseAtual}`
+      : 'Concluída';
 
   return (
-    <Card onClick={onAbrir}>
-      <div className={styles.card}>
-        <div className={styles.topo}>
-          <h2 className={styles.nome}>{obra.nome}</h2>
-          <span className={styles.pct}>{Math.round(obra.pct * 100)}%</span>
-        </div>
-        <p className={styles.rotulo}>{obra.modelo_rotulo}</p>
+    <button
+      type="button"
+      className={`${styles.card} ${n > 0 ? styles.comAtraso : ''}`}
+      onClick={onAbrir}
+    >
+      <span className={styles.topo}>
+        <span className={styles.titulos}>
+          <span className={styles.nome}>{obra.nome}</span>
+          <span className={styles.fase}>{faseTxt}</span>
+        </span>
+        <span className={styles.pct}>
+          {Math.round(obra.pct * 100)}
+          <span>%</span>
+        </span>
+      </span>
 
-        <div className={styles.linhaFase}>
-          <span className={styles.fase}>{obra.faseAtual ?? 'Concluída'}</span>
-        </div>
-        <div className={styles.segs} aria-hidden="true">
-          {obra.fasesEstado.map((e, i) => (
-            <span key={i} className={`${styles.seg} ${styles[e] ?? ''}`} />
-          ))}
-        </div>
+      <span
+        className={styles.segs}
+        style={{ gridTemplateColumns: `repeat(${obra.fasesEstado.length || 1}, minmax(0, 1fr))` }}
+        aria-hidden="true"
+      >
+        {obra.fasesEstado.map((e, i) => (
+          <span key={i} className={`${styles.seg} ${styles[e] ?? ''}`} />
+        ))}
+      </span>
 
-        <div className={styles.rodape}>
-          <span className={ritmo.atrasada ? styles.atrasada : styles.ritmo}>{ritmo.texto}</span>
-          <span className={styles.entrega}>Entrega {formatarDataCurta(obra.entrega)}</span>
-        </div>
+      <span className={styles.rodape}>
+        <span className={ritmo.atrasada ? styles.ritmoAtraso : styles.ritmo}>{ritmo.texto}</span>
+        <span className={styles.entrega}>Entrega {formatarDataCurta(obra.entrega)}</span>
+      </span>
 
-        {onAbrirTarefas && (obra.tarefasAbertas > 0 || obra.tarefasAtrasadas > 0) ? (
-          <button
-            type="button"
-            className={styles.tarefas}
-            onClick={(e) => {
-              e.stopPropagation();
-              onAbrirTarefas();
-            }}
-          >
-            {obra.tarefasAbertas} {obra.tarefasAbertas === 1 ? 'tarefa' : 'tarefas'}
-            {obra.tarefasAtrasadas > 0 ? (
-              <span className={styles.tarefasAtraso}>
-                {' '}
-                · {obra.tarefasAtrasadas} atrasada{obra.tarefasAtrasadas === 1 ? '' : 's'}
-              </span>
-            ) : null}
-          </button>
-        ) : null}
-      </div>
-    </Card>
+      {n > 0 ? (
+        <span className={styles.alertaAtraso}>
+          <Icon name="alert" size={16} strokeWidth={2.2} />
+          {n} {n === 1 ? 'atividade atrasada' : 'atividades atrasadas'}
+        </span>
+      ) : null}
+    </button>
   );
 }

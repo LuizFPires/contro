@@ -24,6 +24,10 @@ export interface ObraResumo {
   modelo_rotulo: string;
   inicio: string;
   faseAtual: string | null;
+  /** Número da fase atual (1..n) e total de fases. */
+  faseAtualN: number | null;
+  nFases: number;
+  atividadesAtrasadas: number;
   pct: number; // 0..1
   ritmoDias: number;
   entrega: string;
@@ -183,6 +187,11 @@ export async function listarObras(): Promise<ObraResumo[]> {
       modelo_rotulo: o.modelo_rotulo,
       inicio: o.inicio,
       faseAtual: minhasFases.find((f) => f.id === faseAtualId)?.titulo ?? null,
+      faseAtualN: faseAtualId ? minhasFases.findIndex((f) => f.id === faseAtualId) + 1 : null,
+      nFases: minhasFases.length,
+      atividadesAtrasadas: cron.itens.filter(
+        (it) => faseDaAtv.has(it.id) && est.atividades[it.id]?.atrasada,
+      ).length,
       pct: est.indicadores.real,
       ritmoDias: est.indicadores.ritmoDias,
       entrega: est.indicadores.entrega,
