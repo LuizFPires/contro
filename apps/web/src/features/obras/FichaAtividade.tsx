@@ -8,6 +8,7 @@ import { Camera } from './Camera';
 import { CampoPrestador } from './CampoPrestador';
 import type { ObraCompleta } from './detalhe';
 import { NovaProvidenciaSheet } from './ProvidenciasAba';
+import { numeracaoObra } from './numeracaoObra';
 import { useConcluirAtividade, type AoConcluir } from './useConcluirAtividade';
 import { useObraCampo } from './useObraCampo';
 import styles from './FichaAtividade.module.css';
@@ -99,6 +100,11 @@ export function FichaAtividade({
       : cron && cron.inicio_previsto <= hojeISO()
         ? { txt: 'Em andamento', cls: styles.tagLiberada }
         : { txt: 'Planejada', cls: styles.tagPlanejada };
+
+  // Pré-obra: o que o mapa libera e quais mapas preparam esta atividade (só aviso).
+  const num = numeracaoObra(obra);
+  const nomeDe = (id: string) => obra.atividades.find((x) => x.id === id)?.nome ?? '—';
+  const preparadaPor = obra.atividades.filter((x) => x.mapaLibera.includes(a.id));
 
   const nFeitas = provs.filter((x) => x.feito).length;
 
@@ -256,11 +262,17 @@ export function FichaAtividade({
             <div>
               <strong>Vem depois:</strong> {libera.length ? libera.join(', ') : 'nada'}
             </div>
-            {a.mapa_alvo_id ? (
+            {a.mapaLibera.length ? (
               <div>
                 <strong>Libera:</strong>{' '}
-                {obra.atividades.find((x) => x.id === a.mapa_alvo_id)?.nome ?? '—'} (contratar até o
-                fim do mapa)
+                {a.mapaLibera.map((id) => `#${num.get(id) ?? '?'} ${nomeDe(id)}`).join(', ')}{' '}
+                (contratar até o fim do mapa)
+              </div>
+            ) : null}
+            {preparadaPor.length ? (
+              <div>
+                <strong>Preparada por:</strong>{' '}
+                {preparadaPor.map((m) => `#${num.get(m.id) ?? '?'} ${m.nome}`).join(', ')}
               </div>
             ) : null}
           </div>

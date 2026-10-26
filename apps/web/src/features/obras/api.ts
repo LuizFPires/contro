@@ -55,7 +55,6 @@ interface LinhaAtv {
   em_sequencia: boolean;
   inicio_manual: string | null;
   concluida_em: string | null;
-  mapa_alvo_id: string | null;
   mapa_antecedencia_du: number | null;
 }
 
@@ -68,32 +67,38 @@ export async function listarUnidades(): Promise<Unidade[]> {
 export async function listarObras(): Promise<ObraResumo[]> {
   if (!supabase) return [];
   const hoje = hojeISO();
-  const [obrasRes, fasesRes, atvsRes, depsRes, provsRes, tarefasRes] = await Promise.all([
-    supabase
-      .from('obra')
-      .select('id,nome,modelo_rotulo,inicio,entrega_original')
-      .eq('status', 'ativa')
-      .is('deleted_at', null),
-    supabase.from('obra_fase').select('id,obra_id,ordem,titulo,preliminar').order('ordem'),
-    supabase
-      .from('obra_atividade')
-      .select(
-        'id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,' +
-          'mapa_alvo_id,mapa_antecedencia_du',
-      )
-      .is('deleted_at', null),
-    supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id,defasagem_du'),
-    supabase
-      .from('obra_providencia')
-      .select('id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du'),
-    supabase
-      .from('tarefa')
-      .select(
-        'id,obra_id,texto,prazo,status,responsavel_nome,responsavel:pessoa!responsavel_id(nome)',
-      )
-      .eq('status', 'aberta')
-      .is('deleted_at', null),
-  ]);
+  const [obrasRes, fasesRes, atvsRes, depsRes, provsRes, tarefasRes, liberaRes] = await Promise.all(
+    [
+      supabase
+        .from('obra')
+        .select('id,nome,modelo_rotulo,inicio,entrega_original')
+        .eq('status', 'ativa')
+        .is('deleted_at', null),
+      supabase.from('obra_fase').select('id,obra_id,ordem,titulo,preliminar').order('ordem'),
+      supabase
+        .from('obra_atividade')
+        .select(
+          'id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,' +
+            'mapa_antecedencia_du',
+        )
+        .is('deleted_at', null),
+      supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id,defasagem_du'),
+      supabase
+        .from('obra_providencia')
+        .select('id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du'),
+      supabase
+        .from('tarefa')
+        .select(
+          'id,obra_id,texto,prazo,status,responsavel_nome,responsavel:pessoa!responsavel_id(nome)',
+        )
+        .eq('status', 'aberta')
+        .is('deleted_at', null),
+      supabase.from('obra_mapa_libera').select('mapa_id,atividade_id'),
+    ],
+  );
+  const liberaPorMapa = new Map<string, string[]>();
+  for (const l of (liberaRes.data ?? []) as { mapa_id: string; atividade_id: string }[])
+    liberaPorMapa.set(l.mapa_id, [...(liberaPorMapa.get(l.mapa_id) ?? []), l.atividade_id]);
 
   const obras = (obrasRes.data ?? []) as {
     id: string;
@@ -281,7 +286,8 @@ export async function listarObras(): Promise<ObraResumo[]> {
                   pai_id: a.pai_id,
                   duracao_du: a.duracao_du,
                   em_sequencia: a.em_sequencia,
-                  mapaAlvoId: a.mapa_alvo_id,
+                  predecessoras: predsPorAtv.get(a.id),
+                  mapaAlvos: liberaPorMapa.get(a.id) ?? [],
                   mapaAntecedenciaDu: a.mapa_antecedencia_du,
                 })),
               );
