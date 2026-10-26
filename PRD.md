@@ -51,7 +51,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 
 ### 5.1 Carteira (tela inicial)
 - **Menu inferior com duas abas:** **Hoje** (abre por padrão, com o número de atrasos em vermelho) e **Minhas obras**. O cabeçalho (CONTRO, Modelos, boletins prontos e perfil) fica nas duas.
-- **Hoje** (aba padrão; opção A do protótipo): "Hoje · segunda, 26/10" e um resumo ("4 atrasos e 5 coisas para hoje em 3 obras"). Um **card por obra, recolhível**, só das obras com algo no dia; abre sozinho quem tem atraso.
+- **Hoje** (aba padrão; opção A do protótipo): "Hoje · segunda, 26/10" e um resumo ("4 atrasos e 5 coisas para hoje em 3 obras"). Um **card por obra, recolhível**, só das obras com algo no dia; **todos começam recolhidos** (o cabeçalho já mostra "2 atrasados · 2 para hoje" e a borda vermelha).
   - **Atrasado** (faixa vermelha, no topo do card): lembrete não providenciado no prazo, atividade que devia ter terminado e tarefa vencida, do mais antigo para o mais novo.
   - **Para hoje**: atividade que termina ou começa hoje, lembrete com prazo hoje e tarefa de hoje.
   - Tocar no item abre a obra (ou as Tarefas, se for tarefa).

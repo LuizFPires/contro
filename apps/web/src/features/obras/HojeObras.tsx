@@ -47,9 +47,8 @@ export function HojeObras({
     (o) => o.risco || o.agenda.atrasados.length + o.agenda.hoje.length > 0,
   );
   // Aberto por padrão só quem tem atraso; o resto começa recolhido.
-  const [abertas, setAbertas] = useState<Set<string>>(
-    () => new Set(comAlgo.filter((o) => o.risco || o.agenda.atrasados.length > 0).map((o) => o.id)),
-  );
+  // Todas começam recolhidas: o resumo no cabeçalho do card já avisa o atraso.
+  const [abertas, setAbertas] = useState<Set<string>>(() => new Set());
   const alternar = (id: string) =>
     setAbertas((s) => {
       const n = new Set(s);
