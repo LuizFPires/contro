@@ -21,6 +21,7 @@ export * from './ajusteObra';
 export * from './pautaReuniao';
 export * from './agendaDia';
 export * from './preObra';
+export * from './nomes';
 export * from './recuperacao';
 
 export type Perfil = 'gestor' | 'equipe';
