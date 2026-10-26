@@ -7,8 +7,10 @@ import './styles/app.css';
 import { App } from './App';
 import { iniciarSentry } from './lib/sentry';
 import { iniciarSync } from './lib/sync';
+import { iniciarPwa } from './lib/pwa';
 
 iniciarSentry();
+iniciarPwa();
 
 const queryClient = new QueryClient();
 iniciarSync(queryClient);
