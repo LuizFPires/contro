@@ -90,6 +90,14 @@ const paths = {
       <circle cx="12" cy="13" r="3.5" />
     </>
   ),
+  sync: (
+    <>
+      <path d="M4 12a8 8 0 0 1 13.66-5.66L20 8" />
+      <path d="M20 4v4h-4" />
+      <path d="M20 12a8 8 0 0 1-13.66 5.66L4 16" />
+      <path d="M4 20v-4h4" />
+    </>
+  ),
 } as const;
 
 export type IconName = keyof typeof paths;

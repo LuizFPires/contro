@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button, Logo, TabBar, type TabItem } from '@contro/ui';
+import { PullToRefresh } from './components/PullToRefresh';
+import { verificarAtualizacao } from './lib/pwa';
 import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
@@ -31,6 +33,19 @@ export function App() {
       }
     });
     return () => sub.subscription.unsubscribe();
+  }, [qc]);
+
+  // "Puxar pra atualizar": primeiro procura uma versão nova do app; se houver,
+  // o service worker assume e a página recarrega sozinha. Se já estiver na
+  // última versão, só reconsulta os dados (um tempinho mínimo para o indicador
+  // não piscar).
+  const aoAtualizar = useCallback(async () => {
+    const temVersaoNova = await verificarAtualizacao();
+    if (temVersaoNova) return; // a página vai recarregar
+    await Promise.all([
+      qc.refetchQueries({ type: 'active' }),
+      new Promise((resolve) => setTimeout(resolve, 500)),
+    ]);
   }, [qc]);
 
   if (carregando) {
@@ -73,7 +88,7 @@ export function App() {
         <Logo on="preto" height={22} />
       </header>
 
-      <main className="app-main">
+      <PullToRefresh onRefresh={aoAtualizar}>
         {tabAtiva === 'inicio' ? <MinhasObras /> : null}
         {tabAtiva === 'modelos' && ehGestor ? <ModelosScreen /> : null}
         {tabAtiva === 'mais' ? (
@@ -105,7 +120,7 @@ export function App() {
             </div>
           )
         ) : null}
-      </main>
+      </PullToRefresh>
 
       <TabBar items={tabs} active={tabAtiva} onSelect={setTab} />
       <SyncIndicator />
