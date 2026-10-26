@@ -105,8 +105,19 @@ export function FichaAtividade({
   const num = numeracaoObra(obra);
   const nomeDe = (id: string) => obra.atividades.find((x) => x.id === id)?.nome ?? '—';
   const preparadaPor = obra.atividades.filter((x) => x.mapaLibera.includes(a.id));
+  // Mapas de coleta que preparam esta atividade entram como card em "Para começar".
+  const nMapasFeitos = preparadaPor.filter((m) => m.concluida_em).length;
+  const totalPara = provs.length + preparadaPor.length;
+  const feitosPara = provs.filter((x) => x.feito).length + nMapasFeitos;
 
-  const nFeitas = provs.filter((x) => x.feito).length;
+  function resolverMapa(m: (typeof preparadaPor)[number]) {
+    conclusao.concluir(m.id, null, (r) =>
+      showToast({
+        message: `Mapa de coleta "${m.nome}" resolvido`,
+        onUndo: () => campo.desfazer.mutate({ atividadeId: m.id, xp: r.xp }),
+      }),
+    );
+  }
 
   function alternarProv(id: string, feito: boolean, tipoTxt: string) {
     campo.providencia.mutate(
@@ -152,10 +163,52 @@ export function FichaAtividade({
           <section className={styles.secao}>
             <h3 className={styles.rotulo}>
               Para começar ·{' '}
-              {provs.length
-                ? `${nFeitas} de ${provs.length} ${provs.length === 1 ? 'providenciado' : 'providenciados'}`
+              {totalPara
+                ? `${feitosPara} de ${totalPara} ${totalPara === 1 ? 'providenciado' : 'providenciados'}`
                 : 'nada a providenciar'}
             </h3>
+            {preparadaPor.map((m) => {
+              const feito = Boolean(m.concluida_em);
+              const atrasado = !feito && Boolean(obra.estados[m.id]?.atrasada);
+              const fim = obra.pre[m.id]?.fim_previsto;
+              return (
+                <div
+                  key={m.id}
+                  className={`${styles.prov} ${atrasado ? styles.provAtraso : feito ? styles.provFeita : ''}`}
+                >
+                  <div className={styles.provTopo}>
+                    <span className={styles.provTipo}>Mapa de coleta · #{num.get(m.id)}</span>
+                    <span
+                      className={`${styles.sit} ${feito ? styles.sitFeita : atrasado ? styles.sitAtraso : ''}`}
+                    >
+                      {feito ? 'Concluído' : atrasado ? 'Atrasado' : 'A fazer'}
+                    </span>
+                  </div>
+                  <div className={styles.provDesc}>{m.nome}</div>
+                  {fim ? (
+                    <div className={atrasado ? styles.quandoAtraso : styles.quando}>
+                      {feito
+                        ? 'Cotações fechadas na fase 2 · Mapa de coleta'
+                        : atrasado
+                          ? `ATRASADO · era para fechar até ${formatarDataCurta(fim)}`
+                          : `Fechar as cotações até ${formatarDataCurta(fim)} (fase 2 · Mapa de coleta)`}
+                    </div>
+                  ) : null}
+                  {!feito ? (
+                    <div className={styles.provAcoes}>
+                      <button
+                        type="button"
+                        className={styles.btnMarcar}
+                        disabled={conclusao.pendente}
+                        onClick={() => resolverMapa(m)}
+                      >
+                        Marcar mapa como resolvido
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
             {provs.map(({ p, feito, atrasada, ate, naObra }) => (
               <div
                 key={p.id}
@@ -214,7 +267,7 @@ export function FichaAtividade({
                 </div>
               </div>
             ))}
-            {provs.length === 0 ? (
+            {totalPara === 0 ? (
               <div className={styles.vazio}>
                 Nenhuma contratação, locação ou compra lançada para esta atividade.
               </div>
@@ -267,12 +320,6 @@ export function FichaAtividade({
                 <strong>Libera:</strong>{' '}
                 {a.mapaLibera.map((id) => `#${num.get(id) ?? '?'} ${nomeDe(id)}`).join(', ')}{' '}
                 (contratar até o fim do mapa)
-              </div>
-            ) : null}
-            {preparadaPor.length ? (
-              <div>
-                <strong>Preparada por:</strong>{' '}
-                {preparadaPor.map((m) => `#${num.get(m.id) ?? '?'} ${m.nome}`).join(', ')}
               </div>
             ) : null}
           </div>
