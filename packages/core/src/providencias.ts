@@ -30,12 +30,15 @@ export interface ProvidenciaAtrasadaArgs {
   antecedenciaDu: number;
 }
 
-/** Providência atrasada: pendente, atividade não concluída, obra iniciada e já passou do limite. */
+/**
+ * Providência atrasada: pendente, atividade não concluída, obra iniciada e o dia
+ * limite já passou ("providenciar até sex" ainda vale na sexta).
+ */
 export function providenciaAtrasada(a: ProvidenciaAtrasadaArgs): boolean {
   return (
     a.status === 'pendente' &&
     !a.atividadeConcluida &&
     a.obraIniciada &&
-    a.decorridos >= Math.max(limiteProvidencia(a.esAtividade, a.antecedenciaDu), 0)
+    a.decorridos > Math.max(limiteProvidencia(a.esAtividade, a.antecedenciaDu), 0)
   );
 }
