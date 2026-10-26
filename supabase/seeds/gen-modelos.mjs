@@ -26,7 +26,12 @@ const MODELO_1 = [
     nome: 'Mobilização e tapumes',
     dur: 2,
     preds: [],
-    provs: [L('Tapumes e container de obra', 3)],
+    provs: [
+      L('Tapumes e container de obra', 3),
+      C('Empreiteiro civil (contrato global MO+material)', 20),
+      L('Banheiro químico', 3),
+      L('Betoneira', 3),
+    ],
   },
   {
     id: '2',
@@ -39,7 +44,7 @@ const MODELO_1 = [
       { id: '2.2', nome: 'Demolição de forro', dur: 2, seq: false },
       { id: '2.3', nome: 'Demolição de piso', dur: 3, seq: true },
     ],
-    provs: [L('Caçambas de entulho', 2), C('Equipe de demolição', 5)],
+    provs: [L('Caçambas de entulho', 2), C('Equipe de demolição', 5), L('Martelete / rompedor', 2)],
   },
   { id: '3', fase: 1, nome: 'Limpeza e bota-fora', dur: 2, preds: ['2'] },
   {
@@ -48,7 +53,11 @@ const MODELO_1 = [
     nome: 'Alvenarias e novos fechamentos',
     dur: 6,
     preds: ['3'],
-    provs: [C('Pedreiro (alvenaria)', 5), P('Blocos e argamassa', 5)],
+    provs: [
+      C('Pedreiro (alvenaria)', 5),
+      P('Blocos e argamassa', 5),
+      L('Caçamba (limpeza permanente)', 2),
+    ],
   },
   {
     id: '5',
@@ -64,7 +73,11 @@ const MODELO_1 = [
     nome: 'Infra de ar-condicionado',
     dur: 6,
     preds: ['3'],
-    provs: [C('Instaladora de ar-condicionado', 10), P('Tubulação frigorígena e drenos', 7)],
+    provs: [
+      C('Instaladora de ar-condicionado', 10),
+      P('Tubulação frigorígena e drenos', 7),
+      P('Equipamentos de ar-condicionado (evaporadoras/condensadoras)', 30),
+    ],
   },
   {
     id: '7',
@@ -81,10 +94,20 @@ const MODELO_1 = [
     nome: 'Infra de incêndio',
     dur: 5,
     preds: ['3'],
-    provs: [C('Empresa de incêndio (sprinkler)', 10)],
+    provs: [
+      C('Empresa de incêndio (sprinkler)', 10),
+      P('Materiais de incêndio (sprinklers e tubulação)', 10),
+    ],
   },
   { id: '10', fase: 3, nome: 'Impermeabilização dos vestiários', dur: 3, preds: ['7'] },
-  { id: '11', fase: 3, nome: 'Contrapiso e regularização', dur: 4, preds: ['7', '10'] },
+  {
+    id: '11',
+    fase: 3,
+    nome: 'Contrapiso e regularização',
+    dur: 4,
+    preds: ['7', '10'],
+    provs: [P('Areia, brita e cimento', 3)],
+  },
   {
     id: '12',
     fase: 3,
@@ -127,15 +150,29 @@ const MODELO_1 = [
     provs: [C('Instalador de piso', 7), P('Piso emborrachado e vinílico', 15)],
   },
   { id: '18', fase: 4, nome: 'Louças e metais', dur: 3, preds: ['13'] },
-  { id: '19', fase: 4, nome: 'Bancadas e divisórias', dur: 3, preds: ['13'] },
-  { id: '20', fase: 4, nome: 'Esquadrias, vidros e espelhos', dur: 4, preds: ['16'] },
+  {
+    id: '19',
+    fase: 4,
+    nome: 'Bancadas e divisórias',
+    dur: 3,
+    preds: ['13'],
+    provs: [C('Marmoraria (granito e pedras)', 25), P('Granito e pedras (corte sob medida)', 25)],
+  },
+  {
+    id: '20',
+    fase: 4,
+    nome: 'Esquadrias, vidros e espelhos',
+    dur: 4,
+    preds: ['16'],
+    provs: [C('Esquadrias de alumínio e vidraçaria', 30)],
+  },
   {
     id: '21',
     fase: 5,
     nome: 'Luminárias e acabamento elétrico',
     dur: 4,
     preds: ['16'],
-    provs: [P('Luminárias', 15)],
+    provs: [P('Luminárias', 20)],
   },
   {
     id: '22',
@@ -143,7 +180,7 @@ const MODELO_1 = [
     nome: 'Evaporadoras e start-up do ar',
     dur: 3,
     preds: ['12', '16'],
-    provs: [P('Evaporadoras', 15)],
+    provs: [C('Start-up e instalação do ar-condicionado', 7)],
   },
   {
     id: '23',
@@ -151,7 +188,7 @@ const MODELO_1 = [
     nome: 'Comunicação visual e fachada',
     dur: 4,
     preds: ['16'],
-    provs: [C('Comunicação visual', 15)],
+    provs: [C('Comunicação visual', 15), C('Paisagismo', 10)],
   },
   { id: '24', fase: 5, nome: 'Catraca, CFTV e som', dur: 3, preds: ['21'] },
   {
@@ -160,7 +197,7 @@ const MODELO_1 = [
     nome: 'Equipamentos de academia',
     dur: 3,
     preds: ['17'],
-    provs: [L('Caminhão munck', 5)],
+    provs: [L('Caminhão munck', 5), P('Enxoval CDC — equipamentos e mobiliário', 30)],
   },
   {
     id: '26',
