@@ -45,3 +45,14 @@ exemplos de projetos/
 
 # PDFs gerados pelo pdf-service (smoke)
 apps/pdf-service/out/
+
+# Vercel
+.vercel
+
+# Variáveis de ambiente locais
+.env*
+
+# Arquivos de marca soltos na raiz (fonte do usuário; a logomarca
+# versionada do app vive em packages/ui/src/brand)
+/*.zip
+/*.png
