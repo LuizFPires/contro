@@ -32,6 +32,11 @@ export function rotuloPerfil(perfil: Perfil): string {
   return perfil === 'gestor' ? 'Gestor' : 'Equipe de obra';
 }
 
+/** Só o gestor apaga obra (espelhado em excluir_obra no banco). */
+export function podeApagarObra(perfil: Perfil): boolean {
+  return perfil === 'gestor';
+}
+
 /** Só o gestor edita modelos de obra (regra de domínio, espelhada na RLS). */
 export function podeEditarModelos(perfil: Perfil): boolean {
   return perfil === 'gestor';

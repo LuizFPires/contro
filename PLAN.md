@@ -308,6 +308,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-27 · **Apagar obra (só o gestor):** ícone de lixeira no cabeçalho da obra (só aparece para o gestor), sempre com tela de confirmação; exclusão lógica (`excluir_obra`, grava `excluida_por`) e Desfazer (`restaurar_obra`). Trigger impede a equipe de apagar por update direto (a policy de update da obra é aberta a membros). Core `podeApagarObra`. · usuário
 - 2026-10-27 · **Rascunho nos formulários com botão de salvar:** Nova obra, Nova atividade, Novo lembrete e Nova tarefa guardam o que foi digitado neste aparelho (localStorage, por pessoa) e recuperam ao reabrir, com aviso "Rascunho recuperado" e Descartar; o rascunho some ao salvar (`useRascunho`). · usuário
 - 2026-10-27 · **Salvar sozinho os textos digitados:** prestador (e "quem foi contratado"), nome da atividade e texto do lembrete salvam quando o app vai para segundo plano/fecha ou a ficha fecha, sem precisar confirmar (`useAutoSalvar`). As três edições passam pela fila offline (`editar_prestador`, `renomear_atividade`, `editar_descricao_providencia`), otimistas (regra 9). O prestador não salva no meio da digitação para não criar sugestões pela metade. · usuário
 - 2026-10-27 · **Topo da ficha com menu "⋯" (opção C do protótipo):** ao lado do X, com alvos de 48 px; reúne "Editar nome" e "Excluir atividade" (o lápis solto e o botão de excluir no corpo da ficha saem). · usuário

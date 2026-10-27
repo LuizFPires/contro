@@ -98,6 +98,7 @@ modelo_atividade/obra_atividade.mapa_alvo_id, mapa_antecedencia_du  -- mapa de c
 obra.entrega_original date null                                -- inauguração planejada (fixar_entrega_original, uma vez)
 obra_dependencia.defasagem_du int default 0 (≤ 0)             -- paralelismo: começa N du antes do fim da predecessora
 obra_atividade excluída (deleted_at): as dependências ficam; no cálculo a sucessora herda as predecessoras dela (core dependenciasAtivas). RPCs adicionar_atividade_obra / excluir_atividade_obra / restaurar_atividade_obra (eventos criada/excluida/restaurada).
+obra.excluida_por (pessoa) + RPCs excluir_obra / restaurar_obra (só gestor; trigger obra_protege_exclusao barra update direto de deleted_at pela equipe).
 tarefa(id, obra_id, texto, responsavel_id → pessoa, prazo date,
        prazo_original date null, replanejamentos int default 0,
        status: 'aberta'|'feita', feita_em, feita_por,
