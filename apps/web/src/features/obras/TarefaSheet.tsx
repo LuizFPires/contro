@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { textoReplanejamento } from '@contro/core';
 import { BottomSheet, Button, Input } from '@contro/ui';
+import { AvisoRascunho } from '../../components/AvisoRascunho';
 import { formatarDataCurta } from '../../lib/datas';
+import { useRascunho } from '../../lib/useRascunho';
 import type { PessoaResumo } from '../perfil/usePessoas';
 import type { EntradaTarefa } from './campo';
 import type { TarefaObra } from './tarefasObra';
@@ -39,13 +41,29 @@ export function TarefaSheet({
   const [prazo, setPrazo] = useState(emDias(1));
   const [obraId, setObraId] = useState('');
   const pedeObra = !tarefa && Boolean(obras?.length);
+  // Rascunho da nova tarefa (a edição de uma tarefa existente não usa).
+  const contexto = obras?.length === 1 ? obras[0].id : 'geral';
+  const rascunho = useRascunho<{
+    texto: string;
+    responsavelId: string;
+    prazo: string;
+    obraId: string;
+  }>(aberto && !tarefa ? `tarefa:${contexto}` : null);
+  const [recuperado, setRecuperado] = useState(false);
+  const lido = rascunho.lido;
 
   useEffect(() => {
-    setTexto(tarefa?.texto ?? '');
-    setResponsavelId(tarefa?.responsavel_id ?? '');
-    setPrazo(tarefa?.prazo ?? emDias(1));
-    setObraId(obras?.length === 1 ? obras[0].id : '');
-  }, [tarefa, aberto, obras]);
+    const r = tarefa ? null : lido;
+    setTexto(tarefa?.texto ?? r?.texto ?? '');
+    setResponsavelId(tarefa?.responsavel_id ?? r?.responsavelId ?? '');
+    setPrazo(tarefa?.prazo ?? r?.prazo ?? emDias(1));
+    setObraId(r?.obraId || (obras?.length === 1 ? obras[0].id : ''));
+    setRecuperado(Boolean(r));
+  }, [tarefa, aberto, obras, lido]);
+  const guardarRascunho = rascunho.guardar;
+  useEffect(() => {
+    if (aberto && !tarefa) guardarRascunho({ texto, responsavelId, prazo, obraId }, !texto.trim());
+  }, [aberto, tarefa, texto, responsavelId, prazo, obraId, guardarRascunho]);
 
   const atalhos = [
     { rotulo: 'Hoje', valor: emDias(0) },
@@ -61,6 +79,17 @@ export function TarefaSheet({
 
   return (
     <BottomSheet open={aberto} title={tarefa ? 'Editar tarefa' : 'Nova tarefa'} onClose={onFechar}>
+      {recuperado ? (
+        <AvisoRascunho
+          onDescartar={() => {
+            rascunho.limpar();
+            setRecuperado(false);
+            setTexto('');
+            setResponsavelId('');
+            setPrazo(emDias(1));
+          }}
+        />
+      ) : null}
       {pedeObra ? (
         <>
           <p className={styles.rotulo} style={{ marginTop: 0 }}>
@@ -135,7 +164,8 @@ export function TarefaSheet({
         <Button
           full
           disabled={!texto.trim() || !prazo || pendente || (pedeObra && !obraId)}
-          onClick={() =>
+          onClick={() => {
+            rascunho.limpar();
             onSalvar(
               {
                 id: tarefa?.id ?? null,
@@ -144,8 +174,8 @@ export function TarefaSheet({
                 prazo,
               },
               pedeObra ? obraId : undefined,
-            )
-          }
+            );
+          }}
         >
           {pendente ? 'Salvando…' : tarefa ? 'Salvar' : 'Criar tarefa'}
         </Button>

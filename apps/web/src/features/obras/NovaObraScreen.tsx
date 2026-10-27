@@ -7,7 +7,9 @@ import {
   type AtividadeEntrada,
 } from '@contro/core';
 import { Icon } from '@contro/ui';
+import { AvisoRascunho } from '../../components/AvisoRascunho';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
+import { useRascunho } from '../../lib/useRascunho';
 import { useModelos } from '../modelos/useModelos';
 import { useModeloCompleto } from '../modelos/useModeloDetalhe';
 import { proximasSegundas, useGerarObra } from './useObras';
@@ -28,9 +30,17 @@ export function NovaObraScreen({
   const gerar = useGerarObra();
 
   const segundas = useMemo(() => proximasSegundas(4), []);
-  const [nome, setNome] = useState('');
-  const [inicio, setInicio] = useState(segundas[0] ?? '');
-  const [modeloId, setModeloId] = useState('');
+  // Rascunho: unidade, início e modelo voltam se o app fechar no meio.
+  const rascunho = useRascunho<{ nome: string; inicio: string; modeloId: string }>('nova-obra');
+  const r0 = rascunho.lido;
+  const [recuperado, setRecuperado] = useState(Boolean(r0));
+  const [nome, setNome] = useState(r0?.nome ?? '');
+  const [inicio, setInicio] = useState(r0?.inicio || segundas[0] || '');
+  const [modeloId, setModeloId] = useState(r0?.modeloId ?? '');
+  const guardarRascunho = rascunho.guardar;
+  useEffect(() => {
+    guardarRascunho({ nome, inicio, modeloId }, !nome.trim());
+  }, [nome, inicio, modeloId, guardarRascunho]);
   const [erro, setErro] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   // Data escolhida no calendário (fora das próximas segundas).
@@ -73,6 +83,7 @@ export function NovaObraScreen({
       return;
     }
     setErro(null);
+    rascunho.limpar();
     gerar.mutate(
       { inicio, nome: nome.trim(), modeloId },
       { onSuccess: (id) => onCriada(id), onError: (e) => setErro(mensagemErro(e)) },
@@ -92,6 +103,16 @@ export function NovaObraScreen({
       </header>
 
       <div className={styles.corpo}>
+        {recuperado ? (
+          <AvisoRascunho
+            onDescartar={() => {
+              rascunho.limpar();
+              setRecuperado(false);
+              setNome('');
+              setInicio(segundas[0] ?? '');
+            }}
+          />
+        ) : null}
         <div className={styles.campo}>
           <label htmlFor="nova-unidade" className={styles.rotulo}>
             Unidade

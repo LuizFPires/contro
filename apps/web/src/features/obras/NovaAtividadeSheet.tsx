@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BottomSheet, Button, Input, useToast } from '@contro/ui';
+import { AvisoRascunho } from '../../components/AvisoRascunho';
+import { useRascunho } from '../../lib/useRascunho';
 import type { ObraCompleta } from './detalhe';
 import { numeracaoObra } from './numeracaoObra';
 import { useObraCampo } from './useObraCampo';
@@ -27,15 +29,26 @@ export function NovaAtividadeSheet({
   const [dias, setDias] = useState(5);
   const [depois, setDepois] = useState(JUNTO);
   const [erro, setErro] = useState('');
+  // Rascunho por fase: volta ao reabrir, mesmo se o app fechou no meio.
+  const rascunho = useRascunho<{ nome: string; dias: number; depois: string }>(
+    faseId ? `atividade:${obra.id}:${faseId}` : null,
+  );
+  const [recuperado, setRecuperado] = useState(false);
+  const lido = rascunho.lido;
 
   useEffect(() => {
     if (faseId) {
-      setNome('');
-      setDias(5);
-      setDepois(JUNTO);
+      setNome(lido?.nome ?? '');
+      setDias(lido?.dias ?? 5);
+      setDepois(lido?.depois ?? JUNTO);
+      setRecuperado(Boolean(lido));
       setErro('');
     }
-  }, [faseId]);
+  }, [faseId, lido]);
+  const guardarRascunho = rascunho.guardar;
+  useEffect(() => {
+    if (faseId) guardarRascunho({ nome, dias, depois }, !nome.trim());
+  }, [faseId, nome, dias, depois, guardarRascunho]);
 
   const num = useMemo(() => numeracaoObra(obra), [obra]);
   const fase = obra.fases.find((f) => f.id === faseId);
@@ -52,6 +65,7 @@ export function NovaAtividadeSheet({
       return;
     }
     if (!faseId) return;
+    rascunho.limpar();
     const predecessoras = depois === JUNTO ? (primeira?.predecessoras ?? []) : [depois];
     campo.novaAtividade.mutate(
       { faseId, nome: n, duracaoDu: dias, predecessoras },
@@ -74,6 +88,17 @@ export function NovaAtividadeSheet({
       onClose={onFechar}
     >
       <div className={styles.corpo}>
+        {recuperado ? (
+          <AvisoRascunho
+            onDescartar={() => {
+              rascunho.limpar();
+              setRecuperado(false);
+              setNome('');
+              setDias(5);
+              setDepois(JUNTO);
+            }}
+          />
+        ) : null}
         <Input
           label="Nome da atividade"
           value={nome}
