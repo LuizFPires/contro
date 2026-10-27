@@ -127,7 +127,11 @@ export function faseFechaCom(
   );
 }
 
-/** XP otimista da conclusão (50, +200 ao fechar a fase). */
-export function xpConclusao(faseFechada: boolean): number {
+/**
+ * XP otimista da conclusão (50, +200 ao fechar a fase). Mapa de coleta não vale
+ * pontos: é só o controle de pronto ou não (espelha concluir_atividade).
+ */
+export function xpConclusao(faseFechada: boolean, mapaDeColeta = false): number {
+  if (mapaDeColeta) return 0;
   return XP_ATIVIDADE + (faseFechada ? XP_FASE_FECHADA : 0);
 }

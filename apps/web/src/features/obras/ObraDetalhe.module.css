@@ -520,3 +520,60 @@
   white-space: nowrap;
   cursor: pointer;
 }
+
+/* Mapa de coleta: quadrado de "pronto" (alvo de 44 px) e "+ Quem foi contratado". */
+.mapaCheck {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  margin: -4px -4px -4px -6px;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: var(--contro-black);
+}
+.mapaCaixa,
+.mapaCaixaOn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mapaCaixa {
+  border: 2px solid rgb(24 24 24 / 45%);
+  background: var(--contro-white);
+}
+.mapaCaixaOn {
+  background: var(--contro-turquoise);
+}
+.mapaCorpo {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.mapaCorpo .atvTexto {
+  width: 100%;
+}
+.mapaContratado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--contro-touch);
+  margin: -4px 0 2px;
+  padding: 0 12px;
+  border-radius: 99px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}

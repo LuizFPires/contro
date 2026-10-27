@@ -6,7 +6,8 @@ import {
   ritmoTexto,
   type FaseTrilha,
 } from '@contro/core';
-import { Icon, useToast, type IconName } from '@contro/ui';
+import { BottomSheet, Icon, useToast, type IconName } from '@contro/ui';
+import { CampoPrestador } from './CampoPrestador';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { BoletimView } from './BoletimView';
@@ -58,6 +59,8 @@ export function ObraDetalhe({
   const [aba, setAba] = useState<AbaObra>(abrirBoletim ? 'boletim' : 'fases');
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
   const [planoAberto, setPlanoAberto] = useState(Boolean(abrirPlano));
+  // Mapa de coleta: "+ Quem foi contratado" abre o campo (opcional, depois do check).
+  const [contratadoId, setContratadoId] = useState<string | null>(null);
 
   const fases = useMemo(() => (obra ? montarTrilha(obra) : []), [obra]);
 
@@ -218,6 +221,27 @@ export function ObraDetalhe({
                 aberta={aberta === f.id}
                 onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
                 onAbrir={setFichaAtvId}
+                mapaDe={(id) => {
+                  const m = obra.atividades.find((x) => x.id === id);
+                  return m && m.mapa_antecedencia_du !== null
+                    ? { prontoEm: m.concluida_em, contratado: m.prestador }
+                    : null;
+                }}
+                onMarcarMapa={(atvId, nome, pronto) => {
+                  // Só controle de pronto: sem foto e sem pontos (xp 0), com Desfazer.
+                  const marcar = () =>
+                    campo.concluir.mutate({ atividadeId: atvId, file: null, xp: 0 });
+                  const desmarcar = () => campo.desfazer.mutate({ atividadeId: atvId, xp: 0 });
+                  if (pronto) marcar();
+                  else desmarcar();
+                  showToast({
+                    message: pronto
+                      ? `"${nome}" pronto para decisão de contratação`
+                      : `"${nome}" voltou para a fazer`,
+                    onUndo: pronto ? desmarcar : marcar,
+                  });
+                }}
+                onContratado={setContratadoId}
                 subitensDe={(id) =>
                   obra.atividades
                     .filter((x) => x.pai_id === id)
@@ -287,6 +311,28 @@ export function ObraDetalhe({
         onConcluida={aoConcluir}
       />
 
+      <BottomSheet
+        open={Boolean(contratadoId)}
+        title="Quem foi contratado?"
+        onClose={() => setContratadoId(null)}
+      >
+        {contratadoId ? (
+          <CampoPrestador
+            key={contratadoId}
+            atividadeId={contratadoId}
+            valor={obra.atividades.find((x) => x.id === contratadoId)?.prestador ?? null}
+            rotulo="Empresa ou prestador"
+            placeholder="Digite o nome"
+            autoFocus
+            onSalvar={(v) => {
+              campo.prestador.mutate({ id: contratadoId, prestador: v });
+              setContratadoId(null);
+              if (v) showToast({ message: `Contratado: ${v}` });
+            }}
+          />
+        ) : null}
+      </BottomSheet>
+
       {celebra ? <CelebracaoFase dados={celebra} onFechar={() => setCelebra(null)} /> : null}
     </div>
   );
@@ -297,12 +343,19 @@ function Fase({
   aberta,
   onToggle,
   onAbrir,
+  mapaDe,
+  onMarcarMapa,
+  onContratado,
   subitensDe,
 }: {
   fase: FaseTrilha;
   aberta: boolean;
   onToggle: () => void;
   onAbrir: (id: string) => void;
+  /** Mapa de coleta (null = atividade comum): quando ficou pronto e quem foi contratado. */
+  mapaDe: (id: string) => { prontoEm: string | null; contratado: string | null } | null;
+  onMarcarMapa: (id: string, nome: string, pronto: boolean) => void;
+  onContratado: (id: string) => void;
   /** Subitens da atividade, para listar embaixo dela na trilha. */
   subitensDe: (id: string) => { id: string; nome: string; feito: boolean }[];
 }) {
@@ -348,44 +401,111 @@ function Fase({
         </button>
         {aberta ? (
           <div className={styles.atividades}>
-            {f.atividades.map((a) => (
-              <div key={a.id} className={`${styles.atv} ${styles[`atv_${a.status}`]}`}>
-                <div className={styles.atvIcone}>
-                  {a.status === 'concluida' ? (
-                    <Icon name="checkGrosso" size={16} strokeWidth={2.6} />
-                  ) : a.status === 'atrasada' ? (
-                    <Icon name="relogio" size={16} strokeWidth={2.2} />
-                  ) : (
-                    <Icon name="seta" size={16} strokeWidth={2.2} />
-                  )}
+            {f.atividades.map((a) =>
+              mapaDe(a.id) ? (
+                <CardMapa
+                  key={a.id}
+                  a={a}
+                  m={mapaDe(a.id)!}
+                  onAbrir={() => onAbrir(a.id)}
+                  onMarcar={(pronto) => onMarcarMapa(a.id, a.nome, pronto)}
+                  onContratado={() => onContratado(a.id)}
+                />
+              ) : (
+                <div key={a.id} className={`${styles.atv} ${styles[`atv_${a.status}`]}`}>
+                  <div className={styles.atvIcone}>
+                    {a.status === 'concluida' ? (
+                      <Icon name="checkGrosso" size={16} strokeWidth={2.6} />
+                    ) : a.status === 'atrasada' ? (
+                      <Icon name="relogio" size={16} strokeWidth={2.2} />
+                    ) : (
+                      <Icon name="seta" size={16} strokeWidth={2.2} />
+                    )}
+                  </div>
+                  <button type="button" className={styles.atvTexto} onClick={() => onAbrir(a.id)}>
+                    <span className={styles.atvNome}>{a.nome}</span>
+                    <span className={styles.atvSub}>{a.sub}</span>
+                    {subitensDe(a.id).length ? (
+                      <span className={styles.subitens}>
+                        {subitensDe(a.id).map((s) => (
+                          <span key={s.id} className={s.feito ? styles.subFeito : styles.subitem}>
+                            <Icon
+                              name={s.feito ? 'checkGrosso' : 'seta'}
+                              size={12}
+                              strokeWidth={s.feito ? 3 : 2.2}
+                            />
+                            {s.nome}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
+                    {a.prestador ? (
+                      <span className={styles.prestador}>
+                        <Icon name="pessoa" size={12} strokeWidth={2.2} />
+                        {a.prestador}
+                      </span>
+                    ) : null}
+                  </button>
                 </div>
-                <button type="button" className={styles.atvTexto} onClick={() => onAbrir(a.id)}>
-                  <span className={styles.atvNome}>{a.nome}</span>
-                  <span className={styles.atvSub}>{a.sub}</span>
-                  {subitensDe(a.id).length ? (
-                    <span className={styles.subitens}>
-                      {subitensDe(a.id).map((s) => (
-                        <span key={s.id} className={s.feito ? styles.subFeito : styles.subitem}>
-                          <Icon
-                            name={s.feito ? 'checkGrosso' : 'seta'}
-                            size={12}
-                            strokeWidth={s.feito ? 3 : 2.2}
-                          />
-                          {s.nome}
-                        </span>
-                      ))}
-                    </span>
-                  ) : null}
-                  {a.prestador ? (
-                    <span className={styles.prestador}>
-                      <Icon name="pessoa" size={12} strokeWidth={2.2} />
-                      {a.prestador}
-                    </span>
-                  ) : null}
-                </button>
-              </div>
-            ))}
+              ),
+            )}
           </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Mapa de coleta na trilha (opção A): o quadrado marca "pronto para a decisão de
+ * contratação", sem pedir nada; quem foi contratado é opcional, depois.
+ */
+function CardMapa({
+  a,
+  m,
+  onAbrir,
+  onMarcar,
+  onContratado,
+}: {
+  a: FaseTrilha['atividades'][number];
+  m: { prontoEm: string | null; contratado: string | null };
+  onAbrir: () => void;
+  onMarcar: (pronto: boolean) => void;
+  onContratado: () => void;
+}) {
+  const pronto = Boolean(m.prontoEm);
+  return (
+    <div className={`${styles.atv} ${styles[`atv_${a.status}`]}`}>
+      <button
+        type="button"
+        className={styles.mapaCheck}
+        aria-pressed={pronto}
+        aria-label={pronto ? `Desmarcar ${a.nome}` : `Marcar ${a.nome} como pronto`}
+        onClick={() => onMarcar(!pronto)}
+      >
+        <span className={pronto ? styles.mapaCaixaOn : styles.mapaCaixa}>
+          {pronto ? <Icon name="checkGrosso" size={18} strokeWidth={3} /> : null}
+        </span>
+      </button>
+      <div className={styles.mapaCorpo}>
+        <button type="button" className={styles.atvTexto} onClick={onAbrir}>
+          <span className={styles.atvNome}>{a.nome}</span>
+          <span className={styles.atvSub}>
+            {pronto
+              ? `Pronto ${formatarDataCurta(new Date(m.prontoEm!).toLocaleDateString('sv-SE'))} · para decisão de contratação`
+              : a.sub}
+          </span>
+          {m.contratado ? (
+            <span className={styles.prestador}>
+              <Icon name="pessoa" size={12} strokeWidth={2.2} />
+              Contratado: {m.contratado}
+            </span>
+          ) : null}
+        </button>
+        {pronto && !m.contratado ? (
+          <button type="button" className={styles.mapaContratado} onClick={onContratado}>
+            <Icon name="pessoa" size={14} strokeWidth={2.2} />+ Quem foi contratado
+          </button>
         ) : null}
       </div>
     </div>

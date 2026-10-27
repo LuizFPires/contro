@@ -102,8 +102,10 @@ export function FichaAtividade({
   const { a, est, cron, subitens, dependePreds, libera } = dados;
   const { podeConcluir, provs } = dados;
 
+  // Mapa de coleta: só controle de pronto (para a decisão de contratação), sem foto nem pontos.
+  const mapa = a.mapa_antecedencia_du !== null;
   const status = a.concluida_em
-    ? { txt: 'Concluída', cls: styles.tagConcluida }
+    ? { txt: mapa ? 'Pronto' : 'Concluída', cls: styles.tagConcluida }
     : est?.atrasada
       ? { txt: 'Atrasada', cls: styles.tagAtrasada }
       : cron && cron.inicio_previsto <= hojeISO()
@@ -122,7 +124,7 @@ export function FichaAtividade({
   function resolverMapa(m: (typeof preparadaPor)[number]) {
     conclusao.concluir(m.id, null, (r) =>
       showToast({
-        message: `Mapa de coleta "${m.nome}" resolvido`,
+        message: `Mapa de coleta "${m.nome}" pronto para decisão de contratação`,
         onUndo: () => campo.desfazer.mutate({ atividadeId: m.id, xp: r.xp }),
       }),
     );
@@ -179,6 +181,12 @@ export function FichaAtividade({
             key={a.id}
             atividadeId={a.id}
             valor={a.prestador}
+            {...(mapa
+              ? {
+                  rotulo: 'Quem foi contratado',
+                  placeholder: 'Opcional · quando a contratação for decidida',
+                }
+              : {})}
             onSalvar={(v) => campo.prestador.mutate({ id: a.id, prestador: v })}
           />
 
@@ -364,7 +372,7 @@ export function FichaAtividade({
             ) : null}
           </div>
 
-          {a.concluida_em && !a.foto_conclusao_id ? (
+          {a.concluida_em && !a.foto_conclusao_id && !mapa ? (
             <div className={styles.semFoto}>
               <span>
                 <b>Concluída sem foto</b>
@@ -392,13 +400,15 @@ export function FichaAtividade({
               disabled={campo.desfazer.isPending}
               onClick={() => {
                 const foto = a.foto_conclusao_id;
+                const xp = mapa ? 0 : 50;
                 campo.desfazer.mutate(
-                  { atividadeId: a.id, xp: 50 },
+                  { atividadeId: a.id, xp },
                   {
                     onSuccess: () =>
                       showToast({
                         message: `"${a.nome}" voltou para pendente`,
-                        onUndo: () => campo.reconcluir.mutate({ atividadeId: a.id, fotoId: foto }),
+                        onUndo: () =>
+                          campo.reconcluir.mutate({ atividadeId: a.id, fotoId: foto, xp }),
                       }),
                   },
                 );
@@ -429,7 +439,28 @@ export function FichaAtividade({
           ) : null}
         </div>
 
-        {podeConcluir ? (
+        {podeConcluir && mapa ? (
+          // Mapa de coleta (opção A): só "pronto", sem foto; quem foi contratado é opcional.
+          <div className={styles.rodapeConcluir}>
+            <button
+              type="button"
+              className={styles.concluir}
+              disabled={conclusao.pendente}
+              onClick={() =>
+                conclusao.concluir(a.id, null, () => {
+                  onClose();
+                  showToast({
+                    message: `"${a.nome}" pronto para decisão de contratação`,
+                    onUndo: () => campo.desfazer.mutate({ atividadeId: a.id, xp: 0 }),
+                  });
+                })
+              }
+            >
+              <Icon name="checkGrosso" size={18} strokeWidth={3} />
+              {conclusao.pendente ? 'Marcando…' : 'Mapa pronto'}
+            </button>
+          </div>
+        ) : podeConcluir ? (
           // Protótipo A1: "resolvido" fixo no rodapé, em toda atividade aberta.
           <div className={styles.rodapeConcluir}>
             <button

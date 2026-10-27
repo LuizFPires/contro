@@ -127,5 +127,8 @@ describe('faseFechaCom / xpConclusao', () => {
   it('XP: 50 por atividade, +200 ao fechar a fase', () => {
     expect(xpConclusao(false)).toBe(50);
     expect(xpConclusao(true)).toBe(250);
+    // Mapa de coleta: só controle, sem pontos (nem ao fechar a fase).
+    expect(xpConclusao(false, true)).toBe(0);
+    expect(xpConclusao(true, true)).toBe(0);
   });
 });
