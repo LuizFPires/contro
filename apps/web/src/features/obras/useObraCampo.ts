@@ -5,10 +5,12 @@ import {
   adicionarPredecessora,
   adicionarProvidencia,
   ajustarInicio,
+  editarDescricaoProvidencia,
   editarDuracao,
   editarPrestador,
   removerPredecessora,
   removerProvidencia,
+  renomearAtividade,
 } from './campo';
 import { guardarFotoLocal } from './foto';
 import type { ObraCompleta } from './detalhe';
@@ -210,7 +212,31 @@ export function useObraCampo(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
 
+  // Textos livres da obra (nome da atividade, descrição do lembrete): otimista.
+  const renomear = useMutation({
+    mutationFn: (v: { atividadeId: string; nome: string }) =>
+      renomearAtividade(v.atividadeId, v.nome),
+    onMutate: (v) => patchAtv(v.atividadeId, (a) => ({ ...a, nome: v.nome })),
+    onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: inval,
+  });
+  const descricaoProv = useMutation({
+    mutationFn: (v: { atividadeId: string; id: string; descricao: string }) =>
+      editarDescricaoProvidencia(v.id, v.descricao),
+    onMutate: (v) =>
+      patchAtv(v.atividadeId, (a) => ({
+        ...a,
+        providencias: a.providencias.map((p) =>
+          p.id === v.id ? { ...p, descricao: v.descricao } : p,
+        ),
+      })),
+    onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: inval,
+  });
+
   return {
+    renomear,
+    descricaoProv,
     subitem,
     prestador,
     providencia,
