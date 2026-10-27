@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { addDU } from './calendar';
-import { limiteProvidencia, naObraEm, providenciaAtrasada, providenciarAte } from './providencias';
+import {
+  comecarProvidencia,
+  limiteProvidencia,
+  naObraEm,
+  providenciaAtrasada,
+  providenciarAte,
+} from './providencias';
 
 const INICIO = '2026-01-05'; // segunda
 
@@ -47,5 +53,16 @@ describe('providências (SPEC 4.4)', () => {
     expect(providenciaAtrasada({ ...base, decorridos: 8, status: 'feito' })).toBe(false);
     expect(providenciaAtrasada({ ...base, decorridos: 8, atividadeConcluida: true })).toBe(false);
     expect(providenciaAtrasada({ ...base, decorridos: 8, obraIniciada: false })).toBe(false);
+  });
+});
+
+describe('comecarProvidencia', () => {
+  it('prazo menos o tempo que leva, em dias úteis', () => {
+    // Atividade no dia 20, antecedência 10 → prazo no dia 10; leva 5 → começa no dia 5.
+    expect(comecarProvidencia(INICIO, 20, 10, 5)).toBe(addDU(INICIO, 5));
+    expect(comecarProvidencia(INICIO, 20, 10, 0)).toBe(addDU(INICIO, 10));
+  });
+  it('pode começar antes do início da obra', () => {
+    expect(comecarProvidencia(INICIO, 2, 2, 3) < INICIO).toBe(true);
   });
 });

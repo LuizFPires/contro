@@ -105,6 +105,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - Cada lembrete tem só: **tipo**, **o que providenciar**, **data em que precisa estar na obra** (padrão: início da atividade, editável) e **situação** (A providenciar ou Providenciado).
 - **Não tem valor nem fornecedor.** Isso fica em outro sistema (decisão do usuário).
 - "Providenciar até" = início da atividade menos a antecedência do modelo, em dias úteis.
+- **Duração** ("leva N dias"): quanto tempo leva para providenciar (ex.: tomada de preço de 5 du antes de contratar). "Começar" = providenciar até − duração. O Hoje avisa desde o dia de começar até o prazo ("começar hoje · providenciar até qua 29/10"); depois do prazo, vai para Atrasado. Duração 0 = avisa só no prazo. Definida no modelo (assistente, passo 4).
 - Aba **Providências** da obra agrupada em Atrasados (vermelho) e A providenciar, com o botão "Marcar como providenciado".
 - Lembretes avisam o que contratar, alugar ou comprar a tempo, mas **não travam** a atividade: ela pode ser concluída com lembrete pendente.
 

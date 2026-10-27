@@ -167,7 +167,7 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
                   <div className={it.atrasada ? styles.quandoAtraso : styles.quando}>
                     {it.atrasada
                       ? `ATRASADO · era para providenciar até ${formatarDataCurta(it.providenciarAte)}`
-                      : `Providenciar até ${formatarDataCurta(it.providenciarAte)} (${it.antecedenciaDu} dias úteis antes)`}
+                      : `Providenciar até ${formatarDataCurta(it.providenciarAte)} (${it.antecedenciaDu} dias úteis antes)${it.duracaoDu ? ` · leva ${it.duracaoDu} d, começar ${formatarDataCurta(it.comecar)}` : ''}`}
                   </div>
                   <button type="button" className={styles.marcar} onClick={() => marcar(it)}>
                     Marcar como providenciado

@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react';
-import { diaMes, duEntre, naObraEm, providenciaAtrasada, providenciarAte } from '@contro/core';
+import {
+  comecarProvidencia,
+  diaMes,
+  duEntre,
+  naObraEm,
+  providenciaAtrasada,
+  providenciarAte,
+} from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
@@ -74,6 +81,7 @@ export function FichaAtividade({
           antecedenciaDu: p.antecedencia_du,
         }),
         ate: providenciarAte(obra.inicio, es, p.antecedencia_du),
+        comecar: comecarProvidencia(obra.inicio, es, p.antecedencia_du, p.duracao_du ?? 0),
         naObra: naObraEm(obra.inicio, es, p.na_obra_em),
       };
     });
@@ -209,7 +217,7 @@ export function FichaAtividade({
                 </div>
               );
             })}
-            {provs.map(({ p, feito, atrasada, ate, naObra }) => (
+            {provs.map(({ p, feito, atrasada, ate, comecar, naObra }) => (
               <div
                 key={p.id}
                 className={`${styles.prov} ${atrasada ? styles.provAtraso : feito ? styles.provFeita : ''}`}
@@ -231,7 +239,7 @@ export function FichaAtividade({
                     ? 'Providenciado'
                     : atrasada
                       ? `ATRASADO · era para providenciar até ${formatarDataCurta(ate)}`
-                      : `Providenciar até ${formatarDataCurta(ate)} (${p.antecedencia_du} dias úteis antes)`}
+                      : `Providenciar até ${formatarDataCurta(ate)} (${p.antecedencia_du} dias úteis antes)${p.duracao_du ? ` · leva ${p.duracao_du} d, começar ${formatarDataCurta(comecar)}` : ''}`}
                 </div>
                 <div className={styles.provAcoes}>
                   <button
