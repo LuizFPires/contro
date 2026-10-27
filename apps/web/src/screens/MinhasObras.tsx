@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLembrado } from '../lib/useLembrado';
 import { rotuloPerfil } from '@contro/core';
 import { BottomSheet, Icon, Logo, Simbolo, useToast, type IconName } from '@contro/ui';
 import { ObraCard } from '../features/obras/ObraCard';
@@ -34,16 +35,17 @@ export function MinhasObras({
   const ehGestor = pessoa?.perfil === 'gestor';
   const membros = useMembrosPendentes(ehGestor);
   const { showToast } = useToast();
-  const [vista, setVista] = useState<'lista' | 'nova'>('lista');
+  // Onde a pessoa estava (lista/nova obra, obra aberta, aba) fica lembrado.
+  const [vista, setVista] = useLembrado<'lista' | 'nova'>('inicio:vista', 'lista');
   const [perfilAberto, setPerfilAberto] = useState(false);
   const [editarNome, setEditarNome] = useState(false);
-  const [obraAberta, setObraAberta] = useState<{
+  const [obraAberta, setObraAberta] = useLembrado<{
     id: string;
     boletim?: boolean;
     plano?: boolean;
-  } | null>(null);
+  } | null>('inicio:obra', null);
   // Menu inferior da tela inicial: "Hoje" abre por padrão.
-  const [aba, setAba] = useState<'hoje' | 'obras'>('hoje');
+  const [aba, setAba] = useLembrado<'hoje' | 'obras'>('inicio:aba', 'hoje');
 
   if (obraAberta) {
     return (
