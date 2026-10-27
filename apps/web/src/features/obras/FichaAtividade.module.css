@@ -351,8 +351,12 @@
 .rodapeConcluir {
   position: sticky;
   bottom: calc(-1 * (var(--contro-space-6) + env(safe-area-inset-bottom, 0)));
-  margin: 12px calc(-1 * var(--contro-space-4)) calc(-1 * var(--contro-space-6));
-  padding: 10px var(--contro-space-4) calc(12px + env(safe-area-inset-bottom, 0));
+  /* Encosta no fim da folha: a margem de baixo anula o respiro da folha
+     (inclusive a área da barra de início do iPhone), que entra uma vez só no
+     padding daqui. Mais área de tela para a ficha. */
+  margin: 12px calc(-1 * var(--contro-space-4))
+    calc(-1 * (var(--contro-space-6) + env(safe-area-inset-bottom, 0)));
+  padding: 8px var(--contro-space-4) calc(6px + env(safe-area-inset-bottom, 0));
   background: var(--contro-white);
   border-top: 1px solid var(--contro-border);
   display: flex;
