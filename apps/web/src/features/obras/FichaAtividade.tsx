@@ -16,6 +16,8 @@ import { CampoPrestador } from './CampoPrestador';
 import type { ObraCompleta } from './detalhe';
 import { NovaProvidenciaSheet } from './ProvidenciasAba';
 import { TextoEditavel } from './TextoEditavel';
+import { LinhaPara } from './LinhaPara';
+import linhaStyles from './LinhaPara.module.css';
 import { numeracaoObra } from './numeracaoObra';
 import { useConcluirAtividade, type AoConcluir } from './useConcluirAtividade';
 import { useObraCampo } from './useObraCampo';
@@ -29,6 +31,9 @@ const TIPO_ROTULO: Record<Tipo, string> = {
 };
 
 /** Ficha da atividade (protótipo · FICHA DA ATIVIDADE). */
+/** Data local (YYYY-MM-DD) de um instante salvo pelo servidor. */
+const dataLocal = (ts: string) => new Date(ts).toLocaleDateString('sv-SE');
+
 export function FichaAtividade({
   obra,
   atividadeId,
@@ -42,6 +47,8 @@ export function FichaAtividade({
 }) {
   const campo = useObraCampo(obra.id);
   const conclusao = useConcluirAtividade(obra);
+  // "⋯" de um lembrete do "Para começar": abre o detalhe (editar, reabrir, excluir).
+  const [detalheProvId, setDetalheProvId] = useState<string | null>(null);
   const { showToast } = useToast();
   const [novoTipo, setNovoTipo] = useState<Tipo | null>(null);
   // Câmera para concluir ou para anexar a foto a uma conclusão sem foto.
@@ -101,6 +108,7 @@ export function FichaAtividade({
   if (!dados) return <BottomSheet open={false} onClose={onClose} children={null} />;
   const { a, est, cron, subitens, dependePreds, libera } = dados;
   const { podeConcluir, provs } = dados;
+  const provDet = provs.find((x) => x.p.id === detalheProvId) ?? null;
 
   // Mapa de coleta: só controle de pronto (para a decisão de contratação), sem foto nem pontos.
   const mapa = a.mapa_antecedencia_du !== null;
@@ -197,124 +205,65 @@ export function FichaAtividade({
                 ? `${feitosPara} de ${totalPara} ${totalPara === 1 ? 'providenciado' : 'providenciados'}`
                 : 'nada a providenciar'}
             </h3>
-            {preparadaPor.map((m) => {
-              const feito = Boolean(m.concluida_em);
-              const atrasado = !feito && Boolean(obra.estados[m.id]?.atrasada);
-              const fim = obra.pre[m.id]?.fim_previsto;
-              return (
-                <div
-                  key={m.id}
-                  className={`${styles.prov} ${atrasado ? styles.provAtraso : feito ? styles.provFeita : ''}`}
-                >
-                  <div className={styles.provTopo}>
-                    <span className={styles.provTipo}>Mapa de coleta · #{num.get(m.id)}</span>
-                    <span
-                      className={`${styles.sit} ${feito ? styles.sitFeita : atrasado ? styles.sitAtraso : ''}`}
-                    >
-                      {feito ? 'Concluído' : atrasado ? 'Atrasado' : 'A fazer'}
-                    </span>
-                  </div>
-                  <div className={styles.provDesc}>{m.nome}</div>
-                  {fim ? (
-                    <div className={atrasado ? styles.quandoAtraso : styles.quando}>
-                      {feito
-                        ? 'Cotações fechadas na fase 2 · Mapa de coleta'
-                        : atrasado
-                          ? `ATRASADO · era para fechar até ${formatarDataCurta(fim)}`
-                          : `Fechar as cotações até ${formatarDataCurta(fim)} (fase 2 · Mapa de coleta)`}
-                    </div>
-                  ) : null}
-                  {!feito ? (
-                    <div className={styles.provAcoes}>
-                      <button
-                        type="button"
-                        className={styles.btnMarcar}
-                        disabled={conclusao.pendente}
-                        onClick={() => resolverMapa(m)}
-                      >
-                        Marcar mapa como resolvido
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
-            {provs.map(({ p, feito, atrasada, ate, comecar, naObra }) => (
-              <div
-                key={p.id}
-                className={`${styles.prov} ${atrasada ? styles.provAtraso : feito ? styles.provFeita : ''}`}
-              >
-                <div className={styles.provTopo}>
-                  <span className={styles.provTipo}>{TIPO_ROTULO[p.tipo]}</span>
-                  <span
-                    className={`${styles.sit} ${feito ? styles.sitFeita : atrasada ? styles.sitAtraso : ''}`}
-                  >
-                    {feito ? 'Providenciado' : atrasada ? 'Atrasado' : 'A providenciar'}
-                  </span>
-                </div>
-                <TextoEditavel
-                  valor={p.descricao}
-                  rotulo="Editar texto do lembrete"
-                  onSalvar={(descricao) => {
-                    const antes = p.descricao;
-                    campo.descricaoProv.mutate({ atividadeId: a.id, id: p.id, descricao });
-                    showToast({
-                      message: 'Lembrete salvo',
-                      onUndo: () =>
-                        campo.descricaoProv.mutate({
-                          atividadeId: a.id,
-                          id: p.id,
-                          descricao: antes,
-                        }),
-                    });
-                  }}
-                >
-                  <div className={styles.provDesc}>{p.descricao}</div>
-                </TextoEditavel>
-                <div className={styles.provNaObra}>
-                  Precisa estar na obra {formatarDataCurta(naObra)}
-                </div>
-                <div className={atrasada ? styles.quandoAtraso : styles.quando}>
-                  {feito
-                    ? 'Providenciado'
-                    : atrasada
-                      ? `ATRASADO · era para providenciar até ${formatarDataCurta(ate)}`
-                      : `Providenciar até ${formatarDataCurta(ate)} (${p.antecedencia_du} dias úteis antes)${p.duracao_du ? ` · leva ${p.duracao_du} d, começar ${formatarDataCurta(comecar)}` : ''}`}
-                </div>
-                <div className={styles.provAcoes}>
-                  <button
-                    type="button"
-                    className={feito ? styles.btnSecundario : styles.btnMarcar}
-                    onClick={() => alternarProv(p.id, !feito, TIPO_ROTULO[p.tipo])}
-                  >
-                    {feito ? 'Reabrir' : 'Marcar como providenciado'}
-                  </button>
-                  {p.manual ? (
-                    <button
-                      type="button"
-                      className={styles.remover}
-                      aria-label="Remover lembrete"
-                      onClick={() =>
-                        campo.removerProv.mutate(p.id, {
-                          onSuccess: () =>
-                            showToast({
-                              message: 'Lembrete removido',
-                              onUndo: () =>
-                                campo.addProvidencia.mutate({
-                                  atividadeId: a.id,
-                                  tipo: p.tipo,
-                                  descricao: p.descricao,
-                                }),
-                            }),
-                        })
+            {totalPara ? (
+              // Opção A do protótipo: linhas de altura fixa, quadrado para marcar e "⋯".
+              <div className={linhaStyles.lista}>
+                {preparadaPor.map((m) => {
+                  const feito = Boolean(m.concluida_em);
+                  const atrasado = !feito && Boolean(obra.estados[m.id]?.atrasada);
+                  const fimMapa = obra.pre[m.id]?.fim_previsto;
+                  return (
+                    <LinhaPara
+                      key={m.id}
+                      tipo={`Mapa de coleta · #${num.get(m.id)}`}
+                      nome={m.nome}
+                      feito={feito}
+                      atrasado={atrasado}
+                      pendente={conclusao.pendente}
+                      meta={
+                        feito
+                          ? `Pronto ${formatarDataCurta(dataLocal(m.concluida_em!))}${m.prestador ? ` · ${m.prestador}` : ''}`
+                          : fimMapa
+                            ? `${atrasado ? 'Atrasado · era até' : 'Pronto até'} ${formatarDataCurta(fimMapa)}`
+                            : 'Mapa de coleta'
                       }
-                    >
-                      <Icon name="lixeira" size={18} />
-                    </button>
-                  ) : null}
-                </div>
+                      onAlternar={() =>
+                        feito
+                          ? (campo.desfazer.mutate({ atividadeId: m.id, xp: 0 }),
+                            showToast({
+                              message: `Mapa "${m.nome}" voltou para a fazer`,
+                              onUndo: () => resolverMapa(m),
+                            }))
+                          : resolverMapa(m)
+                      }
+                    />
+                  );
+                })}
+                {provs.map(({ p, feito, atrasada, ate, comecar }) => (
+                  <LinhaPara
+                    key={p.id}
+                    tipo={TIPO_ROTULO[p.tipo]}
+                    nome={p.descricao}
+                    feito={feito}
+                    atrasado={atrasada}
+                    meta={
+                      feito
+                        ? [
+                            p.feito_por_nome,
+                            p.feito_em ? formatarDataCurta(dataLocal(p.feito_em)) : null,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ') || 'Providenciado'
+                        : atrasada
+                          ? `Atrasado · era até ${formatarDataCurta(ate)}`
+                          : `até ${formatarDataCurta(ate)}${p.duracao_du ? ` · começar ${formatarDataCurta(comecar)}` : ''}`
+                    }
+                    onAlternar={() => alternarProv(p.id, !feito, TIPO_ROTULO[p.tipo])}
+                    onMais={() => setDetalheProvId(p.id)}
+                  />
+                ))}
               </div>
-            ))}
+            ) : null}
             {totalPara === 0 ? (
               <div className={styles.vazio}>
                 Nenhuma contratação, locação ou compra lançada para esta atividade.
@@ -498,6 +447,74 @@ export function FichaAtividade({
               <Icon name="checkGrosso" size={18} strokeWidth={3} />
               {conclusao.pendente ? 'Concluindo…' : 'Marcar como resolvida'}
             </button>
+          </div>
+        ) : null}
+      </BottomSheet>
+
+      <BottomSheet open={Boolean(provDet)} onClose={() => setDetalheProvId(null)}>
+        {provDet ? (
+          <div className={linhaStyles.detalhe}>
+            <span className={linhaStyles.detTipo}>{TIPO_ROTULO[provDet.p.tipo]}</span>
+            <TextoEditavel
+              valor={provDet.p.descricao}
+              rotulo="Editar texto do lembrete"
+              onSalvar={(descricao) => {
+                const antes = provDet.p.descricao;
+                const id = provDet.p.id;
+                campo.descricaoProv.mutate({ atividadeId: a.id, id, descricao });
+                showToast({
+                  message: 'Lembrete salvo',
+                  onUndo: () =>
+                    campo.descricaoProv.mutate({ atividadeId: a.id, id, descricao: antes }),
+                });
+              }}
+            >
+              <h3 className={styles.provDesc}>{provDet.p.descricao}</h3>
+            </TextoEditavel>
+            <span className={linhaStyles.detTexto}>
+              Precisa estar na obra {formatarDataCurta(provDet.naObra)}
+            </span>
+            <span className={provDet.atrasada ? linhaStyles.detAtraso : linhaStyles.detTexto}>
+              {provDet.feito
+                ? `Providenciado${provDet.p.feito_por_nome ? ` por ${provDet.p.feito_por_nome}` : ''}${provDet.p.feito_em ? ` em ${formatarDataCurta(dataLocal(provDet.p.feito_em))}` : ''}`
+                : `${provDet.atrasada ? 'ATRASADO · ' : ''}Providenciar até ${formatarDataCurta(provDet.ate)} (${provDet.p.antecedencia_du} dias úteis antes)${provDet.p.duracao_du ? ` · leva ${provDet.p.duracao_du} d, começar ${formatarDataCurta(provDet.comecar)}` : ''}`}
+            </span>
+            <button
+              type="button"
+              className={linhaStyles.acao}
+              onClick={() => {
+                alternarProv(provDet.p.id, !provDet.feito, TIPO_ROTULO[provDet.p.tipo]);
+                setDetalheProvId(null);
+              }}
+            >
+              <Icon name={provDet.feito ? 'undo' : 'checkGrosso'} size={18} strokeWidth={2.2} />
+              {provDet.feito ? 'Reabrir' : 'Marcar como providenciado'}
+            </button>
+            {provDet.p.manual ? (
+              <button
+                type="button"
+                className={linhaStyles.acao}
+                onClick={() => {
+                  const p = provDet.p;
+                  setDetalheProvId(null);
+                  campo.removerProv.mutate(p.id, {
+                    onSuccess: () =>
+                      showToast({
+                        message: 'Lembrete excluído',
+                        onUndo: () =>
+                          campo.addProvidencia.mutate({
+                            atividadeId: a.id,
+                            tipo: p.tipo,
+                            descricao: p.descricao,
+                          }),
+                      }),
+                  });
+                }}
+              >
+                <Icon name="lixeira" size={18} strokeWidth={2} />
+                Excluir lembrete
+              </button>
+            ) : null}
           </div>
         ) : null}
       </BottomSheet>
