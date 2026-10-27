@@ -10,6 +10,7 @@ import {
 import { BottomSheet, Icon, useToast, type IconName } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
 import { ApagarObraSheet } from './ApagarObraSheet';
+import { RenomearObraSheet } from './RenomearObraSheet';
 import { CampoPrestador } from './CampoPrestador';
 import { NovaAtividadeSheet } from './NovaAtividadeSheet';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
@@ -76,6 +77,8 @@ export function ObraDetalhe({
   // Apagar obra: só o gestor, sempre com confirmação.
   const { data: perfil } = usePerfil();
   const [apagarAberto, setApagarAberto] = useState(false);
+  const [menuObra, setMenuObra] = useState(false);
+  const [renomearAberto, setRenomearAberto] = useState(false);
 
   const fases = useMemo(() => (obra ? montarTrilha(obra) : []), [obra]);
   // A obra lembrada foi apagada (ou não existe mais): volta para a lista.
@@ -196,17 +199,57 @@ export function ObraDetalhe({
           >
             <Icon name="documento" size={20} />
           </button>
-          {perfil && podeApagarObra(perfil.perfil) ? (
+          {/* "⋮": editar o nome da obra e (só o gestor) apagar a obra. */}
+          <div className={styles.menuObraAncora}>
             <button
               type="button"
               className={styles.iconeBtn}
-              aria-label="Apagar obra"
-              title="Apagar obra"
-              onClick={() => setApagarAberto(true)}
+              aria-label="Mais opções da obra"
+              aria-haspopup="menu"
+              aria-expanded={menuObra}
+              onClick={() => setMenuObra((v) => !v)}
             >
-              <Icon name="lixeira" size={20} />
+              <Icon name="maisVertical" size={22} />
             </button>
-          ) : null}
+            {menuObra ? (
+              <>
+                <button
+                  type="button"
+                  className={styles.menuObraFundo}
+                  aria-label="Fechar menu"
+                  onClick={() => setMenuObra(false)}
+                />
+                <div className={styles.menuObra} role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.menuObraItem}
+                    onClick={() => {
+                      setMenuObra(false);
+                      setRenomearAberto(true);
+                    }}
+                  >
+                    <Icon name="editar" size={20} />
+                    Editar nome da obra
+                  </button>
+                  {perfil && podeApagarObra(perfil.perfil) ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.menuObraItem}
+                      onClick={() => {
+                        setMenuObra(false);
+                        setApagarAberto(true);
+                      }}
+                    >
+                      <Icon name="lixeira" size={20} />
+                      Apagar obra
+                    </button>
+                  ) : null}
+                </div>
+              </>
+            ) : null}
+          </div>
         </div>
         <div
           className={styles.barra}
@@ -346,6 +389,12 @@ export function ObraDetalhe({
         atividadeId={fichaAtvId}
         onClose={() => setFichaAtvId(null)}
         onConcluida={aoConcluir}
+      />
+
+      <RenomearObraSheet
+        obra={obra}
+        aberto={renomearAberto}
+        onFechar={() => setRenomearAberto(false)}
       />
 
       <ApagarObraSheet
