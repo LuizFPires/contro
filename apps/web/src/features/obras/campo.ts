@@ -61,6 +61,39 @@ export async function aplicarPlanoRecuperacao(obraId: string, m: MudancasPlano):
 
 // --- Editar cronograma da obra (M5): duração e predecessoras da cópia ---
 
+/** Nova atividade numa fase da obra (só na obra; o modelo não muda). */
+export async function adicionarAtividade(v: {
+  obraId: string;
+  faseId: string;
+  nome: string;
+  duracaoDu: number;
+  predecessoras: string[];
+}): Promise<string> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { data, error } = await supabase.rpc('adicionar_atividade_obra', {
+    p_obra_id: v.obraId,
+    p_fase_id: v.faseId,
+    p_nome: v.nome,
+    p_duracao_du: v.duracaoDu,
+    p_predecessoras: v.predecessoras,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+/** Exclusão lógica da atividade (e dos subitens), com evento; volta com restaurar. */
+export async function excluirAtividade(id: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { error } = await supabase.rpc('excluir_atividade_obra', { p_atividade_id: id });
+  if (error) throw error;
+}
+
+export async function restaurarAtividade(id: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { error } = await supabase.rpc('restaurar_atividade_obra', { p_atividade_id: id });
+  if (error) throw error;
+}
+
 /** Nome da atividade na obra (texto livre; não altera o modelo). */
 export async function renomearAtividade(id: string, nome: string): Promise<void> {
   if (!supabase) throw new Error('Supabase não configurado');

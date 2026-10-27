@@ -419,6 +419,23 @@ export function FichaAtividade({
             </button>
           ) : null}
 
+          <button
+            type="button"
+            className={styles.excluirAtv}
+            onClick={() => {
+              // Exclusão lógica, com Desfazer (regra 10); a ficha fecha na hora.
+              campo.excluir.mutate(a.id);
+              onClose();
+              showToast({
+                message: `"${a.nome}" excluída`,
+                onUndo: () => campo.restaurar.mutate(a.id),
+              });
+            }}
+          >
+            <Icon name="lixeira" size={18} strokeWidth={2} />
+            Excluir atividade
+          </button>
+
           {!a.concluida_em && !a.preObra ? (
             <section className={styles.ajustes}>
               <button

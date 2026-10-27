@@ -577,3 +577,20 @@
   font-weight: 800;
   cursor: pointer;
 }
+
+/* "+ Adicionar atividade" no fim da lista da fase (terciário: contorno). */
+.adicionarAtv {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--contro-touch);
+  border-radius: 12px;
+  border: 1.5px dashed rgb(24 24 24 / 35%);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}

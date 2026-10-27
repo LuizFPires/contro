@@ -429,3 +429,22 @@
 .voltarPendente:disabled {
   opacity: 0.6;
 }
+
+/* Excluir a atividade desta obra (terciário, discreto; tem Desfazer). */
+.excluirAtv {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: var(--contro-touch);
+  margin-top: 8px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}

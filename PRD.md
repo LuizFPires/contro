@@ -78,6 +78,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - Ritmo, fase e entrega **não** ficam em chips no cabeçalho (decisão do usuário).
 
 ### 5.4 Obra · Fases (mapa do jogo)
+- **Cards livres na obra:** cada fase tem "+ Adicionar atividade" (nome, prazo em dias úteis e depois de qual atividade começa; padrão: junto com o início da fase). Na ficha, "Excluir atividade" (com Desfazer; exclusão lógica). Quem dependia da excluída passa a depender do que ela dependia. Vale só para a obra; o modelo não muda.
 - Trilha vertical com o **pré-obra** e as 6 fases da obra: **Orçamento** e **Mapa de coleta** (pré-obra), Mobilização, Infraestrutura, Fechamentos, Acabamentos, Instalações finais e Entrega.
   - **Pré-obra** acontece **antes do dia 0** (início da Mobilização) e fica **fora do % e do prazo** da obra; as datas são calculadas para trás e a atividade fica vermelha se passar do fim previsto. A etiqueta da fase diz "pré-obra". **Nada do pré-obra trava**: é aviso para o usuário se programar.
   - **Orçamento** (fase 1): 3 atividades em sequência de 5 dias úteis: #1 Recebimento dos projetos → #2 Levantamento de quantitativos → #3 Montagem da EAP no Grana; terminam antes do primeiro mapa.

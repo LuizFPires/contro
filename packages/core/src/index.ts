@@ -23,6 +23,7 @@ export * from './agendaDia';
 export * from './preObra';
 export * from './nomes';
 export * from './recuperacao';
+export * from './dependencias';
 
 export type Perfil = 'gestor' | 'equipe';
 

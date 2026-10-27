@@ -8,6 +8,7 @@ import {
 } from '@contro/core';
 import { BottomSheet, Icon, useToast, type IconName } from '@contro/ui';
 import { CampoPrestador } from './CampoPrestador';
+import { NovaAtividadeSheet } from './NovaAtividadeSheet';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { BoletimView } from './BoletimView';
@@ -61,6 +62,8 @@ export function ObraDetalhe({
   const [planoAberto, setPlanoAberto] = useState(Boolean(abrirPlano));
   // Mapa de coleta: "+ Quem foi contratado" abre o campo (opcional, depois do check).
   const [contratadoId, setContratadoId] = useState<string | null>(null);
+  // Fase que recebe um card novo ("+ Adicionar atividade").
+  const [novaFaseId, setNovaFaseId] = useState<string | null>(null);
 
   const fases = useMemo(() => (obra ? montarTrilha(obra) : []), [obra]);
 
@@ -242,6 +245,11 @@ export function ObraDetalhe({
                   });
                 }}
                 onContratado={setContratadoId}
+                onAdicionar={
+                  obra.fases.find((x) => x.id === f.id)?.preliminar
+                    ? undefined
+                    : () => setNovaFaseId(f.id)
+                }
                 subitensDe={(id) =>
                   obra.atividades
                     .filter((x) => x.pai_id === id)
@@ -311,6 +319,8 @@ export function ObraDetalhe({
         onConcluida={aoConcluir}
       />
 
+      <NovaAtividadeSheet obra={obra} faseId={novaFaseId} onFechar={() => setNovaFaseId(null)} />
+
       <BottomSheet
         open={Boolean(contratadoId)}
         title="Quem foi contratado?"
@@ -346,6 +356,7 @@ function Fase({
   mapaDe,
   onMarcarMapa,
   onContratado,
+  onAdicionar,
   subitensDe,
 }: {
   fase: FaseTrilha;
@@ -356,6 +367,8 @@ function Fase({
   mapaDe: (id: string) => { prontoEm: string | null; contratado: string | null } | null;
   onMarcarMapa: (id: string, nome: string, pronto: boolean) => void;
   onContratado: (id: string) => void;
+  /** Novo card nesta fase (fases da obra; o pré-obra não). */
+  onAdicionar?: () => void;
   /** Subitens da atividade, para listar embaixo dela na trilha. */
   subitensDe: (id: string) => { id: string; nome: string; feito: boolean }[];
 }) {
@@ -449,6 +462,12 @@ function Fase({
                 </div>
               ),
             )}
+            {onAdicionar ? (
+              <button type="button" className={styles.adicionarAtv} onClick={onAdicionar}>
+                <Icon name="plus" size={18} strokeWidth={2.2} />
+                Adicionar atividade
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>

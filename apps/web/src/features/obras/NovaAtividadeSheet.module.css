@@ -1,0 +1,50 @@
+.corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+.rotulo {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.quadrado {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 22px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.dias {
+  min-width: 32px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+}
+.miuda {
+  margin: 0;
+  font-size: 13px;
+  color: #464646;
+}
+.select {
+  min-height: 48px;
+  margin-top: -8px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 16px;
+}

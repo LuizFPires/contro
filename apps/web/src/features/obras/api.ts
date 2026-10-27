@@ -2,6 +2,7 @@ import {
   agendaDoDia,
   calcularCronograma,
   cronogramaPreObra,
+  dependenciasAtivas,
   estadoObra,
   previsaoEntrega,
   tarefaAtrasada,
@@ -135,7 +136,8 @@ export async function listarObras(): Promise<ObraResumo[]> {
 
   const predsPorAtv = new Map<string, string[]>();
   const defasPorAtv = new Map<string, Record<string, number>>();
-  for (const d of deps) {
+  // Atividade excluída: a sucessora herda as predecessoras dela (core).
+  for (const d of dependenciasAtivas(deps, new Set(atvs.map((a) => a.id)))) {
     const a = predsPorAtv.get(d.atividade_id) ?? [];
     a.push(d.predecessora_id);
     predsPorAtv.set(d.atividade_id, a);

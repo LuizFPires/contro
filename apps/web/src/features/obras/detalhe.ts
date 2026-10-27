@@ -1,6 +1,7 @@
 import {
   calcularCronograma,
   cronogramaPreObra,
+  dependenciasAtivas,
   diaDaObra,
   estadoObra,
   type DatasPreObra,
@@ -134,11 +135,12 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
 
   const predsPorAtv = new Map<string, string[]>();
   const defasPorAtv = new Map<string, Record<string, number>>();
-  for (const d of (dRes.data ?? []) as {
-    atividade_id: string;
-    predecessora_id: string;
-    defasagem_du: number;
-  }[]) {
+  // Atividade excluída: a sucessora herda as predecessoras dela (core).
+  const ativas = new Set(((aRes.data ?? []) as unknown as { id: string }[]).map((a) => a.id));
+  for (const d of dependenciasAtivas(
+    (dRes.data ?? []) as { atividade_id: string; predecessora_id: string; defasagem_du: number }[],
+    ativas,
+  )) {
     const arr = predsPorAtv.get(d.atividade_id) ?? [];
     arr.push(d.predecessora_id);
     predsPorAtv.set(d.atividade_id, arr);
@@ -172,7 +174,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
   ).map((a) => ({
     ...a,
     preObra: faseePre.has(a.fase_id),
-    mapaLibera: liberaPorMapa.get(a.id) ?? [],
+    mapaLibera: (liberaPorMapa.get(a.id) ?? []).filter((x) => ativas.has(x)),
     predecessoras: predsPorAtv.get(a.id) ?? [],
     defasagens: defasPorAtv.get(a.id) ?? {},
     providencias: provPorAtv.get(a.id) ?? [],
