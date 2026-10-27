@@ -39,6 +39,20 @@ describe('cronogramaPreObra', () => {
     expect(pre.m2.fim_previsto).toBe(deslocarDU(INICIO, -4));
   });
 
+  it('mapa de 5 dias com antecedência de 10: começa 15 du antes e fica pronto 10 du antes', () => {
+    // Exemplo do usuário: elétrica começa no dia 20 da obra.
+    const c = calcularCronograma({
+      inicio: INICIO,
+      atividades: [{ id: 'el', duracao_du: 3, inicio_manual: deslocarDU(INICIO, 20) }],
+    });
+    const p = cronogramaPreObra(INICIO, c, [
+      { id: 'mapa', duracao_du: 5, mapaAlvos: ['el'], mapaAntecedenciaDu: 10 },
+    ]);
+    expect(p.mapa).toMatchObject({ es: 5, ef: 10 });
+    expect(p.mapa.inicio_previsto).toBe(deslocarDU(INICIO, 5)); // 15 du antes do dia 20
+    expect(p.mapa.fim_previsto).toBe(deslocarDU(INICIO, 9)); // último dia do mapa; contrata no dia 10
+  });
+
   it('Orçamento termina antes do primeiro mapa, na sequência #1 → #2 → #3', () => {
     expect(pre.o3).toMatchObject({ es: -38, ef: -33 });
     expect(pre.o2).toMatchObject({ es: -43, ef: -38 });

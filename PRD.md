@@ -54,6 +54,8 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - **Hoje** (aba padrão; opção A do protótipo): "Hoje · segunda, 26/10" e um resumo ("4 atrasos e 5 coisas para hoje em 3 obras"). Um **card por obra, recolhível**, só das obras com algo no dia; **todos começam recolhidos** (o cabeçalho já mostra "2 atrasados · 2 para hoje" e a borda vermelha).
   - **Atrasado** (faixa vermelha, no topo do card): lembrete não providenciado no prazo, atividade que devia ter terminado e tarefa vencida, do mais antigo para o mais novo.
   - **Para hoje**: atividade que termina ou começa hoje, lembrete com prazo hoje e tarefa de hoje.
+  - **Em andamento** (dentro do Para hoje): o corte é hoje, mas nada que ficou para trás some. Atividade (inclusive do pré-obra) que devia ter começado e ainda está no prazo aparece todo dia, "desde seg 20/10 · terminar até sex 24/10", até ser concluída; passou do fim, vai para Atrasado.
+  - **Mapa de coleta** mostra para que serve o prazo: "começar hoje · pronto até qua 15/10 · Instalações elétricas começa seg 27/10". O mapa começa (antecedência + duração do mapa) dias úteis antes da atividade que libera: ex.: mapa de 5 du com antecedência de 10 du começa 15 du antes e fica pronto 10 du antes, a tempo de contratar.
   - Tocar no item abre a obra (ou as Tarefas, se for tarefa).
 - Título "Minhas obras" com **ícone "+"** discreto para criar obra a partir do modelo.
 - Atalhos **Reunião** (próxima reunião e status da pauta) e **Tarefas** (abertas e atrasadas da equipe).
@@ -67,7 +69,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - **Aplicar** grava as mudanças no cronograma da obra (com evento) e cria uma providência (tarefa) por sugestão, com prazo 2 dias úteis antes do novo início.
 
 ### 5.2 Nova obra a partir de um modelo
-- Informa a unidade, a segunda-feira de início e **escolhe o modelo a seguir** (lista com nome, subtítulo, atividades e dias úteis de cada modelo salvo).
+- Informa a unidade, o início (atalhos para as próximas 4 segundas ou **"Outra data no calendário"**, qualquer data passada ou futura; sábado ou domingo vira a segunda seguinte) e **escolhe o modelo a seguir** (lista com nome, subtítulo, atividades e dias úteis de cada modelo salvo).
 - Mostra a prévia: número de atividades, número de lembretes, dias úteis, fases com datas e entrega prevista.
 - Ao confirmar, gera a obra com cópia **independente** do modelo escolhido, como ele está naquele momento: atividades, prazos, conexões e lembretes. A obra pode ser editada sem alterar o modelo.
 

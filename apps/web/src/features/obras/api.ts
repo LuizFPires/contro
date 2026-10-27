@@ -302,6 +302,16 @@ export async function listarObras(): Promise<ObraResumo[]> {
                   fim_previsto: pre[a.id].fim_previsto,
                   concluida: Boolean(a.concluida_em),
                   atrasada: !a.concluida_em && pre[a.id].fim_previsto < hoje,
+                  libera: (() => {
+                    // Mapa: a mais cedo das atividades que libera (é ela que dita o prazo).
+                    const alvo = (liberaPorMapa.get(a.id) ?? [])
+                      .filter((id) => cron.porId[id])
+                      .sort((x, y) => cron.porId[x].es - cron.porId[y].es)[0];
+                    const nome = alvo ? minhasAtvs.find((x) => x.id === alvo)?.nome : undefined;
+                    return alvo && nome
+                      ? { nome, inicio: cron.porId[alvo].inicio_previsto }
+                      : undefined;
+                  })(),
                 }));
             })(),
           ),

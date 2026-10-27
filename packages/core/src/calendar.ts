@@ -63,3 +63,13 @@ export function deslocarDU(data: DataISO, n: number): DataISO {
   }
   return format(d);
 }
+
+/**
+ * A própria data se for dia útil; senão, a segunda-feira seguinte. A obra só
+ * começa em dia útil (ex.: data escolhida no calendário caiu num sábado).
+ */
+export function diaUtilAPartir(data: DataISO): DataISO {
+  let d = parse(data);
+  while (!ehDiaUtil(d)) d = somaDias(d, 1);
+  return format(d);
+}

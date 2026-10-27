@@ -119,6 +119,37 @@ describe('agendaDoDia', () => {
     expect(hoje.some((i) => i.nome === 'Tinta')).toBe(true);
     expect(atrasados.some((i) => i.nome === 'Tinta')).toBe(false);
   });
+
+  it('o que devia ter começado e ainda está no prazo segue na lista (em andamento)', () => {
+    const mapa = {
+      id: 'mapa',
+      nome: 'Mapa · Instalações elétricas',
+      es: -12,
+      inicio_previsto: '2026-10-21',
+      fim_previsto: '2026-10-27',
+      concluida: false,
+      atrasada: false,
+      libera: { nome: 'Instalações elétricas', inicio: '2026-11-10' },
+    };
+    const { hoje, atrasados } = agendaDoDia(
+      entrada({ atividades: [...entrada().atividades, mapa] }),
+    );
+    const item = hoje.find((i) => i.chave === 'andamento-mapa');
+    expect(item).toMatchObject({
+      tipo: 'andamento',
+      inicio: '2026-10-21',
+      fim: '2026-10-27',
+      libera: { nome: 'Instalações elétricas', inicio: '2026-11-10' },
+    });
+    expect(atrasados.some((i) => i.nome === mapa.nome)).toBe(false);
+    // Ainda não começou: não aparece.
+    const futuro = agendaDoDia(
+      entrada({
+        atividades: [{ ...mapa, inicio_previsto: '2026-10-27', fim_previsto: '2026-10-30' }],
+      }),
+    );
+    expect(futuro.hoje.some((i) => i.nome === mapa.nome)).toBe(false);
+  });
 });
 
 describe('resumoDoDia', () => {
