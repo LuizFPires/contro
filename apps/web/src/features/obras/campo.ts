@@ -61,6 +61,13 @@ export async function aplicarPlanoRecuperacao(obraId: string, m: MudancasPlano):
 
 // --- Editar cronograma da obra (M5): duração e predecessoras da cópia ---
 
+/** Nome da obra (texto livre; qualquer membro). */
+export async function renomearObra(id: string, nome: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { error } = await supabase.from('obra').update({ nome }).eq('id', id);
+  if (error) throw error;
+}
+
 /** Apagar obra (só o gestor; exclusão lógica no banco) e o Desfazer. */
 export async function excluirObra(id: string): Promise<void> {
   if (!supabase) throw new Error('Supabase não configurado');

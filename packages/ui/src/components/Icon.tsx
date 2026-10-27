@@ -91,6 +91,13 @@ const paths = {
       <circle cx="19" cy="12" r="1" />
     </>
   ),
+  maisVertical: (
+    <>
+      <circle cx="12" cy="5" r="1" />
+      <circle cx="12" cy="12" r="1" />
+      <circle cx="12" cy="19" r="1" />
+    </>
+  ),
   camera: (
     <>
       <path d="M4 8h3l2-2h6l2 2h3v11H4Z" />
