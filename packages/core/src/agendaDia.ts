@@ -1,10 +1,19 @@
 // "Hoje" na tela inicial (opção A): por obra, o que está atrasado e o que é
 // para hoje. Atraso = lembrete não providenciado no prazo, atividade que devia
-// ter terminado ou tarefa vencida.
+// ter terminado ou tarefa vencida. O corte é hoje, mas nada que ficou para trás
+// some: o que devia ter começado e ainda está no prazo aparece "em andamento"
+// todo dia até terminar (e vira atraso se passar do fim).
 import type { DataISO } from './calendar';
 import { providenciaAtrasada, providenciarAte } from './providencias';
 
-export type TipoItemDia = 'concluir' | 'comecar' | 'contratacao' | 'locacao' | 'compra' | 'tarefa';
+export type TipoItemDia =
+  | 'concluir'
+  | 'comecar'
+  | 'andamento'
+  | 'contratacao'
+  | 'locacao'
+  | 'compra'
+  | 'tarefa';
 
 export interface ItemDia {
   /** Única na obra (tipo + id). */
@@ -16,6 +25,11 @@ export interface ItemDia {
   atraso: boolean;
   /** Responsável (só tarefa). */
   pessoa: string | null;
+  /** Atividade: começo e fim previstos. */
+  inicio?: DataISO;
+  fim?: DataISO;
+  /** Mapa de coleta: a atividade mais cedo que ele libera (para contratar a tempo). */
+  libera?: { nome: string; inicio: DataISO };
 }
 
 export interface AgendaObra {
@@ -37,6 +51,8 @@ export interface EntradaAgenda {
     fim_previsto: DataISO;
     concluida: boolean;
     atrasada: boolean;
+    /** Mapa de coleta: a atividade mais cedo que ele libera. */
+    libera?: { nome: string; inicio: DataISO };
   }[];
   providencias: {
     id: string;
@@ -52,10 +68,11 @@ export interface EntradaAgenda {
 const ORDEM: Record<TipoItemDia, number> = {
   concluir: 0,
   comecar: 1,
-  contratacao: 2,
-  locacao: 3,
-  compra: 4,
-  tarefa: 5,
+  andamento: 2,
+  contratacao: 3,
+  locacao: 4,
+  compra: 5,
+  tarefa: 6,
 };
 
 export function agendaDoDia(e: EntradaAgenda): AgendaObra {
@@ -66,32 +83,45 @@ export function agendaDoDia(e: EntradaAgenda): AgendaObra {
 
   for (const a of e.atividades) {
     if (a.concluida) continue;
+    const base = {
+      nome: a.nome,
+      pessoa: null,
+      inicio: a.inicio_previsto,
+      fim: a.fim_previsto,
+      ...(a.libera ? { libera: a.libera } : {}),
+    };
     if (a.atrasada)
       atrasados.push({
+        ...base,
         chave: `concluir-${a.id}`,
         tipo: 'concluir',
-        nome: a.nome,
         data: a.fim_previsto,
         atraso: true,
-        pessoa: null,
       });
     else if (a.fim_previsto === e.hoje)
       hoje.push({
+        ...base,
         chave: `concluir-${a.id}`,
         tipo: 'concluir',
-        nome: a.nome,
         data: e.hoje,
         atraso: false,
-        pessoa: null,
       });
     else if (a.inicio_previsto === e.hoje)
       hoje.push({
+        ...base,
         chave: `comecar-${a.id}`,
         tipo: 'comecar',
-        nome: a.nome,
         data: e.hoje,
         atraso: false,
-        pessoa: null,
+      });
+    else if (a.inicio_previsto < e.hoje && e.hoje < a.fim_previsto)
+      // Devia ter começado e ainda está no prazo: segue na lista até terminar.
+      hoje.push({
+        ...base,
+        chave: `andamento-${a.id}`,
+        tipo: 'andamento',
+        data: e.hoje,
+        atraso: false,
       });
   }
 
@@ -124,9 +154,10 @@ export function agendaDoDia(e: EntradaAgenda): AgendaObra {
     else if (t.prazo === e.hoje) hoje.push({ ...item, data: e.hoje, atraso: false });
   }
 
-  // Atrasados: o mais antigo primeiro. Hoje: atividades, depois lembretes, depois tarefas.
+  // Atrasados: o mais antigo primeiro. Hoje: atividades (em andamento: a que
+  // termina antes primeiro), depois lembretes, depois tarefas.
   atrasados.sort((x, y) => x.data.localeCompare(y.data) || ORDEM[x.tipo] - ORDEM[y.tipo]);
-  hoje.sort((x, y) => ORDEM[x.tipo] - ORDEM[y.tipo]);
+  hoje.sort((x, y) => ORDEM[x.tipo] - ORDEM[y.tipo] || (x.fim ?? '').localeCompare(y.fim ?? ''));
   return { atrasados, hoje };
 }
 

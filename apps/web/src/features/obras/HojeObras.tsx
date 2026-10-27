@@ -8,6 +8,7 @@ import styles from './HojeObras.module.css';
 const ROTULO: Record<TipoItemDia, string> = {
   concluir: 'Concluir',
   comecar: 'Começar',
+  andamento: 'Em andamento',
   contratacao: 'Contratação',
   locacao: 'Locação',
   compra: 'Compra',
@@ -16,13 +17,20 @@ const ROTULO: Record<TipoItemDia, string> = {
 
 function detalhe(i: ItemDia): string {
   const quem = i.pessoa ?? 'sem responsável';
+  // Mapa de coleta: lembra para que serve o prazo (contratar antes da atividade).
+  const libera = i.libera ? ` · ${i.libera.nome} começa ${formatarDataCurta(i.libera.inicio)}` : '';
   if (i.atraso) {
-    if (i.tipo === 'concluir') return `devia terminar ${formatarDataCurta(i.data)}`;
+    if (i.tipo === 'concluir') return `devia terminar ${formatarDataCurta(i.data)}${libera}`;
     if (i.tipo === 'tarefa') return `${quem} · venceu ${formatarDataCurta(i.data)}`;
     return `era para providenciar até ${formatarDataCurta(i.data)}`;
   }
-  if (i.tipo === 'concluir') return 'previsto concluir hoje';
-  if (i.tipo === 'comecar') return 'previsto começar hoje';
+  if (i.tipo === 'concluir') return `previsto concluir hoje${libera}`;
+  if (i.tipo === 'comecar')
+    return i.fim && i.fim !== i.data
+      ? `começar hoje · pronto até ${formatarDataCurta(i.fim)}${libera}`
+      : `previsto começar hoje${libera}`;
+  if (i.tipo === 'andamento')
+    return `desde ${formatarDataCurta(i.inicio ?? i.data)} · terminar até ${formatarDataCurta(i.fim ?? i.data)}${libera}`;
   if (i.tipo === 'tarefa') return `${quem} · até hoje`;
   return 'providenciar até hoje';
 }

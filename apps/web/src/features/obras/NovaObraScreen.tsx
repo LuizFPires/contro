@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { calcularCronograma, diaMes, faixasDeFases, type AtividadeEntrada } from '@contro/core';
+import {
+  calcularCronograma,
+  diaMes,
+  diaUtilAPartir,
+  faixasDeFases,
+  type AtividadeEntrada,
+} from '@contro/core';
 import { Icon } from '@contro/ui';
-import { formatarDataCurta } from '../../lib/datas';
+import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import { useModelos } from '../modelos/useModelos';
 import { useModeloCompleto } from '../modelos/useModeloDetalhe';
 import { proximasSegundas, useGerarObra } from './useObras';
@@ -26,6 +32,9 @@ export function NovaObraScreen({
   const [inicio, setInicio] = useState(segundas[0] ?? '');
   const [modeloId, setModeloId] = useState('');
   const [erro, setErro] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+  // Data escolhida no calendário (fora das próximas segundas).
+  const outraData = Boolean(inicio) && !segundas.includes(inicio);
 
   // Começa com o primeiro modelo marcado, como no protótipo.
   useEffect(() => {
@@ -109,7 +118,10 @@ export function NovaObraScreen({
                   type="button"
                   aria-pressed={inicio === s}
                   className={`${styles.inicio} ${inicio === s ? styles.inicioAtivo : ''}`}
-                  onClick={() => setInicio(s)}
+                  onClick={() => {
+                    setInicio(s);
+                    setAviso(null);
+                  }}
                 >
                   <span className={styles.dow}>{dow}</span>
                   <strong>{dm}</strong>
@@ -117,6 +129,30 @@ export function NovaObraScreen({
               );
             })}
           </div>
+          {/* Qualquer data, passada ou futura, pelo calendário do aparelho. O input
+              transparente cobre o botão para abrir o calendário nativo no toque. */}
+          <label className={`${styles.outraData} ${outraData ? styles.inicioAtivo : ''}`}>
+            <Icon name="calendario" size={20} />
+            <span>{outraData ? formatarDataCompleta(inicio) : 'Outra data no calendário'}</span>
+            {outraData ? <span className={styles.trocar}>trocar</span> : null}
+            <input
+              type="date"
+              className={styles.outraDataInput}
+              value={inicio}
+              aria-label="Escolher outra data de início no calendário"
+              onChange={(e) => {
+                if (!e.target.value) return;
+                const util = diaUtilAPartir(e.target.value);
+                setInicio(util);
+                setAviso(
+                  util !== e.target.value
+                    ? `${formatarDataCurta(e.target.value)} não é dia útil: a obra começa ${formatarDataCurta(util)}.`
+                    : null,
+                );
+              }}
+            />
+          </label>
+          {aviso ? <p className={styles.aviso}>{aviso}</p> : null}
         </div>
 
         <div className={styles.campo}>

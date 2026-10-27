@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addDU, duEntre } from './calendar';
+import { addDU, diaUtilAPartir, duEntre } from './calendar';
 
 // Semana de referência: seg 2026-01-05 … sex 2026-01-09, próxima seg 2026-01-12.
 
@@ -28,5 +28,13 @@ describe('duEntre [a, b)', () => {
   });
   it('ignora o fim de semana', () => {
     expect(duEntre('2026-01-09', '2026-01-13')).toBe(2); // sex, seg
+  });
+});
+
+describe('diaUtilAPartir', () => {
+  it('dia útil fica; sábado e domingo vão para a segunda', () => {
+    expect(diaUtilAPartir('2026-01-07')).toBe('2026-01-07');
+    expect(diaUtilAPartir('2026-01-10')).toBe('2026-01-12');
+    expect(diaUtilAPartir('2026-01-11')).toBe('2026-01-12');
   });
 });
