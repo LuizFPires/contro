@@ -16,6 +16,8 @@ export interface Providencia {
   tipo: 'contratacao' | 'locacao' | 'compra';
   descricao: string;
   antecedencia_du: number;
+  /** Quantos dias úteis leva para providenciar (0: só o prazo). */
+  duracao_du: number;
 }
 export interface AtividadeDetalhe {
   id: string;
@@ -47,7 +49,7 @@ export interface NovaAtividade {
   duracaoDu: number;
   subitens: { nome: string; duracao_du: number; em_sequencia: boolean }[];
   predecessoras: string[];
-  providencias: { tipo: string; descricao: string; antecedencia_du: number }[];
+  providencias: { tipo: string; descricao: string; antecedencia_du: number; duracao_du: number }[];
   /** Pré-obra: atividades que libera e quantos dias úteis antes da mais cedo termina. */
   mapaLibera?: string[];
   mapaAntecedenciaDu?: number | null;
@@ -70,7 +72,7 @@ export async function loadModeloCompleto(id: string): Promise<ModeloCompleto | n
     supabase.from('modelo_dependencia').select('atividade_id,predecessora_id').eq('modelo_id', id),
     supabase
       .from('modelo_providencia')
-      .select('id,atividade_id,tipo,descricao,antecedencia_du')
+      .select('id,atividade_id,tipo,descricao,antecedencia_du,duracao_du')
       .eq('modelo_id', id),
     supabase.from('modelo_mapa_libera').select('mapa_id,atividade_id').eq('modelo_id', id),
   ]);

@@ -86,7 +86,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
       supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id,defasagem_du'),
       supabase
         .from('obra_providencia')
-        .select('id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du'),
+        .select('id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du'),
       supabase
         .from('tarefa')
         .select(
@@ -130,6 +130,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
     descricao: string;
     status: 'pendente' | 'feito';
     antecedencia_du: number;
+    duracao_du: number;
   }[];
 
   const predsPorAtv = new Map<string, string[]>();
@@ -324,6 +325,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
             descricao: p.descricao,
             status: p.status,
             antecedenciaDu: p.antecedencia_du,
+            duracaoDu: p.duracao_du,
           })),
         tarefas: tarefas
           .filter((t) => t.obra_id === o.id)

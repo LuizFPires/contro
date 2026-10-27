@@ -52,7 +52,7 @@ modelo_atividade(id, modelo_id, fase_id, ordem, nome, duracao_du int ≥1,
                  em_sequencia bool default true)       -- subitem: depois do irmão anterior (true) ou no início do pai (false)
 -- Atividade com subitens: duracao_du é DERIVADA (vão dos subitens); dependências e providências ficam só no nível da atividade.
 modelo_dependencia(modelo_id, atividade_id, predecessora_id)    -- qualquer fase; proibido ciclo (validado no core e em trigger)
-modelo_providencia(id, modelo_id, atividade_id, tipo: 'contratacao'|'locacao'|'compra', descricao, antecedencia_du int ≥0)
+modelo_providencia(id, modelo_id, atividade_id, tipo: 'contratacao'|'locacao'|'compra', descricao, antecedencia_du int ≥0, duracao_du int ≥0 default 0)
 ```
 Sem rascunho nem publicação: cada edição grava direto no modelo. `gerar_obra` copia o estado do modelo naquele instante, então obras existentes nunca mudam. "Novo modelo" = cópia profunda de um modelo (ou só as fases) com `criado_de_id`. Excluir é lógico (`excluido_em`) e exige que reste ao menos um modelo ativo. O cálculo do cronograma usa **ordenação topológica**, não a ordem das fases.
 
@@ -67,7 +67,7 @@ obra_atividade(id, obra_id, fase_id, ordem, nome, duracao_du, origem_modelo_ativ
                concluida_em timestamptz null, concluida_por → pessoa, foto_conclusao_id → foto null,
                prestador text null)                                -- nome livre, opcional, com sugestões
 obra_dependencia(obra_id, atividade_id, predecessora_id)
-obra_providencia(id, obra_id, atividade_id, tipo, descricao, antecedencia_du,
+obra_providencia(id, obra_id, atividade_id, tipo, descricao, antecedencia_du, duracao_du,
                  na_obra_em date null,                             -- override; null = início da atividade
                  status: 'pendente'|'feito', feito_em, feito_por)
 ```
@@ -170,6 +170,7 @@ fase concluída / em execução / planejada / com atraso (se tem atividade atras
 ### 4.4 Providências (lembretes)
 ```
 limite(p)      = ES(atividade) − antecedencia_du
+comecar(p)     = providenciarAte(p) − duracao_du   (core: comecarProvidencia; o Hoje avisa de comecar até o prazo)
 providenciar_ate(p) = addDU(obra.inicio, max(limite, 0))
 na_obra_em(p)  = p.na_obra_em ?? inicio_previsto(atividade)
 atrasada(p)    = status='pendente' && atividade não concluída && obra iniciada && decorridos > max(limite, 0)   -- "até sex" ainda vale na sexta (26/10/2026)

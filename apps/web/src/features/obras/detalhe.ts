@@ -26,6 +26,8 @@ export interface ObraProv {
   descricao: string;
   status: 'pendente' | 'feito';
   antecedencia_du: number;
+  /** Quantos dias úteis leva para providenciar (0: só o prazo). */
+  duracao_du: number;
   na_obra_em: string | null;
   manual: boolean;
   /** Quando e quem marcou como providenciado (null enquanto pendente). */
@@ -113,7 +115,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     supabase
       .from('obra_providencia')
       .select(
-        'id,atividade_id,tipo,descricao,status,antecedencia_du,na_obra_em,manual,feito_em,' +
+        'id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du,na_obra_em,manual,feito_em,' +
           'feito:pessoa!feito_por(nome)',
       )
       .eq('obra_id', id),

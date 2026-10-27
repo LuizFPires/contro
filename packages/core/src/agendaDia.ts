@@ -4,7 +4,7 @@
 // some: o que devia ter começado e ainda está no prazo aparece "em andamento"
 // todo dia até terminar (e vira atraso se passar do fim).
 import type { DataISO } from './calendar';
-import { providenciaAtrasada, providenciarAte } from './providencias';
+import { comecarProvidencia, providenciaAtrasada, providenciarAte } from './providencias';
 
 export type TipoItemDia =
   | 'concluir'
@@ -61,6 +61,8 @@ export interface EntradaAgenda {
     descricao: string;
     status: 'pendente' | 'feito';
     antecedenciaDu: number;
+    /** Quantos dias úteis leva para providenciar (0: só o prazo). */
+    duracaoDu?: number;
   }[];
   tarefas: { id: string; texto: string; prazo: DataISO; aberta: boolean; pessoa: string | null }[];
 }
@@ -138,8 +140,11 @@ export function agendaDoDia(e: EntradaAgenda): AgendaObra {
       esAtividade: a.es,
       antecedenciaDu: p.antecedenciaDu,
     });
+    // Com duração ("leva N dias"), aparece desde o dia de começar até o prazo.
+    const comecar = comecarProvidencia(e.inicio, a.es, p.antecedenciaDu, p.duracaoDu ?? 0);
     if (atrasada) atrasados.push({ ...item, data: ate, atraso: true });
-    else if (ate === e.hoje) hoje.push({ ...item, data: e.hoje, atraso: false });
+    else if (comecar <= e.hoje && e.hoje <= ate)
+      hoje.push({ ...item, data: e.hoje, atraso: false, inicio: comecar, fim: ate });
   }
 
   for (const t of e.tarefas) {

@@ -32,6 +32,11 @@ function detalhe(i: ItemDia): string {
   if (i.tipo === 'andamento')
     return `desde ${formatarDataCurta(i.inicio ?? i.data)} · terminar até ${formatarDataCurta(i.fim ?? i.data)}${libera}`;
   if (i.tipo === 'tarefa') return `${quem} · até hoje`;
+  // Lembrete que leva dias: avisa desde o dia de começar até o prazo.
+  if (i.fim && i.fim !== i.data)
+    return i.inicio === i.data
+      ? `começar hoje · providenciar até ${formatarDataCurta(i.fim)}`
+      : `desde ${formatarDataCurta(i.inicio ?? i.data)} · providenciar até ${formatarDataCurta(i.fim)}`;
   return 'providenciar até hoje';
 }
 

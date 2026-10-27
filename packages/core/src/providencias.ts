@@ -1,6 +1,6 @@
 // Lembretes de providência (SPEC 4.4). Sem valor e sem fornecedor (decisão do
 // produto). O limite é relativo ao início da atividade (ES) e à antecedência.
-import { addDU, type DataISO } from './calendar';
+import { addDU, deslocarDU, type DataISO } from './calendar';
 
 /** Dia (em du, relativo ao início da obra) até quando a providência deve estar pronta. */
 export function limiteProvidencia(esAtividade: number, antecedenciaDu: number): number {
@@ -14,6 +14,20 @@ export function providenciarAte(
   antecedenciaDu: number,
 ): DataISO {
   return addDU(inicio, Math.max(limiteProvidencia(esAtividade, antecedenciaDu), 0));
+}
+
+/**
+ * Quando começar a providenciar: o prazo menos o tempo que leva (ex.: tomada de
+ * preço de 5 du para contratar até o dia 10 → começar no dia 5). Sem duração,
+ * é o próprio prazo.
+ */
+export function comecarProvidencia(
+  inicio: DataISO,
+  esAtividade: number,
+  antecedenciaDu: number,
+  duracaoDu: number,
+): DataISO {
+  return deslocarDU(providenciarAte(inicio, esAtividade, antecedenciaDu), -Math.max(duracaoDu, 0));
 }
 
 /** Quando precisa estar na obra: override, senão o início previsto da atividade. */

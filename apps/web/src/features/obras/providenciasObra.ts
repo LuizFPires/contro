@@ -1,4 +1,10 @@
-import { duEntre, naObraEm, providenciaAtrasada, providenciarAte } from '@contro/core';
+import {
+  comecarProvidencia,
+  duEntre,
+  naObraEm,
+  providenciaAtrasada,
+  providenciarAte,
+} from '@contro/core';
 import type { ObraCompleta } from './detalhe';
 
 const TIPO: Record<string, string> = {
@@ -18,6 +24,10 @@ export interface ItemProvidencia {
   /** Data em que precisa estar na obra (início previsto da atividade ou ajuste manual). */
   naObra: string;
   antecedenciaDu: number;
+  /** Quantos dias úteis leva para providenciar (0: só o prazo). */
+  duracaoDu: number;
+  /** Quando começar a providenciar (prazo − duração). */
+  comecar: string;
   atrasada: boolean;
 }
 
@@ -84,6 +94,8 @@ export function classificarProvidencias(
         providenciarAte: providenciarAte(obra.inicio, es, p.antecedencia_du),
         naObra: naObraEm(obra.inicio, es, p.na_obra_em),
         antecedenciaDu: p.antecedencia_du,
+        duracaoDu: p.duracao_du ?? 0,
+        comecar: comecarProvidencia(obra.inicio, es, p.antecedencia_du, p.duracao_du ?? 0),
         atrasada,
       };
       (atrasada ? atrasadas : aProvidenciar).push(item);

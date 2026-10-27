@@ -109,6 +109,40 @@ describe('agendaDoDia', () => {
     expect(hoje.find((i) => i.tipo === 'tarefa')?.pessoa).toBe('Rafael');
   });
 
+  it('lembrete que leva dias aparece desde o dia de começar até o prazo', () => {
+    // Elétrica no dia 12; contratar 4 du antes (dia 8 = qui 29/10); leva 3 du.
+    const ele = {
+      id: 'ele',
+      nome: 'Instalações elétricas',
+      es: 12,
+      inicio_previsto: '2026-11-04',
+      fim_previsto: '2026-11-10',
+      concluida: false,
+      atrasada: false,
+    };
+    const prov = (duracaoDu: number) => ({
+      id: 'pe',
+      atividadeId: 'ele',
+      tipo: 'contratacao' as const,
+      descricao: 'Eletricista',
+      status: 'pendente' as const,
+      antecedenciaDu: 4,
+      duracaoDu,
+    });
+    const com = (d: number, hoje = HOJE, decorridos = 5) =>
+      agendaDoDia(entrada({ hoje, decorridos, atividades: [ele], providencias: [prov(d)] }));
+    // Leva 3: começa no dia 5 (hoje, seg 26/10).
+    expect(com(3).hoje.find((i) => i.nome === 'Eletricista')).toMatchObject({
+      inicio: '2026-10-26',
+      fim: '2026-10-29',
+      atraso: false,
+    });
+    // Ter 27/10: ainda na lista, sem atraso.
+    expect(com(3, '2026-10-27', 6).hoje.some((i) => i.nome === 'Eletricista')).toBe(true);
+    // Leva 1: só começa qua 28/10, ainda não aparece hoje.
+    expect(com(1).hoje.some((i) => i.nome === 'Eletricista')).toBe(false);
+  });
+
   it('lembrete de atividade concluída não aparece; prazo hoje ainda não é atraso', () => {
     const e = entrada({
       atividades: entrada().atividades.map((a) =>

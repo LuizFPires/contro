@@ -16,6 +16,8 @@ interface Prov {
   tipo: Tipo;
   descricao: string;
   antecedencia_du: number;
+  /** Quantos dias úteis leva para providenciar (0: só o prazo). */
+  duracao_du: number;
 }
 
 const TIPO_ROTULO: Record<Tipo, string> = {
@@ -79,6 +81,7 @@ export function AssistenteAtividade({
         tipo: p.tipo,
         descricao: p.descricao,
         antecedencia_du: p.antecedencia_du,
+        duracao_du: p.duracao_du ?? 0,
       })) ?? [],
   );
   const [abaFase, setAbaFase] = useState(faseId);
@@ -650,40 +653,28 @@ export function AssistenteAtividade({
                     )
                   }
                 />
-                <div className={styles.linha}>
-                  <button
-                    type="button"
-                    className={styles.quadrado}
-                    aria-label="Menos um dia"
-                    onClick={() =>
-                      setProvs((arr) =>
-                        arr.map((x, j) =>
-                          j === i
-                            ? { ...x, antecedencia_du: Math.max(0, x.antecedencia_du - 1) }
-                            : x,
-                        ),
-                      )
-                    }
-                  >
-                    −
-                  </button>
-                  <span className={styles.dias}>{p.antecedencia_du} d</span>
-                  <button
-                    type="button"
-                    className={styles.quadrado}
-                    aria-label="Mais um dia"
-                    onClick={() =>
-                      setProvs((arr) =>
-                        arr.map((x, j) =>
-                          j === i ? { ...x, antecedencia_du: x.antecedencia_du + 1 } : x,
-                        ),
-                      )
-                    }
-                  >
-                    +
-                  </button>
-                  <span className={styles.miuda}>antes de começar</span>
-                </div>
+                <Contador
+                  valor={p.antecedencia_du}
+                  texto="pronto antes de a atividade começar"
+                  rotulo="Antecedência"
+                  onMudar={(v) =>
+                    setProvs((arr) =>
+                      arr.map((x, j) => (j === i ? { ...x, antecedencia_du: v } : x)),
+                    )
+                  }
+                />
+                <Contador
+                  valor={p.duracao_du}
+                  texto={
+                    p.duracao_du
+                      ? 'para providenciar (o Hoje avisa desde o início)'
+                      : 'para providenciar (0: avisa só no prazo)'
+                  }
+                  rotulo="Duração"
+                  onMudar={(v) =>
+                    setProvs((arr) => arr.map((x, j) => (j === i ? { ...x, duracao_du: v } : x)))
+                  }
+                />
               </div>
             ))}
             <div className={styles.novos}>
@@ -695,7 +686,12 @@ export function AssistenteAtividade({
                   onClick={() =>
                     setProvs((arr) => [
                       ...arr,
-                      { tipo: t, descricao: '', antecedencia_du: t === 'locacao' ? 3 : 7 },
+                      {
+                        tipo: t,
+                        descricao: '',
+                        antecedencia_du: t === 'locacao' ? 3 : 7,
+                        duracao_du: t === 'contratacao' ? 5 : t === 'compra' ? 3 : 1,
+                      },
                     ])
                   }
                 >
@@ -815,6 +811,42 @@ export function AssistenteAtividade({
                 : 'Continuar'}
         </button>
       </div>
+    </div>
+  );
+}
+
+/** − N d + com o texto ao lado (antecedência e duração do lembrete). */
+function Contador({
+  valor,
+  texto,
+  rotulo,
+  onMudar,
+}: {
+  valor: number;
+  texto: string;
+  rotulo: string;
+  onMudar: (v: number) => void;
+}) {
+  return (
+    <div className={styles.linha}>
+      <button
+        type="button"
+        className={styles.quadrado}
+        aria-label={`${rotulo}: menos um dia`}
+        onClick={() => onMudar(Math.max(0, valor - 1))}
+      >
+        −
+      </button>
+      <span className={styles.dias}>{valor} d</span>
+      <button
+        type="button"
+        className={styles.quadrado}
+        aria-label={`${rotulo}: mais um dia`}
+        onClick={() => onMudar(valor + 1)}
+      >
+        +
+      </button>
+      <span className={styles.miuda}>{texto}</span>
     </div>
   );
 }

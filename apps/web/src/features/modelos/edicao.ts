@@ -65,7 +65,7 @@ export interface AtividadeEditada {
   duracaoDu: number;
   subitens: { nome: string; duracao_du: number; em_sequencia: boolean }[];
   predecessoras: string[];
-  providencias: { tipo: string; descricao: string; antecedencia_du: number }[];
+  providencias: { tipo: string; descricao: string; antecedencia_du: number; duracao_du: number }[];
   /** Pré-obra: atividades que libera e quantos dias úteis antes da mais cedo termina. */
   mapaLibera?: string[];
   mapaAntecedenciaDu?: number | null;
@@ -157,6 +157,7 @@ export async function atualizarAtividade(
           tipo: p.tipo,
           descricao: p.descricao,
           antecedencia_du: p.antecedencia_du,
+          duracao_du: p.duracao_du,
         })),
       ),
     );
