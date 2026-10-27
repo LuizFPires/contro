@@ -1,0 +1,27 @@
+.aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 0 4px 0 12px;
+  border-radius: 12px;
+  background: rgb(84 180 176 / 16%);
+  color: var(--contro-black);
+  font-size: 13px;
+  font-weight: 600;
+}
+.texto {
+  flex: 1;
+}
+.descartar {
+  min-height: var(--contro-touch);
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}

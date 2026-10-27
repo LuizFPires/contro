@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
+import { AvisoRascunho } from '../../components/AvisoRascunho';
 import { formatarDataCurta } from '../../lib/datas';
+import { useRascunho } from '../../lib/useRascunho';
 import { hojeISO } from './api';
 import type { ObraCompleta } from './detalhe';
 import {
@@ -287,21 +289,34 @@ export function NovaProvidenciaSheet({
   const [descricao, setDescricao] = useState('');
   const [erro, setErro] = useState('');
   const [abertoPara, setAbertoPara] = useState<Tipo | null>(null);
+  // Rascunho: o que foi digitado volta ao reabrir, mesmo se o app fechou.
+  const rascunho = useRascunho<{ tipo: Tipo; atividadeId: string; descricao: string }>(
+    tipoInicial ? `lembrete:${obra.id}:${atividadeFixa ?? 'aba'}` : null,
+  );
+  const [recuperado, setRecuperado] = useState(false);
 
-  // Cada abertura começa no tipo do botão tocado, sem atividade nem texto.
+  // Cada abertura começa no tipo do botão tocado, sem atividade nem texto
+  // (ou no rascunho guardado, se houver).
   if (tipoInicial !== abertoPara) {
     setAbertoPara(tipoInicial);
     if (tipoInicial) {
-      setTipo(tipoInicial);
-      setAtividadeId(atividadeFixa ?? '');
-      setDescricao('');
+      const r = rascunho.lido;
+      setTipo(r?.tipo ?? tipoInicial);
+      setAtividadeId(r?.atividadeId || atividadeFixa || '');
+      setDescricao(r?.descricao ?? '');
+      setRecuperado(Boolean(r));
       setErro('');
     }
   }
+  const guardarRascunho = rascunho.guardar;
+  useEffect(() => {
+    if (tipoInicial) guardarRascunho({ tipo, atividadeId, descricao }, !descricao.trim());
+  }, [tipoInicial, tipo, atividadeId, descricao, guardarRascunho]);
 
   function salvar() {
     if (!atividadeId) return setErro('Escolha a atividade que depende deste lembrete.');
     if (!descricao.trim()) return setErro('Descreva o que precisa ser providenciado.');
+    rascunho.limpar();
     onSalvar({ atividadeId, tipo, descricao: descricao.trim() });
   }
 
@@ -311,6 +326,17 @@ export function NovaProvidenciaSheet({
     <BottomSheet open={tipoInicial !== null} onClose={onFechar}>
       <div className={styles.form}>
         <h2 className={styles.formTitulo}>Nova {rotulo.toLowerCase()}</h2>
+        {recuperado ? (
+          <AvisoRascunho
+            onDescartar={() => {
+              rascunho.limpar();
+              setRecuperado(false);
+              setTipo(tipoInicial ?? 'contratacao');
+              setAtividadeId(atividadeFixa ?? '');
+              setDescricao('');
+            }}
+          />
+        ) : null}
 
         <div className={styles.campo}>
           <div className={styles.campoRotulo}>Tipo</div>
