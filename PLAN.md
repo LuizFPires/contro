@@ -308,6 +308,8 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-26 · **"Voltar para pendente"** na ficha da atividade concluída, para qualquer membro (antes só quem concluiu desfazia, pelo toast); Desfazer conclui de novo com a mesma foto. **"Demolições e retiradas" sem subitens**, como as demais atividades (modelos: apagados; obras: exclusão lógica; seed atualizado). · usuário
+
 - 2026-10-26 · **Nomes de pessoas:** cadastro exige nome e sobrenome; etiquetas mostram o nome curto (primeiro nome + inicial do sobrenome: "Luiz F"), pelo core `nomeCurto`; "Editar meu nome" no menu do perfil (RPC `atualizar_meu_nome`). **Pendências viram "Check list"**, com botão "i" de como funciona, e a aba vai para depois de Cronograma (Fases, Providências, Cronograma, Check list). · usuário
 
 - 2026-10-26 · **Mapa de coleta aparece na atividade que ele libera**: na ficha, em "Para começar", um card "Mapa de coleta · #N" (a fazer / atrasado em vermelho / concluído) junto das providências, entrando na contagem "X de Y providenciados". Resolver o mapa na fase 2 reflete no card; o card também tem "Marcar mapa como resolvido" (conclui o mapa, com Desfazer). Só aviso: não trava. · usuário
