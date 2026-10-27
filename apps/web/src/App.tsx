@@ -28,7 +28,9 @@ export function App() {
     if (!supabase) return;
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (['SIGNED_IN', 'SIGNED_OUT', 'USER_UPDATED', 'PASSWORD_RECOVERY'].includes(event)) {
-        void qc.resetQueries({ queryKey: ['perfil'] });
+        // Fora do callback: chamar o Supabase aqui dentro (o perfil faz getUser)
+        // trava o lock do auth e o app fica em "Carregando…" para sempre.
+        setTimeout(() => void qc.resetQueries({ queryKey: ['perfil'] }), 0);
       }
     });
     return () => sub.subscription.unsubscribe();

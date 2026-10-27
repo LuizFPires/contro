@@ -182,7 +182,9 @@ export function iniciarSync(client: QueryClient): void {
   void uidAtual();
   supabase?.auth.onAuthStateChange((_evento, session) => {
     usuarioAtual = session?.user.id ?? null;
-    if (usuarioAtual) void drenar();
+    // Fora do callback: drenar chama o Supabase, e fazer isso aqui dentro trava
+    // o lock do auth (o app fica em "Carregando…").
+    if (usuarioAtual) setTimeout(() => void drenar(), 0);
   });
   if (typeof window === 'undefined') return;
   window.addEventListener('online', () => void drenar());
