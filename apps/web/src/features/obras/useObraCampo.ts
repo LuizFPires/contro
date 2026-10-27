@@ -6,13 +6,10 @@ import {
   adicionarPredecessora,
   adicionarProvidencia,
   ajustarInicio,
-  editarDescricaoProvidencia,
   editarDuracao,
-  editarPrestador,
   excluirAtividade,
   removerPredecessora,
   removerProvidencia,
-  renomearAtividade,
   restaurarAtividade,
 } from './campo';
 import { guardarFotoLocal } from './foto';
@@ -47,13 +44,23 @@ export function useObraCampo(obraId: string) {
       if (ctx?.prev) qc.setQueryData(['obra', obraId], ctx.prev);
     },
   });
+  // Prestador: otimista e offline (fila), para não perder o que foi digitado.
   const prestador = useMutation({
+    networkMode: 'always',
     mutationFn: ({ id, prestador }: { id: string; prestador: string | null }) =>
-      editarPrestador(id, prestador),
-    onSuccess: () => {
-      inval();
-      // O nome salvo vira sugestão no banco (trigger): recarrega a lista.
-      void qc.invalidateQueries({ queryKey: ['sugestao', 'prestador'] });
+      enfileirar('editar_prestador', { obraId, id, prestador }),
+    onMutate: async ({ id, prestador }: { id: string; prestador: string | null }) => {
+      await qc.cancelQueries({ queryKey: ['obra', obraId] });
+      const prev = qc.getQueryData<ObraCompleta>(['obra', obraId]);
+      if (prev)
+        qc.setQueryData<ObraCompleta>(['obra', obraId], {
+          ...prev,
+          atividades: prev.atividades.map((a) => (a.id === id ? { ...a, prestador } : a)),
+        });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['obra', obraId], ctx.prev);
     },
   });
   // Ação de campo OTIMISTA e offline (regra 9): atualiza o cache na hora, enfileira
@@ -217,15 +224,16 @@ export function useObraCampo(obraId: string) {
 
   // Textos livres da obra (nome da atividade, descrição do lembrete): otimista.
   const renomear = useMutation({
+    networkMode: 'always',
     mutationFn: (v: { atividadeId: string; nome: string }) =>
-      renomearAtividade(v.atividadeId, v.nome),
+      enfileirar('renomear_atividade', { obraId, id: v.atividadeId, nome: v.nome }),
     onMutate: (v) => patchAtv(v.atividadeId, (a) => ({ ...a, nome: v.nome })),
     onError: (_e, _v, ctx) => reverter(ctx),
-    onSettled: inval,
   });
   const descricaoProv = useMutation({
+    networkMode: 'always',
     mutationFn: (v: { atividadeId: string; id: string; descricao: string }) =>
-      editarDescricaoProvidencia(v.id, v.descricao),
+      enfileirar('editar_descricao_providencia', { obraId, id: v.id, descricao: v.descricao }),
     onMutate: (v) =>
       patchAtv(v.atividadeId, (a) => ({
         ...a,
@@ -234,7 +242,6 @@ export function useObraCampo(obraId: string) {
         ),
       })),
     onError: (_e, _v, ctx) => reverter(ctx),
-    onSettled: inval,
   });
 
   // Cards da fase: adicionar e excluir (exclusão lógica, com Desfazer).

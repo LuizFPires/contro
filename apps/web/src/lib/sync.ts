@@ -7,10 +7,13 @@ import {
   concluirAtividade,
   desfazerConclusao,
   concluirTarefa,
+  editarDescricaoProvidencia,
+  editarPrestador,
   excluirTarefa,
   marcarProvidencia,
   marcarSubitem,
   reabrirTarefa,
+  renomearAtividade,
   resolverPendencia,
   restaurarTarefa,
   salvarTarefa,
@@ -31,6 +34,11 @@ import { db, type OpDB } from './db';
 type Handler = (payload: Record<string, unknown>, opId: string) => Promise<void>;
 const DISPATCH: Record<string, Handler> = {
   marcar_providencia: (p, opId) => marcarProvidencia(p.id as string, p.feito as boolean, opId),
+  // Textos livres da obra: update idempotente (repetir grava o mesmo valor).
+  editar_prestador: (p) => editarPrestador(p.id as string, (p.prestador as string | null) ?? null),
+  renomear_atividade: (p) => renomearAtividade(p.id as string, p.nome as string),
+  editar_descricao_providencia: (p) =>
+    editarDescricaoProvidencia(p.id as string, p.descricao as string),
   concluir_atividade: async (p, opId) => {
     // Foto opcional: sem fotoLocalId, conclui sem foto.
     const local = (p.fotoLocalId as string | null) ?? null;
@@ -81,6 +89,9 @@ let drenando = false;
 // Dono das ops a enviar: só a própria sessão drena a própria fila (aparelho
 // compartilhado não envia ação de outra pessoa com a sessão errada).
 let usuarioAtual: string | null = null;
+// Depois de "Sair": ação sem dono é recusada (ex.: o salvamento automático de
+// uma ficha que fecha no logout), para não ser adotada pela próxima conta.
+let saiuDaConta = false;
 
 async function uidAtual(): Promise<string | null> {
   if (usuarioAtual) return usuarioAtual;
@@ -101,6 +112,7 @@ function invalidar(payload: Record<string, unknown>) {
 
 /** Enfileira uma ação de campo (otimista: a UI já atualizou o cache antes). */
 export async function enfileirar(tipo: string, payload: Record<string, unknown>): Promise<string> {
+  if (saiuDaConta && !usuarioAtual) throw new Error('Sem sessão: ação descartada');
   const id = crypto.randomUUID();
   const op: OpDB = {
     id,
@@ -180,8 +192,10 @@ export function iniciarSync(client: QueryClient): void {
   // Aquece o uid em cache o quanto antes, para o enqueue já ter dono (o
   // onAuthStateChange abaixo também seta no INITIAL_SESSION).
   void uidAtual();
-  supabase?.auth.onAuthStateChange((_evento, session) => {
+  supabase?.auth.onAuthStateChange((evento, session) => {
     usuarioAtual = session?.user.id ?? null;
+    if (evento === 'SIGNED_OUT') saiuDaConta = true;
+    else if (usuarioAtual) saiuDaConta = false;
     // Fora do callback: drenar chama o Supabase, e fazer isso aqui dentro trava
     // o lock do auth (o app fica em "Carregando…").
     if (usuarioAtual) setTimeout(() => void drenar(), 0);

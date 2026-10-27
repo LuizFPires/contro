@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Icon } from '@contro/ui';
+import { useAutoSalvar } from '../../lib/useAutoSalvar';
 import { supabase } from '../../lib/supabase';
 import styles from './FichaAtividade.module.css';
 
@@ -37,6 +38,7 @@ export function CampoPrestador({
   atividadeId,
   valor,
   onSalvar,
+  onAutoSalvar,
   rotulo = 'Prestador da atividade',
   placeholder = 'Opcional · nome de quem executa',
   autoFocus = false,
@@ -44,6 +46,8 @@ export function CampoPrestador({
   atividadeId: string;
   valor: string | null;
   onSalvar: (v: string | null) => void;
+  /** Salvamento automático (app fechou ou campo saiu da tela). Padrão: onSalvar. */
+  onAutoSalvar?: (v: string | null) => void;
   /** Mapa de coleta: "Quem foi contratado". */
   rotulo?: string;
   placeholder?: string;
@@ -60,6 +64,9 @@ export function CampoPrestador({
     .slice(0, 4);
   const novo =
     texto.trim() && !sugestoes.some((s) => semAcento(s.texto) === busca) ? texto.trim() : null;
+
+  // Digitou e fechou o app (ou a ficha) sem confirmar: salva assim mesmo.
+  useAutoSalvar(texto.trim(), valor ?? '', (t) => (onAutoSalvar ?? onSalvar)(t || null));
 
   function salvar(v: string) {
     const final = v.trim() || null;

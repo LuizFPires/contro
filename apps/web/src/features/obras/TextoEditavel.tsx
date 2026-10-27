@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Icon } from '@contro/ui';
+import { useAutoSalvar } from '../../lib/useAutoSalvar';
 import styles from './TextoEditavel.module.css';
 
 /**
@@ -40,6 +41,10 @@ export function TextoEditavel({
   useEffect(() => {
     if (editando) setTexto(valor);
   }, [editando, valor]);
+
+  // Editando e fechou o app (ou a ficha) sem tocar em Salvar: salva assim mesmo.
+  const limpo = texto.trim().replace(/\s+/g, ' ');
+  useAutoSalvar(limpo || valor, valor, (t) => onSalvar(t), { ativo: editando });
 
   if (!editando && controlado) return <>{children}</>;
   if (!editando)
