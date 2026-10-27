@@ -5,7 +5,7 @@
 begin;
 select plan(4);
 
-update modelo_providencia set duracao_du = 5
+update modelo_providencia set duracao_du = 17
 where id = (select pr.id from modelo_providencia pr join modelo m on m.id = pr.modelo_id
             where m.nome = 'Modelo 1 · CDC completo' order by pr.id limit 1);
 
@@ -21,21 +21,21 @@ reset role;
 
 select is(
   (select count(*)::int from obra_providencia p join obra o on o.id = p.obra_id
-   where o.nome = 'Obra Duração' and p.duracao_du = 5),
+   where o.nome = 'Obra Duração' and p.duracao_du = 17),
   1,
   'gerar_obra copia a duração do lembrete'
 );
 select is(
-  (select count(*)::int from modelo_providencia where modelo_id = (select id from copia) and duracao_du = 5),
+  (select count(*)::int from modelo_providencia where modelo_id = (select id from copia) and duracao_du = 17),
   1,
   'duplicar_modelo copia a duração do lembrete'
 );
 select is(
-  (select count(*)::int from obra_providencia p join obra o on o.id = p.obra_id
-   where o.nome = 'Obra Duração' and p.duracao_du = 0),
-  (select count(*)::int - 1 from modelo_providencia pr join modelo m on m.id = pr.modelo_id
+  (select sum(p.duracao_du)::int from obra_providencia p join obra o on o.id = p.obra_id
+   where o.nome = 'Obra Duração'),
+  (select sum(pr.duracao_du)::int from modelo_providencia pr join modelo m on m.id = pr.modelo_id
    where m.nome = 'Modelo 1 · CDC completo'),
-  'os demais lembretes ficam com 0 (só o prazo)'
+  'a obra copia a duração de todos os lembretes'
 );
 select throws_ok(
   $$update modelo_providencia set duracao_du = -1 where modelo_id = (select id from copia)$$,

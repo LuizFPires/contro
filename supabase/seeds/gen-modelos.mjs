@@ -3,6 +3,9 @@
 //   node supabase/seeds/gen-modelos.mjs > supabase/seeds/modelos.sql
 import { randomUUID } from 'node:crypto';
 
+// Quantos dias úteis leva para providenciar, por tipo (sugestão do assistente).
+const DURACAO_LEMBRETE = { contratacao: 5, compra: 3, locacao: 1 };
+
 const FASES = [
   'Mobilização',
   'Infraestrutura',
@@ -275,7 +278,7 @@ function emitModelo(nome, subtitulo, ordem, atividades) {
     }
     for (const pr of a.provs ?? []) {
       out.push(
-        `insert into modelo_providencia (id, modelo_id, atividade_id, tipo, descricao, antecedencia_du) values ('${randomUUID()}', '${mid}', '${atvId[a.id]}', '${pr.tipo}', '${esc(pr.descricao)}', ${pr.antecedencia_du}) on conflict (id) do nothing;`,
+        `insert into modelo_providencia (id, modelo_id, atividade_id, tipo, descricao, antecedencia_du, duracao_du) values ('${randomUUID()}', '${mid}', '${atvId[a.id]}', '${pr.tipo}', '${esc(pr.descricao)}', ${pr.antecedencia_du}, ${DURACAO_LEMBRETE[pr.tipo]}) on conflict (id) do nothing;`,
       );
     }
   }
