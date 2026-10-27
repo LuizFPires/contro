@@ -34,7 +34,8 @@ const DISPATCH: Record<string, Handler> = {
   concluir_atividade: async (p, opId) => {
     // Foto opcional: sem fotoLocalId, conclui sem foto.
     const local = (p.fotoLocalId as string | null) ?? null;
-    const fotoId = local ? await subirFotoLocal(local) : null; // upload com retomada
+    // Foto já enviada (ex.: Desfazer de "Voltar para pendente") vem pronta em fotoId.
+    const fotoId = local ? await subirFotoLocal(local) : ((p.fotoId as string | null) ?? null);
     await concluirAtividade(p.atividadeId as string, fotoId, opId);
     if (local) await removerFotoLocal(local);
   },

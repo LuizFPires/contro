@@ -39,11 +39,6 @@ const MODELO_1 = [
     nome: 'Demolições e retiradas',
     dur: 5,
     preds: ['1'],
-    subs: [
-      { id: '2.1', nome: 'Demolição de alvenaria', dur: 2, seq: true },
-      { id: '2.2', nome: 'Demolição de forro', dur: 2, seq: false },
-      { id: '2.3', nome: 'Demolição de piso', dur: 3, seq: true },
-    ],
     provs: [L('Caçambas de entulho', 2), C('Equipe de demolição', 5), L('Martelete / rompedor', 2)],
   },
   { id: '3', fase: 1, nome: 'Limpeza e bota-fora', dur: 2, preds: ['2'] },

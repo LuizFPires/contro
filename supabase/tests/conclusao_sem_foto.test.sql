@@ -1,6 +1,6 @@
 -- Conclusão com ou sem foto (pgTAP). Roda com: supabase test db
 --   - concluir sem foto funciona e deixa foto_conclusao_id nulo;
---   - só quem concluiu desfaz; desfazer reabre a atividade;
+--   - qualquer membro reabre (volta para pendente); reabrir aberta é recusado;
 --   - anexar foto só em atividade concluída, só uma vez, e a foto é da obra.
 -- Requer o seed de homologação (Modelo 1 + unidades Contorno).
 
@@ -51,19 +51,19 @@ select ok(
   'fica concluída e sem foto'
 );
 
--- GESTOR (não concluiu) não desfaz.
+-- GESTOR (não concluiu) também volta a atividade para pendente.
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}';
+select lives_ok(
+  $$ select desfazer_conclusao((select id from alvo)) $$,
+  'qualquer membro volta a atividade para pendente'
+);
+
+-- Já aberta: reabrir de novo é recusado.
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated"}';
 select throws_ok(
   $$ select desfazer_conclusao((select id from alvo)) $$,
   '42501', null,
-  'só quem concluiu desfaz'
-);
-
--- EQUIPE desfaz: a atividade reabre.
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated"}';
-select lives_ok(
-  $$ select desfazer_conclusao((select id from alvo)) $$,
-  'quem concluiu desfaz'
+  'reabrir atividade já aberta é recusado'
 );
 select ok(
   (select concluida_em is null from obra_atividade where id = (select id from alvo)),

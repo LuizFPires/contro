@@ -344,6 +344,31 @@ export function FichaAtividade({
             </div>
           ) : null}
 
+          {a.concluida_em ? (
+            // Clicou sem querer ou precisa refazer: qualquer pessoa volta para pendente.
+            <button
+              type="button"
+              className={styles.voltarPendente}
+              disabled={campo.desfazer.isPending}
+              onClick={() => {
+                const foto = a.foto_conclusao_id;
+                campo.desfazer.mutate(
+                  { atividadeId: a.id, xp: 50 },
+                  {
+                    onSuccess: () =>
+                      showToast({
+                        message: `"${a.nome}" voltou para pendente`,
+                        onUndo: () => campo.reconcluir.mutate({ atividadeId: a.id, fotoId: foto }),
+                      }),
+                  },
+                );
+              }}
+            >
+              <Icon name="undo" size={18} strokeWidth={2} />
+              Voltar para pendente
+            </button>
+          ) : null}
+
           {!a.concluida_em && !a.preObra ? (
             <section className={styles.ajustes}>
               <button

@@ -28,11 +28,15 @@ create temp table alvo as
     and exists (select 1 from obra_dependencia d where d.atividade_id = oa.id)
     and not exists (select 1 from obra_atividade s where s.pai_id = oa.id)
   order by oa.ordem limit 1;
+-- Os modelos não têm mais subitens: o teste cria dois na Limpeza e bota-fora.
 create temp table comsub as
-  select oa.id from obra_atividade oa join obra o on o.id = oa.obra_id
-  where o.nome = 'Obra Sem Bloqueio' and oa.pai_id is null
-    and exists (select 1 from obra_atividade s where s.pai_id = oa.id)
-  order by oa.ordem limit 1;
+  select oa.id, oa.obra_id, oa.fase_id from obra_atividade oa join obra o on o.id = oa.obra_id
+  where o.nome = 'Obra Sem Bloqueio' and oa.pai_id is null and oa.nome = 'Limpeza e bota-fora'
+  limit 1;
+insert into obra_atividade (obra_id, fase_id, ordem, nome, duracao_du, pai_id, em_sequencia)
+  select obra_id, fase_id, 1, 'Limpeza grossa', 1, id, true from comsub
+  union all
+  select obra_id, fase_id, 2, 'Bota-fora', 1, id, true from comsub;
 create temp table pred as
   select d.predecessora_id as id from obra_dependencia d where d.atividade_id = (select id from alvo) limit 1;
 grant select on alvo, comsub, pred to authenticated;

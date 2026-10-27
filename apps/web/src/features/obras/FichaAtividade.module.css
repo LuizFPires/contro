@@ -409,3 +409,23 @@
   gap: 6px;
   flex-shrink: 0;
 }
+
+/* "Voltar para pendente" (atividade concluída): botão terciário, de contorno. */
+.voltarPendente {
+  min-height: var(--contro-control-h);
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.voltarPendente:disabled {
+  opacity: 0.6;
+}

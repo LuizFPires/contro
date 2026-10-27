@@ -97,7 +97,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - **Prestador da atividade:** campo de texto opcional com o nome de quem executa. Não tem valor nem vínculo com compras.
 - Lista **"Para começar"**: os lembretes da atividade, com o botão "+ Contratação / + Locação / + Compra".
 - Depende de / Libera.
-- Rodapé fixo em toda atividade aberta (protótipo A1): **"✓ Marcar como resolvida"** (conclui na hora, sem foto, com Desfazer) e, ao lado, o botão de câmera para concluir com foto; concluída sem foto, "Anexar foto".
+- Rodapé fixo em toda atividade aberta (protótipo A1): **"✓ Marcar como resolvida"** (conclui na hora, sem foto, com Desfazer) e, ao lado, o botão de câmera para concluir com foto; concluída sem foto, "Anexar foto". Concluída (com ou sem foto): **"Voltar para pendente"**, para qualquer pessoa da equipe, com Desfazer (que conclui de novo com a mesma foto).
 
 ### 5.6 Providências (lembretes de contratação, locação e compra)
 - Cada lembrete tem só: **tipo**, **o que providenciar**, **data em que precisa estar na obra** (padrão: início da atividade, editável) e **situação** (A providenciar ou Providenciado).
