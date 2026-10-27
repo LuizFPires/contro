@@ -29,18 +29,22 @@ export function useConcluirAtividade(obra: ObraCompleta) {
     const libera = obra.atividades
       .filter((x) => !x.pai_id && x.predecessoras.includes(a.id))
       .map((x) => x.nome);
-    const faseFechada = faseFechaCom(
-      a.id,
-      a.fase_id,
-      obra.atividades.map((x) => ({
-        id: x.id,
-        paiId: x.pai_id,
-        faseId: x.fase_id,
-        concluida: Boolean(x.concluida_em),
-      })),
-    );
+    // Mapa de coleta: marcar pronto não vale pontos nem celebra a fase.
+    const mapa = a.mapa_antecedencia_du !== null;
+    const faseFechada =
+      !mapa &&
+      faseFechaCom(
+        a.id,
+        a.fase_id,
+        obra.atividades.map((x) => ({
+          id: x.id,
+          paiId: x.pai_id,
+          faseId: x.fase_id,
+          concluida: Boolean(x.concluida_em),
+        })),
+      );
     campo.concluir.mutate(
-      { atividadeId: a.id, file, faseFechada, xp: xpConclusao(faseFechada) },
+      { atividadeId: a.id, file, faseFechada, xp: xpConclusao(faseFechada, mapa) },
       {
         onSuccess: (r) =>
           aoConcluir(r, {

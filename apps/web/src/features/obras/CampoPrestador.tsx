@@ -37,10 +37,17 @@ export function CampoPrestador({
   atividadeId,
   valor,
   onSalvar,
+  rotulo = 'Prestador da atividade',
+  placeholder = 'Opcional · nome de quem executa',
+  autoFocus = false,
 }: {
   atividadeId: string;
   valor: string | null;
   onSalvar: (v: string | null) => void;
+  /** Mapa de coleta: "Quem foi contratado". */
+  rotulo?: string;
+  placeholder?: string;
+  autoFocus?: boolean;
 }) {
   const { data: sugestoes = [] } = useSugestoesPrestador();
   const [texto, setTexto] = useState(valor ?? '');
@@ -67,13 +74,14 @@ export function CampoPrestador({
       <Icon name="pessoa" size={24} />
       <div className={styles.prestadorCorpo}>
         <label htmlFor={`prest-${atividadeId}`} className={styles.prestadorRotulo}>
-          Prestador da atividade
+          {rotulo}
         </label>
         <input
           id={`prest-${atividadeId}`}
           className={styles.prestadorInput}
           value={texto}
-          placeholder="Opcional · nome de quem executa"
+          placeholder={placeholder}
+          autoFocus={autoFocus}
           autoComplete="off"
           role="combobox"
           aria-expanded={aberto && (lista.length > 0 || Boolean(novo))}

@@ -201,13 +201,13 @@ export function useObraCampo(obraId: string) {
   // Desfazer de "Voltar para pendente": conclui de novo, com a mesma foto se havia.
   const reconcluir = useMutation({
     networkMode: 'always',
-    mutationFn: (v: { atividadeId: string; fotoId: string | null }) =>
+    mutationFn: (v: { atividadeId: string; fotoId: string | null; xp?: number }) =>
       enfileirar('concluir_atividade', { obraId, atividadeId: v.atividadeId, fotoId: v.fotoId }),
     onMutate: (v) =>
       patchAtv(
         v.atividadeId,
         (a) => ({ ...a, concluida_em: new Date().toISOString(), foto_conclusao_id: v.fotoId }),
-        50,
+        v.xp ?? 50,
       ),
     onError: (_e, _v, ctx) => reverter(ctx),
   });
