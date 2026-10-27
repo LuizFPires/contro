@@ -74,6 +74,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - Ao confirmar, gera a obra com cópia **independente** do modelo escolhido, como ele está naquele momento: atividades, prazos, conexões e lembretes. A obra pode ser editada sem alterar o modelo.
 
 ### 5.3 Obra · cabeçalho
+- **Apagar obra:** só o gestor vê a lixeira no cabeçalho; sempre pede confirmação ("Apagar esta obra?" com Cancelar e Apagar obra). Exclusão lógica: some de Minhas obras, Hoje, reunião e boletim; o aviso logo depois tem Desfazer.
 - Nome, "Dia N de M do modelo", % real, barra de avanço e **ícone discreto de Boletim da semana** à direita.
 - Ritmo, fase e entrega **não** ficam em chips no cabeçalho (decisão do usuário).
 

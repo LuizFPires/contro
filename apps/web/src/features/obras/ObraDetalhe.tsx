@@ -2,11 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   classificarPendencias,
   diasUteisRestantes,
+  podeApagarObra,
   previsaoEntrega,
   ritmoTexto,
   type FaseTrilha,
 } from '@contro/core';
 import { BottomSheet, Icon, useToast, type IconName } from '@contro/ui';
+import { usePerfil } from '../perfil/usePerfil';
+import { ApagarObraSheet } from './ApagarObraSheet';
 import { CampoPrestador } from './CampoPrestador';
 import { NovaAtividadeSheet } from './NovaAtividadeSheet';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
@@ -64,6 +67,9 @@ export function ObraDetalhe({
   const [contratadoId, setContratadoId] = useState<string | null>(null);
   // Fase que recebe um card novo ("+ Adicionar atividade").
   const [novaFaseId, setNovaFaseId] = useState<string | null>(null);
+  // Apagar obra: só o gestor, sempre com confirmação.
+  const { data: perfil } = usePerfil();
+  const [apagarAberto, setApagarAberto] = useState(false);
 
   const fases = useMemo(() => (obra ? montarTrilha(obra) : []), [obra]);
 
@@ -180,6 +186,17 @@ export function ObraDetalhe({
           >
             <Icon name="documento" size={20} />
           </button>
+          {perfil && podeApagarObra(perfil.perfil) ? (
+            <button
+              type="button"
+              className={styles.iconeBtn}
+              aria-label="Apagar obra"
+              title="Apagar obra"
+              onClick={() => setApagarAberto(true)}
+            >
+              <Icon name="lixeira" size={20} />
+            </button>
+          ) : null}
         </div>
         <div
           className={styles.barra}
@@ -319,6 +336,13 @@ export function ObraDetalhe({
         atividadeId={fichaAtvId}
         onClose={() => setFichaAtvId(null)}
         onConcluida={aoConcluir}
+      />
+
+      <ApagarObraSheet
+        obra={obra}
+        aberto={apagarAberto}
+        onFechar={() => setApagarAberto(false)}
+        onApagada={onVoltar}
       />
 
       <NovaAtividadeSheet obra={obra} faseId={novaFaseId} onFechar={() => setNovaFaseId(null)} />

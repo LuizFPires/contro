@@ -61,6 +61,19 @@ export async function aplicarPlanoRecuperacao(obraId: string, m: MudancasPlano):
 
 // --- Editar cronograma da obra (M5): duração e predecessoras da cópia ---
 
+/** Apagar obra (só o gestor; exclusão lógica no banco) e o Desfazer. */
+export async function excluirObra(id: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { error } = await supabase.rpc('excluir_obra', { p_obra_id: id });
+  if (error) throw error;
+}
+
+export async function restaurarObra(id: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { error } = await supabase.rpc('restaurar_obra', { p_obra_id: id });
+  if (error) throw error;
+}
+
 /** Nova atividade numa fase da obra (só na obra; o modelo não muda). */
 export async function adicionarAtividade(v: {
   obraId: string;
