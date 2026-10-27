@@ -61,6 +61,20 @@ export async function aplicarPlanoRecuperacao(obraId: string, m: MudancasPlano):
 
 // --- Editar cronograma da obra (M5): duração e predecessoras da cópia ---
 
+/** Nome da atividade na obra (texto livre; não altera o modelo). */
+export async function renomearAtividade(id: string, nome: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { error } = await supabase.from('obra_atividade').update({ nome }).eq('id', id);
+  if (error) throw error;
+}
+
+/** Texto do lembrete na obra (texto livre; não altera o modelo). */
+export async function editarDescricaoProvidencia(id: string, descricao: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { error } = await supabase.from('obra_providencia').update({ descricao }).eq('id', id);
+  if (error) throw error;
+}
+
 export async function editarDuracao(id: string, du: number): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   if (!Number.isInteger(du) || du < 1) throw new Error('Duração deve ser ≥ 1 dia útil');

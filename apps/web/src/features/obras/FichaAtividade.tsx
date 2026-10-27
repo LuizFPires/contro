@@ -15,6 +15,7 @@ import { Camera } from './Camera';
 import { CampoPrestador } from './CampoPrestador';
 import type { ObraCompleta } from './detalhe';
 import { NovaProvidenciaSheet } from './ProvidenciasAba';
+import { TextoEditavel } from './TextoEditavel';
 import { numeracaoObra } from './numeracaoObra';
 import { useConcluirAtividade, type AoConcluir } from './useConcluirAtividade';
 import { useObraCampo } from './useObraCampo';
@@ -147,7 +148,20 @@ export function FichaAtividade({
           <div className={styles.topo}>
             <div>
               <span className={`${styles.tag} ${status.cls}`}>{status.txt}</span>
-              <h2 className={styles.nome}>{a.nome}</h2>
+              <TextoEditavel
+                valor={a.nome}
+                rotulo="Editar nome da atividade"
+                onSalvar={(nome) => {
+                  const antes = a.nome;
+                  campo.renomear.mutate({ atividadeId: a.id, nome });
+                  showToast({
+                    message: 'Nome salvo',
+                    onUndo: () => campo.renomear.mutate({ atividadeId: a.id, nome: antes }),
+                  });
+                }}
+              >
+                <h2 className={styles.nome}>{a.nome}</h2>
+              </TextoEditavel>
               {cron ? (
                 <div className={est?.atrasada ? styles.datasAtraso : styles.datas}>
                   {est?.atrasada
@@ -230,7 +244,25 @@ export function FichaAtividade({
                     {feito ? 'Providenciado' : atrasada ? 'Atrasado' : 'A providenciar'}
                   </span>
                 </div>
-                <div className={styles.provDesc}>{p.descricao}</div>
+                <TextoEditavel
+                  valor={p.descricao}
+                  rotulo="Editar texto do lembrete"
+                  onSalvar={(descricao) => {
+                    const antes = p.descricao;
+                    campo.descricaoProv.mutate({ atividadeId: a.id, id: p.id, descricao });
+                    showToast({
+                      message: 'Lembrete salvo',
+                      onUndo: () =>
+                        campo.descricaoProv.mutate({
+                          atividadeId: a.id,
+                          id: p.id,
+                          descricao: antes,
+                        }),
+                    });
+                  }}
+                >
+                  <div className={styles.provDesc}>{p.descricao}</div>
+                </TextoEditavel>
                 <div className={styles.provNaObra}>
                   Precisa estar na obra {formatarDataCurta(naObra)}
                 </div>

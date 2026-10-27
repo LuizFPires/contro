@@ -1,0 +1,73 @@
+.linha {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.texto {
+  flex: 1;
+  min-width: 0;
+}
+.lapis {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -6px -10px 0 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: rgb(24 24 24 / 70%);
+  cursor: pointer;
+}
+.lapis:focus-visible {
+  outline: 2px solid var(--contro-black);
+}
+.edicao {
+  margin-top: 6px;
+}
+.campo {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 52px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--contro-black);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  resize: vertical;
+}
+.acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.cancelar,
+.salvar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cancelar {
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+}
+.salvar {
+  border: 0;
+  background: var(--contro-action-primary-bg);
+  color: var(--contro-action-primary-text);
+}
+.salvar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
