@@ -135,8 +135,10 @@ export function ObraDetalhe({
   }
 
   const pct = Math.round(obra.pct * 100);
-  // Fase aberta: a escolhida, senão a atual (como no protótipo).
-  const atual = fases.find((f) => f.status === 'execucao');
+  // Fase aberta: a escolhida, senão a atual da obra (como no protótipo). O
+  // pré-obra (Orçamento, Mapa de coleta) começa sempre recolhido.
+  const preliminares = new Set(obra.fases.filter((f) => f.preliminar).map((f) => f.id));
+  const atual = fases.find((f) => f.status === 'execucao' && !preliminares.has(f.id));
   const aberta = faseAberta ?? atual?.id ?? null;
   const nFasesConcl = fases.filter((f) => f.status === 'concluida').length;
 
