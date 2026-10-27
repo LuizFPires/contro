@@ -2,15 +2,18 @@ import { nomeCurto } from '@contro/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { enfileirar } from '../../lib/sync';
 import {
+  adicionarAtividade,
   adicionarPredecessora,
   adicionarProvidencia,
   ajustarInicio,
   editarDescricaoProvidencia,
   editarDuracao,
   editarPrestador,
+  excluirAtividade,
   removerPredecessora,
   removerProvidencia,
   renomearAtividade,
+  restaurarAtividade,
 } from './campo';
 import { guardarFotoLocal } from './foto';
 import type { ObraCompleta } from './detalhe';
@@ -234,7 +237,38 @@ export function useObraCampo(obraId: string) {
     onSettled: inval,
   });
 
+  // Cards da fase: adicionar e excluir (exclusão lógica, com Desfazer).
+  const novaAtividade = useMutation({
+    mutationFn: (v: { faseId: string; nome: string; duracaoDu: number; predecessoras: string[] }) =>
+      adicionarAtividade({ obraId, ...v }),
+    onSettled: inval,
+  });
+  const excluir = useMutation({
+    mutationFn: (atividadeId: string) => excluirAtividade(atividadeId),
+    onMutate: async (atividadeId: string) => {
+      await qc.cancelQueries({ queryKey: ['obra', obraId] });
+      const prev = qc.getQueryData<ObraCompleta>(['obra', obraId]);
+      if (prev)
+        qc.setQueryData<ObraCompleta>(['obra', obraId], {
+          ...prev,
+          atividades: prev.atividades.filter(
+            (a) => a.id !== atividadeId && a.pai_id !== atividadeId,
+          ),
+        });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: inval,
+  });
+  const restaurar = useMutation({
+    mutationFn: (atividadeId: string) => restaurarAtividade(atividadeId),
+    onSettled: inval,
+  });
+
   return {
+    novaAtividade,
+    excluir,
+    restaurar,
     renomear,
     descricaoProv,
     subitem,
