@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
+import { esquecerTelas, useLembrado } from './lib/useLembrado';
 import { useQueryClient } from '@tanstack/react-query';
 import { PullToRefresh } from './components/PullToRefresh';
 import { verificarAtualizacao } from './lib/pwa';
@@ -20,7 +21,8 @@ export function App() {
   const { carregando, session, recovery, fecharRecovery } = useSession();
   const { data: pessoa, isLoading: perfilCarregando } = usePerfil();
   const qc = useQueryClient();
-  const [tela, setTela] = useState<'inicio' | DestinoInicio>('inicio');
+  // Lembrada: ao voltar ao app (ou à guia), continua na mesma tela.
+  const [tela, setTela] = useLembrado<'inicio' | DestinoInicio>('app', 'inicio');
 
   // Recarrega o perfil quando a sessão muda (login/logout/recuperação), para o
   // roteamento de membro/pendente usar sempre o perfil do usuário atual.
@@ -89,7 +91,13 @@ export function App() {
         ) : tela === 'membros' && ehGestor ? (
           <AprovarMembros onVoltar={voltar} />
         ) : (
-          <MinhasObras onIr={setTela} onSair={() => supabase?.auth.signOut()} />
+          <MinhasObras
+            onIr={setTela}
+            onSair={() => {
+              esquecerTelas();
+              void supabase?.auth.signOut();
+            }}
+          />
         )}
       </PullToRefresh>
       <SyncIndicator />

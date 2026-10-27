@@ -30,6 +30,7 @@ import { useObraCampo } from './useObraCampo';
 import { useObraPendencias } from './useObraPendencias';
 import { montarTrilha } from './trilhaObra';
 import styles from './ObraDetalhe.module.css';
+import { useLembrado } from '../../lib/useLembrado';
 
 type AbaObra = 'fases' | 'pendencias' | 'providencias' | 'cronograma' | 'boletim';
 
@@ -57,10 +58,15 @@ export function ObraDetalhe({
   const pendencias = useObraPendencias(id);
   const { showToast } = useToast();
   const campo = useObraCampo(id);
-  const [faseAberta, setFaseAberta] = useState<string | null>(null);
-  const [fichaAtvId, setFichaAtvId] = useState<string | null>(null);
+  // Aba, fase aberta e ficha aberta ficam lembradas por obra (volta ao mesmo lugar).
+  const [faseAberta, setFaseAberta] = useLembrado<string | null>(`obra:${id}:fase`, null);
+  const [fichaAtvId, setFichaAtvId] = useLembrado<string | null>(`obra:${id}:ficha`, null);
   // O boletim abre dentro da obra (protótipo), pelo ícone do cabeçalho.
-  const [aba, setAba] = useState<AbaObra>(abrirBoletim ? 'boletim' : 'fases');
+  const [aba, setAba] = useLembrado<AbaObra>(`obra:${id}:aba`, 'fases');
+  // Atalho para o boletim (aviso de boletim pronto) manda sobre a aba lembrada.
+  useEffect(() => {
+    if (abrirBoletim) setAba('boletim');
+  }, [abrirBoletim, setAba]);
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
   const [planoAberto, setPlanoAberto] = useState(Boolean(abrirPlano));
   // Mapa de coleta: "+ Quem foi contratado" abre o campo (opcional, depois do check).
@@ -72,6 +78,10 @@ export function ObraDetalhe({
   const [apagarAberto, setApagarAberto] = useState(false);
 
   const fases = useMemo(() => (obra ? montarTrilha(obra) : []), [obra]);
+  // A obra lembrada foi apagada (ou não existe mais): volta para a lista.
+  useEffect(() => {
+    if (!isLoading && obra === null) onVoltar();
+  }, [isLoading, obra, onVoltar]);
 
   const provAtrasadas = useMemo(
     () => (obra ? classificarProvidencias(obra, hojeISO()).atrasadas.length : 0),
