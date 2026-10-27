@@ -165,6 +165,9 @@ export function FichaAtividade({
           <div className={styles.topo}>
             <div className={styles.topoTexto}>
               <span className={`${styles.tag} ${status.cls}`}>{status.txt}</span>
+              {!a.pai_id && num.get(a.id) ? (
+                <span className={styles.numero}>#{num.get(a.id)}</span>
+              ) : null}
               <TextoEditavel
                 valor={a.nome}
                 rotulo="Editar nome da atividade"
