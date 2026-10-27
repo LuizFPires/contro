@@ -41,9 +41,10 @@ begin
 end;
 $$;
 
--- A policy obra_upd deixa qualquer membro atualizar a obra: sem esta trava, a
--- equipe poderia apagar a obra por update direto. Só as funções acima (security
--- definer, rodam como dono) mudam deleted_at/excluida_por.
+-- As policies de insert/update da obra são abertas a membros: sem esta trava, a
+-- equipe poderia apagar a obra por update direto (ou criar uma já apagada, com
+-- outra pessoa em excluida_por). Só as funções acima (security definer, rodam
+-- como dono) mexem em deleted_at/excluida_por.
 create or replace function contro_protege_exclusao_obra()
 returns trigger
 language plpgsql
@@ -51,14 +52,17 @@ set search_path = ''
 as $$
 begin
   if current_user = 'authenticated'
-     and (new.deleted_at is distinct from old.deleted_at
-          or new.excluida_por is distinct from old.excluida_por) then
+     and (
+       (tg_op = 'INSERT' and (new.deleted_at is not null or new.excluida_por is not null))
+       or (tg_op = 'UPDATE' and (new.deleted_at is distinct from old.deleted_at
+                                 or new.excluida_por is distinct from old.excluida_por))
+     ) then
     raise exception 'Apagar obra só pelo gestor (excluir_obra)' using errcode = '42501';
   end if;
   return new;
 end;
 $$;
-create trigger obra_protege_exclusao before update on obra
+create trigger obra_protege_exclusao before insert or update on obra
   for each row execute function contro_protege_exclusao_obra();
 
 revoke execute on function excluir_obra(uuid) from public, anon;

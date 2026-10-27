@@ -2,7 +2,7 @@
 -- pela função nem por update direto. Requer o seed de homologação (Modelo 1).
 
 begin;
-select plan(6);
+select plan(7);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000fc', 'gestor@apagar.contro'),
@@ -23,6 +23,11 @@ select throws_ok(format($$select excluir_obra(%L)$$, (select id from o)), '42501
 select throws_ok(
   format($$update obra set deleted_at = now() where id = %L$$, (select id from o)),
   '42501', null, 'equipe não apaga por update direto'
+);
+select throws_ok(
+  $$insert into obra (unidade_id, nome, inicio, modelo_rotulo, deleted_at)
+    values ((select id from unidade limit 1), 'Já apagada', '2026-11-02', 'x', now())$$,
+  '42501', null, 'equipe não cria obra já apagada'
 );
 
 -- Gestor: apaga (lógico) e restaura.
