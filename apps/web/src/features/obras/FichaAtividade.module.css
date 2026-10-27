@@ -50,8 +50,10 @@
   font-weight: 800;
 }
 .fechar {
-  width: var(--contro-touch);
-  height: var(--contro-touch);
+  /* Alvo generoso (48 px) para o "⋯" e o X do topo. */
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -430,21 +432,57 @@
   opacity: 0.6;
 }
 
-/* Excluir a atividade desta obra (terciário, discreto; tem Desfazer). */
-.excluirAtv {
+/* Topo: texto à esquerda; "⋯" e X à direita, com o menu ancorado neles. */
+.topoTexto {
+  flex: 1;
+  min-width: 0;
+}
+.topoAcoes {
+  position: relative;
+  display: flex;
+  margin: -6px -10px 0 0;
+}
+.fechar:active,
+.fechar[aria-expanded='true'] {
+  background: rgb(24 24 24 / 8%);
+}
+.menuFundo {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+.menu {
+  position: absolute;
+  top: 52px;
+  right: 4px;
+  z-index: 6;
+  min-width: 230px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--contro-white);
+  box-shadow: 0 10px 30px rgb(24 24 24 / 22%);
+  display: flex;
+  flex-direction: column;
+}
+.menuItem {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  min-height: var(--contro-touch);
-  margin-top: 8px;
-  border-radius: 12px;
-  border: 1.5px solid rgb(24 24 24 / 25%);
-  background: var(--contro-white);
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
   color: var(--contro-black);
   font: inherit;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
+  text-align: left;
   cursor: pointer;
+}
+.menuItem:active {
+  background: rgb(24 24 24 / 6%);
 }

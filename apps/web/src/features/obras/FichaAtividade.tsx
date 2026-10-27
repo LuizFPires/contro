@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   comecarProvidencia,
   diaMes,
@@ -49,6 +49,13 @@ export function FichaAtividade({
   const conclusao = useConcluirAtividade(obra);
   // "⋯" de um lembrete do "Para começar": abre o detalhe (editar, reabrir, excluir).
   const [detalheProvId, setDetalheProvId] = useState<string | null>(null);
+  // Menu "⋯" do topo da ficha e edição do nome aberta por ele.
+  const [menuAberto, setMenuAberto] = useState(false);
+  const [editandoNome, setEditandoNome] = useState(false);
+  useEffect(() => {
+    setMenuAberto(false);
+    setEditandoNome(false);
+  }, [atividadeId]);
   const { showToast } = useToast();
   const [novoTipo, setNovoTipo] = useState<Tipo | null>(null);
   // Câmera para concluir ou para anexar a foto a uma conclusão sem foto.
@@ -156,11 +163,13 @@ export function FichaAtividade({
       <BottomSheet open={Boolean(atividadeId) && !camera} onClose={onClose}>
         <div className={styles.ficha}>
           <div className={styles.topo}>
-            <div>
+            <div className={styles.topoTexto}>
               <span className={`${styles.tag} ${status.cls}`}>{status.txt}</span>
               <TextoEditavel
                 valor={a.nome}
                 rotulo="Editar nome da atividade"
+                editando={editandoNome}
+                onFimEdicao={() => setEditandoNome(false)}
                 onSalvar={(nome) => {
                   const antes = a.nome;
                   campo.renomear.mutate({ atividadeId: a.id, nome });
@@ -180,9 +189,64 @@ export function FichaAtividade({
                 </div>
               ) : null}
             </div>
-            <button type="button" className={styles.fechar} aria-label="Fechar" onClick={onClose}>
-              <Icon name="close" size={22} />
-            </button>
+            {/* Opção C do protótipo: "⋯" (editar nome, excluir) ao lado do X, alvos de 48 px. */}
+            <div className={styles.topoAcoes}>
+              <button
+                type="button"
+                className={styles.fechar}
+                aria-label="Mais opções da atividade"
+                aria-haspopup="menu"
+                aria-expanded={menuAberto}
+                onClick={() => setMenuAberto((v) => !v)}
+              >
+                <Icon name="more" size={24} />
+              </button>
+              <button type="button" className={styles.fechar} aria-label="Fechar" onClick={onClose}>
+                <Icon name="close" size={24} />
+              </button>
+              {menuAberto ? (
+                <>
+                  <button
+                    type="button"
+                    className={styles.menuFundo}
+                    aria-label="Fechar menu"
+                    onClick={() => setMenuAberto(false)}
+                  />
+                  <div className={styles.menu} role="menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.menuItem}
+                      onClick={() => {
+                        setMenuAberto(false);
+                        setEditandoNome(true);
+                      }}
+                    >
+                      <Icon name="editar" size={20} />
+                      Editar nome
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.menuItem}
+                      onClick={() => {
+                        // Exclusão lógica, com Desfazer (regra 10); a ficha fecha na hora.
+                        setMenuAberto(false);
+                        campo.excluir.mutate(a.id);
+                        onClose();
+                        showToast({
+                          message: `"${a.nome}" excluída`,
+                          onUndo: () => campo.restaurar.mutate(a.id),
+                        });
+                      }}
+                    >
+                      <Icon name="lixeira" size={20} />
+                      Excluir atividade
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </div>
           </div>
 
           <CampoPrestador
@@ -367,23 +431,6 @@ export function FichaAtividade({
               Voltar para pendente
             </button>
           ) : null}
-
-          <button
-            type="button"
-            className={styles.excluirAtv}
-            onClick={() => {
-              // Exclusão lógica, com Desfazer (regra 10); a ficha fecha na hora.
-              campo.excluir.mutate(a.id);
-              onClose();
-              showToast({
-                message: `"${a.nome}" excluída`,
-                onUndo: () => campo.restaurar.mutate(a.id),
-              });
-            }}
-          >
-            <Icon name="lixeira" size={18} strokeWidth={2} />
-            Excluir atividade
-          </button>
 
           {!a.concluida_em && !a.preObra ? (
             <section className={styles.ajustes}>

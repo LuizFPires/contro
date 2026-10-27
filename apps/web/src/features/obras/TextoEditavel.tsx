@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Icon } from '@contro/ui';
 import styles from './TextoEditavel.module.css';
 
@@ -11,6 +11,8 @@ export function TextoEditavel({
   rotulo,
   onSalvar,
   children,
+  editando: editandoFora,
+  onFimEdicao,
 }: {
   valor: string;
   /** Para leitores de tela: "Editar nome da atividade". */
@@ -18,10 +20,28 @@ export function TextoEditavel({
   onSalvar: (novo: string) => void;
   /** Como o texto aparece fora da edição. */
   children: ReactNode;
+  /**
+   * Controlado de fora (ex.: "Editar nome" no menu "⋯"): sem lápis; abre quando
+   * true e avisa em onFimEdicao ao salvar ou cancelar.
+   */
+  editando?: boolean;
+  onFimEdicao?: () => void;
 }) {
-  const [editando, setEditando] = useState(false);
+  const [editandoLocal, setEditandoLocal] = useState(false);
+  const controlado = editandoFora !== undefined;
+  const editando = controlado ? editandoFora : editandoLocal;
+  const setEditando = (v: boolean) => {
+    if (controlado) {
+      if (!v) onFimEdicao?.();
+    } else setEditandoLocal(v);
+  };
   const [texto, setTexto] = useState(valor);
+  // Ao abrir pelo menu, começa do valor atual.
+  useEffect(() => {
+    if (editando) setTexto(valor);
+  }, [editando, valor]);
 
+  if (!editando && controlado) return <>{children}</>;
   if (!editando)
     return (
       <div className={styles.linha}>
