@@ -7,10 +7,13 @@ import {
   concluirAtividade,
   desfazerConclusao,
   concluirTarefa,
+  editarDescricaoProvidencia,
+  editarPrestador,
   excluirTarefa,
   marcarProvidencia,
   marcarSubitem,
   reabrirTarefa,
+  renomearAtividade,
   resolverPendencia,
   restaurarTarefa,
   salvarTarefa,
@@ -31,6 +34,11 @@ import { db, type OpDB } from './db';
 type Handler = (payload: Record<string, unknown>, opId: string) => Promise<void>;
 const DISPATCH: Record<string, Handler> = {
   marcar_providencia: (p, opId) => marcarProvidencia(p.id as string, p.feito as boolean, opId),
+  // Textos livres da obra: update idempotente (repetir grava o mesmo valor).
+  editar_prestador: (p) => editarPrestador(p.id as string, (p.prestador as string | null) ?? null),
+  renomear_atividade: (p) => renomearAtividade(p.id as string, p.nome as string),
+  editar_descricao_providencia: (p) =>
+    editarDescricaoProvidencia(p.id as string, p.descricao as string),
   concluir_atividade: async (p, opId) => {
     // Foto opcional: sem fotoLocalId, conclui sem foto.
     const local = (p.fotoLocalId as string | null) ?? null;
