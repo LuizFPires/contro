@@ -100,28 +100,6 @@ export function useObraPendencias(obraId: string) {
   });
 
   // Ações de campo otimistas, offline e idempotentes.
-  const adiar = useMutation({
-    networkMode: 'always',
-    mutationFn: (v: { id: string; data: string; motivo: string }) =>
-      enfileirar('adiar_pendencia', { obraId, id: v.id, data: v.data, motivo: v.motivo }),
-    onMutate: (v: { id: string; data: string; motivo: string }) =>
-      patch(v.id, (p) => ({ ...p, adiada_ate: v.data, motivo_adiamento: v.motivo })),
-    onError: (_e, _v, ctx) => reverter(ctx),
-  });
-  const trazer = useMutation({
-    networkMode: 'always',
-    mutationFn: (id: string) => enfileirar('trazer_pendencia', { obraId, id }),
-    onMutate: (id: string) => {
-      const topo = topoDaFila();
-      return patch(id, (p) => ({
-        ...p,
-        adiada_ate: null,
-        motivo_adiamento: null,
-        ordem_fila: topo,
-      }));
-    },
-    onError: (_e, _v, ctx) => reverter(ctx),
-  });
   const vistoriar = useMutation({
     networkMode: 'always',
     mutationFn: (v: { id: string; aprovado: boolean; motivo?: string }) =>
@@ -224,8 +202,6 @@ export function useObraPendencias(obraId: string) {
     query,
     apontar,
     resolver,
-    adiar,
-    trazer,
     vistoriar,
     editar,
     excluir,

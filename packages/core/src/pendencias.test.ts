@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   classificarPendencias,
-  estaNaFila,
-  opcoesAdiamento,
   pendenteHa,
   podeVistoriar,
+  proximaPendencia,
   topoFila,
   type Pendencia,
 } from './pendencias';
@@ -13,45 +12,24 @@ const base = (p: Partial<Pendencia>): Pendencia => ({
   id: p.id ?? 'x',
   status: p.status ?? 'aberta',
   ordem_fila: p.ordem_fila ?? 0,
-  adiada_ate: p.adiada_ate ?? null,
   resolvida_por: p.resolvida_por ?? null,
 });
 
-describe('estaNaFila', () => {
-  it('aberta sem adiamento está na fila', () => {
-    expect(estaNaFila({ status: 'aberta', adiada_ate: null }, '2026-10-24')).toBe(true);
-  });
-  it('adiada para o futuro sai da fila', () => {
-    expect(estaNaFila({ status: 'aberta', adiada_ate: '2026-10-27' }, '2026-10-24')).toBe(false);
-  });
-  it('adiada vencida (<= hoje) volta à fila', () => {
-    expect(estaNaFila({ status: 'aberta', adiada_ate: '2026-10-24' }, '2026-10-24')).toBe(true);
-  });
-  it('em vistoria não está na fila', () => {
-    expect(estaNaFila({ status: 'em_vistoria', adiada_ate: null }, '2026-10-24')).toBe(false);
-  });
-});
-
 describe('classificarPendencias', () => {
-  it('separa nas quatro listas e ordena a fila por ordem_fila', () => {
+  it('separa em pendentes, em vistoria e vistoriadas (sem adiadas)', () => {
     const ps = [
       base({ id: 'a', status: 'aberta', ordem_fila: 2 }),
       base({ id: 'b', status: 'aberta', ordem_fila: -1 }),
-      base({ id: 'c', status: 'aberta', adiada_ate: '2026-10-30' }),
       base({ id: 'd', status: 'em_vistoria' }),
       base({ id: 'e', status: 'fechada' }),
-      base({ id: 'f', status: 'aberta', adiada_ate: '2026-10-24' }), // vencida → fila
     ];
-    const r = classificarPendencias(ps, '2026-10-24');
-    expect(r.fila.map((p) => p.id)).toEqual(['b', 'f', 'a']);
-    expect(r.adiadas.map((p) => p.id)).toEqual(['c']);
+    const r = classificarPendencias(ps);
+    expect(r.pendentes.map((p) => p.id)).toEqual(['b', 'a']);
     expect(r.emVistoria.map((p) => p.id)).toEqual(['d']);
-    expect(r.concluidas.map((p) => p.id)).toEqual(['e']);
+    expect(r.vistoriadas.map((p) => p.id)).toEqual(['e']);
   });
-});
 
-describe('fila por criticidade', () => {
-  it('altas no topo, médias no meio, baixas no fim; empate por ordem_fila', () => {
+  it('pendentes: altas no topo, médias no meio, baixas no fim; empate por ordem_fila', () => {
     const ps = [
       { ...base({ id: 'b1', ordem_fila: -5 }), criticidade: 'baixa' as const },
       { ...base({ id: 'm1', ordem_fila: 3 }), criticidade: 'media' as const },
@@ -59,8 +37,21 @@ describe('fila por criticidade', () => {
       { ...base({ id: 'a2', ordem_fila: -1 }), criticidade: 'alta' as const },
       base({ id: 'semCrit', ordem_fila: 0 }), // ausente = média
     ];
-    const r = classificarPendencias(ps, '2026-10-24');
-    expect(r.fila.map((p) => p.id)).toEqual(['a2', 'a1', 'semCrit', 'm1', 'b1']);
+    expect(classificarPendencias(ps).pendentes.map((p) => p.id)).toEqual([
+      'a2',
+      'a1',
+      'semCrit',
+      'm1',
+      'b1',
+    ]);
+  });
+});
+
+describe('proximaPendencia', () => {
+  it('passa para a seguinte e da última volta à primeira', () => {
+    expect(proximaPendencia(0, 3)).toBe(1);
+    expect(proximaPendencia(2, 3)).toBe(0);
+    expect(proximaPendencia(0, 0)).toBe(0);
   });
 });
 
@@ -91,25 +82,6 @@ describe('topoFila', () => {
   });
   it('com negativos, segue abaixo do menor', () => {
     expect(topoFila([-2, 0, 5])).toBe(-3);
-  });
-});
-
-describe('opcoesAdiamento', () => {
-  it('sábado: seg, ter, qua e a segunda seguinte (dias úteis)', () => {
-    expect(opcoesAdiamento('2026-10-24')).toEqual([
-      '2026-10-26',
-      '2026-10-27',
-      '2026-10-28',
-      '2026-11-02',
-    ]);
-  });
-  it('quinta: sex, seg, ter e a sexta seguinte', () => {
-    expect(opcoesAdiamento('2026-10-22')).toEqual([
-      '2026-10-23',
-      '2026-10-26',
-      '2026-10-27',
-      '2026-10-30',
-    ]);
   });
 });
 

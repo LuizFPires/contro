@@ -438,3 +438,32 @@
 .reabrirOpcao + .reabrirOpcao {
   margin-top: 8px;
 }
+
+/* Resolvidos: cabeça do card (nome + "⋯") e estado da vistoria (texto + ícone). */
+.vCabeca {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.estadoOk,
+.estadoVist {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.estadoOk {
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.estadoVist {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}

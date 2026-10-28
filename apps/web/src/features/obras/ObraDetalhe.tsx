@@ -115,7 +115,7 @@ export function ObraDetalhe({
     [obra],
   );
   const pendAbertas = useMemo(
-    () => classificarPendencias(pendencias.query.data ?? [], hojeISO()).fila.length,
+    () => classificarPendencias(pendencias.query.data ?? []).pendentes.length,
     [pendencias.query.data],
   );
 

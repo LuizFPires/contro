@@ -76,8 +76,9 @@
   color: var(--contro-white);
   background: rgb(24 24 24 / 60%);
 }
+/* Selos do arraste: o card vai para um lado e o selo aparece do outro. */
 .seloOk,
-.seloAdiar {
+.seloProx {
   position: absolute;
   top: 50%;
   border: 3px solid var(--contro-black);
@@ -89,20 +90,68 @@
   pointer-events: none;
 }
 .seloOk {
-  left: 18px;
-  transform: translateY(-50%) rotate(-12deg);
-  background: var(--contro-turquoise);
-}
-.seloAdiar {
   right: 18px;
   transform: translateY(-50%) rotate(12deg);
+  background: var(--contro-turquoise);
+}
+.seloProx {
+  left: 18px;
+  transform: translateY(-50%) rotate(-12deg);
   background: var(--contro-white);
 }
 .corpo {
-  padding: 14px 16px;
+  padding: 14px 8px 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.corpoTexto {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+.mais {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+/* "1 de 5 · altas primeiro" e os pontinhos de posição. */
+.contador {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #464646;
+}
+.pontos {
+  display: flex;
+  gap: 4px;
+}
+.ponto,
+.pontoOn {
+  height: 8px;
+  border-radius: 99px;
+}
+.ponto {
+  width: 8px;
+  background: rgb(24 24 24 / 20%);
+}
+.pontoOn {
+  width: 18px;
+  background: var(--contro-black);
 }
 .titulo {
   font-weight: 800;
@@ -156,7 +205,7 @@
   gap: 10px;
   margin-top: 12px;
 }
-.btnAdiar,
+.btnProx,
 .btnResolver {
   min-height: 52px;
   border-radius: 12px;
@@ -169,7 +218,7 @@
   gap: 6px;
   color: var(--contro-black);
 }
-.btnAdiar {
+.btnProx {
   border: 1.5px solid rgb(24 24 24 / 30%);
   background: var(--contro-white);
 }
@@ -177,7 +226,7 @@
   border: 0;
   background: var(--contro-turquoise);
 }
-.btnAdiar:disabled,
+.btnProx:disabled,
 .btnResolver:disabled {
   opacity: 0.45;
   cursor: default;

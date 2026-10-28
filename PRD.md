@@ -116,13 +116,14 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 
 ### 5.7 Check list (pendências de qualidade)
 - Na obra, a aba se chama **Check list** e fica depois de Cronograma (abas: Fases, Providências, Cronograma, Check list). Um botão **"i"** explica como funciona.
-- Alternância **Fila | Lista completa**, com as contagens.
-- **Fila:** pilha de cards com a foto do antes, criticidade, local, atividade e quem apontou. Ordem por **criticidade**: altas no topo, médias no meio, baixas no fim (28/10/2026).
-  - Arrastar para a direita, ou o botão "Resolvida", abre a câmera com a **foto do antes em transparência** (ghost) para alinhar a foto de depois. A pendência vai para "Em vistoria".
-  - Arrastar para a esquerda, ou o botão "Adiar", pede **data de retorno** e **motivo** (aguardando material, aguardando outra equipe, local sem acesso ou outro). A pendência sai da fila e volta sozinha na data escolhida. O aviso traz "Desfazer".
-- **Lista completa:** Na fila (com "Resolver agora"), Adiadas (data de volta, motivo e "Trazer para a fila"), Em vistoria ("Vistoriar") e Concluídas. Cada item tem "⋯" com **Editar pendência** (o que, local, criticidade, atividade) e **Apagar pendência** (exclusão lógica, com Desfazer). Foto errada: apagar e apontar de novo (28/10/2026). Tocar na miniatura (ou nas fotos da vistoria) abre **antes e depois em tela cheia, com zoom** (dois dedos ou toque duplo). Item **concluído** tem **"Voltar para pendente"**: volta ao topo da fila, sem resolvido nem vistoriado, e quem reabre escolhe **manter ou tirar a foto do depois**; depois tira uma nova foto. A Nova pendência sempre abre vazia.
+- Duas abas, com as contagens: **Pendências | Resolvidos** (28/10/2026: sem fila e sem adiar).
+- **Pendências:** uma foto por vez (foto do antes, criticidade, local, atividade e quem apontou), das **altas para as baixas**, com "1 de N".
+  - Deslizar para a **esquerda**, ou o botão "Resolvida", abre a câmera com a **foto do antes em transparência** (ghost) para alinhar a foto de depois. A pendência vai para Resolvidos, esperando vistoria.
+  - Deslizar para a **direita**, ou "Próxima", só passa para a próxima foto (da última volta à primeira). Nada muda na pendência.
+  - Não existe adiar nem data de retorno.
+- **Resolvidos:** cada item é um card com **antes e depois lado a lado**. Primeiro os que esperam vistoria, com "Aprovar e fechar" e "Reabrir" no próprio card (só para quem não resolveu; quem resolveu vê "Outra pessoa precisa vistoriar"); depois os vistoriados.
+- Em qualquer item, "⋯" tem **Ver antes e depois**, **Editar pendência** (o que, local, criticidade, atividade) e **Apagar pendência** (exclusão lógica, com Desfazer); o vistoriado tem também **"Voltar para pendente"**, e quem reabre escolhe **manter ou tirar a foto do depois**. Foto errada: apagar e apontar de novo. Tocar numa foto abre **antes e depois em tela cheia, com zoom** (dois dedos ou toque duplo). A Nova pendência sempre abre vazia.
 - **Apontar:** ícone de câmera; foto primeiro, descrição depois. A atividade (opcional) se escolhe por **busca** (parte do nome, sem acento, ou o número #N) numa lista agrupada por fase.
-- **Vistoria:** antes e depois lado a lado, com "Aprovar e fechar" ou "Reabrir".
 
 ### 5.8 Cronograma
 - Gantt simplificado por fase, com a linha de hoje. Cores: concluída (turquesa), a executar (preto) e atrasada (vermelho).
@@ -205,7 +206,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 5. Atividade **atrasada** = não concluída e término previsto já passou.
 6. Lembrete **atrasado** = não providenciado e "providenciar até" já passou.
 7. Pendência só fecha com **foto de depois aprovada por outra pessoa**.
-8. Pendência adiada sai da fila e volta sozinha na data escolhida.
+8. Pendência resolvida vai para Resolvidos e só fecha com a vistoria de outra pessoa.
 9. Tarefa tem responsável e prazo; mudar o prazo de tarefa aberta conta como replanejamento.
 10. Vermelho só para atraso real; todo o resto usa turquesa, preto e branco.
 
