@@ -69,8 +69,7 @@ const DISPATCH: Record<string, Handler> = {
   adiar_pendencia: (p, opId) =>
     adiarPendencia(p.id as string, p.data as string, p.motivo as string, opId),
   trazer_pendencia: (p, opId) => trazerPendencia(p.id as string, opId),
-  editar_pendencia: (p, opId) =>
-    editarPendencia(p.id as string, p.dados as NovaPendencia, opId),
+  editar_pendencia: (p, opId) => editarPendencia(p.id as string, p.dados as NovaPendencia, opId),
   excluir_pendencia: (p, opId) => excluirPendencia(p.id as string, opId),
   restaurar_pendencia: (p, opId) => restaurarPendencia(p.id as string, opId),
   vistoriar_pendencia: (p, opId) =>
