@@ -50,7 +50,7 @@ export function datasProvidencia(hoje: DataISO, n = 5): DataISO[] {
   return Array.from({ length: n }, (_, i) => addDU(hoje, i + 1));
 }
 
-/** Segunda da reunião seguinte (as reuniões são semanais, às segundas). */
+/** Data da reunião seguinte: semanal, mesmo dia da semana (5 dias úteis depois). */
 export function proximaReuniao(dataReuniao: DataISO): DataISO {
   return addDU(dataReuniao, 5);
 }
