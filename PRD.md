@@ -120,8 +120,8 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - **Fila:** pilha de cards com a foto do antes, criticidade, local, atividade e quem apontou.
   - Arrastar para a direita, ou o botão "Resolvida", abre a câmera com a **foto do antes em transparência** (ghost) para alinhar a foto de depois. A pendência vai para "Em vistoria".
   - Arrastar para a esquerda, ou o botão "Adiar", pede **data de retorno** e **motivo** (aguardando material, aguardando outra equipe, local sem acesso ou outro). A pendência sai da fila e volta sozinha na data escolhida. O aviso traz "Desfazer".
-- **Lista completa:** Na fila (com "Resolver agora"), Adiadas (data de volta, motivo e "Trazer para a fila"), Em vistoria ("Vistoriar") e Concluídas.
-- **Apontar:** ícone de câmera; foto primeiro, descrição depois.
+- **Lista completa:** Na fila (com "Resolver agora"), Adiadas (data de volta, motivo e "Trazer para a fila"), Em vistoria ("Vistoriar") e Concluídas. Cada item tem "⋯" com **Editar pendência** (o que, local, criticidade, atividade) e **Apagar pendência** (exclusão lógica, com Desfazer). Foto errada: apagar e apontar de novo (28/10/2026).
+- **Apontar:** ícone de câmera; foto primeiro, descrição depois. A atividade (opcional) se escolhe por **busca** (parte do nome, sem acento, ou o número #N) numa lista agrupada por fase.
 - **Vistoria:** antes e depois lado a lado, com "Aprovar e fechar" ou "Reabrir".
 
 ### 5.8 Cronograma

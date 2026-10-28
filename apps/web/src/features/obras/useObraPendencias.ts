@@ -149,5 +149,52 @@ export function useObraPendencias(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
 
-  return { query, apontar, resolver, adiar, trazer, vistoriar };
+  // Editar e apagar (lista completa): otimistas e offline, apagar com Desfazer.
+  const editar = useMutation({
+    networkMode: 'always',
+    mutationFn: (v: { id: string; dados: NovaPendencia; atividadeNome: string | null }) =>
+      enfileirar('editar_pendencia', { obraId, id: v.id, dados: v.dados }),
+    onMutate: (v: { id: string; dados: NovaPendencia; atividadeNome: string | null }) =>
+      patch(v.id, (p) => ({
+        ...p,
+        titulo: v.dados.titulo,
+        local: v.dados.local,
+        criticidade: v.dados.criticidade,
+        atividade_id: v.dados.atividadeId,
+        atividadeNome: v.atividadeNome,
+      })),
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+  const excluir = useMutation({
+    networkMode: 'always',
+    mutationFn: (id: string) => enfileirar('excluir_pendencia', { obraId, id }),
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: ['pendencias', obraId] });
+      const prev = qc.getQueryData<PendenciaObra[]>(['pendencias', obraId]);
+      if (prev)
+        qc.setQueryData<PendenciaObra[]>(
+          ['pendencias', obraId],
+          prev.filter((p) => p.id !== id),
+        );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+  // Desfazer do apagar: devolve a pendência (a tela guarda o objeto) na hora.
+  const restaurar = useMutation({
+    networkMode: 'always',
+    mutationFn: (p: PendenciaObra) => enfileirar('restaurar_pendencia', { obraId, id: p.id }),
+    onMutate: async (p: PendenciaObra) => {
+      await qc.cancelQueries({ queryKey: ['pendencias', obraId] });
+      const prev = qc.getQueryData<PendenciaObra[]>(['pendencias', obraId]);
+      qc.setQueryData<PendenciaObra[]>(
+        ['pendencias', obraId],
+        [...(prev ?? []).filter((x) => x.id !== p.id), p],
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+
+  return { query, apontar, resolver, adiar, trazer, vistoriar, editar, excluir, restaurar };
 }

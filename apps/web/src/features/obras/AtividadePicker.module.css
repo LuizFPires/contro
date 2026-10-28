@@ -1,0 +1,106 @@
+/* Atividade da pendência: campo fechado; aberto, busca + lista por fase. */
+.campo {
+  width: 100%;
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+.campoTexto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vazio {
+  color: #696969;
+}
+.painel {
+  border: 1.5px solid var(--contro-black);
+  border-radius: 12px;
+  background: var(--contro-white);
+  overflow: hidden;
+}
+.buscaLinha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px 0 12px;
+  border-bottom: 1px solid rgb(24 24 24 / 12%);
+  color: #464646;
+}
+.busca {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--contro-touch);
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  /* 16 px evita o zoom automático do iPhone ao focar. */
+  font-size: 16px;
+}
+.fechar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.lista {
+  max-height: 280px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.fase {
+  position: sticky;
+  top: 0;
+  padding: 6px 12px;
+  background: #f6f6f6;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #464646;
+}
+.item {
+  width: 100%;
+  min-height: var(--contro-touch);
+  padding: 6px 12px;
+  border: 0;
+  border-bottom: 1px solid rgb(24 24 24 / 6%);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+.itemOn {
+  background: rgb(84 180 176 / 18%);
+  font-weight: 700;
+}
+.semResultado {
+  padding: 14px 12px;
+  font-size: 14px;
+  color: #696969;
+}

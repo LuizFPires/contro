@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BottomSheet, Button, Input } from '@contro/ui';
+import { AtividadePicker } from './AtividadePicker';
 import { Camera } from './Camera';
 import type { NovaPendencia } from './campo';
+import type { ObraCompleta } from './detalhe';
 import styles from './AdiarSheet.module.css';
 
 const CRITS: { valor: 'alta' | 'media' | 'baixa'; rotulo: string }[] = [
@@ -10,31 +12,81 @@ const CRITS: { valor: 'alta' | 'media' | 'baixa'; rotulo: string }[] = [
   { valor: 'baixa', rotulo: 'Baixa' },
 ];
 
+const VAZIA: NovaPendencia = { titulo: '', local: '', criticidade: 'media', atividadeId: null };
+
+/** Campos da pendência (o que, local, criticidade, atividade): apontar e editar. */
+function PendenciaCampos({
+  obra,
+  dados,
+  onMudar,
+}: {
+  obra: ObraCompleta;
+  dados: NovaPendencia;
+  onMudar: (d: NovaPendencia) => void;
+}) {
+  return (
+    <>
+      <div className={styles.rodape} style={{ marginTop: 0 }}>
+        <Input
+          label="O que"
+          value={dados.titulo}
+          onChange={(e) => onMudar({ ...dados, titulo: e.target.value })}
+        />
+        <Input
+          label="Local"
+          value={dados.local ?? ''}
+          onChange={(e) => onMudar({ ...dados, local: e.target.value })}
+        />
+      </div>
+
+      <p className={styles.rotulo}>Criticidade</p>
+      <div className={styles.pills}>
+        {CRITS.map((c) => (
+          <button
+            key={c.valor}
+            type="button"
+            className={`${styles.pill} ${dados.criticidade === c.valor ? styles.ativo : ''}`}
+            onClick={() => onMudar({ ...dados, criticidade: c.valor })}
+          >
+            {c.rotulo}
+          </button>
+        ))}
+      </div>
+
+      <p className={styles.rotulo}>Atividade (opcional)</p>
+      <AtividadePicker
+        obra={obra}
+        valor={dados.atividadeId}
+        onMudar={(atividadeId) => onMudar({ ...dados, atividadeId })}
+      />
+    </>
+  );
+}
+
+/** Limpa os textos antes de gravar (local vazio = sem local). */
+function limpar(d: NovaPendencia): NovaPendencia {
+  return { ...d, titulo: d.titulo.trim(), local: d.local?.trim() || null };
+}
+
 export function ApontarSheet({
   aberto,
-  atividades,
+  obra,
   onFechar,
   onApontar,
   pendente,
 }: {
   aberto: boolean;
-  atividades: { id: string; nome: string }[];
+  obra: ObraCompleta;
   onFechar: () => void;
   onApontar: (dados: NovaPendencia, file: File) => void;
   pendente?: boolean;
 }) {
   const [file, setFile] = useState<File | null>(null);
-  const [titulo, setTitulo] = useState('');
-  const [local, setLocal] = useState('');
-  const [criticidade, setCriticidade] = useState<'alta' | 'media' | 'baixa'>('media');
-  const [atividadeId, setAtividadeId] = useState('');
+  const [dados, setDados] = useState<NovaPendencia>(VAZIA);
 
   function fechar() {
     setFile(null);
-    setTitulo('');
-    setLocal('');
-    setCriticidade('media');
-    setAtividadeId('');
+    setDados(VAZIA);
     onFechar();
   }
 
@@ -56,64 +108,50 @@ export function ApontarSheet({
   // Passo 2: descrição.
   return (
     <BottomSheet open title="Nova pendência" onClose={fechar}>
-      <div className={styles.rodape} style={{ marginTop: 0 }}>
-        <Input label="O que" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
-        <Input label="Local" value={local} onChange={(e) => setLocal(e.target.value)} />
-      </div>
-
-      <p className={styles.rotulo}>Criticidade</p>
-      <div className={styles.pills}>
-        {CRITS.map((c) => (
-          <button
-            key={c.valor}
-            type="button"
-            className={`${styles.pill} ${criticidade === c.valor ? styles.ativo : ''}`}
-            onClick={() => setCriticidade(c.valor)}
-          >
-            {c.rotulo}
-          </button>
-        ))}
-      </div>
-
-      {atividades.length > 0 ? (
-        <>
-          <p className={styles.rotulo}>Atividade (opcional)</p>
-          <select
-            className={styles.data}
-            style={{ width: '100%' }}
-            value={atividadeId}
-            onChange={(e) => setAtividadeId(e.target.value)}
-            aria-label="Atividade relacionada"
-          >
-            <option value="">—</option>
-            {atividades.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.nome}
-              </option>
-            ))}
-          </select>
-        </>
-      ) : null}
-
+      <PendenciaCampos obra={obra} dados={dados} onMudar={setDados} />
       <div className={styles.rodape}>
         <Button
           full
-          disabled={!titulo.trim() || pendente}
-          onClick={() =>
-            onApontar(
-              {
-                titulo: titulo.trim(),
-                local: local.trim() || null,
-                criticidade,
-                atividadeId: atividadeId || null,
-              },
-              file,
-            )
-          }
+          disabled={!dados.titulo.trim() || pendente}
+          onClick={() => onApontar(limpar(dados), file)}
         >
           {pendente ? 'Enviando…' : 'Apontar'}
         </Button>
       </div>
+    </BottomSheet>
+  );
+}
+
+/** Editar pendência da lista completa (texto, local, criticidade, atividade). */
+export function EditarPendenciaSheet({
+  obra,
+  inicial,
+  onFechar,
+  onSalvar,
+}: {
+  obra: ObraCompleta;
+  /** Pendência em edição (null = fechado). */
+  inicial: NovaPendencia | null;
+  onFechar: () => void;
+  onSalvar: (dados: NovaPendencia) => void;
+}) {
+  const [dados, setDados] = useState<NovaPendencia>(inicial ?? VAZIA);
+  useEffect(() => {
+    if (inicial) setDados(inicial);
+  }, [inicial]);
+
+  return (
+    <BottomSheet open={Boolean(inicial)} title="Editar pendência" onClose={onFechar}>
+      {inicial ? (
+        <>
+          <PendenciaCampos obra={obra} dados={dados} onMudar={setDados} />
+          <div className={styles.rodape}>
+            <Button full disabled={!dados.titulo.trim()} onClick={() => onSalvar(limpar(dados))}>
+              Salvar
+            </Button>
+          </div>
+        </>
+      ) : null}
     </BottomSheet>
   );
 }

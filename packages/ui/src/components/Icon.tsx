@@ -57,6 +57,12 @@ const paths = {
     </>
   ),
   chevronDown: <polyline points="6 9 12 15 18 9" />,
+  search: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <line x1="16" y1="16" x2="20.5" y2="20.5" />
+    </>
+  ),
   chevronRight: <polyline points="9 6 15 12 9 18" />,
   modelos: (
     <>
