@@ -11,6 +11,7 @@ import { usePerfil } from '../features/perfil/usePerfil';
 import { useMembrosPendentes } from '../features/membros/useMembros';
 import { ProntosParaEnviar } from '../features/boletim-auto/ProntosParaEnviar';
 import { EditarNome } from './EditarNome';
+import { TrocarSenha } from './TrocarSenha';
 import { formatarDataCurta } from '../lib/datas';
 import styles from './MinhasObras.module.css';
 
@@ -39,6 +40,7 @@ export function MinhasObras({
   const [vista, setVista] = useLembrado<'lista' | 'nova'>('inicio:vista', 'lista');
   const [perfilAberto, setPerfilAberto] = useState(false);
   const [editarNome, setEditarNome] = useState(false);
+  const [trocarSenha, setTrocarSenha] = useState(false);
   const [obraAberta, setObraAberta] = useLembrado<{
     id: string;
     boletim?: boolean;
@@ -255,9 +257,19 @@ export function MinhasObras({
               setEditarNome(true);
             }}
           />
+          <ItemMenu
+            icon="cadeado"
+            rotulo="Trocar senha"
+            onClick={() => {
+              setPerfilAberto(false);
+              setTrocarSenha(true);
+            }}
+          />
           <ItemMenu icon="sair" rotulo="Sair" separado onClick={onSair} semSeta />
         </div>
       </BottomSheet>
+
+      <TrocarSenha aberto={trocarSenha} onFechar={() => setTrocarSenha(false)} />
 
       <EditarNome
         aberto={editarNome}

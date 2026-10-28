@@ -308,6 +308,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-28 · **"Trocar senha" no menu do perfil:** a pessoa logada digita e repete a nova senha (mín. 6), sem sair da conta nem depender de e-mail (`auth.updateUser`). O "Esqueci a senha" do login continua para quem não lembra a senha. · usuário
 - 2026-10-27 · **Número "#N" em todas as atividades da obra** (antes só no pré-obra), na trilha, no cronograma e na ficha, como no modelo. O número é do app (numeração por fase e ordem), não faz parte do nome: os nomes guardados não têm "#N" (limpos no Modelo 1 e na obra CDC - Céu azul), para nunca aparecer duas vezes. · usuário
 - 2026-10-27 · **Menu "⋮" no cabeçalho da obra** (no lugar da lixeira): "Editar nome da obra" (qualquer membro, com Desfazer) e "Apagar obra" (só o gestor, com a confirmação de sempre). · usuário
 - 2026-10-27 · **Voltar ao mesmo lugar:** a tela (início, reunião, tarefas, modelos…), a aba Hoje/Minhas obras, a obra aberta e, dentro dela, a aba (Fases, Providências, Cronograma, Check list), a fase aberta e a ficha aberta ficam lembradas neste aparelho (`useLembrado`, localStorage). Ao reabrir o app ou a guia, a pessoa continua onde estava; "Sair" apaga; obra lembrada que foi apagada volta para a lista. · usuário
