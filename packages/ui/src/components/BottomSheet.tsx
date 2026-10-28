@@ -13,12 +13,18 @@ export interface BottomSheetProps {
 export function BottomSheet({ open, title, onClose, children }: BottomSheetProps) {
   const titleId = useId();
   const sheetRef = useRef<HTMLDivElement>(null);
+  // onClose costuma vir como função nova a cada render. Guardado em ref, o efeito
+  // abaixo roda só ao abrir/fechar: se dependesse de onClose, cada tecla digitada
+  // num campo da folha (que redesenha o pai) devolvia o foco para a folha e o
+  // texto "saía" do input.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return;
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     document.addEventListener('keydown', onKey);
 
@@ -33,7 +39,7 @@ export function BottomSheet({ open, title, onClose, children }: BottomSheetProps
       document.body.style.overflow = overflowAntes;
       anterior?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

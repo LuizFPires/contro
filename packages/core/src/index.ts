@@ -25,6 +25,7 @@ export * from './nomes';
 export * from './recuperacao';
 export * from './dependencias';
 export * from './avanco';
+export * from './busca';
 
 export type Perfil = 'gestor' | 'equipe';
 
