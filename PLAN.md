@@ -308,6 +308,8 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-28 · **Check list sem vistoria (muda a regra 5).** Tirou a foto do depois, a pendência está resolvida (`resolver_pendencia` fecha direto; as que estavam em vistoria foram fechadas com evento `fechada_sem_vistoria`). Opção B do protótipo: Pendências com Fotos | Lista (lista por criticidade, com câmera para resolver) e Resolvidos em lista compacta que abre com antes e depois. CLAUDE.md, PRD e SPEC atualizados. · decisão do usuário · usuário
+
 - 2026-10-28 · **Check list = Pendências | Resolvidos (sem fila e sem adiar).** Pendências: uma foto por vez, altas primeiro; esquerda = Resolvida (câmera do depois), direita = próxima foto. Resolvidos: card com antes e depois; a vistoria (regra 5) acontece no próprio card, sem a tela separada. Adiar saiu do app (pendências adiadas voltam para Pendências); `adiar_pendencia`/`trazer_pendencia` e o pg_cron de devolução ficam no banco sem uso. · pedido do usuário · usuário
 
 - 2026-10-28 · **Check list: fotos ampliadas e concluída de volta para pendente.** Miniatura e fotos da vistoria abrem antes/depois em tela cheia com zoom (pinça, toque duplo, arrastar). Concluída tem "Voltar para pendente" (`reabrir_pendencia`), com a escolha de manter ou tirar a foto do depois; sem Desfazer, porque a folha de escolha já é a confirmação (desvio consciente da regra 10). Corrigido: a Nova pendência reabria com os dados do último apontamento. · pedido do usuário · usuário

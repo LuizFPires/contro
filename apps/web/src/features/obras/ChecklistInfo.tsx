@@ -16,17 +16,18 @@ export function ChecklistInfo({ aberto, onFechar }: { aberto: boolean; onFechar:
             criticidade e a atividade.
           </li>
           <li>
-            <b>Pendências:</b> uma foto por vez, das altas para as baixas (criticidade). Deslize
-            para a esquerda (ou "Resolvida") para tirar a foto do depois, com o antes em
-            transparência para alinhar. Para a direita (ou "Próxima"), passa para a próxima foto.
+            <b>Pendências:</b> em <b>Fotos</b>, uma por vez, das altas para as baixas. Deslize para
+            a esquerda (ou "Resolvida") para tirar a foto do depois, com o antes em transparência
+            para alinhar; para a direita (ou "Próxima"), passa para a próxima. Em <b>Lista</b>,
+            todas agrupadas por criticidade.
           </li>
           <li>
-            <b>Resolvidos:</b> cada item com o antes e o depois lado a lado. Os que esperam vistoria
-            vêm primeiro: outra pessoa, não quem resolveu, escolhe "Aprovar e fechar" ou "Reabrir".
+            <b>Resolvidos:</b> tirou a foto do depois, está resolvido. A lista mostra o antes e o
+            depois em miniatura; toque para abrir maior.
           </li>
           <li>
             <b>Fotos:</b> toque numa foto para ampliar. No "⋯" de cada item: editar, apagar e, no
-            vistoriado, voltar para pendente.
+            resolvido, voltar para pendente.
           </li>
         </ol>
         <p>"Nada pendente" quer dizer que não há nenhum item aberto nesta obra.</p>

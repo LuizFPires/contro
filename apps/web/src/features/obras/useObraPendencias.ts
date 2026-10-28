@@ -83,7 +83,7 @@ export function useObraPendencias(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
   // Resolver: otimista e offline. Guarda a foto de depois no Dexie (sobe em 2º
-  // plano) e enfileira; manda a pendência para vistoria na hora.
+  // plano) e enfileira; a pendência vai para Resolvidos na hora (sem vistoria).
   const resolver = useMutation({
     networkMode: 'always',
     mutationFn: async (v: { id: string; file: File; pessoaId: string | null }) => {
@@ -93,40 +93,14 @@ export function useObraPendencias(obraId: string) {
     onMutate: (v: { id: string; file: File; pessoaId: string | null }) =>
       patch(v.id, (p) => ({
         ...p,
-        status: 'em_vistoria',
+        status: 'fechada',
         resolvida_por: v.pessoaId ?? p.resolvida_por,
+        resolvida_em: new Date().toISOString(),
       })),
     onError: (_e, _v, ctx) => reverter(ctx),
   });
 
   // Ações de campo otimistas, offline e idempotentes.
-  const vistoriar = useMutation({
-    networkMode: 'always',
-    mutationFn: (v: { id: string; aprovado: boolean; motivo?: string }) =>
-      enfileirar('vistoriar_pendencia', {
-        obraId,
-        id: v.id,
-        aprovado: v.aprovado,
-        motivo: v.motivo ?? null,
-      }),
-    onMutate: (v: { id: string; aprovado: boolean; motivo?: string }) => {
-      if (v.aprovado) return patch(v.id, (p) => ({ ...p, status: 'fechada' }));
-      const topo = topoDaFila();
-      return patch(v.id, (p) => ({
-        ...p,
-        status: 'aberta',
-        resolvida_por: null,
-        resolvida_em: null,
-        resolveuNome: null,
-        fotoDepoisUrl: null,
-        adiada_ate: null,
-        motivo_adiamento: null,
-        ordem_fila: topo,
-      }));
-    },
-    onError: (_e, _v, ctx) => reverter(ctx),
-  });
-
   // Editar e apagar (lista completa): otimistas e offline, apagar com Desfazer.
   const editar = useMutation({
     networkMode: 'always',
@@ -202,7 +176,6 @@ export function useObraPendencias(obraId: string) {
     query,
     apontar,
     resolver,
-    vistoriar,
     editar,
     excluir,
     restaurar,
