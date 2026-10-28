@@ -22,7 +22,8 @@ function segundaISO(): string {
   const d = new Date();
   const diff = (d.getDay() + 6) % 7;
   d.setDate(d.getDate() - diff);
-  return d.toISOString().slice(0, 10);
+  // Data local (toISOString é UTC e, à noite, podia cair no dia seguinte).
+  return d.toLocaleDateString('sv-SE');
 }
 
 const PASSOS = ['Semana passada', 'Esta semana', 'Providências', 'Observações'];
@@ -64,7 +65,7 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
   const { data: pessoas = [] } = usePessoas();
   const { data: nomesSugeridos = [] } = useNomesSugeridos();
   const { showToast } = useToast();
-  const { query, observacao, fechar, salvarProvidencia, concluirAtv, marcarFeita } =
+  const { query, observacao, fechar, salvarProvidencia, concluirAtv, marcarFeita, reabrir } =
     useReuniao(data);
 
   const [ataAberta, setAtaAberta] = useState(false);
@@ -414,6 +415,33 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
           <p className={styles.vazio}>Montando a pauta…</p>
         ) : query.isError ? (
           <p className={styles.vazio}>Não foi possível montar a pauta. Tente de novo.</p>
+        ) : !o && fechada ? (
+          // Ata fechada sem obras: as obras dela foram apagadas depois (28/10/2026).
+          <div className={styles.vazioBox}>
+            <p className={styles.vazio}>
+              A ata desta semana foi fechada com obras que depois foram apagadas, por isso está
+              vazia.
+            </p>
+            {ehGestor ? (
+              <button
+                type="button"
+                className={styles.reabrirPauta}
+                disabled={reabrir.isPending}
+                onClick={() =>
+                  reuniao &&
+                  reabrir.mutate(reuniao.id, {
+                    onSuccess: () => showToast({ message: 'Pauta reaberta com as obras de hoje' }),
+                    onError: () => showToast({ message: 'Não foi possível reabrir a pauta' }),
+                  })
+                }
+              >
+                <Icon name="undo" size={18} strokeWidth={2} />
+                {reabrir.isPending ? 'Reabrindo…' : 'Reabrir pauta'}
+              </button>
+            ) : (
+              <p className={styles.vazio}>Peça ao gestor para reabrir a pauta.</p>
+            )}
+          </div>
         ) : !o ? (
           <p className={styles.vazio}>Nenhuma obra em andamento para a pauta.</p>
         ) : passo === 0 ? (
