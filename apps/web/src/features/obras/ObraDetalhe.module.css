@@ -280,6 +280,22 @@
   font-size: 13px;
   color: #696969;
 }
+/* Barra fina do avanço parcial, embaixo do texto da atividade. */
+.atvBarra {
+  display: block;
+  align-self: stretch;
+  height: 5px;
+  margin-top: 5px;
+  border-radius: 99px;
+  background: rgb(24 24 24 / 10%);
+  overflow: hidden;
+}
+.atvBarra span {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--contro-turquoise);
+}
 /* Subitens listados embaixo da atividade (marcar é pela ficha). */
 .subitens {
   margin-top: 4px;

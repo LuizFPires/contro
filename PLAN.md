@@ -308,6 +308,8 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-28 · **Avanço parcial por atividade (opção C + B do protótipo):** anel na trilha (cada toque +25%, o quarto conclui sem foto) e cards 25 · 50 · 75 · Pronta na ficha. O parcial conta no % da obra pelo peso da atividade (fecha a Q2). Coluna `obra_atividade.avanco_pct` (0..99) e RPC `definir_avanco` (offline, idempotente, evento `avanco`). Concluir continua por `concluir_atividade`; reabrir mantém o avanço anterior. Mapa de coleta fica fora (é check). · pedido do usuário · usuário
+
 - 2026-10-28 · **"Trocar senha" no menu do perfil:** a pessoa logada digita e repete a nova senha (mín. 6), sem sair da conta nem depender de e-mail (`auth.updateUser`). O "Esqueci a senha" do login continua para quem não lembra a senha. · usuário
 - 2026-10-27 · **Número "#N" em todas as atividades da obra** (antes só no pré-obra), na trilha, no cronograma e na ficha, como no modelo. O número é do app (numeração por fase e ordem), não faz parte do nome: os nomes guardados não têm "#N" (limpos no Modelo 1 e na obra CDC - Céu azul), para nunca aparecer duas vezes. · usuário
 - 2026-10-27 · **Menu "⋮" no cabeçalho da obra** (no lugar da lixeira): "Editar nome da obra" (qualquer membro, com Desfazer) e "Apagar obra" (só o gestor, com a confirmação de sempre). · usuário

@@ -14,6 +14,7 @@ import {
   marcarSubitem,
   reabrirTarefa,
   renomearAtividade,
+  definirAvanco,
   resolverPendencia,
   restaurarTarefa,
   salvarTarefa,
@@ -53,6 +54,7 @@ const DISPATCH: Record<string, Handler> = {
     await removerFotoLocal(p.fotoLocalId as string);
   },
   desfazer_conclusao: (p, opId) => desfazerConclusao(p.atividadeId as string, opId),
+  definir_avanco: (p, opId) => definirAvanco(p.atividadeId as string, p.pct as number, opId),
   marcar_subitem: (p, opId) => marcarSubitem(p.subitemId as string, p.feito as boolean, opId),
   concluir_tarefa: (p, opId) => concluirTarefa(p.id as string, opId),
   reabrir_tarefa: (p, opId) => reabrirTarefa(p.id as string, opId),

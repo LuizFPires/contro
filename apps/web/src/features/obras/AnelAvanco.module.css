@@ -1,0 +1,59 @@
+/* Anel de avanço da trilha (protótipo C + B): alvo de 44 px, % em texto no meio. */
+.anel {
+  position: relative;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.anel:active {
+  transform: scale(0.94);
+}
+.anel:focus-visible {
+  outline: 3px solid var(--contro-turquoise);
+  outline-offset: 1px;
+}
+.svg {
+  position: absolute;
+  inset: 2px;
+}
+.trilho {
+  fill: none;
+  stroke: rgb(24 24 24 / 18%);
+  stroke-width: 5;
+}
+.arco {
+  fill: none;
+  stroke: var(--contro-turquoise);
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.25s ease-out;
+}
+.num {
+  position: relative;
+  font-size: 12px;
+  font-weight: 800;
+}
+/* Atraso: única exceção aprovada do vermelho. */
+.atrasada .trilho {
+  stroke: rgb(198 40 40 / 35%);
+}
+.atrasada .num {
+  color: var(--contro-late);
+}
+.concluida {
+  width: 36px;
+  height: 36px;
+  margin: 4px;
+  background: var(--contro-turquoise);
+  cursor: default;
+}

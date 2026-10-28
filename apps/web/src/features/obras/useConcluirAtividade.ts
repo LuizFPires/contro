@@ -17,11 +17,12 @@ export type AoConcluir = (r: { xp: number; fase_fechada: boolean }, det: Conclus
  * Concluir atividade, com ou sem foto (regra 3: a foto é opcional). O fechamento de fase e o XP vêm do core
  * (espelham o servidor); usado pela ficha e pelo botão de câmera da trilha.
  */
-export function useConcluirAtividade(obra: ObraCompleta) {
-  const campo = useObraCampo(obra.id);
+export function useConcluirAtividade(obra: ObraCompleta | null) {
+  const campo = useObraCampo(obra?.id ?? '');
 
   /** Conclui com foto (`file`) ou sem foto (`null`). */
   function concluir(atividadeId: string, file: File | null, aoConcluir: AoConcluir) {
+    if (!obra) return;
     const a = obra.atividades.find((x) => x.id === atividadeId);
     if (!a) return;
     const fase = obra.fases.find((f) => f.id === a.fase_id);
