@@ -224,10 +224,9 @@ Agrupar por pessoa (pela função em `papel_texto`: engenheiro, compras, gestão
 ```
 aberta ──resolver(foto_depois)──▶ em_vistoria ──aprovar(outra pessoa)──▶ fechada
   ▲  │                                  │
-  │  └─adiar(data,motivo)─▶ aberta+adiada_ate (fora da fila até a data)
   └──────────reabrir(motivo)────────────┘
 ```
-Fila = `status='aberta' AND (adiada_ate IS NULL OR adiada_ate <= hoje)`, ordenada por **criticidade** (alta → média → baixa; 28/10/2026) e, dentro dela, por `ordem_fila`. "Resolver agora" e "Trazer para a fila" levam a pendência ao topo do grupo da criticidade dela: `ordem_fila = min − 1` e `adiada_ate = null`.
+Pendentes = `status='aberta'`, ordenadas por **criticidade** (alta → média → baixa) e, dentro dela, por `ordem_fila` (`classificarPendencias`). Resolvidos = `em_vistoria` (primeiro) + `fechada`. Sem adiar (28/10/2026): `adiada_ate`/`motivo_adiamento` ficam no banco só pelo histórico; o app ignora e não oferece mais adiar/trazer.
 Em qualquer estado, qualquer membro corrige a pendência (`editar_pendencia`: título, local, criticidade, atividade da mesma obra; evento `editada` com o antes) ou a apaga (`excluir_pendencia`, exclusão lógica, evento `excluida`; Desfazer por `restaurar_pendencia`). Todas idempotentes por `client_op_id` (offline).
 `reabrir_pendencia(id, manter_foto)`: só `fechada` → `aberta` no topo da fila, limpa resolvido/vistoriado e adiamento; `manter_foto=false` tira `foto_depois_id` (o id fica no evento `reaberta`, nada se apaga). Sem Desfazer: a própria escolha (manter/tirar) é a confirmação.
 

@@ -308,6 +308,8 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-28 · **Check list = Pendências | Resolvidos (sem fila e sem adiar).** Pendências: uma foto por vez, altas primeiro; esquerda = Resolvida (câmera do depois), direita = próxima foto. Resolvidos: card com antes e depois; a vistoria (regra 5) acontece no próprio card, sem a tela separada. Adiar saiu do app (pendências adiadas voltam para Pendências); `adiar_pendencia`/`trazer_pendencia` e o pg_cron de devolução ficam no banco sem uso. · pedido do usuário · usuário
+
 - 2026-10-28 · **Check list: fotos ampliadas e concluída de volta para pendente.** Miniatura e fotos da vistoria abrem antes/depois em tela cheia com zoom (pinça, toque duplo, arrastar). Concluída tem "Voltar para pendente" (`reabrir_pendencia`), com a escolha de manter ou tirar a foto do depois; sem Desfazer, porque a folha de escolha já é a confirmação (desvio consciente da regra 10). Corrigido: a Nova pendência reabria com os dados do último apontamento. · pedido do usuário · usuário
 
 - 2026-10-28 · **Fila do Check list por criticidade:** altas no topo, médias no meio, baixas no fim; dentro da mesma criticidade segue `ordem_fila` (então "Resolver agora" e "Trazer para a fila" sobem a pendência só dentro do grupo dela). Só ordenação no core (`classificarPendencias`), sem migration. · pedido do usuário · usuário
