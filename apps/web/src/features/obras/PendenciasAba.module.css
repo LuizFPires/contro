@@ -467,3 +467,135 @@
   background: var(--contro-black);
   color: var(--contro-white);
 }
+
+/* Pendências: alternar Fotos | Lista (opção B), com texto e ícone. */
+.vistaLinha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+.vistaResumo {
+  font-size: 13px;
+  font-weight: 700;
+  color: #464646;
+}
+.vista {
+  display: flex;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgb(24 24 24 / 6%);
+}
+.vistaBtn {
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.vistaOn {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+/* Lista de pendências: etiqueta de criticidade e o atalho de resolver. */
+.critLinha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+.critTag {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 7px;
+  border-radius: 6px;
+}
+.crit_alta {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.crit_media {
+  background: rgb(24 24 24 / 10%);
+}
+.crit_baixa {
+  border: 1.5px solid rgb(24 24 24 / 30%);
+}
+.resolverMini {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+/* Resolvidos compactos: antes e depois em miniatura; toque abre o card. */
+.resLinha {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 8px;
+  border-radius: 14px;
+  border: 1px solid rgb(24 24 24 / 8%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.resMinis {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.resMini {
+  width: 40px;
+  height: 46px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #7a7a7a;
+}
+.resMini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.resTexto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.resOk {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+}

@@ -51,7 +51,7 @@ pnpm lint && pnpm typecheck
 2. **Cronograma em dias úteis de segunda a sexta, sem feriados.** Não crie cadastro de feriados (decisão do produto); o usuário ajusta datas manualmente com `inicio_manual`. Nunca use dias corridos.
 3. **Não existe atividade bloqueada** (decisão do usuário em 26/10/2026): qualquer atividade aberta pode ser concluída a qualquer momento, mesmo com predecessora aberta ou lembrete pendente. Dependências servem só para o cronograma; lembretes só avisam. Conclui **com ou sem foto**: sem foto, fica "Concluída · sem foto" e a foto pode ser anexada depois. Atividade aberta tem **avanço parcial** (25/50/75%, anel na trilha e cards na ficha), que conta no % da obra; 100% é concluir. Atividade com subitens tem prazo derivado dos subitens (sequência ou paralelo); concluí-la marca os subitens abertos junto. Subitem tem um nível só.
 4. **Lembretes de contratação, locação e compra não têm valor nem fornecedor.** Só tipo, descrição, antecedência, duração (quantos dias leva para providenciar), data na obra e status (pendente/feito). Não adicione esses campos (decisão do produto: isso é de outro sistema).
-5. **Pendência só fecha com foto de depois aprovada por outra pessoa** (vistoriador ≠ quem resolveu).
+5. **Pendência fecha com a foto de depois.** Tirou a foto do depois, está resolvida; não há vistoria nem aprovação de outra pessoa (decisão do usuário em 28/10/2026). O Check list tem só Pendências (fotos ou lista por criticidade) e Resolvidos; sem fila e sem adiar.
 6. **Obra é cópia do modelo escolhido.** Editar a obra nunca altera o modelo, e editar um modelo nunca altera obras já criadas. Não há versões nem "publicar": há vários modelos salvos (nome + subtítulo).
 7. **Nada se apaga de fato:** exclusão lógica e tabela de eventos para atividades, pendências e tarefas.
 8. **Replanejar tarefa é rastreado:** mudar o prazo de tarefa aberta preserva `prazo_original` e incrementa `replanejamentos`.
@@ -85,7 +85,7 @@ pnpm lint && pnpm typecheck
 - Toda a UI em **pt-BR**.
 - Datas no formato "qua 21/10"; data completa "quinta, 03/12/2026".
 - Números e valores no padrão brasileiro (1.234,56).
-- Vocabulário: obra, unidade, fase, atividade, subitem, **lembrete/providência** (contratação, locação, compra), pendência, vistoria, tarefa, reunião, ata, boletim, inauguração, prestador.
+- Vocabulário: obra, unidade, fase, atividade, subitem, **lembrete/providência** (contratação, locação, compra), pendência, resolvido, tarefa, reunião, ata, boletim, inauguração, prestador.
 
 ## Performance
 - Abrir uma obra deve levar < 1,5 s em 4G. Busque a obra inteira em uma consulta e calcule os derivados no cliente com o core.

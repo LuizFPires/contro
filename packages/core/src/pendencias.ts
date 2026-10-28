@@ -1,6 +1,5 @@
-// Pendências de qualidade (SPEC §5). Pendentes x Resolvidos e a regra de vistoria
-// (regra 5: quem resolveu não vistoria). A transição é garantida no servidor
-// (RPCs); estas funções são a mesma regra para o cliente derivar e desabilitar.
+// Pendências de qualidade (SPEC §5): Pendentes x Resolvidas. As transições são
+// garantidas no servidor (RPCs); estas funções são a mesma regra para o cliente.
 import type { DataISO } from './calendar';
 
 export type StatusPendencia = 'aberta' | 'em_vistoria' | 'fechada';
@@ -13,65 +12,60 @@ export interface Pendencia {
   resolvida_por: string | null;
   /** Ordena a fila: alta, média, baixa (ausente = média). */
   criticidade?: Criticidade;
+  /** Quando foi resolvida (ordena os Resolvidos, mais recente primeiro). */
+  resolvida_em?: string | null;
 }
 
 /** Peso da criticidade na fila (menor vem antes). */
 const PESO_CRITICIDADE: Record<Criticidade, number> = { alta: 0, media: 1, baixa: 2 };
 
+/** Grupo de criticidade da lista de pendências (altas, médias, baixas). */
+export const CRITICIDADES: Criticidade[] = ['alta', 'media', 'baixa'];
+
 export interface PendenciasClassificadas<T extends Pendencia> {
   /** Abertas, das altas para as baixas; dentro da mesma criticidade, por ordem_fila. */
   pendentes: T[];
-  /** Resolvidas esperando outra pessoa vistoriar (vêm primeiro em Resolvidos). */
-  emVistoria: T[];
-  /** Vistoriadas e fechadas. */
-  vistoriadas: T[];
+  /** Resolvidas (com a foto do depois), da mais recente para a mais antiga. */
+  resolvidas: T[];
 }
 
 /**
- * Separa as pendências em Pendentes e Resolvidos (pedido do usuário, 28/10/2026:
- * sem fila e sem adiar). Resolvidos = em vistoria + vistoriadas. Pendentes vão
- * por criticidade: altas no topo, médias no meio, baixas no fim.
+ * Separa as pendências em Pendentes e Resolvidas (decisão do usuário, 28/10/2026:
+ * sem fila, sem adiar e sem vistoria; tirou a foto do depois, está resolvida).
+ * Pendentes vão por criticidade: altas no topo, médias no meio, baixas no fim.
+ * 'em_vistoria' (dado antigo) conta como resolvida.
  */
 export function classificarPendencias<T extends Pendencia>(
   pendencias: T[],
 ): PendenciasClassificadas<T> {
   const pendentes: T[] = [];
-  const emVistoria: T[] = [];
-  const vistoriadas: T[] = [];
+  const resolvidas: T[] = [];
   for (const p of pendencias) {
-    if (p.status === 'fechada') vistoriadas.push(p);
-    else if (p.status === 'em_vistoria') emVistoria.push(p);
-    else pendentes.push(p);
+    if (p.status === 'aberta') pendentes.push(p);
+    else resolvidas.push(p);
   }
   pendentes.sort(
     (a, b) =>
       PESO_CRITICIDADE[a.criticidade ?? 'media'] - PESO_CRITICIDADE[b.criticidade ?? 'media'] ||
       a.ordem_fila - b.ordem_fila,
   );
-  return { pendentes, emVistoria, vistoriadas };
+  resolvidas.sort((a, b) => (b.resolvida_em ?? '').localeCompare(a.resolvida_em ?? ''));
+  return { pendentes, resolvidas };
+}
+
+/** Pendentes por criticidade, para a lista (só os grupos que têm itens). */
+export function pendentesPorCriticidade<T extends Pendencia>(
+  pendentes: T[],
+): { criticidade: Criticidade; itens: T[] }[] {
+  return CRITICIDADES.map((c) => ({
+    criticidade: c,
+    itens: pendentes.filter((p) => (p.criticidade ?? 'media') === c),
+  })).filter((g) => g.itens.length > 0);
 }
 
 /** Próxima pendência ao deslizar para a direita: a seguinte, e da última volta à primeira. */
 export function proximaPendencia(indice: number, total: number): number {
   return total > 0 ? (indice + 1) % total : 0;
-}
-
-/**
- * Regra 5: só vistoria quem está em vistoria e não foi quem resolveu. Exige um
- * resolvedor conhecido: se `resolvida_por` for null (ex.: patch otimista offline
- * antes de o perfil carregar), ninguém vistoria até o servidor confirmar — assim
- * o próprio resolvedor não fecha a própria pendência na janela offline.
- */
-export function podeVistoriar(
-  p: Pick<Pendencia, 'status' | 'resolvida_por'>,
-  pessoaId: string | null,
-): boolean {
-  return (
-    p.status === 'em_vistoria' &&
-    pessoaId !== null &&
-    p.resolvida_por !== null &&
-    p.resolvida_por !== pessoaId
-  );
 }
 
 /**

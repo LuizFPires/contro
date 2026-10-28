@@ -222,11 +222,11 @@ Agrupar por pessoa (pela função em `papel_texto`: engenheiro, compras, gestão
 
 **Pendência**
 ```
-aberta ──resolver(foto_depois)──▶ em_vistoria ──aprovar(outra pessoa)──▶ fechada
-  ▲  │                                  │
-  └──────────reabrir(motivo)────────────┘
+aberta ──resolver(foto_depois)──▶ fechada        (sem vistoria, 28/10/2026)
+  ▲                                    │
+  └──reabrir_pendencia(manter_foto)────┘
 ```
-Pendentes = `status='aberta'`, ordenadas por **criticidade** (alta → média → baixa) e, dentro dela, por `ordem_fila` (`classificarPendencias`). Resolvidos = `em_vistoria` (primeiro) + `fechada`. Sem adiar (28/10/2026): `adiada_ate`/`motivo_adiamento` ficam no banco só pelo histórico; o app ignora e não oferece mais adiar/trazer.
+Pendentes = `status='aberta'`, ordenadas por **criticidade** (alta → média → baixa) e, dentro dela, por `ordem_fila` (`classificarPendencias`). Resolvidas = `fechada` (e `em_vistoria` antigo), da mais recente (`resolvida_em`). `em_vistoria` não é mais gerado: a migration de 28/10 fechou as que estavam nele e `vistoriar_pendencia` fica sem uso. Sem adiar (28/10/2026): `adiada_ate`/`motivo_adiamento` ficam no banco só pelo histórico; o app ignora e não oferece mais adiar/trazer.
 Em qualquer estado, qualquer membro corrige a pendência (`editar_pendencia`: título, local, criticidade, atividade da mesma obra; evento `editada` com o antes) ou a apaga (`excluir_pendencia`, exclusão lógica, evento `excluida`; Desfazer por `restaurar_pendencia`). Todas idempotentes por `client_op_id` (offline).
 `reabrir_pendencia(id, manter_foto)`: só `fechada` → `aberta` no topo da fila, limpa resolvido/vistoriado e adiamento; `manter_foto=false` tira `foto_depois_id` (o id fica no evento `reaberta`, nada se apaga). Sem Desfazer: a própria escolha (manter/tirar) é a confirmação.
 
@@ -259,7 +259,7 @@ Efeito de reabrir: se `efeito_providencia_id` aponta para uma providência `feit
 | `concluir_atividade(id, foto_id)` | gestor, equipe | Qualquer atividade aberta (sem checar predecessoras nem lembretes); marca os subitens abertos; +50 XP e +200 se fechar a fase |
 | `marcar_providencia(id, status)` | gestor, equipe | Alterna pendente/feito |
 | `apontar_pendencia(...)`, `resolver_pendencia(id, foto_depois_id)` | gestor, equipe | — |
-| `vistoriar_pendencia(id, aprovado, motivo?)` | gestor, equipe | Bloqueia se `vistoriada_por = resolvida_por` |
+| `vistoriar_pendencia(id, aprovado, motivo?)` | — | Sem uso desde 28/10/2026 (Check list sem vistoria) |
 | `adiar_pendencia(id, data, motivo)`, `trazer_pendencia(id)` | gestor, equipe | — |
 | `salvar_tarefa`, `concluir_tarefa`, `reabrir_tarefa`, `excluir_tarefa` | gestor, equipe | Grava `tarefa_evento`. `salvar_tarefa` aceita `p_observacao` e `p_responsavel_nome` (só vale sem `p_responsavel_id`; registra a sugestão) |
 | `fechar_reuniao(id)` | gestor | Materializa `reuniao_obra.snapshot` e gera o PDF da ata |
@@ -272,7 +272,7 @@ Todas são idempotentes por `client_op_id` (uuid gerado no aparelho), para a fil
 Dois perfis:
 - **Gestor:** tudo, inclusive escrita em `modelo*`.
 - **Equipe de obra:** leitura e escrita em todas as tabelas de obra, pendência, providência, tarefa, reunião e boletim; **somente leitura** em `modelo*` (para escolher o modelo na nova obra). A UI esconde "Modelos" e "Editar modelos" para esse perfil, e a RLS bloqueia a escrita.
-- A regra de vistoria (`vistoriada_por ≠ resolvida_por`) vale para qualquer perfil.
+- Sem vistoria (28/10/2026): resolver com a foto do depois fecha a pendência, para qualquer perfil.
 - **Fotos:** bucket privado, com acesso por URL assinada de curta duração e caminho `obra_id/…`.
 
 ## 8. Boletim e ata

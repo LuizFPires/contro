@@ -29,7 +29,7 @@ Frase-guia: *planejar em um minuto, acompanhar em um olhar, provar com foto.*
 | Planejar rápido | Tempo para criar uma obra a partir do modelo | < 2 minutos |
 | Liberar a sequência sem travas | Atividades que começam atrasadas por falta de providência | redução de 50% em relação à linha de base |
 | Prova de execução | Atividades concluídas com foto (a foto é opcional; as sem foto ficam marcadas e podem recebê-la depois) | ≥ 90% |
-| Pendências fechadas com evidência | Pendências fechadas com antes e depois vistoriado | 100% |
+| Pendências fechadas com evidência | Pendências resolvidas com foto de antes e depois | 100% |
 | Reunião produtiva | Providências da semana anterior cumpridas no prazo | ≥ 70% |
 | Comunicação semanal | Boletins enviados por obra por semana | 1 por obra (segunda) |
 | Adoção | Engenheiros que usam o app ao menos 4 dias por semana | ≥ 80% |
@@ -41,11 +41,11 @@ São **dois perfis de acesso** apenas:
 | Perfil | Quem é | O que faz no CONTRO |
 |---|---|---|
 | **Gestor** | Diretoria e gestão de obras | **Tudo**: vê todas as obras, conduz a reunião e aprova a ata, e é o único que **cria, edita, duplica e exclui modelos de obra** |
-| **Equipe de obra** | Engenheiro, mestre/encarregado, compras e demais da obra | O app do dia a dia, **tudo menos editar modelos**: cria obra escolhendo um modelo, conclui atividades (com ou sem foto), aponta, resolve e vistoria pendências, marca lembretes, dá baixa e replaneja tarefas |
+| **Equipe de obra** | Engenheiro, mestre/encarregado, compras e demais da obra | O app do dia a dia, **tudo menos editar modelos**: cria obra escolhendo um modelo, conclui atividades (com ou sem foto), aponta e resolve pendências, marca lembretes, dá baixa e replaneja tarefas |
 
 A função de cada pessoa (engenheiro, mestre, compras) é só um rótulo (`papel_texto`) para atribuições e relatórios; não muda o acesso.
 
-Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não pode ser** quem enviou a foto de depois.
+Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de 28/10/2026).
 
 ## 5. Escopo da versão 1
 
@@ -117,12 +117,13 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 ### 5.7 Check list (pendências de qualidade)
 - Na obra, a aba se chama **Check list** e fica depois de Cronograma (abas: Fases, Providências, Cronograma, Check list). Um botão **"i"** explica como funciona.
 - Duas abas, com as contagens: **Pendências | Resolvidos** (28/10/2026: sem fila e sem adiar).
-- **Pendências:** uma foto por vez (foto do antes, criticidade, local, atividade e quem apontou), das **altas para as baixas**, com "1 de N".
-  - Deslizar para a **esquerda**, ou o botão "Resolvida", abre a câmera com a **foto do antes em transparência** (ghost) para alinhar a foto de depois. A pendência vai para Resolvidos, esperando vistoria.
+- **Pendências:** botão **Fotos | Lista**. Fotos: uma foto por vez (foto do antes, criticidade, local, atividade e quem apontou), das **altas para as baixas**, com "1 de N".
+  - Deslizar para a **esquerda**, ou o botão "Resolvida", abre a câmera com a **foto do antes em transparência** (ghost) para alinhar a foto de depois. A pendência vai direto para Resolvidos (sem vistoria).
   - Deslizar para a **direita**, ou "Próxima", só passa para a próxima foto (da última volta à primeira). Nada muda na pendência.
   - Não existe adiar nem data de retorno.
-- **Resolvidos:** cada item é um card com **antes e depois lado a lado**. Primeiro os que esperam vistoria, com "Aprovar e fechar" e "Reabrir" no próprio card (só para quem não resolveu; quem resolveu vê "Outra pessoa precisa vistoriar"); depois os vistoriados.
-- Em qualquer item, "⋯" tem **Ver antes e depois**, **Editar pendência** (o que, local, criticidade, atividade) e **Apagar pendência** (exclusão lógica, com Desfazer); o vistoriado tem também **"Voltar para pendente"**, e quem reabre escolhe **manter ou tirar a foto do depois**. Foto errada: apagar e apontar de novo. Tocar numa foto abre **antes e depois em tela cheia, com zoom** (dois dedos ou toque duplo). A Nova pendência sempre abre vazia.
+  - Lista: agrupada por criticidade (Alta, Média, Baixa), com miniatura, local e atividade, etiqueta da criticidade, há quanto tempo, câmera para resolver e "⋯".
+- **Resolvidos:** lista compacta (antes e depois em miniatura, "Resolvido hoje · quem"), da mais recente; tocar abre o card com **antes e depois lado a lado**.
+- Em qualquer item, "⋯" tem **Ver antes e depois**, **Editar pendência** (o que, local, criticidade, atividade) e **Apagar pendência** (exclusão lógica, com Desfazer); o resolvido tem também **"Voltar para pendente"**, e quem reabre escolhe **manter ou tirar a foto do depois**. Foto errada: apagar e apontar de novo. Tocar numa foto abre **antes e depois em tela cheia, com zoom** (dois dedos ou toque duplo). A Nova pendência sempre abre vazia.
 - **Apontar:** ícone de câmera; foto primeiro, descrição depois. A atividade (opcional) se escolhe por **busca** (parte do nome, sem acento, ou o número #N) numa lista agrupada por fase.
 
 ### 5.8 Cronograma
@@ -205,8 +206,8 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 4. Atividade é **concluída com ou sem foto**; sem foto fica marcada e pode receber a foto depois.
 5. Atividade **atrasada** = não concluída e término previsto já passou.
 6. Lembrete **atrasado** = não providenciado e "providenciar até" já passou.
-7. Pendência só fecha com **foto de depois aprovada por outra pessoa**.
-8. Pendência resolvida vai para Resolvidos e só fecha com a vistoria de outra pessoa.
+7. Pendência só fecha com **foto de depois**.
+8. Pendência resolvida vai direto para Resolvidos, com antes e depois.
 9. Tarefa tem responsável e prazo; mudar o prazo de tarefa aberta conta como replanejamento.
 10. Vermelho só para atraso real; todo o resto usa turquesa, preto e branco.
 
