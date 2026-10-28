@@ -7,6 +7,7 @@ import { hojeISO } from './api';
 import { AdiarSheet } from './AdiarSheet';
 import { ApontarSheet, EditarPendenciaSheet } from './ApontarSheet';
 import { Camera } from './Camera';
+import { FotoViewer, type FotoAmpliada } from './FotoViewer';
 import { ChecklistInfo } from './ChecklistInfo';
 import { PendenciaDeck } from './PendenciaDeck';
 import type { ObraCompleta } from './detalhe';
@@ -35,6 +36,30 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
     () => classificarPendencias(lista, hoje),
     [lista, hoje],
   );
+
+  // Foto ampliada (antes e depois, com zoom) e "Voltar para pendente" da concluída.
+  const [ampliar, setAmpliar] = useState<{ p: PendenciaObra; i: number } | null>(null);
+  const [reabrindo, setReabrindo] = useState<PendenciaObra | null>(null);
+  const fotosDe = (p: PendenciaObra): FotoAmpliada[] =>
+    [
+      p.fotoAntesUrl ? { rotulo: 'Antes', url: p.fotoAntesUrl } : null,
+      p.fotoDepoisUrl ? { rotulo: 'Depois', url: p.fotoDepoisUrl } : null,
+    ].filter((f): f is FotoAmpliada => f !== null);
+  const abrirFoto = (p: PendenciaObra, qual: 'antes' | 'depois' = 'antes') => {
+    const fotos = fotosDe(p);
+    if (!fotos.length) return;
+    setAmpliar({ p, i: qual === 'depois' ? fotos.length - 1 : 0 });
+  };
+
+  function reabrir(p: PendenciaObra, manterFoto: boolean) {
+    setReabrindo(null);
+    campo.reabrir.mutate({ id: p.id, manterFoto });
+    showToast({
+      message: manterFoto
+        ? `"${p.titulo}" voltou para a fila (foto do depois mantida)`
+        : `"${p.titulo}" voltou para a fila, sem a foto do depois`,
+    });
+  }
 
   // Lista completa: "⋯" de um item (editar, apagar) e a edição aberta.
   const [menuPend, setMenuPend] = useState<PendenciaObra | null>(null);
@@ -181,6 +206,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
                 key={p.id}
                 p={p}
                 onMais={() => setMenuPend(p)}
+                onFoto={() => abrirFoto(p)}
                 sub={i === 0 ? 'Primeira da fila' : `Aberta há ${pendenteHa(p.apontada_em, hoje)}`}
                 acao={
                   i > 0
@@ -196,6 +222,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
                 key={p.id}
                 p={p}
                 onMais={() => setMenuPend(p)}
+                onFoto={() => abrirFoto(p)}
                 apagada
                 sub={`Volta ${p.adiada_ate ? formatarDataCurta(p.adiada_ate) : '—'} · ${p.motivo_adiamento || 'sem motivo'}`}
                 acao={{
@@ -212,6 +239,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
                 key={p.id}
                 p={p}
                 onMais={() => setMenuPend(p)}
+                onFoto={() => abrirFoto(p)}
                 sub={`Resolvida por ${p.resolveuNome ?? '—'}`}
                 acao={{ txt: 'Vistoriar', tipo: 'preto', fn: () => setModo('vistoria') }}
               />
@@ -225,6 +253,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
                 fechada
                 sub="Antes e depois arquivados"
                 onMais={() => setMenuPend(p)}
+                onFoto={() => abrirFoto(p)}
               />
             )}
           </Grupo>
@@ -256,17 +285,27 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
                   </div>
                 </div>
                 <div className={styles.vFotos}>
-                  <div className={styles.vFoto}>
+                  <button
+                    type="button"
+                    className={styles.vFoto}
+                    aria-label="Ampliar foto do antes"
+                    onClick={() => abrirFoto(p, 'antes')}
+                  >
                     {p.fotoAntesUrl ? <img src={p.fotoAntesUrl} alt="Antes" /> : null}
                     <span className={styles.vAntes}>ANTES</span>
-                  </div>
-                  <div className={styles.vFoto}>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.vFoto}
+                    aria-label="Ampliar foto do depois"
+                    onClick={() => abrirFoto(p, 'depois')}
+                  >
                     {p.fotoDepoisUrl ? <img src={p.fotoDepoisUrl} alt="Depois" /> : null}
                     <span className={styles.vDepois}>
                       DEPOIS
                       {p.resolvida_em ? ` · ${formatarDataCurta(p.resolvida_em.slice(0, 10))}` : ''}
                     </span>
-                  </div>
+                  </button>
                 </div>
                 {pode ? (
                   <div className={styles.vAcoes}>
@@ -345,11 +384,16 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
         {menuPend ? (
           <div className={styles.menuPend}>
             <div className={styles.menuPendTopo}>
-              <div className={styles.menuPendFoto}>
+              <button
+                type="button"
+                className={styles.menuPendFoto}
+                aria-label="Ampliar fotos"
+                onClick={() => abrirFoto(menuPend)}
+              >
                 {menuPend.fotoAntesUrl ? (
                   <img src={menuPend.fotoAntesUrl} alt="Foto do antes" />
                 ) : null}
-              </div>
+              </button>
               <div className={styles.info}>
                 <div className={styles.desc}>{menuPend.titulo}</div>
                 <div className={styles.meta}>
@@ -357,6 +401,29 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
                 </div>
               </div>
             </div>
+            {fotosDe(menuPend).length ? (
+              <button
+                type="button"
+                className={styles.menuPendItem}
+                onClick={() => abrirFoto(menuPend)}
+              >
+                <Icon name="camera" size={20} />
+                {menuPend.fotoDepoisUrl ? 'Ver antes e depois' : 'Ver foto'}
+              </button>
+            ) : null}
+            {menuPend.status === 'fechada' ? (
+              <button
+                type="button"
+                className={styles.menuPendItem}
+                onClick={() => {
+                  setReabrindo(menuPend);
+                  setMenuPend(null);
+                }}
+              >
+                <Icon name="undo" size={20} />
+                Voltar para pendente
+              </button>
+            ) : null}
             <button
               type="button"
               className={styles.menuPendItem}
@@ -378,6 +445,46 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
           </div>
         ) : null}
       </BottomSheet>
+
+      <BottomSheet
+        open={Boolean(reabrindo)}
+        title="Voltar para pendente"
+        onClose={() => setReabrindo(null)}
+      >
+        {reabrindo ? (
+          <div className={styles.menuPend}>
+            <p className={styles.reabrirTexto}>
+              <b>{reabrindo.titulo}</b> volta para o topo da fila, sem resolvido nem vistoriado.
+              Depois, tire uma nova foto do depois para documentar.
+            </p>
+            <button
+              type="button"
+              className={styles.reabrirOpcao}
+              onClick={() => reabrir(reabrindo, true)}
+            >
+              <b>Manter a foto do depois</b>
+              <span>Fica como registro até a nova foto.</span>
+            </button>
+            <button
+              type="button"
+              className={styles.reabrirOpcao}
+              onClick={() => reabrir(reabrindo, false)}
+            >
+              <b>Tirar a foto do depois</b>
+              <span>A pendência fica só com a foto do antes. O arquivo continua no histórico.</span>
+            </button>
+          </div>
+        ) : null}
+      </BottomSheet>
+
+      {ampliar ? (
+        <FotoViewer
+          fotos={fotosDe(ampliar.p)}
+          inicial={ampliar.i}
+          titulo={ampliar.p.titulo}
+          onFechar={() => setAmpliar(null)}
+        />
+      ) : null}
 
       <EditarPendenciaSheet
         obra={obra}
@@ -416,6 +523,7 @@ function Linha({
   fechada,
   acao,
   onMais,
+  onFoto,
 }: {
   p: PendenciaObra;
   sub: string;
@@ -424,14 +532,25 @@ function Linha({
   acao?: { txt: string; tipo: 'turquesa' | 'branco' | 'preto'; fn: () => void };
   /** "⋯": editar ou apagar a pendência. */
   onMais?: () => void;
+  /** Toque na miniatura: abre as fotos ampliadas. */
+  onFoto?: () => void;
 }) {
   return (
     <div className={styles.linha}>
-      <div
+      <button
+        type="button"
         className={`${styles.miniatura} ${apagada ? styles.apagada : ''} ${fechada ? styles.fechadaFoto : ''}`}
+        aria-label={`Ver fotos de "${p.titulo}"`}
+        disabled={!p.fotoAntesUrl && !p.fotoDepoisUrl}
+        onClick={onFoto}
       >
         {p.fotoAntesUrl ? <img src={p.fotoAntesUrl} alt="" /> : null}
-      </div>
+        {p.fotoDepoisUrl ? (
+          <span className={styles.miniDepois} aria-hidden="true">
+            +1
+          </span>
+        ) : null}
+      </button>
       <div className={styles.info}>
         <div className={`${styles.desc} ${fechada ? styles.descFechada : ''}`}>{p.titulo}</div>
         <div className={styles.meta}>

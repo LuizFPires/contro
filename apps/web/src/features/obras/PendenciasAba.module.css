@@ -102,12 +102,33 @@
   align-items: center;
 }
 .miniatura {
+  /* Botão: toque abre as fotos ampliadas. */
+  position: relative;
   width: 52px;
   height: 52px;
+  padding: 0;
+  border: 0;
   border-radius: 10px;
   background: #7a7a7a;
   flex-shrink: 0;
   overflow: hidden;
+  cursor: zoom-in;
+}
+.miniatura:disabled {
+  cursor: default;
+}
+/* Selo "+1": tem foto do depois também. */
+.miniDepois {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 16px;
 }
 .miniatura img {
   width: 100%;
@@ -226,6 +247,9 @@
   gap: 8px;
 }
 .vFoto {
+  padding: 0;
+  border: 0;
+  cursor: zoom-in;
   height: 120px;
   border-radius: 12px;
   background: #7a7a7a;
@@ -344,6 +368,9 @@
   margin-bottom: 8px;
 }
 .menuPendFoto {
+  padding: 0;
+  border: 0;
+  cursor: zoom-in;
   width: 72px;
   height: 72px;
   flex-shrink: 0;
@@ -379,4 +406,35 @@
   margin: 4px 12px 0;
   font-size: 13px;
   color: #696969;
+}
+
+/* "Voltar para pendente" da concluída: escolha da foto do depois. */
+.reabrirTexto {
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.reabrirOpcao {
+  min-height: 64px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+}
+.reabrirOpcao b {
+  font-size: 16px;
+}
+.reabrirOpcao span {
+  font-size: 13px;
+  color: #464646;
+}
+.reabrirOpcao + .reabrirOpcao {
+  margin-top: 8px;
 }

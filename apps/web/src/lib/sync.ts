@@ -22,6 +22,7 @@ import {
   editarPendencia,
   excluirPendencia,
   restaurarPendencia,
+  reabrirPendencia,
   vistoriarPendencia,
   type EntradaTarefa,
   type NovaPendencia,
@@ -72,6 +73,7 @@ const DISPATCH: Record<string, Handler> = {
   editar_pendencia: (p, opId) => editarPendencia(p.id as string, p.dados as NovaPendencia, opId),
   excluir_pendencia: (p, opId) => excluirPendencia(p.id as string, opId),
   restaurar_pendencia: (p, opId) => restaurarPendencia(p.id as string, opId),
+  reabrir_pendencia: (p, opId) => reabrirPendencia(p.id as string, p.manterFoto as boolean, opId),
   vistoriar_pendencia: (p, opId) =>
     vistoriarPendencia(p.id as string, p.aprovado as boolean, p.motivo as string | undefined, opId),
   resolver_pendencia: async (p, opId) => {

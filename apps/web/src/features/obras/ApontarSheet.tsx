@@ -83,6 +83,13 @@ export function ApontarSheet({
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [dados, setDados] = useState<NovaPendencia>(VAZIA);
+  // Cada apontamento começa do zero (foto e campos), mesmo depois de um envio.
+  useEffect(() => {
+    if (aberto) {
+      setFile(null);
+      setDados(VAZIA);
+    }
+  }, [aberto]);
 
   function fechar() {
     setFile(null);

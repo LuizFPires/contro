@@ -196,5 +196,40 @@ export function useObraPendencias(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
 
-  return { query, apontar, resolver, adiar, trazer, vistoriar, editar, excluir, restaurar };
+  // Concluída volta para pendente (topo da fila), mantendo ou tirando a foto do depois.
+  const reabrir = useMutation({
+    networkMode: 'always',
+    mutationFn: (v: { id: string; manterFoto: boolean }) =>
+      enfileirar('reabrir_pendencia', { obraId, id: v.id, manterFoto: v.manterFoto }),
+    onMutate: (v: { id: string; manterFoto: boolean }) => {
+      const topo = topoDaFila();
+      return patch(v.id, (p) => ({
+        ...p,
+        status: 'aberta',
+        fotoDepoisUrl: v.manterFoto ? p.fotoDepoisUrl : null,
+        resolvida_por: null,
+        resolvida_em: null,
+        resolveuNome: null,
+        vistoriada_por: null,
+        vistoriada_em: null,
+        adiada_ate: null,
+        motivo_adiamento: null,
+        ordem_fila: topo,
+      }));
+    },
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+
+  return {
+    query,
+    apontar,
+    resolver,
+    adiar,
+    trazer,
+    vistoriar,
+    editar,
+    excluir,
+    restaurar,
+    reabrir,
+  };
 }

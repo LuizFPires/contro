@@ -1,0 +1,111 @@
+/* Foto em tela cheia (antes e depois do Check list), com zoom. */
+.fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 16px;
+}
+.titulo {
+  flex: 1;
+  min-width: 0;
+  font-weight: 800;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fechar {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 12%);
+  color: var(--contro-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.abas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px 16px 8px;
+}
+.aba {
+  min-height: var(--contro-touch);
+  border-radius: 12px;
+  border: 1.5px solid rgb(255 255 255 / 35%);
+  background: transparent;
+  color: var(--contro-white);
+  font: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+}
+.abaOn {
+  background: var(--contro-turquoise);
+  border-color: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.palco {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Os gestos (pinça, arrastar, deslizar) são tratados aqui, não pelo navegador. */
+  touch-action: none;
+  user-select: none;
+}
+.img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transform-origin: center center;
+  will-change: transform;
+}
+.rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 56px;
+  padding: 6px 16px 10px;
+}
+.rotulo {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.dica {
+  font-size: 13px;
+  color: rgb(255 255 255 / 72%);
+}
+.reset {
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
