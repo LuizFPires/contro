@@ -26,8 +26,11 @@ export function PendenciaDeck({
   onResolver,
   onMais,
   onFoto,
+  acao,
 }: {
   pendencias: PendenciaObra[];
+  /** Botão à direita do contador ("Ver em lista"). */
+  acao?: React.ReactNode;
   onResolver: (p: PendenciaObra) => void;
   onMais: (p: PendenciaObra) => void;
   onFoto: (p: PendenciaObra) => void;
@@ -55,18 +58,14 @@ export function PendenciaDeck({
 
   return (
     <div className={styles.deck}>
-      {total ? (
-        <div className={styles.contador}>
-          <span>
-            {Math.min(indice, total - 1) + 1} de {total} · altas primeiro
-          </span>
-          <span className={styles.pontos} aria-hidden="true">
-            {pendencias.slice(0, 8).map((p, i) => (
-              <span key={p.id} className={i === indice ? styles.pontoOn : styles.ponto} />
-            ))}
-          </span>
-        </div>
-      ) : null}
+      <div className={styles.contador}>
+        <span>
+          {total
+            ? `${Math.min(indice, total - 1) + 1} de ${total} · altas primeiro`
+            : 'Nada pendente'}
+        </span>
+        {acao}
+      </div>
 
       <div className={styles.pilha}>
         {total > 1 ? <div className={styles.cardAtras} aria-hidden="true" /> : null}

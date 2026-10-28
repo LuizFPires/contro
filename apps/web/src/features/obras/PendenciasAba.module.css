@@ -468,31 +468,24 @@
   color: var(--contro-white);
 }
 
-/* Pendências: alternar Fotos | Lista (opção B), com texto e ícone. */
+/* Pendências: "Ver em lista" / "Ver em fotos" na linha do contador (opção B). */
 .vistaLinha {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  margin: 10px 0 8px;
 }
 .vistaResumo {
   font-size: 13px;
   font-weight: 700;
   color: #464646;
 }
-.vista {
-  display: flex;
-  padding: 3px;
-  border-radius: 12px;
-  background: rgb(24 24 24 / 6%);
-}
-.vistaBtn {
+.trocaVista {
   min-height: var(--contro-touch);
   padding: 0 12px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
   color: var(--contro-black);
   font: inherit;
   font-size: 14px;
@@ -500,11 +493,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
   cursor: pointer;
-}
-.vistaOn {
-  background: var(--contro-black);
-  color: var(--contro-white);
 }
 /* Lista de pendências: etiqueta de criticidade e o atalho de resolver. */
 .critLinha {
