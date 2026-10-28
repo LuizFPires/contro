@@ -123,6 +123,8 @@ export interface TarefaAtrib {
 export interface ReuniaoCompleta {
   id: string;
   data: string;
+  /** Horário da reunião ("16:00"), gravado quando a pauta abriu. */
+  hora: string;
   status: 'pauta' | 'em_andamento' | 'fechada';
   obras: ReuniaoObraDados[];
   tarefas: TarefaAtrib[]; // para "Quem faz o quê" (por responsável) na ata
@@ -260,10 +262,15 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
   if (!supabase) return null;
   const id = await abrirReuniao(data);
   const [rRes, roRes] = await Promise.all([
-    supabase.from('reuniao').select('id,data,status').eq('id', id).maybeSingle(),
+    supabase.from('reuniao').select('id,data,hora,status').eq('id', id).maybeSingle(),
     supabase.from('reuniao_obra').select('obra_id,observacoes').eq('reuniao_id', id),
   ]);
-  const r = rRes.data as { id: string; data: string; status: ReuniaoCompleta['status'] } | null;
+  const r = rRes.data as {
+    id: string;
+    data: string;
+    hora: string;
+    status: ReuniaoCompleta['status'];
+  } | null;
   if (!r) return null;
   const ro = (roRes.data ?? []) as { obra_id: string; observacoes: string | null }[];
 
@@ -324,6 +331,7 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
   return {
     id: r.id,
     data: r.data,
+    hora: (r.hora ?? '16:00').slice(0, 5),
     status: r.status,
     obras: obras.map((o) => derivarObra(o, obsPorObra.get(o.id) ?? '')),
     tarefas,

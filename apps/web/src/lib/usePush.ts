@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { VAPID_PUBLIC_KEY, pushConfigurado } from '../../lib/env';
+import { supabase } from './supabase';
+import { VAPID_PUBLIC_KEY, pushConfigurado } from './env';
 
 function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4);
@@ -18,10 +18,10 @@ const suportado =
   'Notification' in window;
 
 /**
- * Assinatura de Web Push deste aparelho para o gestor receber "Boletim pronto".
+ * Assinatura de Web Push deste aparelho (avisos da reunião, do dia e do boletim).
  * Guarda a assinatura em push_subscription; o envio é feito pela Edge Function.
  */
-export function usePushBoletim() {
+export function usePush() {
   const disponivel = suportado && pushConfigurado && Boolean(supabase);
   const [inscrito, setInscrito] = useState(false);
   const [ocupado, setOcupado] = useState(false);

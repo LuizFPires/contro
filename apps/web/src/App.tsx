@@ -9,6 +9,7 @@ import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
 import { ReuniaoScreen } from './features/reuniao/ReuniaoScreen';
 import { ConfigBoletimScreen } from './features/boletim-auto/ConfigBoletimScreen';
+import { ConfigAvisosScreen } from './features/avisos/ConfigAvisosScreen';
 import { AprovarMembros } from './features/membros/AprovarMembros';
 import { supabase } from './lib/supabase';
 import { Login } from './screens/Login';
@@ -23,6 +24,15 @@ export function App() {
   const qc = useQueryClient();
   // Lembrada: ao voltar ao app (ou à guia), continua na mesma tela.
   const [tela, setTela] = useLembrado<'inicio' | DestinoInicio>('app', 'inicio');
+
+  // Toque num aviso por push abre a tela certa (/?ir=reuniao | tarefas | hoje).
+  useEffect(() => {
+    const ir = new URLSearchParams(window.location.search).get('ir');
+    if (!ir) return;
+    if (ir === 'reuniao' || ir === 'tarefas') setTela(ir);
+    else if (ir === 'hoje') setTela('inicio');
+    window.history.replaceState(null, '', window.location.pathname);
+  }, [setTela]);
 
   // Recarrega o perfil quando a sessão muda (login/logout/recuperação), para o
   // roteamento de membro/pendente usar sempre o perfil do usuário atual.
@@ -86,6 +96,8 @@ export function App() {
           <ReuniaoScreen onVoltar={voltar} />
         ) : tela === 'tarefas' ? (
           <TarefasScreen onVoltar={voltar} />
+        ) : tela === 'avisos' && ehGestor ? (
+          <ConfigAvisosScreen onVoltar={voltar} />
         ) : tela === 'config' && ehGestor ? (
           <ConfigBoletimScreen onVoltar={voltar} />
         ) : tela === 'membros' && ehGestor ? (

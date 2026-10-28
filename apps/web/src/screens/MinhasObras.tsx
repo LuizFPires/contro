@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLembrado } from '../lib/useLembrado';
-import { rotuloPerfil } from '@contro/core';
+import { horaCurta, reuniaoDaSemana, rotuloPerfil } from '@contro/core';
 import { BottomSheet, Icon, Logo, Simbolo, useToast, type IconName } from '@contro/ui';
 import { ObraCard } from '../features/obras/ObraCard';
 import { HojeObras } from '../features/obras/HojeObras';
@@ -12,17 +12,13 @@ import { useMembrosPendentes } from '../features/membros/useMembros';
 import { ProntosParaEnviar } from '../features/boletim-auto/ProntosParaEnviar';
 import { EditarNome } from './EditarNome';
 import { TrocarSenha } from './TrocarSenha';
+import { AvisosCelularSheet } from '../features/avisos/AvisosCelularSheet';
+import { useConfigAvisos } from '../features/avisos/useConfigAvisos';
+import { hojeISO } from '../features/obras/api';
 import { formatarDataCurta } from '../lib/datas';
 import styles from './MinhasObras.module.css';
 
-export type DestinoInicio = 'modelos' | 'reuniao' | 'tarefas' | 'config' | 'membros';
-
-/** Segunda-feira da semana corrente (ISO), dia da reunião das 16h. */
-function segundaISO(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
+export type DestinoInicio = 'modelos' | 'reuniao' | 'tarefas' | 'config' | 'membros' | 'avisos';
 
 export function MinhasObras({
   onIr,
@@ -41,6 +37,9 @@ export function MinhasObras({
   const [perfilAberto, setPerfilAberto] = useState(false);
   const [editarNome, setEditarNome] = useState(false);
   const [trocarSenha, setTrocarSenha] = useState(false);
+  const [avisos, setAvisos] = useState(false);
+  // Dia e horário da reunião vêm da configuração do gestor.
+  const { config: agenda } = useConfigAvisos();
   const [obraAberta, setObraAberta] = useLembrado<{
     id: string;
     boletim?: boolean;
@@ -155,7 +154,10 @@ export function MinhasObras({
                 />
                 Reunião
               </span>
-              <span className={styles.blocoSub}>{formatarDataCurta(segundaISO())} · 16h</span>
+              <span className={styles.blocoSub}>
+                {formatarDataCurta(reuniaoDaSemana(hojeISO(), agenda.reuniaoDia))} ·{' '}
+                {horaCurta(agenda.reuniaoHora)}
+              </span>
               <span className={styles.blocoStatus}>Abrir pauta da semana</span>
             </button>
             <button type="button" className={styles.blocoTarefas} onClick={() => onIr('tarefas')}>
@@ -231,6 +233,14 @@ export function MinhasObras({
           {ehGestor ? (
             <>
               <ItemMenu
+                icon="calendario"
+                rotulo="Reunião e avisos"
+                onClick={() => {
+                  setPerfilAberto(false);
+                  onIr('avisos');
+                }}
+              />
+              <ItemMenu
                 icon="documento"
                 rotulo="Boletim automático"
                 onClick={() => {
@@ -258,6 +268,14 @@ export function MinhasObras({
             }}
           />
           <ItemMenu
+            icon="sino"
+            rotulo="Avisos neste celular"
+            onClick={() => {
+              setPerfilAberto(false);
+              setAvisos(true);
+            }}
+          />
+          <ItemMenu
             icon="cadeado"
             rotulo="Trocar senha"
             onClick={() => {
@@ -270,6 +288,8 @@ export function MinhasObras({
       </BottomSheet>
 
       <TrocarSenha aberto={trocarSenha} onFechar={() => setTrocarSenha(false)} />
+
+      <AvisosCelularSheet aberto={avisos} onFechar={() => setAvisos(false)} />
 
       <EditarNome
         aberto={editarNome}
