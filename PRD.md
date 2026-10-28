@@ -117,7 +117,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 ### 5.7 Check list (pendências de qualidade)
 - Na obra, a aba se chama **Check list** e fica depois de Cronograma (abas: Fases, Providências, Cronograma, Check list). Um botão **"i"** explica como funciona.
 - Duas abas, com as contagens: **Pendências | Resolvidos** (28/10/2026: sem fila e sem adiar).
-- **Pendências:** botão **Fotos | Lista**. Fotos: uma foto por vez (foto do antes, criticidade, local, atividade e quem apontou), das **altas para as baixas**, com "1 de N".
+- **Pendências:** em **Fotos** ou em **Lista**; a troca é um botão com texto na linha do contador ("Ver em lista" / "Ver em fotos"). Fotos: uma foto por vez (foto do antes, criticidade, local, atividade e quem apontou), das **altas para as baixas**, com "1 de N".
   - Deslizar para a **esquerda**, ou o botão "Resolvida", abre a câmera com a **foto do antes em transparência** (ghost) para alinhar a foto de depois. A pendência vai direto para Resolvidos (sem vistoria).
   - Deslizar para a **direita**, ou "Próxima", só passa para a próxima foto (da última volta à primeira). Nada muda na pendência.
   - Não existe adiar nem data de retorno.

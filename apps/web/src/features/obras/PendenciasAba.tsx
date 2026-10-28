@@ -159,42 +159,40 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
 
       {aba === 'pendentes' ? (
         <>
-          {/* Opção B: a mesma aba alterna entre passar as fotos e ver a lista. */}
-          <div className={styles.vistaLinha}>
-            <span className={styles.vistaResumo}>
-              {pendentes.length} {pendentes.length === 1 ? 'pendente' : 'pendentes'}
-            </span>
-            <div className={styles.vista} role="group" aria-label="Ver pendências como">
-              <button
-                type="button"
-                aria-pressed={vista === 'fotos'}
-                className={`${styles.vistaBtn} ${vista === 'fotos' ? styles.vistaOn : ''}`}
-                onClick={() => setVista('fotos')}
-              >
-                <Icon name="camera" size={16} strokeWidth={2} />
-                Fotos
-              </button>
-              <button
-                type="button"
-                aria-pressed={vista === 'lista'}
-                className={`${styles.vistaBtn} ${vista === 'lista' ? styles.vistaOn : ''}`}
-                onClick={() => setVista('lista')}
-              >
-                <Icon name="fases" size={16} strokeWidth={2} />
-                Lista
-              </button>
-            </div>
-          </div>
-
           {vista === 'fotos' ? (
             <PendenciaDeck
               pendencias={pendentes}
               onResolver={setResolver}
               onMais={setMenuPend}
               onFoto={(p) => abrirFoto(p)}
+              acao={
+                <button
+                  type="button"
+                  className={styles.trocaVista}
+                  onClick={() => setVista('lista')}
+                >
+                  <Icon name="fases" size={18} strokeWidth={2} />
+                  Ver em lista
+                </button>
+              }
             />
           ) : (
             <div className={styles.grupos}>
+              {/* Opção B do protótipo: a troca fica na linha do contador, com texto. */}
+              <div className={styles.vistaLinha}>
+                <span className={styles.vistaResumo}>
+                  {pendentes.length} {pendentes.length === 1 ? 'pendente' : 'pendentes'} · por
+                  criticidade
+                </span>
+                <button
+                  type="button"
+                  className={styles.trocaVista}
+                  onClick={() => setVista('fotos')}
+                >
+                  <Icon name="camera" size={18} strokeWidth={2} />
+                  Ver em fotos
+                </button>
+              </div>
               {grupos.map((g) => (
                 <section key={g.criticidade} className={styles.grupo}>
                   <h3 className={styles.grupoTitulo}>
