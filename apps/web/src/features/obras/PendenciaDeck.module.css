@@ -5,7 +5,10 @@
 }
 .pilha {
   position: relative;
-  height: clamp(340px, calc(100dvh - 380px), 520px);
+  /* O card cabe na tela junto com o resto, para "Resolvida" e "Próxima" ficarem
+     acima do menu inferior: cabeçalho da obra, abas, Fotos | Lista, contador,
+     botões, dica e o menu inferior somam ~520 px (com a área do iPhone). */
+  height: clamp(260px, calc(100dvh - 520px - env(safe-area-inset-bottom, 0px)), 520px);
 }
 .cardAtras {
   position: absolute;
