@@ -88,7 +88,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
   - O mapa é um **check**: o quadrado no card marca "pronto para decisão de contratação" (na data, sem pedir nada). Sem foto e sem pontos; não conta no avanço da obra. **"+ Quem foi contratado"** é opcional e pode ser preenchido depois (sugere nomes já usados).
 - Estados de fase: concluída, em execução, planejada e com atraso (vermelho).
 - Ao expandir uma fase, as atividades aparecem com estado (concluída, atrasada ou a executar, com as datas previstas e o lembrete que falta, se houver), o prestador (quando informado) sem botão de câmera no card: concluir (com ou sem foto) é pela ficha, ao tocar no item. Concluída sem foto aparece como "Concluída · sem foto". **Não existe atividade bloqueada.**
-- **Avanço parcial** (28/10/2026): cada atividade tem um anel à esquerda; cada toque soma 25% (25, 50, 75) e o quarto toque conclui sem foto. O card mostra "50% feito" e uma barra fina, e o % parcial entra no avanço da fase e da obra (pelo peso da atividade). Na ficha, os cards **25 · 50 · 75 · Pronta** ajustam, voltam (tocar no card marcado volta um passo) ou concluem. Toda mudança tem Desfazer. Mapa de coleta continua só check.
+- **Avanço parcial** (28/10/2026): cada atividade tem um anel à esquerda; cada toque soma 25% (25, 50, 75) e o quarto toque conclui sem foto. O card mostra "50% feito" e uma barra fina, e o % parcial entra no avanço da fase e da obra (pelo peso da atividade). Na ficha, o rodapé **25 · 50 · 75 · Pronta · Foto** ajusta, volta (tocar no passo marcado volta um) ou conclui. Toda mudança tem Desfazer. Mapa de coleta continua só check.
 - Tocar na atividade abre a **ficha da atividade** (5.5).
 - Ao concluir a última atividade de uma fase: **celebração** de fase concluída com a lista do que foi liberado.
 - No fim da trilha, **tarja preta da Inauguração** com a data por extenso, os dias úteis restantes e, se houver atraso, quanto o ritmo atual atrasa.
@@ -104,7 +104,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 - **Prestador da atividade:** campo de texto opcional com o nome de quem executa. Não tem valor nem vínculo com compras.
 - Lista **"Para começar"**: os lembretes da atividade, com o botão "+ Contratação / + Locação / + Compra".
 - Depende de / Libera.
-- Rodapé fixo em toda atividade aberta (protótipo A1): **"✓ Marcar como resolvida"** (conclui na hora, sem foto, com Desfazer) e, ao lado, o botão de câmera para concluir com foto; concluída sem foto, "Anexar foto". Concluída (com ou sem foto): **"Voltar para pendente"**, para qualquer pessoa da equipe, com Desfazer (que conclui de novo com a mesma foto).
+- Rodapé fixo em toda atividade aberta (protótipo, opção D, 28/10/2026): **25% · 50% · 75% · Pronta · Foto** numa linha. Os passos vão e voltam livremente (tocar no marcado volta um), **Pronta** conclui na hora sem foto (com Desfazer) e **Foto** conclui com foto. Avançar e concluir ficam só aqui (saíram o "Marcar como resolvida" e os cards do topo); concluída sem foto, "Anexar foto". Concluída (com ou sem foto): **"Voltar para pendente"**, para qualquer pessoa da equipe, com Desfazer (que conclui de novo com a mesma foto).
 
 ### 5.6 Providências (lembretes de contratação, locação e compra)
 - Cada lembrete tem só: **tipo**, **o que providenciar**, **data em que precisa estar na obra** (padrão: início da atividade, editável) e **situação** (A providenciar ou Providenciado).

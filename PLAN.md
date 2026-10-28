@@ -308,6 +308,8 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-28 · **Ficha: avanço e concluir num lugar só (opção D do protótipo).** O rodapé fixo virou 25% · 50% · 75% · Pronta · Foto numa linha (ir e voltar livremente; Pronta conclui sem foto; Foto conclui com foto). Saíram o "Marcar como resolvida" e os cards do topo, que faziam a mesma coisa. Rodapé com mais respiro embaixo, longe da borda da tela. · pedido do usuário · usuário
+
 - 2026-10-28 · **Avanço parcial por atividade (opção C + B do protótipo):** anel na trilha (cada toque +25%, o quarto conclui sem foto) e cards 25 · 50 · 75 · Pronta na ficha. O parcial conta no % da obra pelo peso da atividade (fecha a Q2). Coluna `obra_atividade.avanco_pct` (0..99) e RPC `definir_avanco` (offline, idempotente, evento `avanco`). Concluir continua por `concluir_atividade`; reabrir mantém o avanço anterior. Mapa de coleta fica fora (é check). · pedido do usuário · usuário
 
 - 2026-10-28 · **"Trocar senha" no menu do perfil:** a pessoa logada digita e repete a nova senha (mín. 6), sem sair da conta nem depender de e-mail (`auth.updateUser`). O "Esqueci a senha" do login continua para quem não lembra a senha. · usuário
