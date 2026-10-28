@@ -301,6 +301,21 @@ export async function restaurarPendencia(id: string, clientOpId?: string): Promi
   if (error) throw error;
 }
 
+/** Concluída volta para pendente, mantendo ou tirando a foto do depois. */
+export async function reabrirPendencia(
+  id: string,
+  manterFoto: boolean,
+  clientOpId?: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('reabrir_pendencia', {
+    p_id: id,
+    p_manter_foto: manterFoto,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}
+
 export async function trazerPendencia(id: string, clientOpId?: string): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('trazer_pendencia', {

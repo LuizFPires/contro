@@ -16,9 +16,10 @@ export function ChecklistInfo({ aberto, onFechar }: { aberto: boolean; onFechar:
             criticidade e a atividade.
           </li>
           <li>
-            <b>Fila:</b> cada item aberto vira um card. Para a direita (ou "Resolvida"), tire a foto
-            do depois, com o antes em transparência para alinhar. Para a esquerda (ou "Adiar"),
-            escolha a data de volta e o motivo: ele sai da fila e volta sozinho nessa data.
+            <b>Fila:</b> cada item aberto vira um card, das altas para as baixas (criticidade). Para
+            a direita (ou "Resolvida"), tire a foto do depois, com o antes em transparência para
+            alinhar. Para a esquerda (ou "Adiar"), escolha a data de volta e o motivo: ele sai da
+            fila e volta sozinho nessa data.
           </li>
           <li>
             <b>Vistoria:</b> outra pessoa, não quem resolveu, compara o antes e o depois e escolhe
