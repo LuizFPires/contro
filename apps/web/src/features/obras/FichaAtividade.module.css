@@ -490,3 +490,12 @@
 .menuItem:active {
   background: rgb(24 24 24 / 6%);
 }
+
+/* Número da atividade (#24), o mesmo da trilha e do modelo. */
+.numero {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #464646;
+}

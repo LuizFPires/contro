@@ -12,8 +12,9 @@ export function montarTrilha(obra: ObraCompleta): FaseTrilha[] {
     atividades: topo.map((a) => ({
       id: a.id,
       fase_id: a.fase_id,
-      // Pré-obra com o número (#1, #2…) para achar fácil nas ligações.
-      nome: a.preObra ? `#${num.get(a.id)} ${a.nome}` : a.nome,
+      // Todas com o número (#1, #2…), como no modelo, para a pessoa se localizar.
+      // O número vem do app (não do nome), então nunca aparece duas vezes.
+      nome: `#${num.get(a.id)} ${a.nome}`,
       predecessoras: a.predecessoras,
       prestador: a.prestador,
       temFoto: Boolean(a.foto_conclusao_id),
