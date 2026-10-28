@@ -117,7 +117,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 ### 5.7 Check list (pendências de qualidade)
 - Na obra, a aba se chama **Check list** e fica depois de Cronograma (abas: Fases, Providências, Cronograma, Check list). Um botão **"i"** explica como funciona.
 - Alternância **Fila | Lista completa**, com as contagens.
-- **Fila:** pilha de cards com a foto do antes, criticidade, local, atividade e quem apontou.
+- **Fila:** pilha de cards com a foto do antes, criticidade, local, atividade e quem apontou. Ordem por **criticidade**: altas no topo, médias no meio, baixas no fim (28/10/2026).
   - Arrastar para a direita, ou o botão "Resolvida", abre a câmera com a **foto do antes em transparência** (ghost) para alinhar a foto de depois. A pendência vai para "Em vistoria".
   - Arrastar para a esquerda, ou o botão "Adiar", pede **data de retorno** e **motivo** (aguardando material, aguardando outra equipe, local sem acesso ou outro). A pendência sai da fila e volta sozinha na data escolhida. O aviso traz "Desfazer".
 - **Lista completa:** Na fila (com "Resolver agora"), Adiadas (data de volta, motivo e "Trazer para a fila"), Em vistoria ("Vistoriar") e Concluídas. Cada item tem "⋯" com **Editar pendência** (o que, local, criticidade, atividade) e **Apagar pendência** (exclusão lógica, com Desfazer). Foto errada: apagar e apontar de novo (28/10/2026).

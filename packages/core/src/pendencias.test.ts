@@ -50,6 +50,20 @@ describe('classificarPendencias', () => {
   });
 });
 
+describe('fila por criticidade', () => {
+  it('altas no topo, médias no meio, baixas no fim; empate por ordem_fila', () => {
+    const ps = [
+      { ...base({ id: 'b1', ordem_fila: -5 }), criticidade: 'baixa' as const },
+      { ...base({ id: 'm1', ordem_fila: 3 }), criticidade: 'media' as const },
+      { ...base({ id: 'a1', ordem_fila: 9 }), criticidade: 'alta' as const },
+      { ...base({ id: 'a2', ordem_fila: -1 }), criticidade: 'alta' as const },
+      base({ id: 'semCrit', ordem_fila: 0 }), // ausente = média
+    ];
+    const r = classificarPendencias(ps, '2026-10-24');
+    expect(r.fila.map((p) => p.id)).toEqual(['a2', 'a1', 'semCrit', 'm1', 'b1']);
+  });
+});
+
 describe('podeVistoriar (regra 5)', () => {
   it('bloqueia quem resolveu', () => {
     expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: 'p1' }, 'p1')).toBe(false);

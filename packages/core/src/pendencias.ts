@@ -12,7 +12,12 @@ export interface Pendencia {
   ordem_fila: number;
   adiada_ate: DataISO | null;
   resolvida_por: string | null;
+  /** Ordena a fila: alta, média, baixa (ausente = média). */
+  criticidade?: Criticidade;
 }
+
+/** Peso da criticidade na fila (menor vem antes). */
+const PESO_CRITICIDADE: Record<Criticidade, number> = { alta: 0, media: 1, baixa: 2 };
 
 /** Na fila = aberta e sem adiamento vigente (datas ISO comparam lexicograficamente). */
 export function estaNaFila(p: Pick<Pendencia, 'status' | 'adiada_ate'>, hoje: DataISO): boolean {
@@ -20,13 +25,18 @@ export function estaNaFila(p: Pick<Pendencia, 'status' | 'adiada_ate'>, hoje: Da
 }
 
 export interface PendenciasClassificadas<T extends Pendencia> {
-  fila: T[]; // aberta, na fila, ordenada por ordem_fila
+  fila: T[]; // aberta, na fila: alta, média, baixa; dentro de cada uma, por ordem_fila
   adiadas: T[]; // aberta, com adiada_ate futura
   emVistoria: T[];
   concluidas: T[];
 }
 
-/** Separa as pendências nas quatro listas da tela, ordenando a fila por ordem_fila. */
+/**
+ * Separa as pendências nas quatro listas da tela. A fila vai por criticidade
+ * (pedido do usuário, 28/10/2026): altas no topo, médias no meio, baixas no fim;
+ * dentro da mesma criticidade, por ordem_fila ("Resolver agora" e "Trazer para
+ * a fila" sobem a pendência no grupo dela).
+ */
 export function classificarPendencias<T extends Pendencia>(
   pendencias: T[],
   hoje: DataISO,
@@ -41,7 +51,11 @@ export function classificarPendencias<T extends Pendencia>(
     else if (estaNaFila(p, hoje)) fila.push(p);
     else adiadas.push(p);
   }
-  fila.sort((a, b) => a.ordem_fila - b.ordem_fila);
+  fila.sort(
+    (a, b) =>
+      PESO_CRITICIDADE[a.criticidade ?? 'media'] - PESO_CRITICIDADE[b.criticidade ?? 'media'] ||
+      a.ordem_fila - b.ordem_fila,
+  );
   return { fila, adiadas, emVistoria, concluidas };
 }
 
