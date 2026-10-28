@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   classificarPendencias,
   pendenteHa,
-  podeVistoriar,
+  pendentesPorCriticidade,
   proximaPendencia,
   topoFila,
   type Pendencia,
@@ -16,17 +16,17 @@ const base = (p: Partial<Pendencia>): Pendencia => ({
 });
 
 describe('classificarPendencias', () => {
-  it('separa em pendentes, em vistoria e vistoriadas (sem adiadas)', () => {
+  it('separa em pendentes e resolvidas (em vistoria antiga conta como resolvida)', () => {
     const ps = [
       base({ id: 'a', status: 'aberta', ordem_fila: 2 }),
       base({ id: 'b', status: 'aberta', ordem_fila: -1 }),
-      base({ id: 'd', status: 'em_vistoria' }),
-      base({ id: 'e', status: 'fechada' }),
+      { ...base({ id: 'd', status: 'em_vistoria' }), resolvida_em: '2026-10-27T10:00:00Z' },
+      { ...base({ id: 'e', status: 'fechada' }), resolvida_em: '2026-10-28T09:00:00Z' },
     ];
     const r = classificarPendencias(ps);
     expect(r.pendentes.map((p) => p.id)).toEqual(['b', 'a']);
-    expect(r.emVistoria.map((p) => p.id)).toEqual(['d']);
-    expect(r.vistoriadas.map((p) => p.id)).toEqual(['e']);
+    // Resolvidas: a mais recente primeiro.
+    expect(r.resolvidas.map((p) => p.id)).toEqual(['e', 'd']);
   });
 
   it('pendentes: altas no topo, médias no meio, baixas no fim; empate por ordem_fila', () => {
@@ -55,21 +55,21 @@ describe('proximaPendencia', () => {
   });
 });
 
-describe('podeVistoriar (regra 5)', () => {
-  it('bloqueia quem resolveu', () => {
-    expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: 'p1' }, 'p1')).toBe(false);
-  });
-  it('permite outra pessoa', () => {
-    expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: 'p1' }, 'p2')).toBe(true);
-  });
-  it('só em vistoria', () => {
-    expect(podeVistoriar({ status: 'aberta', resolvida_por: null }, 'p2')).toBe(false);
-  });
-  it('sem pessoa identificada, bloqueia', () => {
-    expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: 'p1' }, null)).toBe(false);
-  });
-  it('resolvedor desconhecido (null, patch otimista offline) não libera vistoria', () => {
-    expect(podeVistoriar({ status: 'em_vistoria', resolvida_por: null }, 'p1')).toBe(false);
+describe('pendentesPorCriticidade', () => {
+  it('agrupa em alta, média e baixa, só os grupos com itens', () => {
+    const ps = [
+      { ...base({ id: 'a' }), criticidade: 'alta' as const },
+      { ...base({ id: 'b' }), criticidade: 'baixa' as const },
+      base({ id: 'c' }), // ausente = média
+    ];
+    expect(
+      pendentesPorCriticidade(ps).map((g) => [g.criticidade, g.itens.map((p) => p.id)]),
+    ).toEqual([
+      ['alta', ['a']],
+      ['media', ['c']],
+      ['baixa', ['b']],
+    ]);
+    expect(pendentesPorCriticidade([])).toEqual([]);
   });
 });
 
