@@ -263,6 +263,7 @@ Efeito de reabrir: se `efeito_providencia_id` aponta para uma providência `feit
 | `adiar_pendencia(id, data, motivo)`, `trazer_pendencia(id)` | gestor, equipe | — |
 | `salvar_tarefa`, `concluir_tarefa`, `reabrir_tarefa`, `excluir_tarefa` | gestor, equipe | Grava `tarefa_evento`. `salvar_tarefa` aceita `p_observacao` e `p_responsavel_nome` (só vale sem `p_responsavel_id`; registra a sugestão) |
 | `fechar_reuniao(id)` | gestor | Materializa `reuniao_obra.snapshot` e gera o PDF da ata |
+| `reabrir_reuniao(id)` | gestor | Ata fechada volta a ser pauta e ganha as obras ativas de hoje (observações e snapshots ficam) |
 | `gerar_boletim(obra_id, edicao)` | sistema (cron) ou usuário | Snapshot, texto do WhatsApp e PDF |
 
 Todas são idempotentes por `client_op_id` (uuid gerado no aparelho), para a fila offline poder reenviar sem duplicar.

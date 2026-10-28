@@ -370,3 +370,30 @@
   font-size: 14px;
   color: #696969;
 }
+
+/* Ata fechada sem obras: explicação e "Reabrir pauta" (só gestor). */
+.vazioBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+}
+.reabrirPauta {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  font: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.reabrirPauta:disabled {
+  opacity: 0.6;
+}

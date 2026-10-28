@@ -38,6 +38,13 @@ export interface SnapshotObra {
   snapshot: { pct: number; ritmoDias: number; entrega: string };
 }
 
+/** Gestor reabre a pauta de uma reunião fechada (ela ganha as obras ativas de hoje). */
+export async function reabrirReuniao(id: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('reabrir_reuniao', { p_id: id });
+  if (error) throw error;
+}
+
 export async function fecharReuniao(id: string, snapshots: SnapshotObra[]): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('fechar_reuniao', { p_id: id, p_snapshots: snapshots });

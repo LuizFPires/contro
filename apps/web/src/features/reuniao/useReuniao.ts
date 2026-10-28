@@ -7,7 +7,13 @@ import {
   salvarTarefa,
   type EntradaTarefa,
 } from '../obras/campo';
-import { fecharReuniao, loadReuniao, salvarObservacao, type SnapshotObra } from './reuniaoApi';
+import {
+  fecharReuniao,
+  loadReuniao,
+  reabrirReuniao,
+  salvarObservacao,
+  type SnapshotObra,
+} from './reuniaoApi';
 
 /** data no formato ISO (segunda da semana). */
 export function useReuniao(data: string) {
@@ -28,6 +34,12 @@ export function useReuniao(data: string) {
 
   const fechar = useMutation({
     mutationFn: (v: { id: string; snapshots: SnapshotObra[] }) => fecharReuniao(v.id, v.snapshots),
+    onSuccess: inval,
+  });
+
+  /** Gestor reabre a pauta (ata fechada que ficou vazia, por exemplo). */
+  const reabrir = useMutation({
+    mutationFn: (id: string) => reabrirReuniao(id),
     onSuccess: inval,
   });
 
@@ -54,5 +66,5 @@ export function useReuniao(data: string) {
     onSuccess: inval,
   });
 
-  return { query, observacao, fechar, salvarProvidencia, concluirAtv, marcarFeita };
+  return { query, observacao, fechar, salvarProvidencia, concluirAtv, marcarFeita, reabrir };
 }
