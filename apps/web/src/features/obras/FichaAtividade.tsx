@@ -257,34 +257,6 @@ export function FichaAtividade({
             </div>
           </div>
 
-          {!mapa && !a.pai_id ? (
-            // Avanço parcial (opção B): 25 · 50 · 75 · Pronta. O mesmo card volta um passo.
-            <section className={styles.secao}>
-              <h3 className={styles.rotulo}>Avanço</h3>
-              <div className={styles.avanco} role="group" aria-label="Avanço da atividade">
-                {PASSOS_AVANCO.map((v) => {
-                  const atual = a.concluida_em ? 100 : a.avanco_pct;
-                  const marcado = v <= atual;
-                  return (
-                    <button
-                      key={v}
-                      type="button"
-                      className={`${styles.passo} ${marcado ? styles.passoOn : ''} ${
-                        v === atual ? styles.passoAtual : ''
-                      }`}
-                      aria-pressed={marcado}
-                      disabled={avanco.pendente}
-                      onClick={() => avanco.card(a.id, v)}
-                    >
-                      {marcado ? <Icon name="checkGrosso" size={16} strokeWidth={3} /> : null}
-                      {v === 100 ? 'Pronta' : `${v}%`}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          ) : null}
-
           <CampoPrestador
             key={a.id}
             atividadeId={a.id}
@@ -510,25 +482,41 @@ export function FichaAtividade({
             </button>
           </div>
         ) : podeConcluir ? (
-          // Protótipo A1: "resolvido" fixo no rodapé, em toda atividade aberta.
-          <div className={styles.rodapeConcluir}>
+          // Opção D do protótipo: avanço e concluir num lugar só, no rodapé fixo.
+          // 25 · 50 · 75 · Pronta (vai e volta; o passo marcado volta um) e a Foto
+          // ao lado do Pronta, para concluir com foto.
+          <div
+            className={`${styles.rodapeConcluir} ${styles.rodapeAvanco}`}
+            role="group"
+            aria-label="Avanço da atividade"
+          >
+            {PASSOS_AVANCO.map((v) => {
+              const marcado = v <= a.avanco_pct;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  className={`${styles.passo} ${marcado ? styles.passoOn : ''} ${
+                    v === a.avanco_pct ? styles.passoAtual : ''
+                  }`}
+                  aria-pressed={marcado}
+                  disabled={avanco.pendente}
+                  onClick={() => avanco.card(a.id, v)}
+                >
+                  {marcado ? <Icon name="checkGrosso" size={14} strokeWidth={3} /> : null}
+                  {v === 100 ? 'Pronta' : `${v}%`}
+                </button>
+              );
+            })}
             <button
               type="button"
-              className={styles.comFoto}
+              className={styles.passoFoto}
               aria-label="Concluir com foto"
               disabled={conclusao.pendente}
               onClick={() => setCamera('concluir')}
             >
-              <Icon name="camera" size={22} strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              className={styles.concluir}
-              disabled={conclusao.pendente}
-              onClick={() => conclusao.concluir(a.id, null, (r, det) => onConcluida(r, det))}
-            >
-              <Icon name="checkGrosso" size={18} strokeWidth={3} />
-              {conclusao.pendente ? 'Concluindo…' : 'Marcar como resolvida'}
+              <Icon name="camera" size={20} strokeWidth={2} />
+              Foto
             </button>
           </div>
         ) : null}
