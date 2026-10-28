@@ -228,6 +228,7 @@ aberta ──resolver(foto_depois)──▶ em_vistoria ──aprovar(outra pess
   └──────────reabrir(motivo)────────────┘
 ```
 Fila = `status='aberta' AND (adiada_ate IS NULL OR adiada_ate <= hoje)`, ordenada por `ordem_fila`. "Resolver agora" e "Trazer para a fila" levam a pendência ao topo: `ordem_fila = min − 1` e `adiada_ate = null`.
+Em qualquer estado, qualquer membro corrige a pendência (`editar_pendencia`: título, local, criticidade, atividade da mesma obra; evento `editada` com o antes) ou a apaga (`excluir_pendencia`, exclusão lógica, evento `excluida`; Desfazer por `restaurar_pendencia`). Todas idempotentes por `client_op_id` (offline).
 
 **Tarefa**
 ```

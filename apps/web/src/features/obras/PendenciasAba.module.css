@@ -316,3 +316,67 @@
   flex-direction: column;
   gap: 8px;
 }
+
+/* Lista completa: "⋯" de cada item e a folha com Editar / Apagar. */
+.mais {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  margin-right: -6px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.menuPend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.menuPendTopo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.menuPendFoto {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgb(24 24 24 / 8%);
+}
+.menuPendFoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.menuPendItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.menuPendItem:active {
+  background: rgb(24 24 24 / 6%);
+}
+.menuPendDica {
+  margin: 4px 12px 0;
+  font-size: 13px;
+  color: #696969;
+}

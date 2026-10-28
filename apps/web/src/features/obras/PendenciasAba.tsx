@@ -1,16 +1,17 @@
 import { useMemo, useState } from 'react';
 import { classificarPendencias, pendenteHa, podeVistoriar } from '@contro/core';
-import { Icon, useToast } from '@contro/ui';
+import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { AdiarSheet } from './AdiarSheet';
-import { ApontarSheet } from './ApontarSheet';
+import { ApontarSheet, EditarPendenciaSheet } from './ApontarSheet';
 import { Camera } from './Camera';
 import { ChecklistInfo } from './ChecklistInfo';
 import { PendenciaDeck } from './PendenciaDeck';
 import type { ObraCompleta } from './detalhe';
 import type { PendenciaObra } from './pendenciasObra';
+import type { NovaPendencia } from './campo';
 import { useObraPendencias } from './useObraPendencias';
 import styles from './PendenciasAba.module.css';
 
@@ -35,9 +36,47 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
     [lista, hoje],
   );
 
-  const atividades = obra.atividades
-    .filter((a) => !a.pai_id)
-    .map((a) => ({ id: a.id, nome: a.nome }));
+  // Lista completa: "⋯" de um item (editar, apagar) e a edição aberta.
+  const [menuPend, setMenuPend] = useState<PendenciaObra | null>(null);
+  const [editando, setEditando] = useState<PendenciaObra | null>(null);
+  const inicialEdicao = useMemo<NovaPendencia | null>(
+    () =>
+      editando
+        ? {
+            titulo: editando.titulo,
+            local: editando.local,
+            criticidade: editando.criticidade,
+            atividadeId: editando.atividade_id,
+          }
+        : null,
+    [editando],
+  );
+
+  function apagar(p: PendenciaObra) {
+    // Exclusão lógica (regra 7), com Desfazer (regra 10).
+    setMenuPend(null);
+    campo.excluir.mutate(p.id);
+    showToast({ message: `"${p.titulo}" apagada`, onUndo: () => campo.restaurar.mutate(p) });
+  }
+
+  function salvarEdicao(dados: NovaPendencia) {
+    const p = editando;
+    if (!p) return;
+    setEditando(null);
+    const nomeDe = (id: string | null) =>
+      id ? (obra.atividades.find((a) => a.id === id)?.nome ?? null) : null;
+    campo.editar.mutate({ id: p.id, dados, atividadeNome: nomeDe(dados.atividadeId) });
+    const antes: NovaPendencia = {
+      titulo: p.titulo,
+      local: p.local,
+      criticidade: p.criticidade,
+      atividadeId: p.atividade_id,
+    };
+    showToast({
+      message: 'Pendência salva',
+      onUndo: () => campo.editar.mutate({ id: p.id, dados: antes, atividadeNome: p.atividadeNome }),
+    });
+  }
 
   function confirmarAdiar(data: string, motivo: string) {
     const p = adiar;
@@ -141,6 +180,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
               <Linha
                 key={p.id}
                 p={p}
+                onMais={() => setMenuPend(p)}
                 sub={i === 0 ? 'Primeira da fila' : `Aberta há ${pendenteHa(p.apontada_em, hoje)}`}
                 acao={
                   i > 0
@@ -155,6 +195,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
               <Linha
                 key={p.id}
                 p={p}
+                onMais={() => setMenuPend(p)}
                 apagada
                 sub={`Volta ${p.adiada_ate ? formatarDataCurta(p.adiada_ate) : '—'} · ${p.motivo_adiamento || 'sem motivo'}`}
                 acao={{
@@ -170,13 +211,22 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
               <Linha
                 key={p.id}
                 p={p}
+                onMais={() => setMenuPend(p)}
                 sub={`Resolvida por ${p.resolveuNome ?? '—'}`}
                 acao={{ txt: 'Vistoriar', tipo: 'preto', fn: () => setModo('vistoria') }}
               />
             )}
           </Grupo>
           <Grupo titulo="Concluídas" itens={concluidas}>
-            {(p) => <Linha key={p.id} p={p} fechada sub="Antes e depois arquivados" />}
+            {(p) => (
+              <Linha
+                key={p.id}
+                p={p}
+                fechada
+                sub="Antes e depois arquivados"
+                onMais={() => setMenuPend(p)}
+              />
+            )}
           </Grupo>
           {lista.length === 0 ? (
             <div className={styles.vazio}>Nenhuma pendência registrada nesta obra.</div>
@@ -252,7 +302,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
 
       <ApontarSheet
         aberto={apontar}
-        atividades={atividades}
+        obra={obra}
         pendente={campo.apontar.isPending}
         onFechar={() => setApontar(false)}
         onApontar={(dados, file) =>
@@ -290,6 +340,51 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
         onConfirmar={confirmarAdiar}
       />
       <ChecklistInfo aberto={info} onFechar={() => setInfo(false)} />
+
+      <BottomSheet open={Boolean(menuPend)} onClose={() => setMenuPend(null)}>
+        {menuPend ? (
+          <div className={styles.menuPend}>
+            <div className={styles.menuPendTopo}>
+              <div className={styles.menuPendFoto}>
+                {menuPend.fotoAntesUrl ? (
+                  <img src={menuPend.fotoAntesUrl} alt="Foto do antes" />
+                ) : null}
+              </div>
+              <div className={styles.info}>
+                <div className={styles.desc}>{menuPend.titulo}</div>
+                <div className={styles.meta}>
+                  {[menuPend.local, menuPend.atividadeNome ?? 'Geral'].filter(Boolean).join(' · ')}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              className={styles.menuPendItem}
+              onClick={() => {
+                setEditando(menuPend);
+                setMenuPend(null);
+              }}
+            >
+              <Icon name="editar" size={20} />
+              Editar pendência
+            </button>
+            <button type="button" className={styles.menuPendItem} onClick={() => apagar(menuPend)}>
+              <Icon name="lixeira" size={20} />
+              Apagar pendência
+            </button>
+            <p className={styles.menuPendDica}>
+              Foto errada? Apague e aponte de novo com a foto certa.
+            </p>
+          </div>
+        ) : null}
+      </BottomSheet>
+
+      <EditarPendenciaSheet
+        obra={obra}
+        inicial={inicialEdicao}
+        onFechar={() => setEditando(null)}
+        onSalvar={salvarEdicao}
+      />
     </div>
   );
 }
@@ -320,12 +415,15 @@ function Linha({
   apagada,
   fechada,
   acao,
+  onMais,
 }: {
   p: PendenciaObra;
   sub: string;
   apagada?: boolean;
   fechada?: boolean;
   acao?: { txt: string; tipo: 'turquesa' | 'branco' | 'preto'; fn: () => void };
+  /** "⋯": editar ou apagar a pendência. */
+  onMais?: () => void;
 }) {
   return (
     <div className={styles.linha}>
@@ -348,6 +446,16 @@ function Linha({
           onClick={acao.fn}
         >
           {acao.txt}
+        </button>
+      ) : null}
+      {onMais ? (
+        <button
+          type="button"
+          className={styles.mais}
+          aria-label={`Mais opções de "${p.titulo}"`}
+          onClick={onMais}
+        >
+          <Icon name="more" size={22} />
         </button>
       ) : null}
     </div>

@@ -264,6 +264,43 @@ export async function adiarPendencia(
   if (error) throw error;
 }
 
+/** Corrige texto, local, criticidade e atividade da pendência (com evento). */
+export async function editarPendencia(
+  id: string,
+  dados: NovaPendencia,
+  clientOpId?: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('editar_pendencia', {
+    p_id: id,
+    p_titulo: dados.titulo,
+    p_local: dados.local,
+    p_criticidade: dados.criticidade,
+    p_atividade_id: dados.atividadeId,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}
+
+/** Apaga (exclusão lógica) ou restaura a pendência, idempotente pela op. */
+export async function excluirPendencia(id: string, clientOpId?: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('excluir_pendencia', {
+    p_id: id,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}
+
+export async function restaurarPendencia(id: string, clientOpId?: string): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('restaurar_pendencia', {
+    p_id: id,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}
+
 export async function trazerPendencia(id: string, clientOpId?: string): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('trazer_pendencia', {
