@@ -1,7 +1,7 @@
-// Pendências de qualidade (SPEC §5). Fila, classificação e a regra de vistoria
+// Pendências de qualidade (SPEC §5). Pendentes x Resolvidos e a regra de vistoria
 // (regra 5: quem resolveu não vistoria). A transição é garantida no servidor
 // (RPCs); estas funções são a mesma regra para o cliente derivar e desabilitar.
-import { addDU, type DataISO } from './calendar';
+import type { DataISO } from './calendar';
 
 export type StatusPendencia = 'aberta' | 'em_vistoria' | 'fechada';
 export type Criticidade = 'alta' | 'media' | 'baixa';
@@ -10,7 +10,6 @@ export interface Pendencia {
   id: string;
   status: StatusPendencia;
   ordem_fila: number;
-  adiada_ate: DataISO | null;
   resolvida_por: string | null;
   /** Ordena a fila: alta, média, baixa (ausente = média). */
   criticidade?: Criticidade;
@@ -19,44 +18,42 @@ export interface Pendencia {
 /** Peso da criticidade na fila (menor vem antes). */
 const PESO_CRITICIDADE: Record<Criticidade, number> = { alta: 0, media: 1, baixa: 2 };
 
-/** Na fila = aberta e sem adiamento vigente (datas ISO comparam lexicograficamente). */
-export function estaNaFila(p: Pick<Pendencia, 'status' | 'adiada_ate'>, hoje: DataISO): boolean {
-  return p.status === 'aberta' && (p.adiada_ate === null || p.adiada_ate <= hoje);
-}
-
 export interface PendenciasClassificadas<T extends Pendencia> {
-  fila: T[]; // aberta, na fila: alta, média, baixa; dentro de cada uma, por ordem_fila
-  adiadas: T[]; // aberta, com adiada_ate futura
+  /** Abertas, das altas para as baixas; dentro da mesma criticidade, por ordem_fila. */
+  pendentes: T[];
+  /** Resolvidas esperando outra pessoa vistoriar (vêm primeiro em Resolvidos). */
   emVistoria: T[];
-  concluidas: T[];
+  /** Vistoriadas e fechadas. */
+  vistoriadas: T[];
 }
 
 /**
- * Separa as pendências nas quatro listas da tela. A fila vai por criticidade
- * (pedido do usuário, 28/10/2026): altas no topo, médias no meio, baixas no fim;
- * dentro da mesma criticidade, por ordem_fila ("Resolver agora" e "Trazer para
- * a fila" sobem a pendência no grupo dela).
+ * Separa as pendências em Pendentes e Resolvidos (pedido do usuário, 28/10/2026:
+ * sem fila e sem adiar). Resolvidos = em vistoria + vistoriadas. Pendentes vão
+ * por criticidade: altas no topo, médias no meio, baixas no fim.
  */
 export function classificarPendencias<T extends Pendencia>(
   pendencias: T[],
-  hoje: DataISO,
 ): PendenciasClassificadas<T> {
-  const fila: T[] = [];
-  const adiadas: T[] = [];
+  const pendentes: T[] = [];
   const emVistoria: T[] = [];
-  const concluidas: T[] = [];
+  const vistoriadas: T[] = [];
   for (const p of pendencias) {
-    if (p.status === 'fechada') concluidas.push(p);
+    if (p.status === 'fechada') vistoriadas.push(p);
     else if (p.status === 'em_vistoria') emVistoria.push(p);
-    else if (estaNaFila(p, hoje)) fila.push(p);
-    else adiadas.push(p);
+    else pendentes.push(p);
   }
-  fila.sort(
+  pendentes.sort(
     (a, b) =>
       PESO_CRITICIDADE[a.criticidade ?? 'media'] - PESO_CRITICIDADE[b.criticidade ?? 'media'] ||
       a.ordem_fila - b.ordem_fila,
   );
-  return { fila, adiadas, emVistoria, concluidas };
+  return { pendentes, emVistoria, vistoriadas };
+}
+
+/** Próxima pendência ao deslizar para a direita: a seguinte, e da última volta à primeira. */
+export function proximaPendencia(indice: number, total: number): number {
+  return total > 0 ? (indice + 1) % total : 0;
 }
 
 /**
@@ -83,19 +80,6 @@ export function podeVistoriar(
  */
 export function topoFila(ordens: number[]): number {
   return (ordens.length ? Math.min(...ordens) : 0) - 1;
-}
-
-/** Motivos de adiamento oferecidos na folha "Adiar pendência" (protótipo). */
-export const MOTIVOS_ADIAMENTO = [
-  'Aguardando material',
-  'Aguardando outra equipe',
-  'Local sem acesso',
-  'Outro',
-] as const;
-
-/** Datas para adiar: os próximos 3 dias úteis e o 6º dia útil (≈ uma semana depois). */
-export function opcoesAdiamento(hoje: DataISO): DataISO[] {
-  return [1, 2, 3, 6].map((n) => addDU(hoje, n));
 }
 
 /** "hoje", "1 dia", "4 dias": há quanto tempo (dias corridos) a pendência foi apontada. */
