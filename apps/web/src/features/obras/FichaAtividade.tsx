@@ -6,6 +6,7 @@ import {
   naObraEm,
   providenciaAtrasada,
   providenciarAte,
+  PASSOS_AVANCO,
 } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
@@ -20,6 +21,7 @@ import { LinhaPara } from './LinhaPara';
 import linhaStyles from './LinhaPara.module.css';
 import { numeracaoObra } from './numeracaoObra';
 import { useConcluirAtividade, type AoConcluir } from './useConcluirAtividade';
+import { useAvanco } from './useAvanco';
 import { useObraCampo } from './useObraCampo';
 import styles from './FichaAtividade.module.css';
 
@@ -47,6 +49,7 @@ export function FichaAtividade({
 }) {
   const campo = useObraCampo(obra.id);
   const conclusao = useConcluirAtividade(obra);
+  const avanco = useAvanco(obra, onConcluida);
   // "⋯" de um lembrete do "Para começar": abre o detalhe (editar, reabrir, excluir).
   const [detalheProvId, setDetalheProvId] = useState<string | null>(null);
   // Menu "⋯" do topo da ficha e edição do nome aberta por ele.
@@ -123,9 +126,11 @@ export function FichaAtividade({
     ? { txt: mapa ? 'Pronto' : 'Concluída', cls: styles.tagConcluida }
     : est?.atrasada
       ? { txt: 'Atrasada', cls: styles.tagAtrasada }
-      : cron && cron.inicio_previsto <= hojeISO()
-        ? { txt: 'Em andamento', cls: styles.tagLiberada }
-        : { txt: 'Planejada', cls: styles.tagPlanejada };
+      : a.avanco_pct > 0
+        ? { txt: `Em andamento · ${a.avanco_pct}%`, cls: styles.tagLiberada }
+        : cron && cron.inicio_previsto <= hojeISO()
+          ? { txt: 'Em andamento', cls: styles.tagLiberada }
+          : { txt: 'Planejada', cls: styles.tagPlanejada };
 
   // Pré-obra: o que o mapa libera e quais mapas preparam esta atividade (só aviso).
   const num = numeracaoObra(obra);
@@ -251,6 +256,34 @@ export function FichaAtividade({
               ) : null}
             </div>
           </div>
+
+          {!mapa && !a.pai_id ? (
+            // Avanço parcial (opção B): 25 · 50 · 75 · Pronta. O mesmo card volta um passo.
+            <section className={styles.secao}>
+              <h3 className={styles.rotulo}>Avanço</h3>
+              <div className={styles.avanco} role="group" aria-label="Avanço da atividade">
+                {PASSOS_AVANCO.map((v) => {
+                  const atual = a.concluida_em ? 100 : a.avanco_pct;
+                  const marcado = v <= atual;
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      className={`${styles.passo} ${marcado ? styles.passoOn : ''} ${
+                        v === atual ? styles.passoAtual : ''
+                      }`}
+                      aria-pressed={marcado}
+                      disabled={avanco.pendente}
+                      onClick={() => avanco.card(a.id, v)}
+                    >
+                      {marcado ? <Icon name="checkGrosso" size={16} strokeWidth={3} /> : null}
+                      {v === 100 ? 'Pronta' : `${v}%`}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
 
           <CampoPrestador
             key={a.id}

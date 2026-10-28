@@ -111,6 +111,29 @@ describe('trilhaDeFases', () => {
     });
   });
 
+  it('avanço parcial: "50% feito" no texto e o % para o anel', () => {
+    const e = entrada(base, {
+      atividades: [
+        atv('A', 'f1'),
+        atv('B', 'f2', { avancoPct: 40 }),
+        atv('Forro', 'f2', {
+          avancoPct: 50,
+          providenciasPendentes: [{ tipo: 'compra', descricao: 'placas' }],
+        }),
+        atv('Pintura', 'f3', { predecessoras: ['Forro'] }),
+      ],
+    });
+    const [, f2, f3] = trilhaDeFases(e);
+    expect(f2.atividades[0]).toMatchObject({ status: 'concluida', avancoPct: 100 });
+    expect(f2.atividades[1]).toMatchObject({
+      avancoPct: 50,
+      sub: 'Prevista 20/10–29/10 · 50% feito · falta compra: placas',
+    });
+    expect(f3.atividades[0]).toMatchObject({ avancoPct: 0, sub: 'Prevista 02/11–06/11' });
+    // Avanço parcial não conclui: a fase segue com 1 de 2.
+    expect(f2.concluidas).toBe(1);
+  });
+
   it('lembrete pendente só avisa: mostra o tipo e a descrição e não trava', () => {
     const e = entrada(
       { ...base, Forro: est('Forro', { lembretesPendentes: true }) },

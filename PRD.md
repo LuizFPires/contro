@@ -88,6 +88,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
   - O mapa é um **check**: o quadrado no card marca "pronto para decisão de contratação" (na data, sem pedir nada). Sem foto e sem pontos; não conta no avanço da obra. **"+ Quem foi contratado"** é opcional e pode ser preenchido depois (sugere nomes já usados).
 - Estados de fase: concluída, em execução, planejada e com atraso (vermelho).
 - Ao expandir uma fase, as atividades aparecem com estado (concluída, atrasada ou a executar, com as datas previstas e o lembrete que falta, se houver), o prestador (quando informado) sem botão de câmera no card: concluir (com ou sem foto) é pela ficha, ao tocar no item. Concluída sem foto aparece como "Concluída · sem foto". **Não existe atividade bloqueada.**
+- **Avanço parcial** (28/10/2026): cada atividade tem um anel à esquerda; cada toque soma 25% (25, 50, 75) e o quarto toque conclui sem foto. O card mostra "50% feito" e uma barra fina, e o % parcial entra no avanço da fase e da obra (pelo peso da atividade). Na ficha, os cards **25 · 50 · 75 · Pronta** ajustam, voltam (tocar no card marcado volta um passo) ou concluem. Toda mudança tem Desfazer. Mapa de coleta continua só check.
 - Tocar na atividade abre a **ficha da atividade** (5.5).
 - Ao concluir a última atividade de uma fase: **celebração** de fase concluída com a lista do que foi liberado.
 - No fim da trilha, **tarja preta da Inauguração** com a data por extenso, os dias úteis restantes e, se houver atraso, quanto o ritmo atual atrasa.
@@ -234,7 +235,7 @@ Regra de vistoria: quem vistoria a pendência (aprova o antes e depois) **não p
 | # | Questão | Proposta |
 |---|---|---|
 | Q1 | ~~Feriados~~ | **Decidido:** sem feriados no sistema; ajuste manual da data pelo usuário |
-| Q2 | Peso do % de avanço | v1: peso pela duração do modelo. Avaliar peso por custo-padrão da unidade ou % parcial (25/50/75) com foto |
+| Q2 | Peso do % de avanço | Decidido (28/10/2026): peso pela duração do modelo com **% parcial** por atividade (25/50/75; 100% conclui, com ou sem foto) |
 | Q3 | ~~Equipe real~~ | **Decidido:** começa com nomes fictícios; nomes digitados viram sugestões e o cadastro se forma com o uso |
 | Q4 | Prestador da atividade | Mantido como campo opcional; confirmar se fica |
 | Q5 | ~~Vetor do símbolo~~ | **Resolvido:** o vetor aprovado está na pasta do projeto CONTRO |

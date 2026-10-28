@@ -1,6 +1,7 @@
 // Estados derivados da obra (SPEC 4.3/4.5). O banco guarda fatos (concluída em,
 // providenciado, prazo); aqui calculamos os derivados a partir do cronograma.
 import { addDU, duEntre, type DataISO } from './calendar';
+import { normalizarAvanco } from './avanco';
 import { peso, type Cronograma } from './schedule';
 
 export interface AtividadeEstado {
@@ -34,6 +35,11 @@ export interface EntradaObra {
   concluidas: Set<string>;
   /** ids de atividades com TODAS as providências feitas (ou sem providências). */
   provOk: Set<string>;
+  /**
+   * Avanço parcial (0..100) das atividades abertas, por id. Conta no real pelo
+   * peso da atividade (pedido do usuário, 28/10/2026). Ausente = 0.
+   */
+  avanco?: Record<string, number>;
 }
 
 export interface EstadoObra {
@@ -43,6 +49,7 @@ export interface EstadoObra {
 
 export function estadoObra(e: EntradaObra): EstadoObra {
   const { cronograma, inicio, hoje, concluidas, provOk } = e;
+  const feito = (id: string) => (concluidas.has(id) ? 1 : normalizarAvanco(e.avanco?.[id]) / 100);
   const decorridos = duEntre(inicio, hoje); // 0 se hoje <= inicio
   const iniciada = hoje >= inicio;
 
@@ -59,8 +66,7 @@ export function estadoObra(e: EntradaObra): EstadoObra {
   }
 
   const sumD = cronograma.itens.reduce((s, it) => s + peso(it.dur), 0) || 1;
-  const real =
-    cronograma.itens.reduce((s, it) => s + (concluidas.has(it.id) ? peso(it.dur) : 0), 0) / sumD;
+  const real = cronograma.itens.reduce((s, it) => s + feito(it.id) * peso(it.dur), 0) / sumD;
   const prev = (x: number) =>
     cronograma.itens.reduce((s, it) => s + clamp((x - it.es) / it.dur, 0, 1) * peso(it.dur), 0) /
     sumD;

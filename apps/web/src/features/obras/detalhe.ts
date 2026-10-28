@@ -45,6 +45,8 @@ export interface ObraAtv {
   em_sequencia: boolean;
   inicio_manual: string | null;
   concluida_em: string | null;
+  /** Avanço parcial da atividade aberta (0..99); 100% é concluir. */
+  avanco_pct: number;
   /** Foto da conclusão; null = concluída sem foto (ou aberta). */
   foto_conclusao_id: string | null;
   prestador: string | null;
@@ -104,7 +106,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
       .from('obra_atividade')
       .select(
         'id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,foto_conclusao_id,prestador,' +
-          'mapa_antecedencia_du',
+          'mapa_antecedencia_du,avanco_pct',
       )
       .eq('obra_id', id)
       .is('deleted_at', null)
@@ -213,6 +215,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     cronograma: cron,
     concluidas,
     provOk,
+    avanco: Object.fromEntries(atividades.map((a) => [a.id, a.avanco_pct])),
   });
 
   // Pré-obra: datas para trás a partir do dia 0; atrasa se passou do fim previsto.

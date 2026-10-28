@@ -58,6 +58,7 @@ interface LinhaAtv {
   inicio_manual: string | null;
   concluida_em: string | null;
   mapa_antecedencia_du: number | null;
+  avanco_pct: number;
 }
 
 export async function listarUnidades(): Promise<Unidade[]> {
@@ -81,7 +82,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
         .from('obra_atividade')
         .select(
           'id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,' +
-            'mapa_antecedencia_du',
+            'mapa_antecedencia_du,avanco_pct',
         )
         .is('deleted_at', null),
       supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id,defasagem_du'),
@@ -202,6 +203,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
       cronograma: cron,
       concluidas,
       provOk,
+      avanco: Object.fromEntries(minhasAtvs.map((a) => [a.id, a.avanco_pct])),
     });
 
     // Fase atual = menor fase com atividade de topo não concluída.

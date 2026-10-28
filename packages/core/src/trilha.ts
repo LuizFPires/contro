@@ -2,6 +2,7 @@
 // estados derivados (obra.ts) e das datas previstas, monta o status e os textos
 // de cada fase e atividade. A tela só desenha o que sai daqui.
 import type { DataISO } from './calendar';
+import { normalizarAvanco, textoAvanco } from './avanco';
 import type { AtividadeEstado } from './obra';
 import type { Cronograma } from './schedule';
 
@@ -23,6 +24,8 @@ export interface TrilhaAtividadeEntrada {
   providenciasPendentes: { tipo: TipoProvidencia; descricao: string }[];
   /** Concluída com foto (a foto é opcional; ausente = com foto). */
   temFoto?: boolean;
+  /** Avanço parcial guardado (0..99); ausente = 0. */
+  avancoPct?: number;
 }
 
 export interface EntradaTrilha {
@@ -49,6 +52,8 @@ export interface AtividadeTrilha {
   podeConcluir: boolean;
   /** Concluída sem foto (dá para anexar depois). */
   semFoto: boolean;
+  /** Avanço para o anel: 100 se concluída, senão o parcial (0..99). */
+  avancoPct: number;
 }
 
 export interface FaseTrilha {
@@ -151,6 +156,7 @@ function atividadeTrilha(a: TrilhaAtividadeEntrada, e: EntradaTrilha): Atividade
       prestador: null,
       podeConcluir: false,
       semFoto: a.temFoto === false,
+      avancoPct: 100,
     };
   }
 
@@ -160,9 +166,12 @@ function atividadeTrilha(a: TrilhaAtividadeEntrada, e: EntradaTrilha): Atividade
     ? ` · falta ${ROTULO_TIPO_PROVIDENCIA[p.tipo].toLowerCase()}: ${p.descricao}`
     : '';
   const atrasada = Boolean(est?.atrasada);
+  const avancoPct = Math.min(99, normalizarAvanco(a.avancoPct));
+  const feito = textoAvanco(avancoPct);
+  const parcial = feito ? ` · ${feito}` : '';
   const sub = atrasada
-    ? `ATRASADA · devia terminar ${fim}${lembrete}`
-    : `${datas ? `Prevista ${diaMes(datas.inicio)}–${fim}` : 'Prevista'}${lembrete}`;
+    ? `ATRASADA · devia terminar ${fim}${parcial}${lembrete}`
+    : `${datas ? `Prevista ${diaMes(datas.inicio)}–${fim}` : 'Prevista'}${parcial}${lembrete}`;
 
   return {
     id: a.id,
@@ -172,6 +181,7 @@ function atividadeTrilha(a: TrilhaAtividadeEntrada, e: EntradaTrilha): Atividade
     prestador: a.prestador,
     podeConcluir: true,
     semFoto: false,
+    avancoPct,
   };
 }
 

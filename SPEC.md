@@ -157,6 +157,8 @@ Caminho crítico (modelos de obra e obras): backward pass com `LS = min(LS(suces
 decorridos = duEntre(obra.inicio, hoje)            -- 0 se a obra não começou
 concluida(a)  = a.concluida_em != null   -- com subitens: só permitido quando todos os subitens estão marcados
 avanço com subitens = peso(a) × (Σ dur dos subitens marcados / Σ dur dos subitens)
+avanço parcial(a) = a.avanco_pct / 100 (0..99, aberta)   -- concluída vale 1 (28/10/2026)
+real = Σ peso(a) × (concluida ? 1 : avanço parcial) / Σ peso
 predsOk(a)    = todas predecessoras concluídas
 provOk(a)     = todas providências de a com status 'feito'
 ES(a) = max over p (max(EF(p) + defasagem(p,a), ES(p)))      -- defasagem ≤ 0; nunca antes do início da predecessora
@@ -189,7 +191,7 @@ ritmo_dias = round((real − previsto_hoje) × total)
   −1..0 → "No ritmo do modelo"
   ≤ −2 → "Atrasada · N dias"   (vermelho)
 ```
-Questão em aberto Q2 (PRD): peso por custo ou % parcial. Isolar isso em `peso(atividade)` para trocar sem efeito colateral.
+Q2 (PRD), decidido em 28/10/2026: peso pela duração **com % parcial** por atividade (`obra_atividade.avanco_pct`, 0..99; 100% é concluir). Anel da trilha: cada toque +25% (`proximoAvancoAnel`), em 75% o toque conclui; cards da ficha 25 · 50 · 75 · Pronta (`avancoAoTocarCard`: o mesmo card volta um passo). RPC `definir_avanco(atividade, pct, client_op_id)`: membro, idempotente, só atividade de topo aberta e fora do mapa de coleta, evento `avanco` com antes/depois. `desfazer_conclusao` mantém o avanço que havia.
 
 ### 4.6 Semana
 A semana começa na segunda (seg 07:00 é a referência do boletim e da reunião).
@@ -242,7 +244,7 @@ Efeito de reabrir: se `efeito_providencia_id` aponta para uma providência `feit
 
 **Providência:** `pendente ⇄ feito`. A edição permite descrição, data na obra e status.
 
-**Atividade:** `aberta → concluída` (sem estado bloqueado) (com ou sem foto; sem foto, a foto pode ser anexada depois por `anexar_foto_conclusao`). A atividade volta para pendente por `desfazer_conclusao`, pelo "Desfazer" do toast ou pelo botão "Voltar para pendente" na ficha, por **qualquer membro** (evento `reaberta` com quem fez).
+**Atividade:** `aberta (0..99% de avanço) → concluída` (sem estado bloqueado) (com ou sem foto; sem foto, a foto pode ser anexada depois por `anexar_foto_conclusao`). A atividade volta para pendente por `desfazer_conclusao`, pelo "Desfazer" do toast ou pelo botão "Voltar para pendente" na ficha, por **qualquer membro** (evento `reaberta` com quem fez).
 
 ## 6. Operações (RPC / Edge Functions)
 

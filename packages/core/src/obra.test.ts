@@ -40,6 +40,20 @@ describe('estadoObra — sem atividade bloqueada', () => {
     expect(e.indicadores.real).toBeCloseTo(0.4, 5); // 2/5
   });
 
+  it('avanço parcial conta no real pelo peso da atividade', () => {
+    const e = estadoObra({
+      inicio: INICIO,
+      hoje: INICIO,
+      cronograma: cron,
+      concluidas: new Set(['A']),
+      provOk: todosProv,
+      avanco: { A: 50, B: 50 },
+    });
+    // A concluída vale inteira (o avanço guardado não importa); B: metade de 3.
+    expect(e.indicadores.real).toBeCloseTo((2 + 1.5) / 5, 5);
+    expect(e.atividades.B.concluida).toBe(false);
+  });
+
   it('lembrete pendente só avisa: a atividade continua aberta', () => {
     const e = estadoObra({
       inicio: INICIO,

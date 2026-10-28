@@ -28,6 +28,8 @@ import { entradaRecuperacao } from './recuperacaoObra';
 import { useObraDetalhe } from './useObraDetalhe';
 import type { AoConcluir } from './useConcluirAtividade';
 import { useObraCampo } from './useObraCampo';
+import { useAvanco } from './useAvanco';
+import { AnelAvanco } from './AnelAvanco';
 import { useObraPendencias } from './useObraPendencias';
 import { montarTrilha } from './trilhaObra';
 import styles from './ObraDetalhe.module.css';
@@ -81,6 +83,28 @@ export function ObraDetalhe({
   const [renomearAberto, setRenomearAberto] = useState(false);
 
   const fases = useMemo(() => (obra ? montarTrilha(obra) : []), [obra]);
+
+  const aoConcluir: AoConcluir = (r, det) => {
+    setFichaAtvId(null);
+    const desfazer = () => campo.desfazer.mutate({ atividadeId: det.atividadeId, xp: r.xp });
+    if (r.fase_fechada) {
+      setCelebra({
+        ordem: det.faseOrdem ?? 0,
+        titulo: det.faseTitulo,
+        xp: r.xp,
+        libera: det.libera,
+        proxOrdem: det.proxOrdem,
+      });
+    } else if (det.libera.length) {
+      showToast({
+        message: `"${det.nome}" concluída · liberou ${det.libera.join(', ')}`,
+        onUndo: desfazer,
+      });
+    } else {
+      showToast({ message: `"${det.nome}" concluída · +${r.xp} XP`, onUndo: desfazer });
+    }
+  };
+  const avanco = useAvanco(obra ?? null, aoConcluir);
   // A obra lembrada foi apagada (ou não existe mais): volta para a lista.
   useEffect(() => {
     if (!isLoading && obra === null) onVoltar();
@@ -128,26 +152,6 @@ export function ObraDetalhe({
 
   // Concluída (com ou sem foto): celebra se fechou a fase; senão, avisa o que
   // liberou, com Desfazer (regra 10).
-  const aoConcluir: AoConcluir = (r, det) => {
-    setFichaAtvId(null);
-    const desfazer = () => campo.desfazer.mutate({ atividadeId: det.atividadeId, xp: r.xp });
-    if (r.fase_fechada) {
-      setCelebra({
-        ordem: det.faseOrdem ?? 0,
-        titulo: det.faseTitulo,
-        xp: r.xp,
-        libera: det.libera,
-        proxOrdem: det.proxOrdem,
-      });
-    } else if (det.libera.length) {
-      showToast({
-        message: `"${det.nome}" concluída · liberou ${det.libera.join(', ')}`,
-        onUndo: desfazer,
-      });
-    } else {
-      showToast({ message: `"${det.nome}" concluída · +${r.xp} XP`, onUndo: desfazer });
-    }
-  };
 
   if (planoAberto) {
     return <PlanoRecuperacao obra={obra} onVoltar={() => setPlanoAberto(false)} />;
@@ -296,6 +300,7 @@ export function ObraDetalhe({
                 aberta={aberta === f.id}
                 onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
                 onAbrir={setFichaAtvId}
+                onAnel={avanco.anel}
                 mapaDe={(id) => {
                   const m = obra.atividades.find((x) => x.id === id);
                   return m && m.mapa_antecedencia_du !== null
@@ -438,6 +443,7 @@ function Fase({
   aberta,
   onToggle,
   onAbrir,
+  onAnel,
   mapaDe,
   onMarcarMapa,
   onContratado,
@@ -448,6 +454,8 @@ function Fase({
   aberta: boolean;
   onToggle: () => void;
   onAbrir: (id: string) => void;
+  /** Toque no anel de avanço da atividade. */
+  onAnel: (id: string) => void;
   /** Mapa de coleta (null = atividade comum): quando ficou pronto e quem foi contratado. */
   mapaDe: (id: string) => { prontoEm: string | null; contratado: string | null } | null;
   onMarcarMapa: (id: string, nome: string, pronto: boolean) => void;
@@ -511,18 +519,21 @@ function Fase({
                 />
               ) : (
                 <div key={a.id} className={`${styles.atv} ${styles[`atv_${a.status}`]}`}>
-                  <div className={styles.atvIcone}>
-                    {a.status === 'concluida' ? (
-                      <Icon name="checkGrosso" size={16} strokeWidth={2.6} />
-                    ) : a.status === 'atrasada' ? (
-                      <Icon name="relogio" size={16} strokeWidth={2.2} />
-                    ) : (
-                      <Icon name="seta" size={16} strokeWidth={2.2} />
-                    )}
-                  </div>
+                  {/* Anel de avanço (opção C): cada toque +25%, o quarto conclui. */}
+                  <AnelAvanco
+                    pct={a.avancoPct}
+                    atrasada={a.status === 'atrasada'}
+                    nome={a.nome}
+                    onTocar={() => onAnel(a.id)}
+                  />
                   <button type="button" className={styles.atvTexto} onClick={() => onAbrir(a.id)}>
                     <span className={styles.atvNome}>{a.nome}</span>
                     <span className={styles.atvSub}>{a.sub}</span>
+                    {a.avancoPct > 0 && a.avancoPct < 100 ? (
+                      <span className={styles.atvBarra} aria-hidden="true">
+                        <span style={{ width: `${a.avancoPct}%` }} />
+                      </span>
+                    ) : null}
                     {subitensDe(a.id).length ? (
                       <span className={styles.subitens}>
                         {subitensDe(a.id).map((s) => (

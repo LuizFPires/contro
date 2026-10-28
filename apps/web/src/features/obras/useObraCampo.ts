@@ -208,6 +208,15 @@ export function useObraCampo(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
 
+  // Avanço parcial (anel da trilha e cards da ficha): otimista e offline.
+  const avanco = useMutation({
+    networkMode: 'always',
+    mutationFn: (v: { atividadeId: string; pct: number }) =>
+      enfileirar('definir_avanco', { obraId, atividadeId: v.atividadeId, pct: v.pct }),
+    onMutate: (v) => patchAtv(v.atividadeId, (a) => ({ ...a, avanco_pct: v.pct })),
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+
   // Desfazer de "Voltar para pendente": conclui de novo, com a mesma foto se havia.
   const reconcluir = useMutation({
     networkMode: 'always',
@@ -291,5 +300,6 @@ export function useObraCampo(obraId: string) {
     anexarFoto,
     desfazer,
     reconcluir,
+    avanco,
   };
 }
