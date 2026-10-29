@@ -110,6 +110,13 @@ const paths = {
       <circle cx="12" cy="19" r="1" />
     </>
   ),
+  galeria: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <circle cx="9" cy="10" r="1.6" />
+      <path d="m21 16-5-5-7 7" />
+    </>
+  ),
   camera: (
     <>
       <path d="M4 8h3l2-2h6l2 2h3v11H4Z" />

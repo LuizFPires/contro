@@ -15,6 +15,16 @@ export interface CameraProps {
   pendente?: boolean;
   onCapturar: (file: File) => void;
   onCancelar: () => void;
+  /**
+   * Várias fotos seguidas (apontar no Check list): a câmera fica aberta, mostra
+   * as miniaturas já tiradas e o botão "Pronto · N"; o ícone da galeria junta
+   * várias fotos do aparelho de uma vez.
+   */
+  lote?: {
+    miniaturas: string[];
+    onPronto: () => void;
+    onGaleria: (files: File[]) => void;
+  };
 }
 
 /**
@@ -31,10 +41,12 @@ export function Camera({
   pendente,
   onCapturar,
   onCancelar,
+  lote,
 }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const galeriaRef = useRef<HTMLInputElement>(null);
   const [aoVivo, setAoVivo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -90,6 +102,12 @@ export function Camera({
     );
   }
 
+  function escolherGaleria(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    if (files.length) lote?.onGaleria(files);
+  }
+
   function escolherArquivo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -136,7 +154,25 @@ export function Camera({
         {dica ? <div className={styles.dica}>{dica}</div> : null}
       </div>
 
-      <div className={styles.controles}>
+      {lote && lote.miniaturas.length > 0 ? (
+        <div className={styles.miniaturas} aria-label={`${lote.miniaturas.length} fotos tiradas`}>
+          {lote.miniaturas.map((url, i) => (
+            <img key={url} src={url} alt={`Foto ${i + 1}`} className={styles.miniatura} />
+          ))}
+        </div>
+      ) : null}
+
+      <div className={`${styles.controles} ${lote ? styles.controlesLote : ''}`}>
+        {lote ? (
+          <button
+            type="button"
+            className={styles.galeria}
+            aria-label="Escolher fotos da galeria"
+            onClick={() => galeriaRef.current?.click()}
+          >
+            <Icon name="galeria" size={24} />
+          </button>
+        ) : null}
         <button
           type="button"
           className={styles.disparo}
@@ -144,6 +180,16 @@ export function Camera({
           disabled={pendente || (!erro && !aoVivo)}
           onClick={() => (erro ? fileRef.current?.click() : capturarDoVideo())}
         />
+        {lote ? (
+          <button
+            type="button"
+            className={styles.pronto}
+            disabled={lote.miniaturas.length === 0}
+            onClick={lote.onPronto}
+          >
+            Pronto · {lote.miniaturas.length}
+          </button>
+        ) : null}
         {onSemFoto ? (
           <button type="button" className={styles.semFoto} disabled={pendente} onClick={onSemFoto}>
             Concluir sem foto
@@ -157,6 +203,16 @@ export function Camera({
           className={styles.inputOculto}
           onChange={escolherArquivo}
         />
+        {lote ? (
+          <input
+            ref={galeriaRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className={styles.inputOculto}
+            onChange={escolherGaleria}
+          />
+        ) : null}
       </div>
     </div>
   );

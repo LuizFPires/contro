@@ -155,3 +155,53 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* Várias fotos seguidas (apontar no Check list). */
+.miniaturas {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px 0;
+  overflow-x: auto;
+}
+.miniatura {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  border: 2px solid var(--contro-white);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.controlesLote {
+  flex-direction: row;
+  justify-content: space-between;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+.galeria {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  border: 2px solid rgb(255 255 255 / 70%);
+  background: transparent;
+  color: var(--contro-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.pronto {
+  min-height: 48px;
+  min-width: 96px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--contro-radius-pill);
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.pronto:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
