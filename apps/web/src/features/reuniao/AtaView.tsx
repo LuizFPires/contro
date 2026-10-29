@@ -141,7 +141,11 @@ export function AtaView({
               {totais.map((t) => (
                 <span
                   key={t}
-                  className={t.includes('não aconte') ? styles.totalAtraso : styles.total}
+                  className={
+                    t.includes('não aconte') && !t.startsWith('0 ')
+                      ? styles.totalAtraso
+                      : styles.total
+                  }
                 >
                   {t}
                 </span>
@@ -169,6 +173,11 @@ export function AtaView({
                 linhas={o.cobranca}
                 destaque={destaque}
               />
+              {[o.aconteceu, o.naoAconteceu, o.proximaSemana, o.providencias, o.cobranca].every(
+                (x) => x.length === 0,
+              ) ? (
+                <div className={styles.situacao}>Nada previsto nem cobrado nesta obra.</div>
+              ) : null}
               {o.observacoes ? (
                 <>
                   <h3 className={styles.secao}>Observações</h3>
@@ -302,9 +311,13 @@ function Bloco({
             <span className={styles.icOk} role="img" aria-label="Feito">
               <Icon name="checkGrosso" size={14} strokeWidth={3} />
             </span>
-          ) : l.atraso ? (
+          ) : l.nao ? (
             <span className={styles.icNao} role="img" aria-label="Não feito">
               <Icon name="close" size={12} strokeWidth={3} />
+            </span>
+          ) : l.atraso ? (
+            <span className={styles.icNao} role="img" aria-label="Atrasada">
+              <Icon name="relogio" size={14} strokeWidth={2.4} />
             </span>
           ) : (
             <span
@@ -348,7 +361,7 @@ function ResumoTabela({
           key={i}
           className={l.atraso ? styles.tAtraso : l.semResposta ? styles.tCinza : undefined}
         >
-          {l.ok ? '✓ ' : l.atraso ? '✗ ' : ''}
+          {l.ok ? '✓ ' : l.nao ? '✗ ' : ''}
           {l.texto}
           {l.acao ? <div>→ {l.acao}</div> : null}
         </div>
@@ -365,7 +378,12 @@ function ResumoTabela({
         </div>
         <div className={styles.totais}>
           {totais.map((t) => (
-            <span key={t} className={t.includes('não aconte') ? styles.totalAtraso : styles.total}>
+            <span
+              key={t}
+              className={
+                t.includes('não aconte') && !t.startsWith('0 ') ? styles.totalAtraso : styles.total
+              }
+            >
               {t}
             </span>
           ))}

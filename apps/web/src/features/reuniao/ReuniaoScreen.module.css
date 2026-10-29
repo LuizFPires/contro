@@ -210,6 +210,10 @@
 .opcao:disabled {
   cursor: default;
 }
+/* Travado (já há ação para o item): apagado, mas o marcado continua legível. */
+.opcao:disabled:not([aria-pressed='true']) {
+  opacity: 0.45;
+}
 .opcaoOk {
   background: rgb(84 180 176 / 25%);
   border-color: var(--contro-black);

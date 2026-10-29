@@ -959,7 +959,7 @@ function BlocoPrevia({ titulo, linhas }: { titulo: string; linhas: LinhaAta[] })
             l.atraso ? styles.previaAtraso : l.semResposta ? styles.previaSem : styles.previaLinha
           }
         >
-          {l.ok ? '✓ ' : l.atraso ? '✗ ' : ''}
+          {l.ok ? '✓ ' : l.nao ? '✗ ' : ''}
           {l.texto}
           {l.acao ? ` → ${l.acao}` : ''}
         </div>

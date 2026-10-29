@@ -172,6 +172,8 @@ export interface LinhaAta {
   acao: string | null;
   /** Vermelho (atraso): não aconteceu, cobrança vencida. */
   atraso: boolean;
+  /** ✗ (planejado e não aconteceu). Cobrança vencida é atraso, mas não ✗. */
+  nao: boolean;
   /** ✓ (aconteceu, cumprida, segue o plano, já providenciado). */
   ok: boolean;
   semResposta: boolean;
@@ -199,6 +201,7 @@ const linha = (texto: string, p: Partial<LinhaAta> = {}): LinhaAta => ({
   texto,
   acao: p.acao ?? null,
   atraso: p.atraso ?? false,
+  nao: p.nao ?? false,
   ok: p.ok ?? false,
   semResposta: p.semResposta ?? false,
 });
@@ -228,7 +231,9 @@ export function montarObraAta(e: ObraAtaEntrada): ObraAta {
           : p > 0 && p < 100
             ? `está em ${p}%`
             : 'não terminou';
-        naoAconteceu.push(linha(`${it.nome} · ${estado}`, { acao: acaoDe(it.id), atraso: true }));
+        naoAconteceu.push(
+          linha(`${it.nome} · ${estado}`, { acao: acaoDe(it.id), atraso: true, nao: true }),
+        );
       } else {
         aconteceu.push(linha(comecar ? `${it.nome} · começou` : it.nome, { ok: true }));
       }

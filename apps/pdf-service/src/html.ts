@@ -156,7 +156,7 @@ export interface AtaDados {
 }
 
 function linhaHtml(l: LinhaAta): string {
-  const marca = l.ok ? '✓ ' : l.atraso ? '✗ ' : '';
+  const marca = l.ok ? '✓ ' : l.nao ? '✗ ' : '';
   const cls = l.atraso ? ' class="atraso"' : l.semResposta ? ' class="motivo"' : '';
   const acao = l.acao ? `<br><span class="data">→</span> ${esc(l.acao)}` : '';
   return `<li${cls}>${marca}${esc(l.texto)}${acao}</li>`;
@@ -170,7 +170,7 @@ function totaisHtml(totais: string[]): string {
   return `<p class="totais">${totais
     .map(
       (t) =>
-        `<span class="${t.includes('não aconte') ? 'total atraso' : 'total'}">${esc(t)}</span>`,
+        `<span class="${t.includes('não aconte') && !t.startsWith('0 ') ? 'total atraso' : 'total'}">${esc(t)}</span>`,
     )
     .join('')}</p>`;
 }
@@ -193,7 +193,7 @@ function celula(ls: LinhaAta[]): string {
   return `<td>${ls
     .map((l) => {
       const cls = l.atraso ? ' class="atraso"' : l.semResposta ? ' class="motivo"' : '';
-      const marca = l.ok ? '✓ ' : l.atraso ? '✗ ' : '';
+      const marca = l.ok ? '✓ ' : l.nao ? '✗ ' : '';
       return `<div${cls}>${marca}${esc(l.texto)}${l.acao ? `<br>→ ${esc(l.acao)}` : ''}</div>`;
     })
     .join('')}</td>`;

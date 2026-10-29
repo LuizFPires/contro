@@ -133,12 +133,20 @@ describe('montarObraAta', () => {
 
   it('semana passada: aconteceu e não aconteceu com a ação', () => {
     expect(o.aconteceu).toEqual([
-      { texto: 'Piso vinílico · começou', acao: null, atraso: false, ok: true, semResposta: false },
+      {
+        texto: 'Piso vinílico · começou',
+        acao: null,
+        atraso: false,
+        nao: false,
+        ok: true,
+        semResposta: false,
+      },
     ]);
     expect(o.naoAconteceu[0]).toEqual({
       texto: 'Contrapiso · está em 50%',
       acao: 'Concluir contrapiso — Marcos, até qua 04/11',
       atraso: true,
+      nao: true,
       ok: false,
       semResposta: false,
     });
@@ -166,6 +174,7 @@ describe('montarObraAta', () => {
     expect(o.cobranca[1]).toMatchObject({
       texto: 'Vidraceiro — Ana · 50% feito · remarcada (1x), até qua 04/11',
       atraso: true,
+      nao: false,
       ok: false,
     });
     expect(o.observacoes).toBe('Tapume entregue.');
