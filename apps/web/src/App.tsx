@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { esquecerTelas, useLembrado } from './lib/useLembrado';
 import { useQueryClient } from '@tanstack/react-query';
 import { PullToRefresh } from './components/PullToRefresh';
@@ -17,6 +17,7 @@ import { NovaSenha } from './screens/NovaSenha';
 import { AguardandoAprovacao } from './screens/AguardandoAprovacao';
 import { MinhasObras, type DestinoInicio } from './screens/MinhasObras';
 import { TarefasScreen } from './features/obras/TarefasScreen';
+import { MinhasAcoesScreen } from './features/obras/MinhasAcoesScreen';
 
 export function App() {
   const { carregando, session, recovery, fecharRecovery } = useSession();
@@ -25,11 +26,18 @@ export function App() {
   // Lembrada: ao voltar ao app (ou à guia), continua na mesma tela.
   const [tela, setTela] = useLembrado<'inicio' | DestinoInicio>('app', 'inicio');
 
-  // Toque num aviso por push abre a tela certa (/?ir=reuniao | tarefas | hoje).
+  // Minhas ações abre da ata e das Tarefas: o Voltar retorna para lá.
+  const [voltarMinhas, setVoltarMinhas] = useState<'inicio' | DestinoInicio>('inicio');
+  const irMinhas = (de: 'reuniao' | 'tarefas') => {
+    setVoltarMinhas(de);
+    setTela('minhas');
+  };
+
+  // Toque num aviso por push abre a tela certa (/?ir=reuniao | tarefas | minhas | hoje).
   useEffect(() => {
     const ir = new URLSearchParams(window.location.search).get('ir');
     if (!ir) return;
-    if (ir === 'reuniao' || ir === 'tarefas') setTela(ir);
+    if (ir === 'reuniao' || ir === 'tarefas' || ir === 'minhas') setTela(ir);
     else if (ir === 'hoje') setTela('inicio');
     window.history.replaceState(null, '', window.location.pathname);
   }, [setTela]);
@@ -93,9 +101,11 @@ export function App() {
         {tela === 'modelos' && ehGestor ? (
           <ModelosScreen onVoltar={voltar} />
         ) : tela === 'reuniao' ? (
-          <ReuniaoScreen onVoltar={voltar} />
+          <ReuniaoScreen onVoltar={voltar} onMinhas={() => irMinhas('reuniao')} />
         ) : tela === 'tarefas' ? (
-          <TarefasScreen onVoltar={voltar} />
+          <TarefasScreen onVoltar={voltar} onMinhas={() => irMinhas('tarefas')} />
+        ) : tela === 'minhas' ? (
+          <MinhasAcoesScreen onVoltar={() => setTela(voltarMinhas)} />
         ) : tela === 'avisos' && ehGestor ? (
           <ConfigAvisosScreen onVoltar={voltar} />
         ) : tela === 'config' && ehGestor ? (

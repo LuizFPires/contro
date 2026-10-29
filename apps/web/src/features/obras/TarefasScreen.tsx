@@ -20,7 +20,14 @@ const SEM = 'sem';
 const chaveResp = (t: TarefaObra) =>
   t.responsavel_id ?? (t.responsavelNome ? `nome:${t.responsavelNome}` : SEM);
 
-export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
+export function TarefasScreen({
+  onVoltar,
+  onMinhas,
+}: {
+  onVoltar: () => void;
+  /** Abre Minhas ações (o que está com quem está logado). */
+  onMinhas: () => void;
+}) {
   const { showToast } = useToast();
   const { data: obras = [] } = useObras();
   const { data: pessoas = [] } = usePessoas();
@@ -124,6 +131,10 @@ export function TarefasScreen({ onVoltar }: { onVoltar: () => void }) {
               O que cada um ficou de fazer · dê baixa ao longo da semana
             </div>
           </div>
+          <button type="button" className={styles.minhas} onClick={onMinhas}>
+            <Icon name="pessoa" size={18} />
+            Minhas
+          </button>
           <button
             type="button"
             className={styles.nova}
@@ -312,6 +323,16 @@ function Linha({
         </span>
         <span className={styles.prazo}>{prazo}</span>
         {repl ? <span className={styles.repl}>{repl}</span> : null}
+        {!feita && (t.avanco_pct > 0 || t.comentario) ? (
+          <span className={styles.repl}>
+            {[
+              t.avanco_pct > 0 ? `${t.avanco_pct}% feito` : null,
+              t.comentario ? `“${t.comentario}”` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
+        ) : null}
       </button>
       {feita ? (
         <button type="button" className={styles.reabrir} onClick={onReabrir}>

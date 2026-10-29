@@ -1,0 +1,265 @@
+/* Minhas ações (protótipo "Ata colaborativa", telas 2 e 3). */
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+.cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  padding-top: calc(10px + env(safe-area-inset-top, 0));
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.voltar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.titulo {
+  margin: 0;
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.3;
+}
+.sub {
+  font-size: 13px;
+  color: rgb(255 255 255 / 72%);
+}
+.abas {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px 4px;
+}
+.aba {
+  min-height: var(--contro-touch);
+  padding: 0 14px;
+  border-radius: var(--contro-radius-pill);
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.abaOn {
+  background: var(--contro-black);
+  border-color: var(--contro-black);
+  color: var(--contro-white);
+}
+.lista {
+  padding: 4px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vazio {
+  color: #464646;
+  font-size: 14px;
+  padding: 12px 2px;
+}
+.obra {
+  margin: 10px 2px 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #696969;
+}
+.cartao {
+  background: var(--contro-white);
+  border: 1px solid var(--contro-border);
+  border-radius: 16px;
+  padding: 0 14px;
+}
+.item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid var(--contro-border);
+  background: none;
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.item:last-child {
+  border-bottom: 0;
+}
+.itemTexto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.itemTitulo {
+  font-weight: 800;
+  font-size: 15px;
+}
+.meta {
+  font-size: 13px;
+  color: #464646;
+  margin: 0;
+}
+.comentario {
+  font-size: 13px;
+  color: #464646;
+  font-style: italic;
+}
+/* Atraso: única exceção aprovada do vermelho. */
+.atraso {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--contro-late);
+}
+.anel {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.anel svg {
+  position: absolute;
+  inset: 0;
+}
+.anelOk {
+  border-radius: 50%;
+  background: var(--contro-turquoise);
+}
+.trilho {
+  fill: none;
+  stroke: rgb(24 24 24 / 14%);
+  stroke-width: 4;
+}
+.prog,
+.progAtraso {
+  fill: none;
+  stroke: var(--contro-turquoise);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.progAtraso {
+  stroke: var(--contro-late);
+}
+.anelPct {
+  position: relative;
+  font-size: 11px;
+  font-weight: 800;
+}
+.folha {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rotulo {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 800;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  min-height: var(--contro-touch);
+  padding: 0 14px;
+  border-radius: var(--contro-radius-pill);
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.chipOn {
+  background: var(--contro-black);
+  border-color: var(--contro-black);
+  color: var(--contro-white);
+}
+.campo {
+  min-height: var(--contro-touch);
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  border-radius: 10px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--contro-black);
+  background: var(--contro-white);
+}
+.prazoLinha {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.prazoAtual {
+  flex: 1;
+  min-height: var(--contro-touch);
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  border-radius: 10px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+}
+.mudar {
+  min-height: var(--contro-touch);
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.aviso {
+  margin: 4px 0 0;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgb(24 24 24 / 6%);
+}
+.salvar {
+  margin-top: 6px;
+  min-height: var(--contro-control-h);
+  border: 0;
+  border-radius: 12px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}

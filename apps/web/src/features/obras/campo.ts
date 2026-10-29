@@ -388,6 +388,23 @@ export async function concluirTarefa(id: string, clientOpId?: string): Promise<v
   if (error) throw error;
 }
 
+/** Avanço (0..99) e comentário da ação, informados por quem cuida dela. */
+export async function informarAvancoTarefa(
+  id: string,
+  pct: number,
+  comentario: string | null,
+  clientOpId?: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('informar_avanco_tarefa', {
+    p_id: id,
+    p_pct: pct,
+    p_comentario: comentario,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}
+
 export async function reabrirTarefa(id: string, clientOpId?: string): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('reabrir_tarefa', {

@@ -10,6 +10,7 @@ import {
   editarDescricaoProvidencia,
   editarPrestador,
   excluirTarefa,
+  informarAvancoTarefa,
   marcarProvidencia,
   marcarSubitem,
   reabrirTarefa,
@@ -62,6 +63,13 @@ const DISPATCH: Record<string, Handler> = {
   marcar_subitem: (p, opId) => marcarSubitem(p.subitemId as string, p.feito as boolean, opId),
   concluir_tarefa: (p, opId) => concluirTarefa(p.id as string, opId),
   reabrir_tarefa: (p, opId) => reabrirTarefa(p.id as string, opId),
+  informar_avanco_tarefa: (p, opId) =>
+    informarAvancoTarefa(
+      p.id as string,
+      p.pct as number,
+      (p.comentario as string | null) ?? null,
+      opId,
+    ),
   salvar_tarefa: async (p, opId) => {
     await salvarTarefa(p.obraId as string, p.entrada as EntradaTarefa, opId);
   },

@@ -18,7 +18,14 @@ import { hojeISO } from '../features/obras/api';
 import { formatarDataCurta } from '../lib/datas';
 import styles from './MinhasObras.module.css';
 
-export type DestinoInicio = 'modelos' | 'reuniao' | 'tarefas' | 'config' | 'membros' | 'avisos';
+export type DestinoInicio =
+  | 'modelos'
+  | 'reuniao'
+  | 'tarefas'
+  | 'minhas'
+  | 'config'
+  | 'membros'
+  | 'avisos';
 
 export function MinhasObras({
   onIr,
