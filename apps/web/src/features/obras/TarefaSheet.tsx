@@ -6,6 +6,7 @@ import { EscolherData } from '../../components/EscolherData';
 import { formatarDataCurta } from '../../lib/datas';
 import { useRascunho } from '../../lib/useRascunho';
 import type { PessoaResumo } from '../perfil/usePessoas';
+import { dataLocal } from './api';
 import type { EntradaTarefa } from './campo';
 import type { TarefaObra } from './tarefasObra';
 import styles from './AdiarSheet.module.css';
@@ -13,7 +14,7 @@ import styles from './AdiarSheet.module.css';
 function emDias(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+  return dataLocal(d);
 }
 
 export function TarefaSheet({

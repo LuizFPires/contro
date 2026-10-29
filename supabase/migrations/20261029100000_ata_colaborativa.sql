@@ -18,9 +18,20 @@ create table reuniao_resposta (
   resposta text not null check (resposta in (
     'feita', 'nao_feita', 'terminou', 'nao_terminou', 'comecou', 'nao_comecou',
     'segue', 'acao', 'ja_providenciado')),
+  -- Ação criada para este item nesta seção (a mesma atividade pode estar em
+  -- duas seções; a ação é de uma só).
+  tarefa_id uuid references tarefa (id),
   respondido_por uuid references pessoa (id),
   respondido_em timestamptz not null default now(),
-  primary key (reuniao_id, secao, item_id)
+  primary key (reuniao_id, secao, item_id),
+  -- Cada seção tem as suas duas respostas.
+  check (
+    (secao = 'cobranca' and resposta in ('feita', 'nao_feita')) or
+    (secao = 'passada_concluir' and resposta in ('terminou', 'nao_terminou')) or
+    (secao = 'passada_comecar' and resposta in ('comecou', 'nao_comecou')) or
+    (secao in ('semana_concluir', 'semana_comecar') and resposta in ('segue', 'acao')) or
+    (secao = 'semana_providencia' and resposta in ('ja_providenciado', 'acao'))
+  )
 );
 create index on reuniao_resposta (reuniao_id, obra_id);
 
@@ -35,6 +46,7 @@ create or replace function responder_reuniao(
   p_secao text,
   p_item_id uuid,
   p_resposta text,
+  p_tarefa_id uuid default null,
   p_client_op_id uuid default null
 )
 returns void
@@ -62,23 +74,30 @@ begin
     raise exception 'Obra não está na pauta' using errcode = '23503';
   end if;
 
+  if p_tarefa_id is not null and not exists (
+    select 1 from public.tarefa where id = p_tarefa_id and obra_id = p_obra_id
+  ) then
+    raise exception 'Ação não é desta obra' using errcode = '23503';
+  end if;
+
   if p_resposta is null then
     delete from public.reuniao_resposta
     where reuniao_id = p_reuniao_id and secao = p_secao and item_id = p_item_id;
     return;
   end if;
 
-  insert into public.reuniao_resposta (reuniao_id, obra_id, secao, item_id, resposta, respondido_por)
-  values (p_reuniao_id, p_obra_id, p_secao, p_item_id, p_resposta, public.contro_pessoa_atual())
+  insert into public.reuniao_resposta (reuniao_id, obra_id, secao, item_id, resposta, tarefa_id, respondido_por)
+  values (p_reuniao_id, p_obra_id, p_secao, p_item_id, p_resposta, p_tarefa_id, public.contro_pessoa_atual())
   on conflict (reuniao_id, secao, item_id) do update
     set resposta = excluded.resposta,
+        tarefa_id = coalesce(excluded.tarefa_id, public.reuniao_resposta.tarefa_id),
         respondido_por = excluded.respondido_por,
         respondido_em = now();
 end;
 $$;
 
-revoke execute on function responder_reuniao(uuid, uuid, text, uuid, text, uuid) from public, anon;
-grant execute on function responder_reuniao(uuid, uuid, text, uuid, text, uuid) to authenticated;
+revoke execute on function responder_reuniao(uuid, uuid, text, uuid, text, uuid, uuid) from public, anon;
+grant execute on function responder_reuniao(uuid, uuid, text, uuid, text, uuid, uuid) to authenticated;
 
 -- ---------- Avanço e comentário da ação (tarefa) ----------
 

@@ -8,6 +8,7 @@ import {
   type RespostaReuniao,
   type SecaoResposta,
   nomeCurto,
+  duEntre,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { hojeISO } from '../obras/api';
@@ -57,6 +58,8 @@ export async function responderReuniao(v: {
   secao: SecaoResposta;
   itemId: string;
   resposta: RespostaReuniao | null;
+  /** Ação criada para o item nesta seção. */
+  tarefaId?: string | null;
 }): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('responder_reuniao', {
@@ -65,6 +68,7 @@ export async function responderReuniao(v: {
     p_secao: v.secao,
     p_item_id: v.itemId,
     p_resposta: v.resposta,
+    p_tarefa_id: v.tarefaId ?? null,
   });
   if (error) throw error;
 }
@@ -161,6 +165,8 @@ export interface ReuniaoCompleta {
   tarefas: TarefaAtrib[]; // para "Quem faz o quê" (por responsável) na ata
   /** Respostas da pauta, por chaveResposta(secao, item). */
   respostas: Record<string, RespostaReuniao>;
+  /** Ação (tarefa) de cada resposta, por chaveResposta(secao, item). */
+  acoesResposta: Record<string, string>;
 }
 
 function motivoAtividade(obra: ObraCompleta, id: string): string | null {
@@ -170,9 +176,15 @@ function motivoAtividade(obra: ObraCompleta, id: string): string | null {
   return e.lembretesPendentes ? 'falta providenciar' : null;
 }
 
-function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados {
-  const dec = obra.decorridos;
-  const iniciada = dec > 0 || hojeISO() >= obra.inicio;
+function derivarObra(
+  obra: ObraCompleta,
+  observacoes: string,
+  dataReuniao: string,
+): ReuniaoObraDados {
+  // As semanas da pauta são as da data da reunião, não as de hoje: a ata
+  // fechada não pode mudar quando é aberta dias depois.
+  const dec = duEntre(obra.inicio, dataReuniao);
+  const iniciada = dec > 0 || dataReuniao >= obra.inicio;
   // Reunião: cronograma da obra (o pré-obra entra pela trilha e pelo Hoje).
   const topo = obra.atividades.filter((a) => !a.pai_id && !a.preObra);
   const nomePorId = new Map(obra.atividades.map((a) => [a.id, a.nome]));
@@ -300,15 +312,21 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
   const [rRes, roRes, respRes] = await Promise.all([
     supabase.from('reuniao').select('id,data,hora,status').eq('id', id).maybeSingle(),
     supabase.from('reuniao_obra').select('obra_id,observacoes').eq('reuniao_id', id),
-    supabase.from('reuniao_resposta').select('secao,item_id,resposta').eq('reuniao_id', id),
+    supabase
+      .from('reuniao_resposta')
+      .select('secao,item_id,resposta,tarefa_id')
+      .eq('reuniao_id', id),
   ]);
   const respostas: Record<string, RespostaReuniao> = {};
+  const acoesResposta: Record<string, string> = {};
   for (const x of (respRes.data ?? []) as {
     secao: SecaoResposta;
     item_id: string;
     resposta: RespostaReuniao;
+    tarefa_id: string | null;
   }[]) {
     respostas[chaveResposta(x.secao, x.item_id)] = x.resposta;
+    if (x.tarefa_id) acoesResposta[chaveResposta(x.secao, x.item_id)] = x.tarefa_id;
   }
   const r = rRes.data as {
     id: string;
@@ -387,8 +405,9 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
     data: r.data,
     hora: (r.hora ?? '16:00').slice(0, 5),
     status: r.status,
-    obras: obras.map((o) => derivarObra(o, obsPorObra.get(o.id) ?? '')),
+    obras: obras.map((o) => derivarObra(o, obsPorObra.get(o.id) ?? '', r.data)),
     tarefas,
     respostas,
+    acoesResposta,
   };
 }

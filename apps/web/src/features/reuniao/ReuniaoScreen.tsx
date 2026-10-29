@@ -25,6 +25,7 @@ import {
   type ValoresProvidencia,
 } from './ProvidenciaSheet';
 import {
+  acaoDoItem,
   acoesDaObra,
   cobrancaDaObra,
   entradaObraAta,
@@ -39,7 +40,7 @@ import {
 } from './ataDados';
 import { useNomesSugeridos } from './useNomesSugeridos';
 import { useReuniao } from './useReuniao';
-import type { ReuniaoObraDados, TarefaAtrib } from './reuniaoApi';
+import { chaveResposta, type ReuniaoObraDados, type TarefaAtrib } from './reuniaoApi';
 import styles from './ReuniaoScreen.module.css';
 
 // Pauta por obra (decisão do usuário, 29/10/2026): começa cobrando o combinado,
@@ -68,6 +69,8 @@ interface Sheet {
   resposta: { secao: SecaoResposta; itemId: string; valor: RespostaReuniao } | null;
   /** "Quanto andou?": atividade cujo avanço é gravado ao salvar. */
   avancoAtividadeId: string | null;
+  /** "Não feita" de ação concluída: reabre ao salvar. */
+  reabrirTarefaId?: string | null;
   avancoAntes: number;
 }
 
@@ -108,7 +111,8 @@ export function ReuniaoScreen({
   );
   const o = obras[idx] as ReuniaoObraDados | undefined;
   const novas = reuniao && o ? acoesDaObra(reuniao, o.obraId) : [];
-  const acaoDe = (id: string) => novas.find((t) => t.vinculoId === id) ?? null;
+  const acaoDe = (secao: SecaoResposta, id: string) =>
+    reuniao && o ? acaoDoItem(reuniao, o.obraId, secao, id) : null;
 
   const contagem = (x: ReuniaoObraDados) =>
     reuniao ? contarRespondidos(respostasDaObra(reuniao, x)) : { respondidos: 0, total: 0 };
@@ -128,10 +132,11 @@ export function ReuniaoScreen({
     itemId: string,
     resposta: RespostaReuniao | null,
     obraId = o?.obraId,
+    tarefaId?: string | null,
   ) {
     if (!reuniao || !obraId) return;
     r.responder.mutate(
-      { reuniaoId: reuniao.id, obraId, secao, itemId, resposta },
+      { reuniaoId: reuniao.id, obraId, secao, itemId, resposta, tarefaId },
       { onError: () => showToast({ message: 'Não foi possível gravar a resposta' }) },
     );
   }
@@ -142,7 +147,7 @@ export function ReuniaoScreen({
     },
   ) {
     if (!o) return;
-    const existente = base.vinculo ? acaoDe(base.vinculo.id) : null;
+    const existente = base.resposta ? acaoDe(base.resposta.secao, base.resposta.itemId) : null;
     setSheet({
       obraId: o.obraId,
       info: null,
@@ -181,9 +186,11 @@ export function ReuniaoScreen({
         },
       },
       {
-        onSuccess: () => {
+        onSuccess: (tarefaId) => {
           if (s.resposta)
-            responder(s.resposta.secao, s.resposta.itemId, s.resposta.valor, s.obraId);
+            responder(s.resposta.secao, s.resposta.itemId, s.resposta.valor, s.obraId, tarefaId);
+          // "Não feita" de ação já concluída: só reabre depois de confirmar a remarcação.
+          if (s.reabrirTarefaId) r.marcarFeita.mutate({ id: s.reabrirTarefaId, feita: false });
           if (s.avancoAtividadeId && v.avancoPct != null && v.avancoPct !== s.avancoAntes) {
             r.avancoAtv.mutate({ atividadeId: s.avancoAtividadeId, pct: v.avancoPct });
           }
@@ -210,15 +217,17 @@ export function ReuniaoScreen({
               responder('cobranca', t.id, null);
             },
           }),
-        onError: () => showToast({ message: 'Não foi possível marcar' }),
+        onError: () => {
+          responder('cobranca', t.id, null);
+          showToast({ message: 'Não foi possível marcar' });
+        },
       },
     );
   }
 
+  // Grava "Não feita" (e reabre a ação concluída) só ao salvar a remarcação.
   function naoFeitaCobranca(t: TarefaAtrib) {
     if (!o) return;
-    responder('cobranca', t.id, 'nao_feita');
-    if (t.concluido) r.marcarFeita.mutate({ id: t.id, feita: false });
     const original = t.prazoOriginal ?? t.prazo;
     setSheet({
       obraId: o.obraId,
@@ -237,7 +246,8 @@ export function ReuniaoScreen({
       impactoAtividadeId: null,
       vinculo: t.vinculoTipo && t.vinculoId ? { tipo: t.vinculoTipo, id: t.vinculoId } : null,
       tarefaId: t.id,
-      resposta: null,
+      resposta: { secao: 'cobranca', itemId: t.id, valor: 'nao_feita' },
+      reabrirTarefaId: t.concluido ? t.id : null,
       avancoAtividadeId: null,
       avancoAntes: 0,
       inicial: {
@@ -536,7 +546,7 @@ export function ReuniaoScreen({
                   </p>
                 ) : null}
                 {itensPassada(o).map((it) => {
-                  const acao = acaoDe(it.atividadeId);
+                  const acao = acaoDe(it.secao, it.atividadeId);
                   const resp = respostaDe(reuniao, it.secao, it.atividadeId, {
                     concluida: it.ok,
                     avancoPct: it.avancoPct,
@@ -579,6 +589,12 @@ export function ReuniaoScreen({
                             travaPositivo={Boolean(acao)}
                             onPositivo={() => positivoPassada(it)}
                             onNegativo={() => negativoPassada(it)}
+                            onLimpar={
+                              reuniao.respostas[chaveResposta(it.secao, it.atividadeId)] ===
+                              'comecou'
+                                ? () => responder(it.secao, it.atividadeId, null)
+                                : undefined
+                            }
                           />
                         </>
                       )}
@@ -628,7 +644,7 @@ export function ReuniaoScreen({
                   <p className={styles.vazio}>Nada previsto para esta semana.</p>
                 ) : null}
                 {itensSemana(o).map((it) => {
-                  const acao = acaoDe(it.id);
+                  const acao = acaoDe(it.secao, it.id);
                   const resp = respostaDe(reuniao, it.secao, it.id);
                   return (
                     <div key={`${it.secao}-${it.id}`} className={styles.card}>
@@ -660,6 +676,9 @@ export function ReuniaoScreen({
                         travaPositivo={Boolean(acao)}
                         onPositivo={() => positivoSemana(it)}
                         onNegativo={() => negativoSemana(it)}
+                        onLimpar={
+                          resp === 'segue' ? () => responder(it.secao, it.id, null) : undefined
+                        }
                       />
                       {acao ? (
                         <ProvLinha t={acao} fechada={fechada} onEditar={() => negativoSemana(it)} />
@@ -883,6 +902,7 @@ function Botoes({
   travaPositivo,
   onPositivo,
   onNegativo,
+  onLimpar,
 }: {
   secao: SecaoResposta;
   resposta: RespostaReuniao | null;
@@ -891,16 +911,20 @@ function Botoes({
   travaPositivo?: boolean;
   onPositivo: () => void;
   onNegativo: () => void;
+  /** Tocar de novo na resposta marcada apaga (só onde ela não mexeu em nada). */
+  onLimpar?: () => void;
 }) {
   const [pos, neg] = RESPOSTAS_POR_SECAO[secao];
+  const limpa = resposta === pos && Boolean(onLimpar);
   return (
     <div className={styles.dois}>
       <button
         type="button"
         aria-pressed={resposta === pos}
-        disabled={fechada || travaPositivo || resposta === pos}
+        disabled={fechada || travaPositivo || (resposta === pos && !limpa)}
         className={`${styles.opcao} ${resposta === pos ? styles.opcaoOk : ''}`}
-        onClick={onPositivo}
+        aria-label={limpa ? `${ROTULO_RESPOSTA[pos]} (tocar para desmarcar)` : undefined}
+        onClick={limpa ? onLimpar : onPositivo}
       >
         {resposta === pos ? <Icon name="checkGrosso" size={16} strokeWidth={3} /> : null}
         {ROTULO_RESPOSTA[pos]}

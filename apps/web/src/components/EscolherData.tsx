@@ -47,12 +47,11 @@ export function EscolherData({
   const naSugestao = sugestoes.some((s) => s.valor === valor);
   const [aberto, setAberto] = useState(Boolean(valor) && !naSugestao);
   const [mes, setMes] = useState(() => anoMes(valor || min || hoje));
-  // Valor que chega de fora (abrir para remarcar) fora das sugestões: mostra o mês dele.
+  // Valor que muda (folha reaberta, remarcar): fora das sugestões, mostra o mês
+  // dele; numa sugestão, o calendário fecha.
   useEffect(() => {
-    if (valor && !naSugestao) {
-      setAberto(true);
-      setMes(anoMes(valor));
-    }
+    setAberto(Boolean(valor) && !naSugestao);
+    if (valor && !naSugestao) setMes(anoMes(valor));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valor]);
   const grade = gradeDoMes(mes.ano, mes.mes);

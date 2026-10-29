@@ -3,7 +3,7 @@
 -- passar de 99% e sem mexer em tarefa concluída. Requer o seed (Modelo 1).
 
 begin;
-select plan(12);
+select plan(13);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000c1', 'gestor@ata.contro'),
@@ -47,6 +47,11 @@ select throws_ok(
   $$ select responder_reuniao(reuniao_id, obra_id, 'semana_concluir', atv_id, 'talvez') from ids $$,
   '23514', null, 'resposta fora da lista é recusada');
 
+-- Resposta de outra seção é recusada (cobrança não "segue o plano").
+select throws_ok(
+  $$ select responder_reuniao(reuniao_id, obra_id, 'cobranca', atv_id, 'segue') from ids $$,
+  '23514', null, 'resposta tem de ser da seção');
+
 -- Reunião fechada: ninguém responde mais.
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated"}';
 select fechar_reuniao(reuniao_id, '[]'::jsonb) from ids;
@@ -71,7 +76,7 @@ select throws_ok($$ select informar_avanco_tarefa((select id from t), 75) $$, '2
   'tarefa concluída não recebe avanço');
 
 reset role;
-select ok(not has_function_privilege('anon', 'responder_reuniao(uuid, uuid, text, uuid, text, uuid)', 'execute'),
+select ok(not has_function_privilege('anon', 'responder_reuniao(uuid, uuid, text, uuid, text, uuid, uuid)', 'execute'),
   'anônimo não responde a pauta');
 
 select * from finish();

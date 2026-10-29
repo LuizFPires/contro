@@ -180,6 +180,31 @@ describe('montarObraAta', () => {
     expect(o.observacoes).toBe('Tapume entregue.');
   });
 
+  it('mesma atividade em duas seções: a ação vai só para a seção dela', () => {
+    const d = montarObraAta(
+      entrada({
+        itens: [
+          { id: 'x', nome: 'Pintura', secao: 'passada_comecar', resposta: 'nao_comecou' },
+          { id: 'x', nome: 'Pintura', secao: 'semana_concluir', resposta: 'segue' },
+        ],
+        acoes: [
+          {
+            vinculoId: 'x',
+            secao: 'passada_comecar',
+            texto: 'Chamar o pintor',
+            pessoa: 'Ana',
+            prazoFmt: 'ter 03/11',
+          },
+        ],
+      }),
+    );
+    expect(d.naoAconteceu[0].acao).toBe('Chamar o pintor — Ana, até ter 03/11');
+    expect(d.proximaSemana[0]).toMatchObject({
+      texto: 'Terminar Pintura · segue o plano',
+      acao: null,
+    });
+  });
+
   it('item da semana passada sem resposta', () => {
     const s = montarObraAta(
       entrada({ itens: [{ id: 'x', nome: 'Pintura', secao: 'passada_concluir', resposta: null }] }),
@@ -252,6 +277,10 @@ describe('cobrança e origem', () => {
     ).toBe(true);
     expect(
       entraNaCobranca(t({ concluido: true, feitaEm: '2026-10-20T10:00:00Z' }), atual, '2026-11-02'),
+    ).toBe(false);
+    // Feita no dia da reunião passada: já foi cobrada lá.
+    expect(
+      entraNaCobranca(t({ concluido: true, feitaEm: '2026-10-26' }), atual, '2026-11-02'),
     ).toBe(false);
     expect(entraNaCobranca(t({ origem: atual }), atual, '2026-11-02')).toBe(false);
     expect(entraNaCobranca(t({ origem: null }), atual, '2026-11-02')).toBe(false);

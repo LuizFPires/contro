@@ -4,7 +4,7 @@ import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { EscolherData } from '../../components/EscolherData';
 import { formatarDataCurta } from '../../lib/datas';
 import { usePerfil } from '../perfil/usePerfil';
-import { hojeISO } from './api';
+import { dataLocal, hojeISO } from './api';
 import type { TarefaObra } from './tarefasObra';
 import { useObras } from './useObras';
 import { useTarefasAcoes, useTarefasDasObras } from './useObraTarefas';
@@ -153,7 +153,7 @@ export function MinhasAcoesScreen({ onVoltar }: { onVoltar: () => void }) {
                       {feita ? (
                         <span className={styles.meta}>
                           Concluída
-                          {t.feita_em ? ` em ${formatarDataCurta(t.feita_em.slice(0, 10))}` : ''} ·
+                          {t.feita_em ? ` em ${formatarDataCurta(dataLocal(t.feita_em))}` : ''} ·
                           tocar para reabrir
                         </span>
                       ) : atrasada ? (

@@ -73,6 +73,18 @@ export function useReuniao(data: string) {
     onSuccess: inval,
   });
 
+  const trocarResposta = (k: string, resposta: RespostaReuniao | null, tarefaId?: string) => {
+    const atual = qc.getQueryData<ReuniaoCompleta | null>(['reuniao', data]);
+    if (!atual) return;
+    const respostas = { ...atual.respostas };
+    const acoesResposta = { ...atual.acoesResposta };
+    if (resposta) respostas[k] = resposta;
+    else delete respostas[k];
+    if (resposta && tarefaId) acoesResposta[k] = tarefaId;
+    else delete acoesResposta[k];
+    qc.setQueryData(['reuniao', data], { ...atual, respostas, acoesResposta });
+  };
+
   /** Resposta da pauta: otimista (o botão marca na hora); null apaga (Desfazer). */
   const responder = useMutation({
     mutationFn: (v: {
@@ -81,22 +93,20 @@ export function useReuniao(data: string) {
       secao: SecaoResposta;
       itemId: string;
       resposta: RespostaReuniao | null;
+      tarefaId?: string | null;
     }) => responderReuniao(v),
     onMutate: async (v) => {
       await qc.cancelQueries({ queryKey: ['reuniao', data] });
-      const prev = qc.getQueryData<ReuniaoCompleta | null>(['reuniao', data]);
-      if (prev) {
-        const respostas = { ...prev.respostas };
-        const k = chaveResposta(v.secao, v.itemId);
-        if (v.resposta) respostas[k] = v.resposta;
-        else delete respostas[k];
-        qc.setQueryData(['reuniao', data], { ...prev, respostas });
-      }
-      return { prev };
+      const k = chaveResposta(v.secao, v.itemId);
+      const atual = qc.getQueryData<ReuniaoCompleta | null>(['reuniao', data]);
+      const antes = { resposta: atual?.respostas[k], tarefaId: atual?.acoesResposta[k] };
+      trocarResposta(k, v.resposta, v.tarefaId ?? antes.tarefaId);
+      return { k, antes };
     },
-    // Sucesso não recarrega a pauta (a resposta já está no cache); erro volta e confere.
+    // Sucesso não recarrega a pauta (a resposta já está no cache). Erro desfaz só
+    // esta resposta (as outras, tocadas depois, ficam) e confere com o servidor.
     onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(['reuniao', data], ctx.prev);
+      if (ctx) trocarResposta(ctx.k, ctx.antes.resposta ?? null, ctx.antes.tarefaId);
       void inval();
     },
   });

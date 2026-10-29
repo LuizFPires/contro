@@ -137,6 +137,8 @@ export interface ItemPautaAta {
 /** Ação (tarefa) criada nesta reunião, ligada ou não a um item da pauta. */
 export interface AcaoAtaEntrada {
   vinculoId: string | null;
+  /** Seção da pauta a que a ação responde (a mesma atividade pode estar em duas). */
+  secao?: SecaoResposta | null;
   texto: string;
   pessoa: string;
   prazoFmt: string | null;
@@ -209,8 +211,8 @@ const linha = (texto: string, p: Partial<LinhaAta> = {}): LinhaAta => ({
 /** Monta os blocos de uma obra na ata a partir das respostas da pauta. */
 export function montarObraAta(e: ObraAtaEntrada): ObraAta {
   const ids = new Set(e.itens.map((i) => i.id));
-  const acaoDe = (id: string) => {
-    const a = e.acoes.find((x) => x.vinculoId === id);
+  const acaoDe = (id: string, secao: SecaoResposta) => {
+    const a = e.acoes.find((x) => x.vinculoId === id && (!x.secao || x.secao === secao));
     return a ? textoAcao(a) : null;
   };
   const aconteceu: LinhaAta[] = [];
@@ -232,7 +234,11 @@ export function montarObraAta(e: ObraAtaEntrada): ObraAta {
             ? `está em ${p}%`
             : 'não terminou';
         naoAconteceu.push(
-          linha(`${it.nome} · ${estado}`, { acao: acaoDe(it.id), atraso: true, nao: true }),
+          linha(`${it.nome} · ${estado}`, {
+            acao: acaoDe(it.id, it.secao),
+            atraso: true,
+            nao: true,
+          }),
         );
       } else {
         aconteceu.push(linha(comecar ? `${it.nome} · começou` : it.nome, { ok: true }));
@@ -245,7 +251,7 @@ export function montarObraAta(e: ObraAtaEntrada): ObraAta {
       if (!r) providencias.push(linha(`${base} · sem resposta`, { semResposta: true }));
       else if (r === 'ja_providenciado')
         providencias.push(linha(`${base} · já providenciado`, { ok: true }));
-      else providencias.push(linha(base, { acao: acaoDe(it.id) }));
+      else providencias.push(linha(base, { acao: acaoDe(it.id, it.secao) }));
       continue;
     }
     const verbo = it.secao === 'semana_concluir' ? 'Terminar' : 'Começar';
@@ -255,7 +261,7 @@ export function montarObraAta(e: ObraAtaEntrada): ObraAta {
       proximaSemana.push(
         linha(`${base} · segue o plano${it.prestador ? ` (${it.prestador})` : ''}`, { ok: true }),
       );
-    else proximaSemana.push(linha(base, { acao: acaoDe(it.id) }));
+    else proximaSemana.push(linha(base, { acao: acaoDe(it.id, it.secao) }));
   }
 
   // Ações avulsas (sem item da pauta): entram em Providências.
@@ -409,7 +415,8 @@ export function entraNaCobranca(
   if (!t.feitaEm) return false;
   const d = new Date(`${dataReuniao}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() - 7);
-  return t.feitaEm.slice(0, 10) >= d.toISOString().slice(0, 10);
+  // Feita no dia da reunião passada já foi cobrada lá.
+  return t.feitaEm.slice(0, 10) > d.toISOString().slice(0, 10);
 }
 
 /**

@@ -19,7 +19,7 @@ import {
   type TotaisAta,
 } from '@contro/core';
 import { formatarDataCurta } from '../../lib/datas';
-import { hojeISO } from '../obras/api';
+import { dataLocal, hojeISO } from '../obras/api';
 import {
   chaveResposta,
   type ItemPassada,
@@ -126,7 +126,37 @@ export const origemDa = (r: Pick<ReuniaoCompleta, 'data'>) =>
 /** Ações de reuniões anteriores cobradas nesta obra. */
 export function cobrancaDaObra(r: ReuniaoCompleta, obraId: string): TarefaAtrib[] {
   const origem = origemDa(r);
-  return r.tarefas.filter((t) => t.obraId === obraId && entraNaCobranca(t, origem, r.data));
+  return r.tarefas.filter(
+    (t) =>
+      t.obraId === obraId &&
+      entraNaCobranca({ ...t, feitaEm: t.feitaEm ? dataLocal(t.feitaEm) : null }, origem, r.data),
+  );
+}
+
+/** Seção da pauta a que cada ação desta reunião responde (tarefaId → seção). */
+function secaoDasAcoes(r: ReuniaoCompleta): Map<string, SecaoResposta> {
+  const m = new Map<string, SecaoResposta>();
+  for (const [k, tarefaId] of Object.entries(r.acoesResposta)) {
+    m.set(tarefaId, k.split(':')[0] as SecaoResposta);
+  }
+  return m;
+}
+
+/**
+ * Ação do item nesta seção: a gravada na resposta ou, sem ela (respostas antigas),
+ * a ação ligada ao item que não responde a outra seção.
+ */
+export function acaoDoItem(
+  r: ReuniaoCompleta,
+  obraId: string,
+  secao: SecaoResposta,
+  itemId: string,
+): TarefaAtrib | null {
+  const novas = acoesDaObra(r, obraId);
+  const id = r.acoesResposta[chaveResposta(secao, itemId)];
+  if (id) return novas.find((t) => t.id === id) ?? null;
+  const secoes = secaoDasAcoes(r);
+  return novas.find((t) => t.vinculoId === itemId && !secoes.has(t.id)) ?? null;
 }
 
 /** Ações criadas nesta reunião, nesta obra. */
@@ -167,6 +197,7 @@ const fmt = (d: string | null) => (d ? formatarDataCurta(d) : null);
 
 export function entradaObraAta(r: ReuniaoCompleta, o: ReuniaoObraDados): ObraAtaEntrada {
   const ritmo = ritmoTexto(o.ritmoDias, true);
+  const secoes = secaoDasAcoes(r);
   const itens: ItemPautaAta[] = [
     ...itensPassada(o).map((it) => ({
       id: it.atividadeId,
@@ -196,6 +227,7 @@ export function entradaObraAta(r: ReuniaoCompleta, o: ReuniaoObraDados): ObraAta
     itens,
     acoes: acoesDaObra(r, o.obraId).map((t) => ({
       vinculoId: t.vinculoId,
+      secao: secoes.get(t.id) ?? null,
       texto: t.texto,
       pessoa: t.pessoa,
       prazoFmt: fmt(t.prazo),
