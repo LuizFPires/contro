@@ -337,11 +337,9 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
       <ApontarSheet
         aberto={apontar}
         obra={obra}
-        pendente={campo.apontar.isPending}
         onFechar={() => setApontar(false)}
-        onApontar={(dados, file) =>
-          campo.apontar.mutate({ dados, file }, { onSuccess: () => setApontar(false) })
-        }
+        onApontar={(dados, file) => campo.apontar.mutateAsync({ dados, file })}
+        onDesfazer={(ids) => ids.forEach((id) => campo.excluir.mutate(id))}
       />
 
       {resolver ? (
