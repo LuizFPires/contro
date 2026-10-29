@@ -44,3 +44,4 @@ export function podeApagarObra(perfil: Perfil): boolean {
 export function podeEditarModelos(perfil: Perfil): boolean {
   return perfil === 'gestor';
 }
+export * from './loteFotos';
