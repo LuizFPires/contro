@@ -137,6 +137,10 @@
   background: rgb(84 180 176 / 25%);
   border-color: var(--contro-black);
 }
+.obrig {
+  font-weight: 600;
+  color: #696969;
+}
 .aviso {
   margin-top: 4px;
   font-size: 13px;

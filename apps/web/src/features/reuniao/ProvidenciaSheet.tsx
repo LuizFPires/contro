@@ -7,6 +7,7 @@ import {
   type ImpactoConclusao,
 } from '@contro/core';
 import { BottomSheet, Icon } from '@contro/ui';
+import { EscolherData } from '../../components/EscolherData';
 import { formatarDataCurta } from '../../lib/datas';
 import type { PessoaResumo } from '../perfil/usePessoas';
 import styles from './ProvidenciaSheet.module.css';
@@ -18,7 +19,11 @@ export interface ValoresProvidencia {
   responsavelNome: string | null;
   prazo: string;
   observacao: string;
+  /** "Quanto andou?" (Não terminou): avanço da atividade, 0..75. */
+  avancoPct?: number | null;
 }
+
+const AVANCOS = [0, 25, 50, 75];
 
 export interface CabecalhoProvidencia {
   /** "Não feito", "Não feita", "Esta semana"… */
@@ -70,7 +75,6 @@ export function ProvidenciaSheet({
   const datas = useMemo(() => datasProvidencia(hoje, 5), [hoje]);
   const [v, setV] = useState<ValoresProvidencia>(inicial);
   const [outroNome, setOutroNome] = useState(false);
-  const [outraData, setOutraData] = useState(false);
 
   useEffect(() => {
     if (!aberto) return;
@@ -78,7 +82,6 @@ export function ProvidenciaSheet({
     const prazo = inicial.prazo && inicial.prazo > hoje ? inicial.prazo : datas[2];
     setV({ ...inicial, prazo });
     setOutroNome(!inicial.responsavelId && Boolean(inicial.responsavelNome));
-    setOutraData(!datas.includes(prazo));
     // Reinicia só ao abrir (inicial muda de identidade a cada render do pai).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto]);
@@ -95,7 +98,8 @@ export function ProvidenciaSheet({
         volta: voltaNaProximaReuniao(dataReuniao, v.prazo),
       })
     : null;
-  const valido = v.texto.trim().length > 0 && Boolean(v.prazo);
+  // Toda ação tem dono (decisão do usuário, 29/10/2026): sem "Quem cuida", não salva.
+  const valido = v.texto.trim().length > 0 && Boolean(v.prazo) && Boolean(quem);
 
   return (
     <BottomSheet open={aberto} title={titulo} onClose={onFechar}>
@@ -150,6 +154,25 @@ export function ProvidenciaSheet({
 
         {info ? <div className={styles.miuda}>{info}</div> : null}
 
+        {v.avancoPct != null ? (
+          <>
+            <div className={styles.rotuloCampo}>Quanto andou?</div>
+            <div className={styles.chips} role="group" aria-label="Quanto andou">
+              {AVANCOS.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  aria-pressed={v.avancoPct === p}
+                  className={`${styles.chip} ${v.avancoPct === p ? styles.chipOn : ''}`}
+                  onClick={() => setV({ ...v, avancoPct: p })}
+                >
+                  {p}%
+                </button>
+              ))}
+            </div>
+          </>
+        ) : null}
+
         <label className={styles.rotuloCampo} htmlFor="prov-texto">
           O que precisa ser feito
         </label>
@@ -160,7 +183,9 @@ export function ProvidenciaSheet({
           onChange={(e) => setV({ ...v, texto: e.target.value })}
         />
 
-        <div className={styles.rotuloCampo}>Responsável</div>
+        <div className={styles.rotuloCampo}>
+          Quem cuida <span className={styles.obrig}>· obrigatório</span>
+        </div>
         <div className={styles.chips} role="group" aria-label="Responsável">
           {pessoas.map((p) => {
             const on = !outroNome && v.responsavelId === p.id;
@@ -209,44 +234,16 @@ export function ProvidenciaSheet({
           </>
         ) : null}
 
-        <div className={styles.rotuloCampo}>Data da providência</div>
-        <div className={styles.chips} role="group" aria-label="Data da providência">
-          {datas.map((d) => {
-            const on = !outraData && v.prazo === d;
-            return (
-              <button
-                key={d}
-                type="button"
-                aria-pressed={on}
-                className={`${styles.data} ${on ? styles.dataOn : ''}`}
-                onClick={() => {
-                  setOutraData(false);
-                  setV({ ...v, prazo: d });
-                }}
-              >
-                {formatarDataCurta(d)}
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            aria-pressed={outraData}
-            className={`${styles.data} ${outraData ? styles.dataOn : ''}`}
-            onClick={() => setOutraData(true)}
-          >
-            Outra data
-          </button>
-        </div>
-        {outraData ? (
-          <input
-            type="date"
-            className={styles.campo}
-            aria-label="Escolher outra data"
-            min={hoje}
-            value={v.prazo}
-            onChange={(e) => setV({ ...v, prazo: e.target.value })}
-          />
-        ) : null}
+        <div className={styles.rotuloCampo}>Até quando</div>
+        <EscolherData
+          rotulo="Até quando"
+          valor={v.prazo}
+          onEscolher={(d) => setV({ ...v, prazo: d })}
+          sugestoes={datas.map((d) => ({ valor: d }))}
+          min={hoje}
+          hoje={hoje}
+        />
+        {!quem ? <div className={styles.miuda}>Escolha quem cuida para salvar.</div> : null}
 
         <label className={styles.rotuloCampo} htmlFor="prov-obs">
           Observação

@@ -237,3 +237,201 @@
   font-size: 12px;
   color: #464646;
 }
+
+/* Minhas ações (quem está vendo tem ações abertas). */
+.minhas {
+  width: 100%;
+  min-height: 56px;
+  margin-bottom: 10px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  cursor: pointer;
+}
+.minhasTexto {
+  flex: 1;
+  text-align: left;
+}
+.minhasAtraso {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  background: var(--contro-white);
+  color: var(--contro-late);
+  border-radius: var(--contro-radius-pill);
+  padding: 3px 8px;
+}
+.eu {
+  background: rgb(84 180 176 / 35%);
+  color: inherit;
+  border-radius: 4px;
+  padding: 0 3px;
+  font-weight: 800;
+}
+.pessoaEu {
+  background: rgb(84 180 176 / 12%);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+.totais {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.total,
+.totalAtraso {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgb(24 24 24 / 8%);
+}
+.totalAtraso {
+  color: var(--contro-late);
+}
+.semResp {
+  color: #464646;
+}
+.formatos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.formato {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1.5px solid rgb(24 24 24 / 20%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.formatoOn {
+  border: 2px solid var(--contro-black);
+}
+.formatoTexto {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.formatoTexto span {
+  font-size: 13px;
+  color: #464646;
+}
+.radio {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.formatoOn .radio {
+  background: var(--contro-black);
+  border-color: var(--contro-black);
+  color: var(--contro-white);
+}
+.baixar {
+  width: 100%;
+  margin-top: 12px;
+  min-height: var(--contro-control-h);
+  border: 0;
+  border-radius: 12px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Resumo em tabela: só existe na impressão/PDF (paisagem). */
+.resumo {
+  display: none;
+}
+.resumoTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  border-bottom: 2px solid var(--contro-black);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+.resumoTitulo {
+  font-weight: 800;
+  font-size: 16px;
+}
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+.tabela th {
+  text-align: left;
+  padding: 6px 8px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tabela td {
+  padding: 6px 8px;
+  vertical-align: top;
+  border-top: 1px solid rgb(24 24 24 / 15%);
+  border-left: 1px solid rgb(24 24 24 / 8%);
+}
+.tabela tr {
+  break-inside: avoid;
+}
+.tAtraso {
+  color: var(--contro-late);
+  font-weight: 700;
+}
+.tCinza {
+  color: #464646;
+}
+.resumoPessoas {
+  margin-top: 10px;
+  border-top: 2px solid var(--contro-black);
+  padding-top: 6px;
+  font-size: 10.5px;
+}
+.resumoPessoasGrade {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 4px;
+}
+
+@media print {
+  .minhas {
+    display: none;
+  }
+  .resumo {
+    display: block;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .quebraAntes {
+    break-before: page;
+  }
+}

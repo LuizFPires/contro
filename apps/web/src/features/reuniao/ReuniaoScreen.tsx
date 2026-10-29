@@ -1,16 +1,22 @@
 import { useMemo, useState } from 'react';
 import {
-  deReuniaoAnterior,
-  origemReuniao,
+  ETIQUETA_SECAO,
+  RESPOSTAS_POR_SECAO,
+  ROTULO_RESPOSTA,
+  contarRespondidos,
+  destinoNaAta,
+  montarObraAta,
   reuniaoDaSemana,
   simularConclusaoEm,
+  type LinhaAta,
+  type RespostaReuniao,
+  type SecaoResposta,
 } from '@contro/core';
-import { Icon, useToast } from '@contro/ui';
+import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
 import { usePessoas } from '../perfil/usePessoas';
 import { hojeISO } from '../obras/api';
 import { useConfigAvisos } from '../avisos/useConfigAvisos';
-import { desfazerConclusao } from '../obras/campo';
 import { formatarDataCurta } from '../../lib/datas';
 import { AtaView } from './AtaView';
 import {
@@ -18,20 +24,35 @@ import {
   type CabecalhoProvidencia,
   type ValoresProvidencia,
 } from './ProvidenciaSheet';
+import {
+  acoesDaObra,
+  cobrancaDaObra,
+  entradaObraAta,
+  itensPassada,
+  itensSemana,
+  origemDa,
+  respostaCobranca,
+  respostaDe,
+  respostasDaObra,
+  type ItemPassadaPauta,
+  type ItemSemanaPauta,
+} from './ataDados';
 import { useNomesSugeridos } from './useNomesSugeridos';
 import { useReuniao } from './useReuniao';
-import type { ItemPassada, ReuniaoObraDados, TarefaAtrib } from './reuniaoApi';
+import type { ReuniaoObraDados, TarefaAtrib } from './reuniaoApi';
 import styles from './ReuniaoScreen.module.css';
 
-/** Segunda-feira da semana corrente (ISO). */
-
-const PASSOS = ['Semana passada', 'Esta semana', 'Providências', 'Observações'];
-const TIPO: Record<string, string> = {
-  contratacao: 'Contratar',
-  locacao: 'Alugar',
-  compra: 'Comprar',
-};
+// Pauta por obra (decisão do usuário, 29/10/2026): começa cobrando o combinado,
+// depois o que estava previsto, o que vem pela frente e o fechamento.
+const PASSOS = ['Cobrança', 'Semana passada', 'Esta semana', 'Fechamento'];
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
+const VAZIO: ValoresProvidencia = {
+  texto: '',
+  responsavelId: null,
+  responsavelNome: null,
+  prazo: '',
+  observacao: '',
+};
 
 interface Sheet {
   obraId: string;
@@ -43,21 +64,21 @@ interface Sheet {
   impactoAtividadeId: string | null;
   vinculo: { tipo: 'atividade' | 'providencia'; id: string } | null;
   tarefaId: string | null;
+  /** Resposta gravada ao salvar a ação. */
+  resposta: { secao: SecaoResposta; itemId: string; valor: RespostaReuniao } | null;
+  /** "Quanto andou?": atividade cujo avanço é gravado ao salvar. */
+  avancoAtividadeId: string | null;
+  avancoAntes: number;
 }
 
-interface ItemSemana {
-  id: string;
-  vinculoTipo: 'atividade' | 'providencia';
-  tipo: string;
-  nome: string;
-  sub: string;
-  prestador?: string | null;
-  atraso: string | null;
-  sugestao: string;
-}
-
-/** Reunião semanal (opção A · pauta guiada): obra por obra, em 4 etapas. */
-export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
+/** Reunião semanal: obra por obra, em 4 passos, até a ata. */
+export function ReuniaoScreen({
+  onVoltar,
+  onMinhas,
+}: {
+  onVoltar: () => void;
+  onMinhas: () => void;
+}) {
   const hoje = hojeISO();
   // Reunião desta semana no dia configurado pelo gestor (Reunião e avisos).
   const { config: agenda } = useConfigAvisos();
@@ -66,41 +87,31 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
   const { data: pessoas = [] } = usePessoas();
   const { data: nomesSugeridos = [] } = useNomesSugeridos();
   const { showToast } = useToast();
-  const { query, observacao, fechar, salvarProvidencia, concluirAtv, marcarFeita, reabrir } =
-    useReuniao(data);
+  const r = useReuniao(data);
+  const { query } = r;
 
   const [ataAberta, setAtaAberta] = useState(false);
+  const [gerarAberto, setGerarAberto] = useState(false);
   const [obraSel, setObraSel] = useState<string | null>(null);
   const [passo, setPasso] = useState(0);
   const [sheet, setSheet] = useState<Sheet | null>(null);
-  // Decisões que não gravam nada: "Segue o plano" e "Começou".
-  const [semAcao, setSemAcao] = useState<Set<string>>(new Set());
-  const [naoFeitas, setNaoFeitas] = useState<Set<string>>(new Set());
 
   const reuniao = query.data;
   const obras = useMemo(() => reuniao?.obras ?? [], [reuniao]);
-  const tarefas = useMemo(() => reuniao?.tarefas ?? [], [reuniao]);
   const fechada = reuniao?.status === 'fechada';
   const ehGestor = pessoa?.perfil === 'gestor';
   const dataFmt = formatarDataCurta(data);
-  const origemAtual = origemReuniao(dataFmt);
 
   const idx = Math.max(
     0,
     obras.findIndex((o) => o.obraId === obraSel),
   );
   const o = obras[idx] as ReuniaoObraDados | undefined;
-  const doObra = tarefas.filter((t) => t.obraId === o?.obraId);
-  const novas = doObra.filter((t) => t.origem === origemAtual);
-  const anteriores = doObra.filter((t) => deReuniaoAnterior(t, origemAtual));
-  const provDe = (id: string) => novas.find((t) => t.vinculoId === id) ?? null;
+  const novas = reuniao && o ? acoesDaObra(reuniao, o.obraId) : [];
+  const acaoDe = (id: string) => novas.find((t) => t.vinculoId === id) ?? null;
 
-  const marcar = (set: Set<string>, id: string, on: boolean) => {
-    const n = new Set(set);
-    if (on) n.add(id);
-    else n.delete(id);
-    return n;
-  };
+  const contagem = (x: ReuniaoObraDados) =>
+    reuniao ? contarRespondidos(respostasDaObra(reuniao, x)) : { respondidos: 0, total: 0 };
 
   function irObra(i: number) {
     setObraSel(obras[i]?.obraId ?? null);
@@ -112,210 +123,106 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
     window.scrollTo({ top: 0 });
   }
 
-  function abrirEdicao(t: TarefaAtrib, titulo: string, extra?: Partial<Sheet>) {
+  function responder(
+    secao: SecaoResposta,
+    itemId: string,
+    resposta: RespostaReuniao | null,
+    obraId = o?.obraId,
+  ) {
+    if (!reuniao || !obraId) return;
+    r.responder.mutate(
+      { reuniaoId: reuniao.id, obraId, secao, itemId, resposta },
+      { onError: () => showToast({ message: 'Não foi possível gravar a resposta' }) },
+    );
+  }
+
+  function abrirAcao(
+    base: Omit<Sheet, 'obraId' | 'info' | 'tarefaId' | 'avancoAntes'> & {
+      avancoAntes?: number;
+    },
+  ) {
     if (!o) return;
+    const existente = base.vinculo ? acaoDe(base.vinculo.id) : null;
     setSheet({
       obraId: o.obraId,
-      titulo,
-      cabecalho: null,
       info: null,
-      impactoAtividadeId: null,
-      vinculo: t.vinculoTipo && t.vinculoId ? { tipo: t.vinculoTipo, id: t.vinculoId } : null,
-      tarefaId: t.id,
-      inicial: {
-        texto: t.texto,
-        responsavelId: t.responsavelId,
-        responsavelNome: t.responsavelId ? null : t.responsavelNome,
-        prazo: t.prazo ?? '',
-        observacao: t.observacao ?? '',
-      },
-      ...extra,
+      tarefaId: existente?.id ?? null,
+      avancoAntes: base.avancoAntes ?? 0,
+      ...base,
+      inicial: existente
+        ? {
+            texto: existente.texto,
+            responsavelId: existente.responsavelId,
+            responsavelNome: existente.responsavelId ? null : existente.responsavelNome,
+            prazo: existente.prazo ?? '',
+            observacao: existente.observacao ?? '',
+            avancoPct: base.inicial.avancoPct,
+          }
+        : base.inicial,
     });
   }
 
   function salvarSheet(v: ValoresProvidencia) {
-    if (!sheet) return;
-    salvarProvidencia.mutate(
+    if (!sheet || !reuniao) return;
+    const s = sheet;
+    r.salvarProvidencia.mutate(
       {
-        obraId: sheet.obraId,
+        obraId: s.obraId,
         entrada: {
-          id: sheet.tarefaId,
+          id: s.tarefaId,
           texto: v.texto,
           responsavelId: v.responsavelId,
           responsavelNome: v.responsavelNome,
           prazo: v.prazo,
           observacao: v.observacao,
-          vinculoTipo: sheet.vinculo?.tipo ?? null,
-          vinculoId: sheet.vinculo?.id ?? null,
-          origemTexto: sheet.tarefaId ? undefined : origemAtual,
+          vinculoTipo: s.vinculo?.tipo ?? null,
+          vinculoId: s.vinculo?.id ?? null,
+          origemTexto: s.tarefaId ? undefined : origemDa(reuniao),
         },
       },
       {
         onSuccess: () => {
+          if (s.resposta)
+            responder(s.resposta.secao, s.resposta.itemId, s.resposta.valor, s.obraId);
+          if (s.avancoAtividadeId && v.avancoPct != null && v.avancoPct !== s.avancoAntes) {
+            r.avancoAtv.mutate({ atividadeId: s.avancoAtividadeId, pct: v.avancoPct });
+          }
           setSheet(null);
-          showToast({ message: 'Providência salva na ata' });
+          showToast({ message: 'Ação salva · vai para as Tarefas de quem cuida' });
         },
-        onError: () => showToast({ message: 'Não foi possível salvar a providência' }),
+        onError: () => showToast({ message: 'Não foi possível salvar a ação' }),
       },
     );
   }
 
-  // --- Semana passada ---
-  function feitoPassada(it: ItemPassada) {
-    if (it.tipo === 'comecar') {
-      setSemAcao(marcar(semAcao, it.atividadeId, true));
-      return;
-    }
-    concluirAtv.mutate(it.atividadeId, {
-      onSuccess: () =>
-        showToast({
-          message: `${it.nome} concluída (sem foto)`,
-          onUndo: () =>
-            void desfazerConclusao(it.atividadeId)
-              .then(() => query.refetch())
-              .catch(() => showToast({ message: 'Não foi possível desfazer' })),
-        }),
-      onError: () => showToast({ message: 'Não foi possível concluir' }),
-    });
-  }
-
-  function naoFeitoPassada(it: ItemPassada) {
-    if (!o) return;
-    setSemAcao(marcar(semAcao, it.atividadeId, false));
-    const existente = provDe(it.atividadeId);
-    const cabecalho: CabecalhoProvidencia = {
-      rotulo: it.tipo === 'concluir' ? 'Não feito' : 'Não começou',
-      atraso: true,
-      nome: it.nome,
-      etiquetaAtraso: `Atrasada · prevista ${formatarDataCurta(it.data)}`,
-    };
-    const impactoAtividadeId = it.tipo === 'concluir' ? it.atividadeId : null;
-    if (existente) {
-      abrirEdicao(existente, 'Providência para recuperar', { cabecalho, impactoAtividadeId });
-      return;
-    }
-    setSheet({
-      obraId: o.obraId,
-      titulo: 'Providência para recuperar',
-      cabecalho,
-      info: null,
-      impactoAtividadeId,
-      vinculo: { tipo: 'atividade', id: it.atividadeId },
-      tarefaId: null,
-      inicial: {
-        texto: `${it.tipo === 'concluir' ? 'Concluir' : 'Começar'} ${it.nome.toLowerCase()}`,
-        responsavelId: null,
-        responsavelNome: null,
-        prazo: '',
-        observacao: '',
-      },
-    });
-  }
-
-  // --- Esta semana ---
-  const itensSemana: ItemSemana[] = o
-    ? [
-        ...o.concluir.map((a) => ({
-          id: a.atividadeId,
-          vinculoTipo: 'atividade' as const,
-          tipo: 'Concluir',
-          nome: a.nome,
-          sub: `previsto concluir até ${formatarDataCurta(a.data)}`,
-          prestador: a.prestador ?? null,
-          atraso: null,
-          sugestao: a.prestador
-            ? `Confirmar com ${a.prestador} a conclusão`
-            : `Garantir conclusão: ${a.nome}`,
-        })),
-        ...o.comecar.map((a) => ({
-          id: a.atividadeId,
-          vinculoTipo: 'atividade' as const,
-          tipo: 'Começar',
-          nome: a.nome,
-          sub: `previsto começar ${formatarDataCurta(a.data)}`,
-          prestador: a.prestador ?? null,
-          atraso: null,
-          sugestao: a.prestador
-            ? `Confirmar com ${a.prestador} o início`
-            : `Mobilizar início: ${a.nome}`,
-        })),
-        ...o.providenciasAtrasadas.map((p) => ({
-          id: p.providenciaId,
-          vinculoTipo: 'providencia' as const,
-          tipo: TIPO[p.tipo],
-          nome: p.descricao,
-          sub: 'era para já estar providenciado',
-          atraso: p.naObraEm ? `Atrasado · na obra ${formatarDataCurta(p.naObraEm)}` : 'Atrasado',
-          sugestao: `${TIPO[p.tipo]}: ${p.descricao}`,
-        })),
-        ...o.providenciar.map((p) => ({
-          id: p.providenciaId,
-          vinculoTipo: 'providencia' as const,
-          tipo: TIPO[p.tipo],
-          nome: p.descricao,
-          sub: p.naObraEm
-            ? `precisa estar na obra ${formatarDataCurta(p.naObraEm)}`
-            : 'providenciar nesta semana',
-          atraso: null,
-          sugestao: `${TIPO[p.tipo]}: ${p.descricao}`,
-        })),
-      ]
-    : [];
-
-  function providenciaSemana(it: ItemSemana) {
-    if (!o) return;
-    setSemAcao(marcar(semAcao, it.id, false));
-    const existente = provDe(it.id);
-    const cabecalho: CabecalhoProvidencia = {
-      rotulo: it.tipo,
-      atraso: Boolean(it.atraso),
-      nome: it.nome,
-      etiquetaAtraso: it.atraso,
-    };
-    if (existente) {
-      abrirEdicao(existente, 'Providência', { cabecalho });
-      return;
-    }
-    setSheet({
-      obraId: o.obraId,
-      titulo: 'Providência',
-      cabecalho,
-      info: null,
-      impactoAtividadeId: null,
-      vinculo: { tipo: it.vinculoTipo, id: it.id },
-      tarefaId: null,
-      inicial: {
-        texto: it.sugestao,
-        responsavelId: null,
-        responsavelNome: null,
-        prazo: '',
-        observacao: '',
-      },
-    });
-  }
-
-  // --- Providências da reunião anterior ---
-  function feitaAnterior(t: TarefaAtrib) {
-    setNaoFeitas(marcar(naoFeitas, t.id, false));
+  // --- Passo 1 · Cobrança ---
+  function feitaCobranca(t: TarefaAtrib) {
+    responder('cobranca', t.id, 'feita');
     if (t.concluido) return;
-    marcarFeita.mutate(
+    r.marcarFeita.mutate(
       { id: t.id, feita: true },
       {
         onSuccess: () =>
           showToast({
-            message: 'Providência marcada como feita',
-            onUndo: () => marcarFeita.mutate({ id: t.id, feita: false }),
+            message: 'Ação marcada como feita',
+            onUndo: () => {
+              r.marcarFeita.mutate({ id: t.id, feita: false });
+              responder('cobranca', t.id, null);
+            },
           }),
         onError: () => showToast({ message: 'Não foi possível marcar' }),
       },
     );
   }
 
-  function naoFeitaAnterior(t: TarefaAtrib) {
-    setNaoFeitas(marcar(naoFeitas, t.id, true));
-    if (t.concluido) marcarFeita.mutate({ id: t.id, feita: false });
+  function naoFeitaCobranca(t: TarefaAtrib) {
+    if (!o) return;
+    responder('cobranca', t.id, 'nao_feita');
+    if (t.concluido) r.marcarFeita.mutate({ id: t.id, feita: false });
     const original = t.prazoOriginal ?? t.prazo;
-    abrirEdicao(t, 'Remarcar providência', {
+    setSheet({
+      obraId: o.obraId,
+      titulo: 'Remarcar ação',
       cabecalho: {
         rotulo: 'Não feita',
         atraso: true,
@@ -327,6 +234,115 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
         t.replanejamentos > 0 && original
           ? `Remarcada ${plural(t.replanejamentos, 'vez', 'vezes')} · prazo original ${formatarDataCurta(original)}`
           : null,
+      impactoAtividadeId: null,
+      vinculo: t.vinculoTipo && t.vinculoId ? { tipo: t.vinculoTipo, id: t.vinculoId } : null,
+      tarefaId: t.id,
+      resposta: null,
+      avancoAtividadeId: null,
+      avancoAntes: 0,
+      inicial: {
+        texto: t.texto,
+        responsavelId: t.responsavelId,
+        responsavelNome: t.responsavelId ? null : t.responsavelNome,
+        prazo: t.prazo ?? '',
+        observacao: t.observacao ?? '',
+      },
+    });
+  }
+
+  // --- Passo 2 · Semana passada ---
+  function positivoPassada(it: ItemPassadaPauta) {
+    if (it.secao === 'passada_comecar') {
+      responder(it.secao, it.atividadeId, 'comecou');
+      return;
+    }
+    responder(it.secao, it.atividadeId, 'terminou');
+    r.concluirAtv.mutate(it.atividadeId, {
+      onSuccess: () =>
+        showToast({
+          message: `${it.nome} concluída (sem foto)`,
+          onUndo: () => {
+            r.desfazerAtv.mutate(it.atividadeId, {
+              onError: () => showToast({ message: 'Não foi possível desfazer' }),
+            });
+            responder(it.secao, it.atividadeId, null);
+          },
+        }),
+      onError: () => {
+        responder(it.secao, it.atividadeId, null);
+        showToast({ message: 'Não foi possível concluir' });
+      },
+    });
+  }
+
+  function negativoPassada(it: ItemPassadaPauta) {
+    const concluir = it.secao === 'passada_concluir';
+    const avanco = Math.min(75, Math.floor(it.avancoPct / 25) * 25);
+    abrirAcao({
+      titulo: concluir ? 'Não terminou · o que fazer?' : 'Não começou · o que fazer?',
+      cabecalho: {
+        rotulo: ETIQUETA_SECAO[it.secao],
+        atraso: true,
+        nome: it.nome,
+        etiquetaAtraso: `Atrasada · prevista ${formatarDataCurta(it.data)}`,
+      },
+      impactoAtividadeId: concluir ? it.atividadeId : null,
+      vinculo: { tipo: 'atividade', id: it.atividadeId },
+      resposta: {
+        secao: it.secao,
+        itemId: it.atividadeId,
+        valor: concluir ? 'nao_terminou' : 'nao_comecou',
+      },
+      avancoAtividadeId: concluir ? it.atividadeId : null,
+      avancoAntes: avanco,
+      inicial: {
+        ...VAZIO,
+        texto: `${concluir ? 'Concluir' : 'Começar'} ${it.nome.toLowerCase()}`,
+        avancoPct: concluir ? avanco : null,
+      },
+    });
+  }
+
+  // --- Passo 3 · Esta semana ---
+  function positivoSemana(it: ItemSemanaPauta) {
+    if (it.secao !== 'semana_providencia') {
+      responder(it.secao, it.id, 'segue');
+      return;
+    }
+    responder(it.secao, it.id, 'ja_providenciado');
+    r.marcarProv.mutate(
+      { id: it.id, feito: true },
+      {
+        onSuccess: () =>
+          showToast({
+            message: `${it.nome} · providenciado`,
+            onUndo: () => {
+              r.marcarProv.mutate({ id: it.id, feito: false });
+              responder(it.secao, it.id, null);
+            },
+          }),
+        onError: () => {
+          responder(it.secao, it.id, null);
+          showToast({ message: 'Não foi possível marcar' });
+        },
+      },
+    );
+  }
+
+  function negativoSemana(it: ItemSemanaPauta) {
+    abrirAcao({
+      titulo: it.secao === 'semana_providencia' ? 'Quem cuida?' : 'Precisa de ação',
+      cabecalho: {
+        rotulo: ETIQUETA_SECAO[it.secao],
+        atraso: Boolean(it.atraso),
+        nome: it.nome,
+        etiquetaAtraso: it.atraso,
+      },
+      impactoAtividadeId: null,
+      vinculo: { tipo: it.vinculoTipo, id: it.id },
+      resposta: { secao: it.secao, itemId: it.id, valor: 'acao' },
+      avancoAtividadeId: null,
+      inicial: { ...VAZIO, texto: it.sugestao },
     });
   }
 
@@ -340,10 +356,11 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
       obra_id: x.obraId,
       snapshot: { pct: x.pct, ritmoDias: x.ritmoDias, entrega: x.entrega },
     }));
-    fechar.mutate(
+    r.fechar.mutate(
       { id: reuniao.id, snapshots },
       {
         onSuccess: () => {
+          setGerarAberto(false);
           setAtaAberta(true);
           showToast({ message: 'Reunião fechada · ata gerada' });
         },
@@ -353,7 +370,7 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
   }
 
   if (ataAberta && reuniao) {
-    return <AtaView reuniao={reuniao} onVoltar={() => setAtaAberta(false)} />;
+    return <AtaView reuniao={reuniao} onVoltar={() => setAtaAberta(false)} onMinhas={onMinhas} />;
   }
 
   const ultimaObra = idx >= obras.length - 1;
@@ -363,6 +380,7 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
       ? (prazo: string) =>
           simularConclusaoEm(o.inicio, o.entradaCronograma, sheet.impactoAtividadeId!, prazo)
       : null;
+  const cont = o ? contagem(o) : null;
 
   return (
     <div className={styles.screen}>
@@ -373,23 +391,39 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
           </button>
           <div>
             <h1 className={styles.titulo}>Reunião de {dataFmt}</h1>
-            <div className={styles.sub}>{fechada ? 'Ata gerada' : 'Ata da obra em construção'}</div>
+            <div className={styles.sub}>
+              {fechada
+                ? 'Ata gerada'
+                : o
+                  ? `${o.nome} · obra ${idx + 1} de ${obras.length}`
+                  : 'Ata em construção'}
+            </div>
           </div>
         </div>
         {obras.length > 0 ? (
           <div className={styles.obras} role="tablist" aria-label="Obras da reunião">
-            {obras.map((x, i) => (
-              <button
-                key={x.obraId}
-                type="button"
-                role="tab"
-                aria-selected={i === idx}
-                className={`${styles.obraChip} ${i === idx ? styles.obraChipOn : ''}`}
-                onClick={() => irObra(i)}
-              >
-                {x.nome}
-              </button>
-            ))}
+            {obras.map((x, i) => {
+              const c = contagem(x);
+              const pronta = c.total > 0 && c.respondidos === c.total;
+              return (
+                <button
+                  key={x.obraId}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === idx}
+                  className={`${styles.obraChip} ${i === idx ? styles.obraChipOn : ''}`}
+                  onClick={() => irObra(i)}
+                >
+                  {pronta ? (
+                    <>
+                      <Icon name="checkGrosso" size={13} strokeWidth={3} />
+                      <span className="sr-only">tudo respondido: </span>
+                    </>
+                  ) : null}
+                  {x.nome}
+                </button>
+              );
+            })}
           </div>
         ) : null}
       </header>
@@ -427,188 +461,293 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
               <button
                 type="button"
                 className={styles.reabrirPauta}
-                disabled={reabrir.isPending}
+                disabled={r.reabrir.isPending}
                 onClick={() =>
                   reuniao &&
-                  reabrir.mutate(reuniao.id, {
+                  r.reabrir.mutate(reuniao.id, {
                     onSuccess: () => showToast({ message: 'Pauta reaberta com as obras de hoje' }),
                     onError: () => showToast({ message: 'Não foi possível reabrir a pauta' }),
                   })
                 }
               >
                 <Icon name="undo" size={18} strokeWidth={2} />
-                {reabrir.isPending ? 'Reabrindo…' : 'Reabrir pauta'}
+                {r.reabrir.isPending ? 'Reabrindo…' : 'Reabrir pauta'}
               </button>
             ) : (
               <p className={styles.vazio}>Peça ao gestor para reabrir a pauta.</p>
             )}
           </div>
-        ) : !o ? (
+        ) : !o || !reuniao ? (
           <p className={styles.vazio}>Nenhuma obra em andamento para a pauta.</p>
-        ) : passo === 0 ? (
-          <SemanaPassada
-            o={o}
-            provDe={provDe}
-            semAcao={semAcao}
-            fechada={fechada}
-            pendente={concluirAtv.isPending}
-            onFeito={feitoPassada}
-            onNaoFeito={naoFeitoPassada}
-          />
-        ) : passo === 1 ? (
+        ) : (
           <>
-            <h2 className={styles.h2}>Esta semana na obra</h2>
-            <p className={styles.dica}>O que vem pela frente precisa de alguém cuidando?</p>
-            {itensSemana.length === 0 ? (
-              <p className={styles.vazio}>Nada previsto para esta semana.</p>
-            ) : null}
-            {itensSemana.map((it) => {
-              const prov = provDe(it.id);
-              const segue = !prov && semAcao.has(it.id);
-              return (
-                <div key={`${it.vinculoTipo}-${it.id}`} className={styles.card}>
-                  <div className={styles.cardTopo}>
-                    <span className={styles.tipo}>{it.tipo}</span>
-                    <b>{it.nome}</b>
-                    <span className={styles.cinza}>
-                      {it.sub}
-                      {it.prestador ? (
-                        <>
-                          {' '}
-                          · prestador <b className={styles.prestador}>{it.prestador}</b>
-                        </>
-                      ) : null}
-                    </span>
-                    {it.atraso ? <Atraso texto={it.atraso} /> : null}
-                  </div>
-                  <div className={styles.dois}>
-                    <button
-                      type="button"
-                      aria-pressed={segue}
-                      disabled={fechada || Boolean(prov)}
-                      className={`${styles.opcao} ${segue ? styles.opcaoOk : ''}`}
-                      onClick={() => setSemAcao(marcar(semAcao, it.id, true))}
-                    >
-                      Segue o plano
-                    </button>
-                    <button
-                      type="button"
-                      aria-pressed={Boolean(prov)}
-                      disabled={fechada}
-                      className={`${styles.opcao} ${prov ? styles.opcaoEscura : ''}`}
-                      onClick={() => providenciaSemana(it)}
-                    >
-                      Providência
-                    </button>
-                  </div>
-                  {prov ? (
-                    <ProvLinha t={prov} fechada={fechada} onEditar={() => providenciaSemana(it)} />
-                  ) : null}
-                </div>
-              );
-            })}
-          </>
-        ) : passo === 2 ? (
-          <>
-            <h2 className={styles.h2}>Providências</h2>
-            <h3 className={styles.secao}>Da reunião anterior</h3>
-            {anteriores.length === 0 ? (
-              <p className={styles.cinza}>Nenhuma providência de reunião anterior.</p>
-            ) : null}
-            {anteriores.map((t) => {
-              const nao = !t.concluido && naoFeitas.has(t.id);
-              return (
-                <div key={t.id} className={styles.card}>
-                  <div className={styles.cardTopo}>
-                    <b className={t.concluido ? styles.riscado : undefined}>{t.texto}</b>
-                    <span className={styles.cinza}>
-                      {t.pessoa} · até {t.prazo ? formatarDataCurta(t.prazo) : '—'} · {t.origem}
-                    </span>
-                    {t.atrasado && !t.concluido ? <Atraso texto="Atrasada" /> : null}
-                  </div>
-                  <div className={styles.dois}>
-                    <button
-                      type="button"
-                      aria-pressed={t.concluido}
-                      disabled={fechada || marcarFeita.isPending}
-                      className={`${styles.opcao} ${t.concluido ? styles.opcaoOk : ''}`}
-                      onClick={() => feitaAnterior(t)}
-                    >
-                      Feita
-                    </button>
-                    <button
-                      type="button"
-                      aria-pressed={nao}
-                      disabled={fechada}
-                      className={`${styles.opcao} ${nao ? styles.opcaoEscura : ''}`}
-                      onClick={() => naoFeitaAnterior(t)}
-                    >
-                      Não feita
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            <h3 className={styles.secao}>Criadas nesta reunião</h3>
-            {novas.length === 0 ? <p className={styles.cinza}>Nenhuma ainda nesta obra.</p> : null}
-            {novas.map((t) => (
-              <div key={t.id} className={styles.nova}>
-                <span className={styles.origem}>
-                  {t.vinculoTipo === 'atividade' &&
-                  [...o.passadaConcluir, ...o.passadaComecar].some(
-                    (p) => p.atividadeId === t.vinculoId,
-                  )
-                    ? 'Da semana passada'
-                    : t.vinculoId
-                      ? 'De esta semana'
-                      : 'Nova'}
-                </span>
-                <ProvLinha t={t} fechada={fechada} onEditar={() => abrirEdicao(t, 'Providência')} />
+            {cont && cont.total > 0 ? (
+              <div className={styles.contador}>
+                <Icon name="checkGrosso" size={13} strokeWidth={3} />
+                {cont.respondidos} de {cont.total} respondidos nesta obra
               </div>
-            ))}
-            {!fechada ? (
-              <button
-                type="button"
-                className={styles.adicionar}
-                onClick={() =>
+            ) : null}
+
+            {passo === 0 ? (
+              <>
+                <h2 className={styles.h2}>O combinado na última reunião foi feito?</h2>
+                {cobrancaDaObra(reuniao, o.obraId).length === 0 ? (
+                  <p className={styles.vazio}>Nada para cobrar nesta obra.</p>
+                ) : null}
+                {cobrancaDaObra(reuniao, o.obraId).map((t) => {
+                  const resp = respostaCobranca(reuniao, t);
+                  return (
+                    <div key={t.id} className={styles.card}>
+                      <div className={styles.cardTopo}>
+                        <b className={t.concluido ? styles.riscado : undefined}>{t.texto}</b>
+                        <span className={styles.cinza}>
+                          {t.pessoa} · até {t.prazo ? formatarDataCurta(t.prazo) : '—'}
+                          {t.origem ? ` · ${t.origem}` : ''}
+                        </span>
+                        {t.atrasado && !t.concluido ? <Atraso texto="Atrasada" /> : null}
+                      </div>
+                      {!t.concluido && (t.avancoPct > 0 || t.comentario) ? (
+                        <div className={styles.informou}>
+                          <b>
+                            {t.pessoa} informou {t.avancoPct}%
+                            {t.avancoEm ? ` · ${formatarDataCurta(t.avancoEm.slice(0, 10))}` : ''}
+                          </b>
+                          {t.comentario ? <span>“{t.comentario}”</span> : null}
+                        </div>
+                      ) : null}
+                      <Botoes
+                        secao="cobranca"
+                        resposta={resp}
+                        fechada={fechada}
+                        onPositivo={() => feitaCobranca(t)}
+                        onNegativo={() => naoFeitaCobranca(t)}
+                      />
+                      {resp ? <NaAta texto={destinoNaAta('cobranca', resp)} /> : null}
+                    </div>
+                  );
+                })}
+              </>
+            ) : passo === 1 ? (
+              <>
+                <h2 className={styles.h2}>O que estava previsto aconteceu?</h2>
+                {itensPassada(o).length === 0 ? (
+                  <p className={styles.vazio}>
+                    Nada previsto para terminar ou começar na semana passada.
+                  </p>
+                ) : null}
+                {itensPassada(o).map((it) => {
+                  const acao = acaoDe(it.atividadeId);
+                  const resp = respostaDe(reuniao, it.secao, it.atividadeId, {
+                    concluida: it.ok,
+                    avancoPct: it.avancoPct,
+                  });
+                  const negativo = resp === 'nao_terminou' || resp === 'nao_comecou';
+                  const concluir = it.secao === 'passada_concluir';
+                  return (
+                    <div
+                      key={`${it.secao}-${it.atividadeId}`}
+                      className={`${styles.card} ${negativo ? styles.cardAtraso : ''}`}
+                    >
+                      <Etiqueta texto={ETIQUETA_SECAO[it.secao]} escura={concluir} />
+                      <div className={styles.cardTopo}>
+                        <b>{it.nome}</b>
+                        <span className={styles.cinza}>
+                          {concluir ? 'fim previsto' : 'início previsto'}{' '}
+                          {formatarDataCurta(it.data)}
+                          {!it.ok ? ` · no app: ${it.avancoPct}%` : ''}
+                        </span>
+                        {!resp ? (
+                          <Atraso texto={`Atrasada · prevista ${formatarDataCurta(it.data)}`} />
+                        ) : null}
+                      </div>
+                      {concluir && it.ok ? (
+                        <div className={styles.concluida}>
+                          <span className={styles.icOk} aria-hidden="true">
+                            <Icon name="checkGrosso" size={14} strokeWidth={3} />
+                          </span>
+                          Concluída no app
+                        </div>
+                      ) : (
+                        <>
+                          <div className={styles.pergunta}>
+                            {concluir ? 'Terminou?' : 'Começou?'}
+                          </div>
+                          <Botoes
+                            secao={it.secao}
+                            resposta={resp}
+                            fechada={fechada || r.concluirAtv.isPending}
+                            travaPositivo={Boolean(acao)}
+                            onPositivo={() => positivoPassada(it)}
+                            onNegativo={() => negativoPassada(it)}
+                          />
+                        </>
+                      )}
+                      {resp === 'comecou' && !it.ok && !fechada ? (
+                        <div className={styles.andou}>
+                          <span>
+                            Quanto já andou? <span className={styles.cinza}>(opcional)</span>
+                          </span>
+                          <div className={styles.chips} role="group" aria-label="Quanto já andou">
+                            {[0, 25, 50].map((p) => (
+                              <button
+                                key={p}
+                                type="button"
+                                aria-pressed={it.avancoPct === p}
+                                className={`${styles.chip} ${it.avancoPct === p ? styles.chipOn : ''}`}
+                                onClick={() =>
+                                  r.avancoAtv.mutate({ atividadeId: it.atividadeId, pct: p })
+                                }
+                              >
+                                {p === 0 ? 'Só começou' : `${p}%`}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                      {acao ? (
+                        <ProvLinha
+                          t={acao}
+                          fechada={fechada}
+                          onEditar={() => negativoPassada(it)}
+                        />
+                      ) : null}
+                      {acao ? (
+                        <p className={styles.cinza}>
+                          Para mudar a resposta, edite ou exclua a ação.
+                        </p>
+                      ) : null}
+                      {resp ? <NaAta texto={destinoNaAta(it.secao, resp, acao?.pessoa)} /> : null}
+                    </div>
+                  );
+                })}
+              </>
+            ) : passo === 2 ? (
+              <>
+                <h2 className={styles.h2}>O que vem pela frente está garantido?</h2>
+                {itensSemana(o).length === 0 ? (
+                  <p className={styles.vazio}>Nada previsto para esta semana.</p>
+                ) : null}
+                {itensSemana(o).map((it) => {
+                  const acao = acaoDe(it.id);
+                  const resp = respostaDe(reuniao, it.secao, it.id);
+                  return (
+                    <div key={`${it.secao}-${it.id}`} className={styles.card}>
+                      <Etiqueta
+                        texto={
+                          it.secao === 'semana_providencia'
+                            ? ROTULO_PROV[it.tipoProvidencia ?? 'compra']
+                            : ETIQUETA_SECAO[it.secao]
+                        }
+                        escura={it.secao === 'semana_concluir'}
+                      />
+                      <div className={styles.cardTopo}>
+                        <b>{it.nome}</b>
+                        <span className={styles.cinza}>
+                          {it.sub}
+                          {it.prestador ? (
+                            <>
+                              {' '}
+                              · prestador <b className={styles.prestador}>{it.prestador}</b>
+                            </>
+                          ) : null}
+                        </span>
+                        {it.atraso ? <Atraso texto={it.atraso} /> : null}
+                      </div>
+                      <Botoes
+                        secao={it.secao}
+                        resposta={resp}
+                        fechada={fechada}
+                        travaPositivo={Boolean(acao)}
+                        onPositivo={() => positivoSemana(it)}
+                        onNegativo={() => negativoSemana(it)}
+                      />
+                      {acao ? (
+                        <ProvLinha t={acao} fechada={fechada} onEditar={() => negativoSemana(it)} />
+                      ) : null}
+                      {resp ? <NaAta texto={destinoNaAta(it.secao, resp, acao?.pessoa)} /> : null}
+                    </div>
+                  );
+                })}
+              </>
+            ) : (
+              <Fechamento
+                o={o}
+                reuniaoId={reuniao.id}
+                linhas={montarObraAta(entradaObraAta(reuniao, o))}
+                avulsas={novas.filter(
+                  (t) =>
+                    !t.vinculoId ||
+                    ![
+                      ...itensPassada(o).map((x) => x.atividadeId),
+                      ...itensSemana(o).map((x) => x.id),
+                    ].includes(t.vinculoId),
+                )}
+                fechada={fechada}
+                semResposta={[
+                  ...cobrancaDaObra(reuniao, o.obraId)
+                    .filter((t) => !respostaCobranca(reuniao, t))
+                    .map((t) => ({ nome: t.texto, passo: 0 })),
+                  ...itensPassada(o)
+                    .filter(
+                      (it) =>
+                        !respostaDe(reuniao, it.secao, it.atividadeId, {
+                          concluida: it.ok,
+                          avancoPct: it.avancoPct,
+                        }),
+                    )
+                    .map((it) => ({ nome: it.nome, passo: 1 })),
+                  ...itensSemana(o)
+                    .filter((it) => !respostaDe(reuniao, it.secao, it.id))
+                    .map((it) => ({ nome: it.nome, passo: 2 })),
+                ]}
+                onResponder={irPasso}
+                onEditarAvulsa={(t) =>
                   setSheet({
                     obraId: o.obraId,
-                    titulo: 'Nova providência',
+                    titulo: 'Ação',
+                    cabecalho: null,
+                    info: null,
+                    impactoAtividadeId: null,
+                    vinculo: null,
+                    tarefaId: t.id,
+                    resposta: null,
+                    avancoAtividadeId: null,
+                    avancoAntes: 0,
+                    inicial: {
+                      texto: t.texto,
+                      responsavelId: t.responsavelId,
+                      responsavelNome: t.responsavelId ? null : t.responsavelNome,
+                      prazo: t.prazo ?? '',
+                      observacao: t.observacao ?? '',
+                    },
+                  })
+                }
+                onNova={() =>
+                  setSheet({
+                    obraId: o.obraId,
+                    titulo: 'Nova ação',
                     cabecalho: null,
                     info: null,
                     impactoAtividadeId: null,
                     vinculo: null,
                     tarefaId: null,
-                    inicial: {
-                      texto: '',
-                      responsavelId: null,
-                      responsavelNome: null,
-                      prazo: '',
-                      observacao: '',
-                    },
+                    resposta: null,
+                    avancoAtividadeId: null,
+                    avancoAntes: 0,
+                    inicial: VAZIO,
                   })
                 }
-              >
-                + Nova providência
-              </button>
-            ) : null}
+                onSalvarObs={(texto) =>
+                  r.observacao.mutate(
+                    { reuniaoId: reuniao.id, obraId: o.obraId, texto },
+                    {
+                      onError: () => showToast({ message: 'Não foi possível salvar a observação' }),
+                    },
+                  )
+                }
+              />
+            )}
           </>
-        ) : (
-          <Observacoes
-            o={o}
-            novas={novas}
-            anteriores={anteriores}
-            provDe={provDe}
-            fechada={fechada}
-            onSalvar={(texto) =>
-              reuniao &&
-              observacao.mutate(
-                { reuniaoId: reuniao.id, obraId: o.obraId, texto },
-                { onError: () => showToast({ message: 'Não foi possível salvar a observação' }) },
-              )
-            }
-          />
         )}
       </div>
 
@@ -630,48 +769,99 @@ export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
             <button type="button" className={styles.avancar} onClick={() => irObra(idx + 1)}>
               Próxima obra · {proxima.nome}
             </button>
-          ) : fechada || ehGestor ? (
-            <button
-              type="button"
-              className={styles.avancar}
-              disabled={!reuniao || fechar.isPending}
-              onClick={gerarAta}
-            >
-              {fechada
-                ? 'Ver ata da reunião'
-                : fechar.isPending
-                  ? 'Gerando…'
-                  : 'Gerar ata da reunião'}
+          ) : fechada ? (
+            <button type="button" className={styles.avancar} onClick={() => setAtaAberta(true)}>
+              Ver ata da reunião
             </button>
           ) : (
-            <p className={styles.soGestor}>O gestor gera a ata ao fim da reunião.</p>
+            <button type="button" className={styles.avancar} onClick={() => setGerarAberto(true)}>
+              {ehGestor ? 'Gerar ata da reunião' : 'Ver pauta da reunião'}
+            </button>
           )}
         </div>
       ) : null}
+
+      <BottomSheet
+        open={gerarAberto}
+        title="Pauta da reunião"
+        onClose={() => setGerarAberto(false)}
+      >
+        <p className={styles.dica}>Respondidos em cada obra.</p>
+        <div className={styles.pauta}>
+          {obras.map((x, i) => {
+            const c = contagem(x);
+            const pronta = c.respondidos === c.total;
+            return (
+              <button
+                key={x.obraId}
+                type="button"
+                className={styles.pautaLinha}
+                onClick={() => {
+                  setGerarAberto(false);
+                  irObra(i);
+                }}
+              >
+                <span className={pronta ? styles.icOk : styles.icVazio} aria-hidden="true">
+                  {pronta ? <Icon name="checkGrosso" size={13} strokeWidth={3} /> : null}
+                </span>
+                <b>{x.nome}</b>
+                <span className={styles.cinza}>
+                  {c.respondidos} de {c.total}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <p className={styles.dica}>Itens sem resposta saem na ata como “sem resposta”.</p>
+        {ehGestor ? (
+          <button
+            type="button"
+            className={styles.gerar}
+            disabled={r.fechar.isPending}
+            onClick={gerarAta}
+          >
+            {r.fechar.isPending ? 'Gerando…' : 'Gerar ata da reunião'}
+          </button>
+        ) : (
+          <p className={styles.soGestor}>O gestor gera a ata ao fim da reunião.</p>
+        )}
+      </BottomSheet>
 
       <ProvidenciaSheet
         aberto={Boolean(sheet)}
         titulo={sheet?.titulo ?? ''}
         cabecalho={sheet?.cabecalho}
         info={sheet?.info}
-        inicial={
-          sheet?.inicial ?? {
-            texto: '',
-            responsavelId: null,
-            responsavelNome: null,
-            prazo: '',
-            observacao: '',
-          }
-        }
+        inicial={sheet?.inicial ?? VAZIO}
         hoje={hoje}
         dataReuniao={data}
         pessoas={pessoas}
         nomesSugeridos={nomesSugeridos}
         impacto={sheetImpacto}
-        pendente={salvarProvidencia.isPending}
+        pendente={r.salvarProvidencia.isPending}
+        rotuloSalvar="Salvar ação"
         onSalvar={salvarSheet}
         onFechar={() => setSheet(null)}
       />
+    </div>
+  );
+}
+
+const ROTULO_PROV: Record<string, string> = {
+  contratacao: 'CONTRATAR',
+  locacao: 'ALUGAR',
+  compra: 'COMPRAR',
+};
+
+function Etiqueta({ texto, escura }: { texto: string; escura?: boolean }) {
+  return <span className={escura ? styles.etiquetaEscura : styles.etiqueta}>{texto}</span>;
+}
+
+function NaAta({ texto }: { texto: string }) {
+  return (
+    <div className={styles.naAta}>
+      <Icon name="documento" size={15} />
+      <span>Na ata: {texto}</span>
     </div>
   );
 }
@@ -682,6 +872,50 @@ function Atraso({ texto }: { texto: string }) {
       <Icon name="relogio" size={14} strokeWidth={2.4} />
       {texto}
     </span>
+  );
+}
+
+/** Os dois botões da seção; o marcado mostra ícone (estado nunca só por cor). */
+function Botoes({
+  secao,
+  resposta,
+  fechada,
+  travaPositivo,
+  onPositivo,
+  onNegativo,
+}: {
+  secao: SecaoResposta;
+  resposta: RespostaReuniao | null;
+  fechada: boolean;
+  /** Já há ação para o item: o positivo fica travado (edite a ação). */
+  travaPositivo?: boolean;
+  onPositivo: () => void;
+  onNegativo: () => void;
+}) {
+  const [pos, neg] = RESPOSTAS_POR_SECAO[secao];
+  return (
+    <div className={styles.dois}>
+      <button
+        type="button"
+        aria-pressed={resposta === pos}
+        disabled={fechada || travaPositivo || resposta === pos}
+        className={`${styles.opcao} ${resposta === pos ? styles.opcaoOk : ''}`}
+        onClick={onPositivo}
+      >
+        {resposta === pos ? <Icon name="checkGrosso" size={16} strokeWidth={3} /> : null}
+        {ROTULO_RESPOSTA[pos]}
+      </button>
+      <button
+        type="button"
+        aria-pressed={resposta === neg}
+        disabled={fechada}
+        className={`${styles.opcao} ${resposta === neg ? styles.opcaoEscura : ''}`}
+        onClick={onNegativo}
+      >
+        {resposta === neg ? <Icon name="close" size={14} strokeWidth={3} /> : null}
+        {ROTULO_RESPOSTA[neg]}
+      </button>
+    </div>
   );
 }
 
@@ -699,7 +933,8 @@ function ProvLinha({
       <div>
         <b>{t.texto}</b>
         <div className={styles.provSub}>
-          {t.pessoa} · até {t.prazo ? formatarDataCurta(t.prazo) : '—'} · vai para as Tarefas
+          <Icon name="pessoa" size={13} /> <b>{t.pessoa}</b> · até{' '}
+          {t.prazo ? formatarDataCurta(t.prazo) : '—'} · nas Tarefas
         </div>
         {t.observacao ? <div className={styles.provSub}>{t.observacao}</div> : null}
       </div>
@@ -712,161 +947,108 @@ function ProvLinha({
   );
 }
 
-function SemanaPassada({
-  o,
-  provDe,
-  semAcao,
-  fechada,
-  pendente,
-  onFeito,
-  onNaoFeito,
-}: {
-  o: ReuniaoObraDados;
-  provDe: (id: string) => TarefaAtrib | null;
-  semAcao: Set<string>;
-  fechada: boolean;
-  pendente: boolean;
-  onFeito: (it: ItemPassada) => void;
-  onNaoFeito: (it: ItemPassada) => void;
-}) {
-  const itens = [...o.passadaConcluir, ...o.passadaComecar];
+function BlocoPrevia({ titulo, linhas }: { titulo: string; linhas: LinhaAta[] }) {
+  if (linhas.length === 0) return null;
   return (
-    <>
-      <h2 className={styles.h2}>O que estava previsto aconteceu?</h2>
-      {itens.length === 0 ? (
-        <p className={styles.vazio}>Nada previsto para concluir ou começar na semana passada.</p>
-      ) : null}
-      {itens.map((it) => {
-        const prov = provDe(it.atividadeId);
-        const feito = !prov && (it.ok || semAcao.has(it.atividadeId));
-        const nao = Boolean(prov);
-        const concluida = it.tipo === 'concluir' && it.ok;
-        return (
-          <div
-            key={`${it.tipo}-${it.atividadeId}`}
-            className={`${styles.card} ${nao ? styles.cardAtraso : ''}`}
-          >
-            <div className={styles.cardTopo}>
-              <b>{it.nome}</b>
-              <span className={styles.cinza}>
-                {it.tipo === 'concluir' ? 'previsto concluir até' : 'previsto começar'}{' '}
-                {formatarDataCurta(it.data)}
-              </span>
-              {!it.ok && !feito ? (
-                <Atraso texto={`Atrasada · prevista ${formatarDataCurta(it.data)}`} />
-              ) : null}
-            </div>
-            {concluida ? (
-              <div className={styles.concluida}>
-                <span className={styles.icOk} aria-hidden="true">
-                  <Icon name="checkGrosso" size={14} strokeWidth={3} />
-                </span>
-                Concluída no app
-              </div>
-            ) : (
-              <div className={styles.dois}>
-                <button
-                  type="button"
-                  aria-pressed={feito}
-                  disabled={fechada || pendente || nao}
-                  className={`${styles.opcao} ${feito ? styles.opcaoOk : ''}`}
-                  onClick={() => onFeito(it)}
-                >
-                  {feito ? <Icon name="checkGrosso" size={16} strokeWidth={3} /> : null}
-                  {it.tipo === 'concluir' ? 'Feito' : 'Começou'}
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={nao}
-                  disabled={fechada}
-                  className={`${styles.opcao} ${nao ? styles.opcaoNao : ''}`}
-                  onClick={() => onNaoFeito(it)}
-                >
-                  {nao ? <Icon name="close" size={14} strokeWidth={3} /> : null}
-                  {it.tipo === 'concluir' ? 'Não feito' : 'Não começou'}
-                </button>
-              </div>
-            )}
-            {prov ? <ProvLinha t={prov} fechada={fechada} onEditar={() => onNaoFeito(it)} /> : null}
-          </div>
-        );
-      })}
-    </>
+    <div className={styles.previaBloco}>
+      <div className={styles.previaTitulo}>{titulo}</div>
+      {linhas.map((l, i) => (
+        <div
+          key={i}
+          className={
+            l.atraso ? styles.previaAtraso : l.semResposta ? styles.previaSem : styles.previaLinha
+          }
+        >
+          {l.ok ? '✓ ' : l.atraso ? '✗ ' : ''}
+          {l.texto}
+          {l.acao ? ` → ${l.acao}` : ''}
+        </div>
+      ))}
+    </div>
   );
 }
 
-function Observacoes({
+function Fechamento({
   o,
-  novas,
-  anteriores,
-  provDe,
+  linhas,
+  avulsas,
   fechada,
-  onSalvar,
+  semResposta,
+  onResponder,
+  onEditarAvulsa,
+  onNova,
+  onSalvarObs,
 }: {
   o: ReuniaoObraDados;
-  novas: TarefaAtrib[];
-  anteriores: TarefaAtrib[];
-  provDe: (id: string) => TarefaAtrib | null;
+  reuniaoId: string;
+  linhas: ReturnType<typeof montarObraAta>;
+  avulsas: TarefaAtrib[];
   fechada: boolean;
-  onSalvar: (texto: string) => void;
+  semResposta: { nome: string; passo: number }[];
+  onResponder: (passo: number) => void;
+  onEditarAvulsa: (t: TarefaAtrib) => void;
+  onNova: () => void;
+  onSalvarObs: (texto: string) => void;
 }) {
-  const itens = [...o.passadaConcluir, ...o.passadaComecar];
-  const naoFeitos = itens.filter((it) => provDe(it.atividadeId));
-  const feitos = itens.filter((it) => it.ok && !provDe(it.atividadeId));
-  const anterioresAbertas = anteriores.filter((t) => !t.concluido);
-  const porPessoa = new Map<string, number>();
-  for (const t of novas) porPessoa.set(t.pessoa, (porPessoa.get(t.pessoa) ?? 0) + 1);
-  const pessoasTxt = [...porPessoa.entries()].map(([p, n]) => `${p} ${n}`).join(' · ');
-
   return (
     <>
       <h2 className={styles.h2}>Observações da obra</h2>
-      <p className={styles.dica}>
-        Avanços, combinados e o que mais precisa ficar registrado na ata.
-      </p>
       <textarea
         key={o.obraId}
         className={styles.obs}
-        rows={5}
+        rows={3}
         aria-label="Observações da obra"
         defaultValue={o.observacoes}
         disabled={fechada}
         placeholder="Ex.: tapume entregue na sexta; caçamba atrasou um dia"
         onBlur={(e) => {
-          if (e.target.value !== o.observacoes) onSalvar(e.target.value);
+          if (e.target.value !== o.observacoes) onSalvarObs(e.target.value);
         }}
       />
-      <h3 className={styles.secao}>Antes de fechar a ata</h3>
+
+      {semResposta.length > 0 && !fechada ? (
+        <div className={styles.semResposta}>
+          <b>{plural(semResposta.length, 'item sem resposta', 'itens sem resposta')}</b>
+          {semResposta.map((s, i) => (
+            <div key={i} className={styles.semRespostaLinha}>
+              <span>{s.nome}</span>
+              <button type="button" className={styles.editar} onClick={() => onResponder(s.passo)}>
+                Responder
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <h3 className={styles.secao}>Outras ações desta obra</h3>
+      {avulsas.length === 0 ? <p className={styles.cinza}>Nenhuma.</p> : null}
+      {avulsas.map((t) => (
+        <ProvLinha key={t.id} t={t} fechada={fechada} onEditar={() => onEditarAvulsa(t)} />
+      ))}
+      {!fechada ? (
+        <button type="button" className={styles.adicionar} onClick={onNova}>
+          + Nova ação
+        </button>
+      ) : null}
+
       <div className={styles.card}>
-        <div className={styles.resumoLinha}>
-          <span className={styles.icOk} aria-hidden="true">
-            <Icon name="checkGrosso" size={14} strokeWidth={3} />
-          </span>
-          {plural(feitos.length, 'previsto feito', 'previstos feitos')}
+        <div className={styles.previaTopo}>
+          <Icon name="documento" size={16} /> Como fica na ata
         </div>
-        <div className={styles.resumoLinha}>
-          <span className={styles.icNao} aria-hidden="true">
-            <Icon name="close" size={12} strokeWidth={3} />
-          </span>
-          <span>
-            {plural(naoFeitos.length, 'não feito', 'não feitos')}
-            {naoFeitos.length ? ` · ${naoFeitos.map((n) => n.nome).join(', ')}` : ''}
-          </span>
-        </div>
-        <div className={styles.resumoLinha}>
-          <span className={styles.icAtraso} aria-hidden="true">
-            <Icon name="relogio" size={14} strokeWidth={2.4} />
-          </span>
-          {plural(
-            anterioresAbertas.length,
-            'providência anterior em aberto',
-            'providências anteriores em aberto',
-          )}
-        </div>
-        <div className={styles.resumoTotal}>
-          <b>{plural(novas.length, 'providência nova', 'providências novas')}</b>
-          {pessoasTxt ? ` · ${pessoasTxt}` : ''}
-        </div>
+        <BlocoPrevia titulo="PLANEJADO E ACONTECEU" linhas={linhas.aconteceu} />
+        <BlocoPrevia titulo="PLANEJADO E NÃO ACONTECEU" linhas={linhas.naoAconteceu} />
+        <BlocoPrevia titulo="PRÓXIMA SEMANA" linhas={linhas.proximaSemana} />
+        <BlocoPrevia titulo="PROVIDÊNCIAS" linhas={linhas.providencias} />
+        <BlocoPrevia titulo="COBRANÇA" linhas={linhas.cobranca} />
+        {[
+          linhas.aconteceu,
+          linhas.naoAconteceu,
+          linhas.proximaSemana,
+          linhas.providencias,
+          linhas.cobranca,
+        ].every((x) => x.length === 0) ? (
+          <p className={styles.cinza}>Nada desta obra na ata ainda.</p>
+        ) : null}
       </div>
     </>
   );

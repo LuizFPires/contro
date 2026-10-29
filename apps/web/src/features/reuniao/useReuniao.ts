@@ -1,14 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { RespostaReuniao, SecaoResposta } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import {
   concluirAtividade,
   concluirTarefa,
+  definirAvanco,
+  desfazerConclusao,
+  marcarProvidencia,
   reabrirTarefa,
   salvarTarefa,
   type EntradaTarefa,
 } from '../obras/campo';
 import {
+  chaveResposta,
   fecharReuniao,
+  responderReuniao,
+  type ReuniaoCompleta,
   loadReuniao,
   reabrirReuniao,
   salvarObservacao,
@@ -66,5 +73,72 @@ export function useReuniao(data: string) {
     onSuccess: inval,
   });
 
-  return { query, observacao, fechar, salvarProvidencia, concluirAtv, marcarFeita, reabrir };
+  /** Resposta da pauta: otimista (o botão marca na hora); null apaga (Desfazer). */
+  const responder = useMutation({
+    mutationFn: (v: {
+      reuniaoId: string;
+      obraId: string;
+      secao: SecaoResposta;
+      itemId: string;
+      resposta: RespostaReuniao | null;
+    }) => responderReuniao(v),
+    onMutate: async (v) => {
+      await qc.cancelQueries({ queryKey: ['reuniao', data] });
+      const prev = qc.getQueryData<ReuniaoCompleta | null>(['reuniao', data]);
+      if (prev) {
+        const respostas = { ...prev.respostas };
+        const k = chaveResposta(v.secao, v.itemId);
+        if (v.resposta) respostas[k] = v.resposta;
+        else delete respostas[k];
+        qc.setQueryData(['reuniao', data], { ...prev, respostas });
+      }
+      return { prev };
+    },
+    // Sucesso não recarrega a pauta (a resposta já está no cache); erro volta e confere.
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['reuniao', data], ctx.prev);
+      void inval();
+    },
+  });
+
+  /** Desfaz o "Terminou" (volta a atividade a aberta). */
+  const desfazerAtv = useMutation({
+    mutationFn: (atividadeId: string) => desfazerConclusao(atividadeId),
+    onSuccess: () => {
+      void inval();
+      void qc.invalidateQueries({ queryKey: ['obras'] });
+    },
+  });
+
+  /** "Quanto andou?" na pauta: grava o avanço da atividade (0..99). */
+  const avancoAtv = useMutation({
+    mutationFn: (v: { atividadeId: string; pct: number }) => definirAvanco(v.atividadeId, v.pct),
+    onSuccess: () => {
+      void inval();
+      void qc.invalidateQueries({ queryKey: ['obras'] });
+    },
+  });
+
+  /** "Já providenciado": marca o lembrete (contratar, alugar, comprar) como feito. */
+  const marcarProv = useMutation({
+    mutationFn: (v: { id: string; feito: boolean }) => marcarProvidencia(v.id, v.feito),
+    onSuccess: () => {
+      void inval();
+      void qc.invalidateQueries({ queryKey: ['obras'] });
+    },
+  });
+
+  return {
+    query,
+    observacao,
+    fechar,
+    salvarProvidencia,
+    concluirAtv,
+    marcarFeita,
+    reabrir,
+    responder,
+    desfazerAtv,
+    avancoAtv,
+    marcarProv,
+  };
 }

@@ -5,6 +5,8 @@ import {
   tarefaAtrasada,
   type AtividadeEntrada,
   type AtividadeSemana,
+  type RespostaReuniao,
+  type SecaoResposta,
   nomeCurto,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
@@ -45,6 +47,28 @@ export async function reabrirReuniao(id: string): Promise<void> {
   if (error) throw error;
 }
 
+/** Chave da resposta no mapa da reunião (uma atividade pode estar em duas seções). */
+export const chaveResposta = (secao: SecaoResposta, itemId: string) => `${secao}:${itemId}`;
+
+/** Grava a resposta de um item da pauta; null apaga (Desfazer). */
+export async function responderReuniao(v: {
+  reuniaoId: string;
+  obraId: string;
+  secao: SecaoResposta;
+  itemId: string;
+  resposta: RespostaReuniao | null;
+}): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('responder_reuniao', {
+    p_reuniao_id: v.reuniaoId,
+    p_obra_id: v.obraId,
+    p_secao: v.secao,
+    p_item_id: v.itemId,
+    p_resposta: v.resposta,
+  });
+  if (error) throw error;
+}
+
 export async function fecharReuniao(id: string, snapshots: SnapshotObra[]): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.rpc('fechar_reuniao', { p_id: id, p_snapshots: snapshots });
@@ -64,7 +88,9 @@ export interface ItemPassada {
   tipo: 'concluir' | 'comecar';
   /** Data prevista (fim para concluir, início para começar). */
   data: string;
-  ok: boolean; // concluída (concluir) ou começou/liberada (começar)
+  ok: boolean; // concluída no app
+  /** Avanço da atividade no app (0..100). */
+  avancoPct: number;
   /** Liberada e ainda aberta: dá para concluir na reunião. */
   liberada: boolean;
   motivo: string | null;
@@ -118,6 +144,11 @@ export interface TarefaAtrib {
   vinculoId: string | null;
   prazoOriginal: string | null;
   replanejamentos: number;
+  /** Avanço e comentário informados por quem cuida (Minhas ações). */
+  avancoPct: number;
+  comentario: string | null;
+  avancoEm: string | null;
+  feitaEm: string | null;
 }
 
 export interface ReuniaoCompleta {
@@ -128,6 +159,8 @@ export interface ReuniaoCompleta {
   status: 'pauta' | 'em_andamento' | 'fechada';
   obras: ReuniaoObraDados[];
   tarefas: TarefaAtrib[]; // para "Quem faz o quê" (por responsável) na ata
+  /** Respostas da pauta, por chaveResposta(secao, item). */
+  respostas: Record<string, RespostaReuniao>;
 }
 
 function motivoAtividade(obra: ObraCompleta, id: string): string | null {
@@ -144,6 +177,7 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
   const topo = obra.atividades.filter((a) => !a.pai_id && !a.preObra);
   const nomePorId = new Map(obra.atividades.map((a) => [a.id, a.nome]));
   const prestadorDe = (id: string) => obra.atividades.find((a) => a.id === id)?.prestador ?? null;
+  const avancoDe = (id: string) => obra.atividades.find((a) => a.id === id)?.avanco_pct ?? 0;
 
   const semanaEntrada: (AtividadeSemana & { nome: string })[] = topo.map((a) => {
     const c = obra.cron.porId[a.id];
@@ -177,6 +211,7 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
     tipo: 'concluir',
     data: cronOf(a.id)?.fim_previsto ?? obra.inicio,
     ok: a.concluida,
+    avancoPct: a.concluida ? 100 : avancoDe(a.id),
     liberada: a.liberada,
     motivo: a.concluida ? null : motivoAtividade(obra, a.id),
   }));
@@ -185,8 +220,9 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
     nome: a.nome,
     tipo: 'comecar',
     data: cronOf(a.id)?.inicio_previsto ?? obra.inicio,
-    // "Começou" não é registrado no app: a reunião pergunta.
+    // "Começou" vem da resposta na reunião (ou do avanço no app).
     ok: a.concluida,
+    avancoPct: a.concluida ? 100 : avancoDe(a.id),
     liberada: a.liberada,
     motivo: a.concluida ? null : motivoAtividade(obra, a.id),
   }));
@@ -261,10 +297,19 @@ function derivarObra(obra: ObraCompleta, observacoes: string): ReuniaoObraDados 
 export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null> {
   if (!supabase) return null;
   const id = await abrirReuniao(data);
-  const [rRes, roRes] = await Promise.all([
+  const [rRes, roRes, respRes] = await Promise.all([
     supabase.from('reuniao').select('id,data,hora,status').eq('id', id).maybeSingle(),
     supabase.from('reuniao_obra').select('obra_id,observacoes').eq('reuniao_id', id),
+    supabase.from('reuniao_resposta').select('secao,item_id,resposta').eq('reuniao_id', id),
   ]);
+  const respostas: Record<string, RespostaReuniao> = {};
+  for (const x of (respRes.data ?? []) as {
+    secao: SecaoResposta;
+    item_id: string;
+    resposta: RespostaReuniao;
+  }[]) {
+    respostas[chaveResposta(x.secao, x.item_id)] = x.resposta;
+  }
   const r = rRes.data as {
     id: string;
     data: string;
@@ -288,7 +333,8 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
       .from('tarefa')
       .select(
         'id,obra_id,origem_texto,texto,status,prazo,prazo_original,replanejamentos,responsavel_id,' +
-          'responsavel_nome,observacao,vinculo_tipo,vinculo_id,responsavel:pessoa!responsavel_id(nome)',
+          'responsavel_nome,observacao,vinculo_tipo,vinculo_id,avanco_pct,comentario,avanco_em,feita_em,' +
+          'responsavel:pessoa!responsavel_id(nome)',
       )
       .in('obra_id', obraIds)
       .is('deleted_at', null);
@@ -307,6 +353,10 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
         observacao: string | null;
         vinculo_tipo: 'providencia' | 'atividade' | null;
         vinculo_id: string | null;
+        avanco_pct: number | null;
+        comentario: string | null;
+        avanco_em: string | null;
+        feita_em: string | null;
         responsavel: { nome: string } | null;
       }[]
     ).map((t) => ({
@@ -325,6 +375,10 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
       vinculoId: t.vinculo_id,
       prazoOriginal: t.prazo_original,
       replanejamentos: t.replanejamentos,
+      avancoPct: t.avanco_pct ?? 0,
+      comentario: t.comentario,
+      avancoEm: t.avanco_em,
+      feitaEm: t.feita_em,
     }));
   }
 
@@ -335,5 +389,6 @@ export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null>
     status: r.status,
     obras: obras.map((o) => derivarObra(o, obsPorObra.get(o.id) ?? '')),
     tarefas,
+    respostas,
   };
 }
