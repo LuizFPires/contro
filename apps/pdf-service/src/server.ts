@@ -1,6 +1,6 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
-import type { BoletimDados, ObraAta } from '@contro/core';
-import { ataHtml, boletimHtml } from './html';
+import type { BoletimDados } from '@contro/core';
+import { ataHtml, boletimHtml, type AtaDados } from './html';
 import { fecharBrowser, renderPdf } from './pdf';
 
 const app = express();
@@ -62,15 +62,30 @@ app.post('/boletim', async (req, res) => {
   }
 });
 
-// Ata da reunião → PDF. Corpo: { dataFmt: string, obras: ObraAta[] }.
+function ehAta(b: unknown): b is AtaDados {
+  const d = b as Partial<AtaDados> | null;
+  return (
+    !!d &&
+    typeof d.dataFmt === 'string' &&
+    typeof d.horaFmt === 'string' &&
+    Array.isArray(d.obras) &&
+    Array.isArray(d.pessoas) &&
+    Array.isArray(d.totais)
+  );
+}
+
+// Ata da reunião → PDF. Corpo: AtaDados (obras montadas no core pela tela).
 app.post('/ata', async (req, res) => {
-  const body = req.body as { dataFmt?: unknown; obras?: unknown };
-  if (!body || typeof body.dataFmt !== 'string' || !Array.isArray(body.obras)) {
+  if (!ehAta(req.body)) {
     res.status(400).json({ erro: 'Corpo inválido para ata' });
     return;
   }
   try {
-    enviarPdf(res, await renderPdf(ataHtml(body.dataFmt, body.obras as ObraAta[])), 'ata.pdf');
+    enviarPdf(
+      res,
+      await renderPdf(ataHtml({ ...req.body, resumo: req.body.resumo === true })),
+      'ata.pdf',
+    );
   } catch (e) {
     console.error('Falha ao gerar a ata:', e);
     res.status(500).json({ erro: 'Falha ao gerar o PDF' });

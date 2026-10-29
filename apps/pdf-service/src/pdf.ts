@@ -38,7 +38,8 @@ export async function renderPdf(html: string): Promise<Buffer> {
     // 'load' (não 'networkidle'): o template não depende de rede externa, então
     // não há o que esperar da rede; timeouts curtos evitam render preso.
     await page.setContent(html, { waitUntil: 'load', timeout: 15_000 });
-    const pdf = await page.pdf({ format: 'A4', printBackground: true });
+    // O tamanho/orientação vem do @page do template (a ata com resumo é paisagem).
+    const pdf = await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true });
     return Buffer.from(pdf);
   } finally {
     await page.close();
