@@ -1,9 +1,18 @@
 # Avisos por push (reunião, resumo, tarefas, providências) — como ligar
 
-O código está pronto. O push ainda **não está ligado em produção** (nenhuma
-função publicada, nenhum aparelho inscrito). Estes passos são feitos uma vez,
-por quem tem acesso ao Supabase e à Vercel. Eles ligam também o push do
-boletim (`enviar-push-boletim`), que usa as mesmas chaves.
+**Ligado em produção em 28/10/2026** (passos 1 a 5 feitos; teste recebido no
+celular). Este roteiro fica para refazer em outro ambiente ou para trocar as
+chaves. Os passos são feitos uma vez, por quem tem acesso ao Supabase e à
+Vercel, e ligam também o push do boletim (`enviar-push-boletim`), que usa as
+mesmas chaves.
+
+Cuidados que apareceram ao ligar:
+- No PowerShell, rode um `secrets set` por linha (colar o comando quebrado em
+  várias linhas grava só a primeira chave) e use aspas retas `"`, não `”`.
+- Na Vercel, `VITE_VAPID_PUBLIC_KEY` é do tipo **Config** (a chave pública vai
+  no app); depois de criar, faça Redeploy.
+- No teste do passo 5, filtre a pessoa pelo nome exato: `limit 1` com `ilike`
+  pode pegar outra pessoa de nome parecido.
 
 ## 1. Gerar as chaves VAPID
 
@@ -64,7 +73,7 @@ $$);
    ```sql
    insert into aviso_disparo (tipo, dia, user_id, titulo, corpo, url)
    select 'resumo', current_date, user_id, 'CONTRO · Teste', 'Push funcionando.', '/'
-   from pessoa where nome ilike '%<seu nome>%' limit 1;
+   from pessoa where nome = '<seu nome exato>';
    ```
    ```bash
    curl -X POST 'https://<REF>.supabase.co/functions/v1/enviar-avisos' -H 'Authorization: Bearer <SEGREDO>'
