@@ -73,3 +73,43 @@ export function diaUtilAPartir(data: DataISO): DataISO {
   while (!ehDiaUtil(d)) d = somaDias(d, 1);
   return format(d);
 }
+
+/** Um dia na grade do calendário (escolher data livre). */
+export interface DiaGrade {
+  data: DataISO;
+  /** Pertence ao mês mostrado (os de fora ficam apagados). */
+  doMes: boolean;
+  /** Sábado ou domingo: fora do cronograma, mas pode ser escolhido. */
+  fimDeSemana: boolean;
+}
+
+/**
+ * Grade do mês para o calendário de datas (pedido do usuário, 29/10/2026):
+ * semanas de segunda a domingo, completando com os dias dos meses vizinhos.
+ * `mes` de 1 a 12.
+ */
+export function gradeDoMes(ano: number, mes: number): DiaGrade[][] {
+  const primeiro = new Date(Date.UTC(ano, mes - 1, 1));
+  const recuo = (primeiro.getUTCDay() + 6) % 7; // dias desde a segunda
+  let d = somaDias(primeiro, -recuo);
+  const semanas: DiaGrade[][] = [];
+  do {
+    const semana: DiaGrade[] = [];
+    for (let i = 0; i < 7; i++) {
+      semana.push({
+        data: format(d),
+        doMes: d.getUTCMonth() === mes - 1,
+        fimDeSemana: !ehDiaUtil(d),
+      });
+      d = somaDias(d, 1);
+    }
+    semanas.push(semana);
+  } while (d.getUTCMonth() === mes - 1);
+  return semanas;
+}
+
+/** Soma meses a (ano, mês 1–12). */
+export function somarMeses(ano: number, mes: number, n: number): { ano: number; mes: number } {
+  const t = ano * 12 + (mes - 1) + n;
+  return { ano: Math.floor(t / 12), mes: (t % 12) + 1 };
+}
