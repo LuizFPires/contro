@@ -106,8 +106,14 @@ tarefa(id, obra_id, texto, responsavel_id → pessoa, prazo date,
        vinculo_tipo: null|'providencia'|'atividade', vinculo_id uuid null,
        efeito_providencia_id null,                                 -- lembrete marcado por esta tarefa (para reabrir)
        observacao text null,                                       -- observação livre (pauta da reunião)
-       responsavel_nome text null)                                 -- nome digitado de quem não tem login (sem responsavel_id); vira sugestao 'pessoa'
-tarefa_evento(id, tarefa_id, tipo: 'criada'|'editada'|'replanejada'|'concluida'|'reaberta'|'excluida', por, em, antes jsonb, depois jsonb)
+       responsavel_nome text null,                                 -- nome digitado de quem não tem login (sem responsavel_id); vira sugestao 'pessoa'
+       avanco_pct smallint 0..100, comentario text null,           -- informados por quem cuida (Minhas ações; informar_avanco_tarefa, 0..99)
+       avanco_em timestamptz null, avanco_por → pessoa null)
+tarefa_evento(id, tarefa_id, tipo: 'criada'|'editada'|'replanejada'|'concluida'|'reaberta'|'excluida'|'avanco', por, em, antes jsonb, depois jsonb)
+reuniao_resposta(reuniao_id, obra_id, secao, item_id, resposta, respondido_por, respondido_em)   -- PK (reuniao_id, secao, item_id)
+  secao: 'cobranca'|'passada_concluir'|'passada_comecar'|'semana_concluir'|'semana_comecar'|'semana_providencia'
+  resposta: 'feita'|'nao_feita'|'terminou'|'nao_terminou'|'comecou'|'nao_comecou'|'segue'|'acao'|'ja_providenciado'
+  -- grava/apaga por responder_reuniao (membro; reunião fechada não muda). A ata (core/ata.ts) monta os blocos a partir daqui.
 ```
 
 ### 3.7 Boletim
@@ -264,6 +270,8 @@ Efeito de reabrir: se `efeito_providencia_id` aponta para uma providência `feit
 | `salvar_tarefa`, `concluir_tarefa`, `reabrir_tarefa`, `excluir_tarefa` | gestor, equipe | Grava `tarefa_evento`. `salvar_tarefa` aceita `p_observacao` e `p_responsavel_nome` (só vale sem `p_responsavel_id`; registra a sugestão) |
 | `fechar_reuniao(id)` | gestor | Materializa `reuniao_obra.snapshot` e gera o PDF da ata |
 | `reabrir_reuniao(id)` | gestor | Ata fechada volta a ser pauta e ganha as obras ativas de hoje (observações e snapshots ficam) |
+| `responder_reuniao(reuniao_id, obra_id, secao, item_id, resposta)` | gestor, equipe | Grava a resposta do item da pauta (null apaga); recusa com a reunião fechada |
+| `informar_avanco_tarefa(id, pct 0..99, comentario)` | gestor, equipe | Avanço e comentário da ação + evento `avanco`; 100% é `concluir_tarefa` |
 | `gerar_boletim(obra_id, edicao)` | sistema (cron) ou usuário | Snapshot, texto do WhatsApp e PDF |
 
 Todas são idempotentes por `client_op_id` (uuid gerado no aparelho), para a fila offline poder reenviar sem duplicar.
@@ -319,15 +327,13 @@ Seções:
 Rodapé com a data de geração. Margens: primeira página 0/0/10 mm, demais 12/0/10 mm. Caixas com `box-decoration-break: clone`.
 
 ### 8.3 PDF da ata
-Cabeçalho com data, hora e participantes. KPIs: obras, providências anteriores cumpridas e atrasadas, novas.
+Montado por `core/ata.ts` (`montarObraAta`, `totaisAta`, `textosTotais`, `textoAtaWhatsapp`) a partir das respostas da pauta. Cabeçalho com data e hora; totais: aconteceram, não aconteceram, ações novas, cobrança cumprida/total, sem resposta.
 
-Por obra:
-- situação;
-- semana passada, previsto x realizado;
-- providências anteriores com situação (incluindo "replanejada Nx (era dd/mm)");
-- esta semana;
-- observações;
-- novas providências.
+Dois formatos (o usuário escolhe em "Baixar PDF"):
+- **Resumo em tabela + ata** (padrão, A4 **paisagem**): página 1 com a tabela obras × (semana passada · cumprido | não cumprido → ação | próxima semana | providências | cobrança) e "Quem faz o quê" em 3 colunas; depois a ata.
+- **Só a ata** (A4 retrato).
+
+Por obra (faixa cinza #4A4A4A): indicador e situação; 1 · Planejado e aconteceu; 2 · Planejado e não aconteceu (com "está em X%" e a ação); 3 · Próxima semana (segue o plano / com ação / sem resposta); Providências (contratar, alugar, comprar e ações avulsas); 4 · Cobrança da reunião anterior (cumprida, ou "N% feito · remarcada (Nx), até dd/mm"); Observações. No fim, Quem faz o quê por pessoa. Sem pdf-service, o app imprime a mesma ata (e a tabela, em paisagem) pelo navegador.
 
 Em seguida, **Providências por responsável**, com caixa de check para impressão, e as assinaturas.
 
