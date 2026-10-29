@@ -57,6 +57,9 @@
   font-weight: 800;
   font-size: 13px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .obraChipOn {
   background: var(--contro-turquoise);
@@ -206,6 +209,10 @@
 }
 .opcao:disabled {
   cursor: default;
+}
+/* Travado (já há ação para o item): apagado, mas o marcado continua legível. */
+.opcao:disabled:not([aria-pressed='true']) {
+  opacity: 0.45;
 }
 .opcaoOk {
   background: rgb(84 180 176 / 25%);
@@ -395,5 +402,176 @@
   cursor: pointer;
 }
 .reabrirPauta:disabled {
+  opacity: 0.6;
+}
+
+/* Pauta por obra (decisão do usuário, 29/10/2026). */
+.contador {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #464646;
+}
+.etiqueta,
+.etiquetaEscura {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgb(84 180 176 / 22%);
+  color: var(--contro-black);
+}
+.etiquetaEscura {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.pergunta {
+  font-weight: 800;
+  font-size: 15px;
+}
+.naAta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  background: rgb(84 180 176 / 14%);
+  border-radius: 10px;
+  padding: 7px 10px;
+}
+.informou {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 13px;
+  border-radius: 10px;
+  background: rgb(24 24 24 / 5%);
+  padding: 7px 10px;
+}
+.informou span {
+  color: #464646;
+}
+.andou {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  min-height: var(--contro-touch);
+  padding: 0 14px;
+  border-radius: var(--contro-radius-pill);
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.chipOn {
+  background: var(--contro-black);
+  border-color: var(--contro-black);
+  color: var(--contro-white);
+}
+.semResposta {
+  background: var(--contro-white);
+  border: 1.5px solid var(--contro-black);
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+}
+.semRespostaLinha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.previaTopo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 15px;
+}
+.previaBloco {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.previaTitulo {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #696969;
+}
+.previaLinha,
+.previaAtraso,
+.previaSem {
+  font-size: 13px;
+  line-height: 1.35;
+}
+.previaAtraso {
+  color: var(--contro-late);
+  font-weight: 700;
+}
+.previaSem {
+  color: #464646;
+}
+.pauta {
+  display: flex;
+  flex-direction: column;
+}
+.pautaLinha {
+  min-height: var(--contro-touch);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--contro-border);
+  background: none;
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pautaLinha b {
+  flex: 1;
+}
+.icVazio {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  flex-shrink: 0;
+}
+.gerar {
+  width: 100%;
+  margin-top: 8px;
+  min-height: var(--contro-control-h);
+  border: 0;
+  border-radius: 12px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.gerar:disabled {
   opacity: 0.6;
 }

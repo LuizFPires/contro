@@ -16,6 +16,11 @@ export interface TarefaObra {
   vinculo_tipo: 'providencia' | 'atividade' | null;
   vinculo_id: string | null;
   origem_texto: string | null;
+  /** Avanço informado (0..99) e comentário de quem cuida. */
+  avanco_pct: number;
+  comentario: string | null;
+  avanco_em: string | null;
+  feita_em: string | null;
 }
 
 interface LinhaTarefa {
@@ -32,6 +37,10 @@ interface LinhaTarefa {
   origem_texto: string | null;
   observacao: string | null;
   responsavel_nome: string | null;
+  avanco_pct: number | null;
+  comentario: string | null;
+  avanco_em: string | null;
+  feita_em: string | null;
   responsavel: { nome: string } | null;
 }
 
@@ -41,6 +50,7 @@ export async function loadTarefas(obraId: string): Promise<TarefaObra[]> {
     .from('tarefa')
     .select(
       'id,obra_id,texto,responsavel_id,prazo,prazo_original,replanejamentos,status,vinculo_tipo,vinculo_id,origem_texto,observacao,responsavel_nome,' +
+        'avanco_pct,comentario,avanco_em,feita_em,' +
         'responsavel:pessoa!responsavel_id(nome)',
     )
     .eq('obra_id', obraId)
@@ -61,5 +71,9 @@ export async function loadTarefas(obraId: string): Promise<TarefaObra[]> {
     vinculo_tipo: l.vinculo_tipo,
     vinculo_id: l.vinculo_id,
     origem_texto: l.origem_texto,
+    avanco_pct: l.avanco_pct ?? 0,
+    comentario: l.comentario,
+    avanco_em: l.avanco_em,
+    feita_em: l.feita_em,
   }));
 }

@@ -92,6 +92,10 @@ export function useTarefasAcoes() {
                 vinculo_tipo: t.vinculoTipo ?? null,
                 vinculo_id: t.vinculoId ?? null,
                 origem_texto: t.origemTexto ?? null,
+                avanco_pct: 0,
+                comentario: null,
+                avanco_em: null,
+                feita_em: null,
               },
             ],
       );
@@ -113,6 +117,31 @@ export function useTarefasAcoes() {
     networkMode: 'always',
     mutationFn: (v: Alvo) => enfileirar('reabrir_tarefa', { obraId: v.obraId, id: v.id }),
     onMutate: status('aberta'),
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+  // Avanço e comentário da ação (Minhas ações): também é ação de campo.
+  const avancar = useMutation({
+    networkMode: 'always',
+    mutationFn: (v: Alvo & { pct: number; comentario: string | null }) =>
+      enfileirar('informar_avanco_tarefa', {
+        obraId: v.obraId,
+        id: v.id,
+        pct: v.pct,
+        comentario: v.comentario,
+      }),
+    onMutate: (v) =>
+      trocar(v.obraId, (prev) =>
+        prev.map((t) =>
+          t.id === v.id
+            ? {
+                ...t,
+                avanco_pct: v.pct,
+                comentario: v.comentario,
+                avanco_em: new Date().toISOString(),
+              }
+            : t,
+        ),
+      ),
     onError: (_e, _v, ctx) => reverter(ctx),
   });
   // Excluir/restaurar: guarda a tarefa removida para o "Desfazer" (regra 10)
@@ -145,5 +174,5 @@ export function useTarefasAcoes() {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
 
-  return { salvar, concluir, reabrir, excluir, restaurar };
+  return { salvar, concluir, reabrir, avancar, excluir, restaurar };
 }

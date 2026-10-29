@@ -12,8 +12,16 @@ import {
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
+/** Data de hoje no fuso do aparelho (UTC virava "amanhã" depois das 21h em Brasília). */
 export function hojeISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return dataLocal(new Date());
+}
+
+/** Data (YYYY-MM-DD) de um instante, no fuso do aparelho. */
+export function dataLocal(d: Date | string): string {
+  const x = typeof d === 'string' ? new Date(d) : d;
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${x.getFullYear()}-${p(x.getMonth() + 1)}-${p(x.getDate())}`;
 }
 
 export interface Unidade {

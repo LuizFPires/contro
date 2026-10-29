@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { BoletimDados, ObraAta } from '@contro/core';
-import { boletimHtml, ataHtml } from './html';
+import { montarObraAta, type BoletimDados } from '@contro/core';
+import { boletimHtml, ataHtml, type AtaDados } from './html';
 
 const boletim: BoletimDados = {
   obra: 'Obra Betim',
@@ -60,27 +60,69 @@ describe('boletimHtml', () => {
   });
 });
 
+const obraAta = (observacoes = 'Comprar na terça.') =>
+  montarObraAta({
+    nome: 'Obra Betim',
+    indicador: '47% · atrasada · 3 dias',
+    atrasada: true,
+    situacao: 'Fase 3',
+    itens: [
+      {
+        id: 'a1',
+        nome: 'Contrapiso',
+        secao: 'passada_concluir',
+        resposta: 'nao_terminou',
+        avancoPct: 50,
+      },
+      { id: 'a2', nome: 'Piso', secao: 'passada_comecar', resposta: 'comecou' },
+      { id: 'a3', nome: 'Hidráulica', secao: 'semana_concluir', resposta: 'segue' },
+    ],
+    acoes: [
+      { vinculoId: 'a1', texto: 'Concluir contrapiso', pessoa: 'Marcos', prazoFmt: 'qua 04/11' },
+    ],
+    cobranca: [],
+    observacoes,
+  });
+const ata = (p: Partial<AtaDados> = {}): AtaDados => ({
+  dataFmt: 'segunda, 02/11/2026',
+  horaFmt: '16h',
+  obras: [obraAta()],
+  pessoas: [
+    { pessoa: 'Marcos', itens: [{ texto: 'qua 04/11 · Concluir contrapiso', atrasado: false }] },
+  ],
+  totais: ['1 aconteceu', '1 não aconteceu'],
+  resumo: false,
+  ...p,
+});
+
 describe('ataHtml', () => {
-  const obras: ObraAta[] = [
-    {
-      nome: 'Obra Betim',
-      indicador: '47% · Atrasada · 3 dias',
-      atrasos: ['Alvenaria'],
-      concluir: ['Demolição'],
-      comecar: [],
-      providenciar: ['Compra: Porcelanato'],
-      observacoes: 'Comprar na terça.',
-    },
-  ];
-  const html = ataHtml('segunda, 26/10/2026', obras);
-  it('tem a obra, o indicador e as observações', () => {
+  const html = ataHtml(ata());
+  it('tem a obra, os blocos, a ação e as observações', () => {
     expect(html).toContain('Obra Betim');
-    expect(html).toContain('47% · Atrasada · 3 dias');
+    expect(html).toContain('47% · atrasada · 3 dias');
+    expect(html).toContain('1 · Planejado e aconteceu');
+    expect(html).toContain('Contrapiso · está em 50%');
+    expect(html).toContain('Concluir contrapiso — Marcos, até qua 04/11');
+    expect(html).toContain('Terminar Hidráulica · segue o plano');
     expect(html).toContain('Comprar na terça.');
+    expect(html).toContain('Quem faz o quê');
     expect(html).toContain('1 obra');
+    expect(html).toContain('Ata da semana · 16h');
+  });
+  it('só a ata: retrato e sem tabela', () => {
+    expect(html).toContain('size: A4;');
+    expect(html).not.toContain('class="tabela"');
+  });
+  it('com resumo: paisagem, tabela antes e a ata na página seguinte', () => {
+    const r = ataHtml(ata({ resumo: true }));
+    expect(r).toContain('size: A4 landscape;');
+    expect(r).toContain('class="tabela"');
+    expect(r).toContain('Semana passada · não cumprido → ação');
+    expect(r.indexOf('class="tabela"')).toBeLessThan(r.indexOf('<h1>Ata da reunião</h1>'));
+    expect(r).toContain('class="ata quebra"');
   });
   it('ata sem obras não quebra', () => {
-    expect(ataHtml('segunda, 26/10/2026', [])).toContain('Sem obras nesta ata.');
+    expect(ataHtml(ata({ obras: [], resumo: true }))).toContain('Sem obras nesta ata.');
   });
 });
 
@@ -94,17 +136,7 @@ describe('escape de HTML', () => {
     expect(html).toContain('&#39;');
   });
   it('escapa injeção nas observações da ata (texto livre do usuário)', () => {
-    const html = ataHtml('seg 26/10', [
-      {
-        nome: 'Obra X',
-        indicador: '10%',
-        atrasos: [],
-        concluir: [],
-        comecar: [],
-        providenciar: [],
-        observacoes: '</p><script>alert(1)</script>',
-      },
-    ]);
+    const html = ataHtml(ata({ obras: [obraAta('</p><script>alert(1)</script>')], resumo: true }));
     expect(html).not.toContain('<script>alert(1)</script>');
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
   });

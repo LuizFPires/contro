@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { textoReplanejamento } from '@contro/core';
 import { BottomSheet, Button, Input } from '@contro/ui';
 import { AvisoRascunho } from '../../components/AvisoRascunho';
+import { EscolherData } from '../../components/EscolherData';
 import { formatarDataCurta } from '../../lib/datas';
 import { useRascunho } from '../../lib/useRascunho';
 import type { PessoaResumo } from '../perfil/usePessoas';
+import { dataLocal } from './api';
 import type { EntradaTarefa } from './campo';
 import type { TarefaObra } from './tarefasObra';
 import styles from './AdiarSheet.module.css';
@@ -12,7 +14,7 @@ import styles from './AdiarSheet.module.css';
 function emDias(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+  return dataLocal(d);
 }
 
 export function TarefaSheet({
@@ -134,25 +136,13 @@ export function TarefaSheet({
       </select>
 
       <p className={styles.rotulo}>Prazo</p>
-      <div className={styles.pills}>
-        {atalhos.map((a) => (
-          <button
-            key={a.valor}
-            type="button"
-            className={`${styles.pill} ${prazo === a.valor ? styles.ativo : ''}`}
-            onClick={() => setPrazo(a.valor)}
-          >
-            {a.rotulo}
-          </button>
-        ))}
-        <input
-          type="date"
-          className={styles.data}
-          value={prazo}
-          onChange={(e) => setPrazo(e.target.value)}
-          aria-label="Escolher prazo"
-        />
-      </div>
+      <EscolherData
+        rotulo="Prazo"
+        valor={prazo}
+        onEscolher={setPrazo}
+        sugestoes={atalhos}
+        hoje={emDias(0)}
+      />
 
       {repl ? (
         <p className={styles.resumo} style={{ marginTop: 8 }}>

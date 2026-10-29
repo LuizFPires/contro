@@ -1,7 +1,7 @@
 // Templates HTML (A4, Nunito Sans, design system CONTRO) para o boletim e a ata.
 // Puros e testáveis; o pdf.ts renderiza para PDF com Playwright. O domínio e os
 // dados vêm do @contro/core (mesmo código do front).
-import type { BoletimDados, ObraAta } from '@contro/core';
+import type { BoletimDados, LinhaAta, ObraAta, PessoaAta } from '@contro/core';
 
 function esc(s: string): string {
   return String(s)
@@ -16,7 +16,7 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 // Cores e tipografia do design system (turquesa, preto, branco; vermelho só
 // para atraso). A4 com margens; Nunito Sans com fallback do sistema.
-function pagina(titulo: string, corpo: string): string {
+function pagina(titulo: string, corpo: string, paisagem = false): string {
   return `<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -34,7 +34,7 @@ function pagina(titulo: string, corpo: string): string {
     --muted: #5a5a5a;
   }
   * { box-sizing: border-box; }
-  @page { size: A4; margin: 16mm 14mm; }
+  @page { size: A4${paisagem ? ' landscape' : ''}; margin: ${paisagem ? '10mm 10mm' : '16mm 14mm'}; }
   body {
     font-family: 'Nunito Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
     color: var(--preto);
@@ -64,6 +64,16 @@ function pagina(titulo: string, corpo: string): string {
   .obra-faixa { background: #4a4a4a; color: var(--branco); font-weight: 800; padding: 6px 10px; border-radius: 6px; }
   .obra-ind { color: var(--muted); font-weight: 700; margin: 6px 0; }
   .obs { margin-top: 6px; }
+  .totais { margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .total { font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 5px; background: #ececec; }
+  .quebra { break-before: page; }
+  .tabela { width: 100%; border-collapse: collapse; font-size: 10.5px; line-height: 1.35; }
+  .tabela th { text-align: left; padding: 6px 8px; background: var(--preto); color: var(--branco); font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tabela td { padding: 6px 8px; vertical-align: top; border-top: 1px solid #d6d6d6; border-left: 1px solid #ececec; }
+  .tabela tr { break-inside: avoid; }
+  .quem { margin-top: 12px; }
+  .grade .quem-itens { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 </style>
 </head>
 <body>
@@ -133,39 +143,115 @@ export function boletimHtml(d: BoletimDados): string {
   return pagina(`Boletim · ${d.obra}`, corpo);
 }
 
-/** Ata da reunião de segunda (várias obras) em PDF (A4). */
-export function ataHtml(dataFmt: string, obras: ObraAta[]): string {
-  const corpoObras = obras
+/** Dados da ata (montados no core, pela tela) para o PDF. */
+export interface AtaDados {
+  dataFmt: string;
+  horaFmt: string;
+  obras: ObraAta[];
+  pessoas: PessoaAta[];
+  /** "18 aconteceram", "2 não aconteceram"… (textosTotais do core). */
+  totais: string[];
+  /** Começa pelo resumo em tabela (paisagem). */
+  resumo: boolean;
+}
+
+function linhaHtml(l: LinhaAta): string {
+  const marca = l.ok ? '✓ ' : l.nao ? '✗ ' : '';
+  const cls = l.atraso ? ' class="atraso"' : l.semResposta ? ' class="motivo"' : '';
+  const acao = l.acao ? `<br><span class="data">→</span> ${esc(l.acao)}` : '';
+  return `<li${cls}>${marca}${esc(l.texto)}${acao}</li>`;
+}
+
+function blocoAta(titulo: string, ls: LinhaAta[]): string {
+  return blocoLista(titulo, ls.map(linhaHtml));
+}
+
+function totaisHtml(totais: string[]): string {
+  return `<p class="totais">${totais
+    .map(
+      (t) =>
+        `<span class="${t.includes('não aconte') && !t.startsWith('0 ') ? 'total atraso' : 'total'}">${esc(t)}</span>`,
+    )
+    .join('')}</p>`;
+}
+
+function quemFazHtml(pessoas: PessoaAta[], grade = false): string {
+  if (pessoas.length === 0) return '';
+  const itens = pessoas
+    .map(
+      (p) =>
+        `<div class="pessoa-bloco"><p class="pessoa">${esc(p.pessoa)} · ${p.itens.length}</p><ul>${p.itens
+          .map((i) => `<li${i.atrasado ? ' class="atraso"' : ''}>${esc(i.texto)}</li>`)
+          .join('')}</ul></div>`,
+    )
+    .join('');
+  return `<div class="bloco quem${grade ? ' grade' : ''}"><p class="bloco-titulo">Quem faz o quê</p><div class="quem-itens">${itens}</div></div>`;
+}
+
+function celula(ls: LinhaAta[]): string {
+  if (ls.length === 0) return '<td class="motivo">—</td>';
+  return `<td>${ls
+    .map((l) => {
+      const cls = l.atraso ? ' class="atraso"' : l.semResposta ? ' class="motivo"' : '';
+      const marca = l.ok ? '✓ ' : l.nao ? '✗ ' : '';
+      return `<div${cls}>${marca}${esc(l.texto)}${l.acao ? `<br>→ ${esc(l.acao)}` : ''}</div>`;
+    })
+    .join('')}</td>`;
+}
+
+/** Resumo em tabela (paisagem): linhas = obras; colunas = blocos da ata. */
+export function resumoTabelaHtml(d: AtaDados): string {
+  const linhas = d.obras
+    .map(
+      (o) =>
+        `<tr><td><strong>${esc(o.nome)}</strong><br><span class="${o.atrasada ? 'atraso' : 'motivo'}">${esc(
+          o.indicador,
+        )}</span></td>${celula(o.aconteceu)}${celula(o.naoAconteceu)}${celula(o.proximaSemana)}${celula(
+          o.providencias,
+        )}${celula(o.cobranca)}</tr>`,
+    )
+    .join('');
+  return `<section class="resumo">
+  ${marca(`Resumo da reunião · ${d.horaFmt}`)}
+  <h1>Resumo da reunião semanal de obras</h1>
+  <p class="semana">${esc(d.dataFmt)} · ${d.obras.length} ${d.obras.length === 1 ? 'obra' : 'obras'}</p>
+  ${totaisHtml(d.totais)}
+  <table class="tabela"><thead><tr><th>Obra</th><th>Semana passada · cumprido</th><th>Semana passada · não cumprido → ação</th><th>Próxima semana</th><th>Providências</th><th>Cobrança da reunião anterior</th></tr></thead><tbody>${
+    linhas || '<tr><td colspan="6" class="vazio">Sem obras nesta ata.</td></tr>'
+  }</tbody></table>
+  ${quemFazHtml(d.pessoas, true)}
+</section>`;
+}
+
+/** Ata da reunião (várias obras) em PDF; com `resumo`, abre com a tabela em paisagem. */
+export function ataHtml(d: AtaDados): string {
+  const corpoObras = d.obras
     .map((o) => {
-      const atrasos = blocoLista(
-        'Atrasos',
-        o.atrasos.map((a) => `<li>${esc(a)}</li>`),
-        true,
-      );
-      const concluir = blocoLista(
-        'Concluir',
-        o.concluir.map((a) => `<li>${esc(a)}</li>`),
-      );
-      const comecar = blocoLista(
-        'Começar',
-        o.comecar.map((a) => `<li>${esc(a)}</li>`),
-      );
-      const providenciar = blocoLista(
-        'Providenciar',
-        o.providenciar.map((a) => `<li>${esc(a)}</li>`),
-      );
-      const obs = o.observacoes.trim()
-        ? `<p class="obs"><strong>Obs:</strong> ${esc(o.observacoes.trim())}</p>`
+      const obs = o.observacoes
+        ? `<p class="obs"><strong>Obs:</strong> ${esc(o.observacoes)}</p>`
         : '';
-      return `<div class="obra-ata"><p class="obra-faixa">${esc(o.nome)}</p><p class="obra-ind">${esc(
-        o.indicador,
-      )}</p>${atrasos}${concluir}${comecar}${providenciar}${obs}</div>`;
+      return `<div class="obra-ata"><p class="obra-faixa">${esc(o.nome)}</p><p class="obra-ind"><span class="${
+        o.atrasada ? 'atraso' : ''
+      }">${esc(o.indicador)}</span> · ${esc(o.situacao)}</p>${blocoAta(
+        '1 · Planejado e aconteceu',
+        o.aconteceu,
+      )}${blocoAta('2 · Planejado e não aconteceu', o.naoAconteceu)}${blocoAta(
+        '3 · Próxima semana',
+        o.proximaSemana,
+      )}${blocoAta('Providências', o.providencias)}${blocoAta(
+        '4 · Cobrança da reunião anterior',
+        o.cobranca,
+      )}${obs}</div>`;
     })
     .join('');
 
-  const corpo = `${marca('Ata da semana · 16h')}
+  const ata = `<section class="${d.resumo ? 'ata quebra' : 'ata'}">
+  ${marca(`Ata da semana · ${d.horaFmt}`)}
   <h1>Ata da reunião</h1>
-  <p class="semana">${esc(dataFmt)} · ${obras.length} ${obras.length === 1 ? 'obra' : 'obras'}</p>
-  ${corpoObras || '<p class="vazio">Sem obras nesta ata.</p>'}`;
-  return pagina(`Ata · ${dataFmt}`, corpo);
+  <p class="semana">${esc(d.dataFmt)} · ${d.obras.length} ${d.obras.length === 1 ? 'obra' : 'obras'}</p>
+  ${totaisHtml(d.totais)}
+  ${corpoObras || '<p class="vazio">Sem obras nesta ata.</p>'}
+  ${quemFazHtml(d.pessoas)}
+</section>`;
+  return pagina(`Ata · ${d.dataFmt}`, `${d.resumo ? resumoTabelaHtml(d) : ''}${ata}`, d.resumo);
 }
