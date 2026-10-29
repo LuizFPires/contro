@@ -1,9 +1,15 @@
 import { useMemo, useState } from 'react';
-import { deReuniaoAnterior, origemReuniao, simularConclusaoEm } from '@contro/core';
+import {
+  deReuniaoAnterior,
+  origemReuniao,
+  reuniaoDaSemana,
+  simularConclusaoEm,
+} from '@contro/core';
 import { Icon, useToast } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
 import { usePessoas } from '../perfil/usePessoas';
 import { hojeISO } from '../obras/api';
+import { useConfigAvisos } from '../avisos/useConfigAvisos';
 import { desfazerConclusao } from '../obras/campo';
 import { formatarDataCurta } from '../../lib/datas';
 import { AtaView } from './AtaView';
@@ -18,13 +24,6 @@ import type { ItemPassada, ReuniaoObraDados, TarefaAtrib } from './reuniaoApi';
 import styles from './ReuniaoScreen.module.css';
 
 /** Segunda-feira da semana corrente (ISO). */
-function segundaISO(): string {
-  const d = new Date();
-  const diff = (d.getDay() + 6) % 7;
-  d.setDate(d.getDate() - diff);
-  // Data local (toISOString é UTC e, à noite, podia cair no dia seguinte).
-  return d.toLocaleDateString('sv-SE');
-}
 
 const PASSOS = ['Semana passada', 'Esta semana', 'Providências', 'Observações'];
 const TIPO: Record<string, string> = {
@@ -59,8 +58,10 @@ interface ItemSemana {
 
 /** Reunião semanal (opção A · pauta guiada): obra por obra, em 4 etapas. */
 export function ReuniaoScreen({ onVoltar }: { onVoltar: () => void }) {
-  const data = useMemo(segundaISO, []);
   const hoje = hojeISO();
+  // Reunião desta semana no dia configurado pelo gestor (Reunião e avisos).
+  const { config: agenda } = useConfigAvisos();
+  const data = reuniaoDaSemana(hoje, agenda.reuniaoDia);
   const { data: pessoa } = usePerfil();
   const { data: pessoas = [] } = usePessoas();
   const { data: nomesSugeridos = [] } = useNomesSugeridos();

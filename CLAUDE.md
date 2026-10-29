@@ -10,7 +10,7 @@ Cada obra nasce de um **modelo de obra** escolhido entre os modelos salvos (ex.:
 - resolver pendência com **antes e depois**;
 - lembretes de contratação, locação e compra;
 - boletim semanal pelo WhatsApp e em PDF;
-- reunião de segunda às 16h com ata e tarefas por responsável.
+- reunião semanal (dia e horário definidos pelo gestor; padrão segunda 16h) com ata e tarefas por responsável, e avisos por push.
 
 A **maquete 3D da obra** é uma melhoria futura (E1) em avaliação: **não implemente** nada dela sem pedido explícito do usuário.
 

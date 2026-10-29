@@ -1,0 +1,37 @@
+.corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.texto {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.estado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border-radius: 12px;
+  background: rgb(84 180 176 / 18%);
+  font-weight: 800;
+}
+.aviso {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgb(24 24 24 / 6%);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.dica {
+  margin: 0;
+  font-size: 13px;
+  color: #696969;
+  text-align: center;
+}

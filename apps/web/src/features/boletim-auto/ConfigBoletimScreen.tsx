@@ -8,7 +8,7 @@ import {
 import { Button, Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { useConfigBoletim } from './useConfigBoletim';
-import { usePushBoletim } from './usePushBoletim';
+import { usePush } from '../../lib/usePush';
 import styles from './ConfigBoletimScreen.module.css';
 
 const DIAS: { v: DiaSemana; abrev: string }[] = [
@@ -173,7 +173,7 @@ export function ConfigBoletimScreen({ onVoltar }: { onVoltar: () => void }) {
 }
 
 function PushBloco() {
-  const { disponivel, inscrito, ocupado, erro, inscrever, cancelar } = usePushBoletim();
+  const { disponivel, inscrito, ocupado, erro, inscrever, cancelar } = usePush();
   if (!disponivel) return null;
   return (
     <div className={styles.push}>

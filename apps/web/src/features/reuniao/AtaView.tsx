@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  horaCurta,
   compilarPorPessoa,
   derivarAtribuicoes,
   origemReuniao,
@@ -91,7 +92,7 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
         <div>
           <h1 className={styles.titulo}>Ata da reunião</h1>
           <div className={styles.sub}>
-            Segunda {formatarDataCurta(reuniao.data).split(' ')[1]}/{reuniao.data.slice(0, 4)} · 16h
+            {formatarDataCompleta(reuniao.data)} · {horaCurta(reuniao.hora)}
           </div>
         </div>
       </header>
@@ -100,7 +101,9 @@ export function AtaView({ reuniao, onVoltar }: { reuniao: ReuniaoCompleta; onVol
         <article className={styles.folha}>
           <div className={styles.folhaTopo}>
             <div className={styles.folhaTitulo}>CONTRO · ata da reunião semanal de obras</div>
-            <div className={styles.folhaData}>{dataFmt} · 16h</div>
+            <div className={styles.folhaData}>
+              {dataFmt} · {horaCurta(reuniao.hora)}
+            </div>
           </div>
 
           {reuniao.obras.map((o) => {

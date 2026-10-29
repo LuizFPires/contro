@@ -57,6 +57,12 @@ const paths = {
     </>
   ),
   chevronDown: <polyline points="6 9 12 15 18 9" />,
+  sino: (
+    <>
+      <path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z" />
+      <path d="M10 20a2 2 0 0 0 4 0" />
+    </>
+  ),
   search: (
     <>
       <circle cx="11" cy="11" r="6.5" />

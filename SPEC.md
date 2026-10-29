@@ -378,8 +378,10 @@ Alvos de toque ≥ 44 px. Nunca branco sobre turquesa em texto pequeno; usar pre
 |---|---|
 | Diário 00:10 | Devolve à fila as pendências com `adiada_ate ≤ hoje` (registra evento) |
 | Segunda 06:30 | `gerar_boletim(obra, 'segunda')` para cada obra ativa; notificação push ao engenheiro: "Boletim pronto para enviar" |
-| Segunda 15:30 | Cria `reuniao(data=hoje)` em status `pauta`, se não existir |
+| A cada 5 min | `gerar_avisos()`: lembretes da reunião e avisos do dia de `config_avisos` (fuso de São Paulo), um `aviso_disparo` por pessoa/tipo/dia, dentro de 3 h após o horário; a Edge Function `enviar-avisos` manda o push (runbook em `supabase/functions/enviar-avisos/README.md`) |
 | Sexta 17:00 | `gerar_boletim(obra, 'sexta')` (fechamento) |
+
+A reunião também deixa de ser fixa (28/10/2026): `config_avisos` (linha única, membro lê, gestor edita) guarda `reuniao_dia` (1–5) e `reuniao_hora`; a pauta da semana é a da data `reuniaoDaSemana(hoje, dia)` (core) e nasce com esse horário. O cron fixo "Segunda 15:30" saiu: a pauta abre sob demanda pela tela.
 
 Os horários do boletim **deixam de ser fixos**: o gestor configura dia e hora (global, vale para todas as obras) em `config_boletim` — edição principal + edição de fechamento opcional. Os valores acima viram apenas o **padrão** da linha única. O cron da geração lê `config_boletim` e dispara no horário configurado (fatia 2); o aviso é por push (fatia 3).
 

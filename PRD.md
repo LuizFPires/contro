@@ -143,7 +143,11 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - **Envio sem integração:** o botão "WhatsApp" abre o WhatsApp (`wa.me/?text=`) com o texto pronto, e o usuário escolhe o grupo da obra.
 - **PDF** A4 bem formatado no padrão CONTRO, para levar à reunião.
 
-### 5.10 Reunião semanal (segunda, 16h)
+### 5.10 Reunião semanal (dia e horário do gestor; padrão segunda, 16h)
+- **Reunião e avisos** (gestor, menu do perfil; 28/10/2026): escolhe o **dia** (seg a sex) e o **horário** da reunião e os avisos por push:
+  - lembretes da reunião, para todos: **no dia, de manhã** (07:00, 08:00 ou 09:00) e **antes de começar** (30 min, 1 hora ou 2 horas);
+  - avisos do dia, seg a sex: **resumo da manhã** (obras em andamento e tarefas atrasadas; todos ou só gestores), **tarefas que vencem hoje** (só o responsável) e **providências para começar** (todos ou só gestores; vem desligado). Cada aviso liga/desliga e tem horário.
+  - Cada pessoa liga o push no seu celular em **"Avisos neste celular"** (menu do perfil). No iPhone, só com o app instalado na tela inicial. Tocar no aviso abre a reunião, as tarefas ou a tela inicial.
 - **Pauta guiada** (opção A do protótipo de reunião): escolhe-se a obra no topo e passa-se por **4 etapas**, com "Continuar" e "Voltar" no rodapé. O cabeçalho é baixo e o rodapé só tem os botões.
   1. **Semana passada:** cada atividade prevista recebe **Feito** ou **Não feito**.
      - **Feito** conclui a atividade na hora, sem foto (com Desfazer); já concluída aparece como "Concluída no app".
