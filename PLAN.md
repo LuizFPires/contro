@@ -308,7 +308,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
-- 2026-10-30 · **Preparar a reunião (pauta antecipada em PDF).** Ícone no card da próxima reunião; sempre todas as obras (sem "só o meu", decisão do usuário); 1, 2 ou 3 formatos num PDF só — tabela em paisagem, folha e por pessoa em retrato (`@page` nomeado). Regras e textos em `core/preparo.ts`; dados da mesma pauta (`ataDados.montarPreparo`). Sai pela impressão do aparelho ("Salvar como PDF"), como a ata sem pdf-service; template no pdf-service fica para quando o serviço for publicado. Push na véspera fica para depois. · pedido do usuário · usuário
+- 2026-10-30 · **Preparar a reunião (pauta antecipada em PDF).** Botão de prévia no rodapé da pauta da próxima reunião (prévia · Voltar · Continuar, pedido do usuário); sempre todas as obras (sem "só o meu", decisão do usuário); 1, 2 ou 3 formatos num PDF só — tabela em paisagem, folha e por pessoa em retrato (`@page` nomeado). Regras e textos em `core/preparo.ts`; dados da mesma pauta (`ataDados.montarPreparo`). Sai pela impressão do aparelho ("Salvar como PDF"), como a ata sem pdf-service; template no pdf-service fica para quando o serviço for publicado. Push na véspera fica para depois. · pedido do usuário · usuário
 
 - 2026-10-30 · **Card da reunião mostra a próxima.** Antes mostrava a reunião da semana corrente (na quarta, a segunda que já passou). Agora `reuniaoQueVem` (core): a de hoje até o fim do dia; depois, a da semana seguinte. A pauta da próxima já abre para preparar; a ata anterior fica em "Anterior · data" na tela da reunião. · pedido do usuário · usuário
 

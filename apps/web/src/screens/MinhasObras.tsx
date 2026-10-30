@@ -13,7 +13,6 @@ import { ProntosParaEnviar } from '../features/boletim-auto/ProntosParaEnviar';
 import { EditarNome } from './EditarNome';
 import { TrocarSenha } from './TrocarSenha';
 import { AvisosCelularSheet } from '../features/avisos/AvisosCelularSheet';
-import { PrepararSheet } from '../features/reuniao/PrepararReuniao';
 import { useConfigAvisos } from '../features/avisos/useConfigAvisos';
 import { hojeISO } from '../features/obras/api';
 import { formatarDataCurta } from '../lib/datas';
@@ -43,7 +42,6 @@ export function MinhasObras({
   // Onde a pessoa estava (lista/nova obra, obra aberta, aba) fica lembrado.
   const [vista, setVista] = useLembrado<'lista' | 'nova'>('inicio:vista', 'lista');
   const [perfilAberto, setPerfilAberto] = useState(false);
-  const [preparar, setPreparar] = useState(false);
   const [editarNome, setEditarNome] = useState(false);
   const [trocarSenha, setTrocarSenha] = useState(false);
   const [avisos, setAvisos] = useState(false);
@@ -153,33 +151,22 @@ export function MinhasObras({
           </div>
 
           <div className={styles.blocos}>
-            <div className={styles.blocoReuniaoCaixa}>
-              <button type="button" className={styles.blocoReuniao} onClick={() => onIr('reuniao')}>
-                <span className={styles.blocoTitulo}>
-                  <Icon
-                    name="calendario"
-                    size={18}
-                    strokeWidth={2}
-                    className={styles.iconeTurquesa}
-                  />
-                  Reunião
-                </span>
-                <span className={styles.blocoSub}>
-                  {formatarDataCurta(reuniaoQueVem(hojeISO(), agenda.reuniaoDia))} ·{' '}
-                  {horaCurta(agenda.reuniaoHora)}
-                </span>
-                <span className={styles.blocoStatus}>Abrir pauta da próxima reunião</span>
-              </button>
-              <button
-                type="button"
-                className={styles.preparar}
-                aria-label="Preparar a reunião: baixar a pauta em PDF"
-                title="Preparar a reunião"
-                onClick={() => setPreparar(true)}
-              >
-                <Icon name="baixar" size={18} strokeWidth={2.2} />
-              </button>
-            </div>
+            <button type="button" className={styles.blocoReuniao} onClick={() => onIr('reuniao')}>
+              <span className={styles.blocoTitulo}>
+                <Icon
+                  name="calendario"
+                  size={18}
+                  strokeWidth={2}
+                  className={styles.iconeTurquesa}
+                />
+                Reunião
+              </span>
+              <span className={styles.blocoSub}>
+                {formatarDataCurta(reuniaoQueVem(hojeISO(), agenda.reuniaoDia))} ·{' '}
+                {horaCurta(agenda.reuniaoHora)}
+              </span>
+              <span className={styles.blocoStatus}>Abrir pauta da próxima reunião</span>
+            </button>
             <button type="button" className={styles.blocoTarefas} onClick={() => onIr('tarefas')}>
               <span className={styles.blocoTitulo}>
                 <Icon name="tarefas" size={18} strokeWidth={2} />
@@ -310,13 +297,6 @@ export function MinhasObras({
       <TrocarSenha aberto={trocarSenha} onFechar={() => setTrocarSenha(false)} />
 
       <AvisosCelularSheet aberto={avisos} onFechar={() => setAvisos(false)} />
-      {preparar ? (
-        <PrepararSheet
-          data={reuniaoQueVem(hojeISO(), agenda.reuniaoDia)}
-          horaFmt={horaCurta(agenda.reuniaoHora)}
-          onFechar={() => setPreparar(false)}
-        />
-      ) : null}
 
       <EditarNome
         aberto={editarNome}

@@ -4,6 +4,7 @@ import {
   RESPOSTAS_POR_SECAO,
   ROTULO_RESPOSTA,
   contarRespondidos,
+  horaCurta,
   destinoNaAta,
   montarObraAta,
   reuniaoAnterior,
@@ -20,6 +21,7 @@ import { hojeISO } from '../obras/api';
 import { useConfigAvisos } from '../avisos/useConfigAvisos';
 import { formatarDataCurta } from '../../lib/datas';
 import { AtaView } from './AtaView';
+import { PrepararSheet } from './PrepararReuniao';
 import {
   ProvidenciaSheet,
   type CabecalhoProvidencia,
@@ -102,6 +104,7 @@ export function ReuniaoScreen({
   const [obraSel, setObraSel] = useState<string | null>(null);
   const [passo, setPasso] = useState(0);
   const [sheet, setSheet] = useState<Sheet | null>(null);
+  const [previa, setPrevia] = useState(false);
 
   const reuniao = query.data;
   const obras = useMemo(() => reuniao?.obras ?? [], [reuniao]);
@@ -795,6 +798,17 @@ export function ReuniaoScreen({
 
       {o ? (
         <div className={styles.rodape}>
+          {!verAnterior && !fechada ? (
+            <button
+              type="button"
+              className={styles.previa}
+              aria-label="Prévia da reunião em PDF"
+              title="Prévia da reunião em PDF"
+              onClick={() => setPrevia(true)}
+            >
+              <Icon name="baixar" size={20} strokeWidth={2.2} />
+            </button>
+          ) : null}
           <button
             type="button"
             className={styles.anterior}
@@ -868,6 +882,14 @@ export function ReuniaoScreen({
           <p className={styles.soGestor}>O gestor gera a ata ao fim da reunião.</p>
         )}
       </BottomSheet>
+
+      {previa ? (
+        <PrepararSheet
+          data={data}
+          horaFmt={horaCurta(reuniao?.hora ?? agenda.reuniaoHora)}
+          onFechar={() => setPrevia(false)}
+        />
+      ) : null}
 
       <ProvidenciaSheet
         aberto={Boolean(sheet)}

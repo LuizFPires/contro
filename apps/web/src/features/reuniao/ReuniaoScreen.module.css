@@ -350,6 +350,19 @@
   background: var(--contro-white);
   color: var(--contro-black);
 }
+.previa {
+  width: var(--contro-control-h);
+  min-height: var(--contro-control-h);
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 0;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
 .anterior:disabled {
   opacity: 0.4;
   cursor: default;
