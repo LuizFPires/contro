@@ -45,3 +45,4 @@ export function podeEditarModelos(perfil: Perfil): boolean {
   return perfil === 'gestor';
 }
 export * from './loteFotos';
+export * from './preparo';
