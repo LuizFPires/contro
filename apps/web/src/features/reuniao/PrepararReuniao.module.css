@@ -1,0 +1,287 @@
+/* Preparar a reunião (protótipo aprovado em 30/10/2026). */
+.dica {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: #464646;
+}
+.miuda {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #464646;
+  text-align: center;
+}
+.formatos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.formato {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--contro-touch);
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 20%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.formatoOn {
+  border: 2px solid var(--contro-black);
+}
+.formatoTexto {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.formatoTexto span {
+  font-size: 12px;
+  color: #464646;
+}
+.caixa {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1.5px solid rgb(24 24 24 / 35%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.formatoOn .caixa {
+  background: var(--contro-black);
+  border-color: var(--contro-black);
+  color: var(--contro-white);
+}
+.botoes {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.wa,
+.baixar {
+  min-height: 52px;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.wa {
+  flex: 1;
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.baixar {
+  flex: 1.4;
+  border: 0;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.baixar:disabled,
+.desligado {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ---------- Impressão (só existe ao gerar o PDF) ---------- */
+.impressao {
+  display: none;
+}
+@page {
+  size: A4;
+  margin: 12mm;
+}
+@page paisagem {
+  size: A4 landscape;
+  margin: 10mm;
+}
+@media print {
+  :global(body.preparo-imprimindo) > :global(#root) {
+    display: none;
+  }
+  :global(body.preparo-imprimindo) {
+    background: #fff;
+  }
+  .impressao {
+    display: block;
+    color: #181818;
+    font-family: 'Nunito Sans', system-ui, sans-serif;
+    font-size: 10px;
+    line-height: 1.35;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+.pagina + .pagina {
+  break-before: page;
+}
+.paisagem {
+  page: paisagem;
+}
+.topoLinha {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  border-bottom: 2px solid #181818;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+.topoLinha .topo {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.topo {
+  border-bottom: 2px solid #181818;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+.topoTitulo {
+  font-weight: 800;
+  font-size: 15px;
+}
+.topoSub {
+  font-size: 10.5px;
+  color: #464646;
+}
+.totais {
+  display: flex;
+  gap: 6px;
+  font-weight: 800;
+}
+.totais span {
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: rgb(24 24 24 / 8%);
+}
+.atraso {
+  color: #c62828;
+  font-weight: 700;
+}
+.cinza {
+  color: #464646;
+}
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tabela th {
+  text-align: left;
+  padding: 6px 7px;
+  background: #181818;
+  color: #fff;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tabela td {
+  padding: 5px 7px;
+  vertical-align: top;
+  border-top: 1px solid rgb(24 24 24 / 15%);
+  border-left: 1px solid rgb(24 24 24 / 8%);
+}
+.tabela td div + div {
+  margin-top: 3px;
+}
+.tabela tr {
+  break-inside: avoid;
+}
+.rodape {
+  margin-top: 8px;
+  font-size: 9px;
+  color: #696969;
+}
+.obraFolha {
+  margin-top: 10px;
+  break-inside: avoid;
+}
+.faixa {
+  display: flex;
+  justify-content: space-between;
+  background: #4a4a4a;
+  color: #fff;
+  font-weight: 800;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+.folha {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin-top: 2px;
+}
+.cItem {
+  width: 46%;
+}
+.cPrazo {
+  width: 15%;
+}
+.cCaixa {
+  width: 8%;
+}
+.cAnot {
+  width: 23%;
+}
+.folha td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+}
+.blocoCab td {
+  padding: 6px 6px 3px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #696969;
+  text-transform: uppercase;
+  border-bottom: 1.5px solid #181818;
+}
+.blocoCab td:nth-child(2),
+.blocoCab td:nth-child(3) {
+  text-align: center;
+}
+.meio {
+  text-align: center;
+}
+.box {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 1.3px solid #181818;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+.linhaAnot {
+  border-bottom: 1px solid #bbb !important;
+}
+.obs {
+  margin-top: 6px;
+  font-size: 9.5px;
+  color: #464646;
+}
+.pessoa {
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 12px;
+  break-inside: avoid;
+}
+.pessoa > div + div {
+  margin-top: 3px;
+}
+.pessoaNome {
+  font-weight: 800;
+  font-size: 12.5px;
+  margin-bottom: 4px;
+}
