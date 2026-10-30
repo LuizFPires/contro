@@ -23,14 +23,14 @@ import {
 } from './reuniaoApi';
 
 /** data no formato ISO (segunda da semana). */
-export function useReuniao(data: string) {
+export function useReuniao(data: string, criar = true) {
   const qc = useQueryClient();
   const inval = () => qc.invalidateQueries({ queryKey: ['reuniao', data] });
 
   const query = useQuery({
     queryKey: ['reuniao', data],
     enabled: Boolean(supabase) && Boolean(data),
-    queryFn: () => loadReuniao(data),
+    queryFn: () => loadReuniao(data, criar),
   });
 
   const observacao = useMutation({

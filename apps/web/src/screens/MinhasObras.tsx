@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLembrado } from '../lib/useLembrado';
-import { horaCurta, reuniaoDaSemana, rotuloPerfil } from '@contro/core';
+import { horaCurta, reuniaoQueVem, rotuloPerfil } from '@contro/core';
 import { BottomSheet, Icon, Logo, Simbolo, useToast, type IconName } from '@contro/ui';
 import { ObraCard } from '../features/obras/ObraCard';
 import { HojeObras } from '../features/obras/HojeObras';
@@ -162,10 +162,10 @@ export function MinhasObras({
                 Reunião
               </span>
               <span className={styles.blocoSub}>
-                {formatarDataCurta(reuniaoDaSemana(hojeISO(), agenda.reuniaoDia))} ·{' '}
+                {formatarDataCurta(reuniaoQueVem(hojeISO(), agenda.reuniaoDia))} ·{' '}
                 {horaCurta(agenda.reuniaoHora)}
               </span>
-              <span className={styles.blocoStatus}>Abrir pauta da semana</span>
+              <span className={styles.blocoStatus}>Abrir pauta da próxima reunião</span>
             </button>
             <button type="button" className={styles.blocoTarefas} onClick={() => onIr('tarefas')}>
               <span className={styles.blocoTitulo}>

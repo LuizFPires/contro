@@ -306,9 +306,20 @@ function derivarObra(
   };
 }
 
-export async function loadReuniao(data: string): Promise<ReuniaoCompleta | null> {
+/**
+ * Carrega a reunião da data. `criar` abre a pauta se ainda não existe (a que
+ * vem); sem `criar` (reunião anterior), só lê: devolve null se não houve.
+ */
+export async function loadReuniao(data: string, criar = true): Promise<ReuniaoCompleta | null> {
   if (!supabase) return null;
-  const id = await abrirReuniao(data);
+  let id: string;
+  if (criar) {
+    id = await abrirReuniao(data);
+  } else {
+    const { data: r } = await supabase.from('reuniao').select('id').eq('data', data).maybeSingle();
+    if (!r) return null;
+    id = (r as { id: string }).id;
+  }
   const [rRes, roRes, respRes] = await Promise.all([
     supabase.from('reuniao').select('id,data,hora,status').eq('id', id).maybeSingle(),
     supabase.from('reuniao_obra').select('obra_id,observacoes').eq('reuniao_id', id),

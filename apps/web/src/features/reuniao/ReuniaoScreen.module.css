@@ -575,3 +575,17 @@
 .gerar:disabled {
   opacity: 0.6;
 }
+.trocarReuniao {
+  margin-left: auto;
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border-radius: var(--contro-radius-pill);
+  border: 1.5px solid rgb(255 255 255 / 40%);
+  background: transparent;
+  color: var(--contro-white);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+  cursor: pointer;
+}
