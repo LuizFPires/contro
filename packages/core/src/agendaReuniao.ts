@@ -35,6 +35,21 @@ export function reuniaoDaSemana(hoje: DataISO, dia: DiaReuniao): DataISO {
   return somarDias(hoje, dia - diaIso(hoje));
 }
 
+/**
+ * A reunião que vem (pedido do usuário, 30/10/2026): a do dia da reunião desta
+ * semana até o fim desse dia (a pauta pode ser fechada depois do horário);
+ * passado o dia, a da semana que vem. O card da tela inicial e a pauta usam esta.
+ */
+export function reuniaoQueVem(hoje: DataISO, dia: DiaReuniao): DataISO {
+  const desta = reuniaoDaSemana(hoje, dia);
+  return desta >= hoje ? desta : somarDias(desta, 7);
+}
+
+/** A reunião anterior a `data` (uma semana antes). */
+export function reuniaoAnterior(data: DataISO): DataISO {
+  return somarDias(data, -7);
+}
+
 /** "HH:MM" → minutos do dia. */
 export function minutosDoDia(hora: string): number {
   const [h, m] = hora.split(':').map(Number);
