@@ -109,6 +109,30 @@
   min-height: 76px;
   font: inherit;
 }
+.blocoReuniaoCaixa {
+  position: relative;
+  display: flex;
+}
+.blocoReuniaoCaixa .blocoReuniao {
+  flex: 1;
+  padding-right: 52px;
+}
+/* Preparar a reunião: ícone no canto do card (alvo de 44 px). */
+.preparar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  border-radius: 12px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
 .blocoReuniao {
   border: 0;
   background: var(--contro-black);

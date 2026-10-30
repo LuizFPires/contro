@@ -13,6 +13,7 @@ import {
   type ItemPautaAta,
   type ObraAta,
   type ObraAtaEntrada,
+  type ObraPreparo,
   type PessoaAta,
   type RespostaReuniao,
   type SecaoResposta,
@@ -281,4 +282,64 @@ export function montarAta(r: ReuniaoCompleta): AtaCompleta {
     })),
   }));
   return { obras, totais: totaisAta(entradas, obras), pessoas };
+}
+
+/**
+ * Pauta antecipada (Preparar a reunião): o que a reunião vai cobrar e
+ * perguntar, obra por obra. Usa os mesmos itens da pauta; só entra o que ainda
+ * está aberto (ação feita ou atividade concluída no app não precisa de resposta).
+ */
+export function montarPreparo(r: ReuniaoCompleta): ObraPreparo[] {
+  const hoje = hojeISO();
+  return r.obras.map((o) => {
+    const ritmo = ritmoTexto(o.ritmoDias, true);
+    const cobranca = cobrancaDaObra(r, o.obraId)
+      .filter((t) => !t.concluido)
+      .map((t) => ({
+        texto: t.avancoPct > 0 ? `${t.texto} · ${t.avancoPct}%` : t.texto,
+        pessoa: t.pessoa,
+        prazo: t.prazo
+          ? `${t.atrasado ? 'era' : 'até'} ${formatarDataCurta(t.prazo)}`
+          : 'sem prazo',
+        atraso: t.atrasado,
+      }));
+    const previstos = itensPassada(o)
+      .filter((it) => !it.ok)
+      .map((it) => {
+        const terminar = it.secao === 'passada_concluir';
+        return {
+          texto: `${terminar ? 'Terminar' : 'Começar'} ${it.nome}${it.avancoPct > 0 ? ` · ${it.avancoPct}%` : ''}`,
+          prazo: `${terminar ? 'fim' : 'início'} ${formatarDataCurta(it.data)}`,
+          atraso: it.data < hoje,
+        };
+      });
+    const semana = itensSemana(o);
+    const semanaQueVem = semana
+      .filter((it) => it.secao !== 'semana_providencia')
+      .map((it) => ({
+        texto: `${it.secao === 'semana_concluir' ? 'Terminar' : 'Começar'} ${it.nome}`,
+        prazo: it.sub.replace(' previsto', ''),
+        atraso: false,
+      }));
+    const providencias = semana
+      .filter((it) => it.secao === 'semana_providencia')
+      .map((it) => ({
+        texto: `${VERBO_PROV[it.tipoProvidencia ?? 'compra']} ${it.nome}`,
+        prazo: it.atraso
+          ? 'atrasado'
+          : it.naObraEm
+            ? `na obra ${formatarDataCurta(it.naObraEm)}`
+            : 'nesta semana',
+        atraso: Boolean(it.atraso),
+      }));
+    return {
+      nome: o.nome,
+      indicador: `${Math.round(o.pct * 100)}% · ${ritmo.texto.toLowerCase()}`,
+      atrasada: ritmo.atrasada,
+      cobranca,
+      previstos,
+      semanaQueVem,
+      providencias,
+    };
+  });
 }
