@@ -5,7 +5,9 @@ import {
   horaLembreteAntes,
   minutosDoDia,
   proximaDataReuniao,
+  reuniaoAnterior,
   reuniaoDaSemana,
+  reuniaoQueVem,
   textoAntecedencia,
 } from './agendaReuniao';
 
@@ -19,6 +21,15 @@ describe('agenda da reunião', () => {
     expect(reuniaoDaSemana(QUA, 5)).toBe('2026-10-30');
     // Domingo pertence à semana que começou na segunda anterior.
     expect(reuniaoDaSemana('2026-11-01', 1)).toBe('2026-10-26');
+  });
+
+  it('reunião que vem: hoje até o fim do dia; depois, a da semana que vem', () => {
+    expect(reuniaoQueVem(QUA, 1)).toBe('2026-11-02'); // segunda já passou
+    expect(reuniaoQueVem(QUA, 3)).toBe('2026-10-28'); // é hoje
+    expect(reuniaoQueVem(QUA, 5)).toBe('2026-10-30'); // sexta desta semana
+    expect(reuniaoQueVem('2026-10-31', 1)).toBe('2026-11-02'); // sábado
+    expect(reuniaoQueVem('2026-11-01', 1)).toBe('2026-11-02'); // domingo
+    expect(reuniaoAnterior('2026-11-02')).toBe('2026-10-26');
   });
 
   it('próxima reunião: a desta semana se ainda não começou', () => {

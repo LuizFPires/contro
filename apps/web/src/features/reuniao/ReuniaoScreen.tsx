@@ -6,7 +6,8 @@ import {
   contarRespondidos,
   destinoNaAta,
   montarObraAta,
-  reuniaoDaSemana,
+  reuniaoAnterior,
+  reuniaoQueVem,
   simularConclusaoEm,
   type LinhaAta,
   type RespostaReuniao,
@@ -83,14 +84,17 @@ export function ReuniaoScreen({
   onMinhas: () => void;
 }) {
   const hoje = hojeISO();
-  // Reunião desta semana no dia configurado pelo gestor (Reunião e avisos).
+  // A reunião que vem, no dia configurado pelo gestor (Reunião e avisos); dá
+  // para voltar à anterior para ver a ata.
   const { config: agenda } = useConfigAvisos();
-  const data = reuniaoDaSemana(hoje, agenda.reuniaoDia);
+  const [verAnterior, setVerAnterior] = useState(false);
+  const queVem = reuniaoQueVem(hoje, agenda.reuniaoDia);
+  const data = verAnterior ? reuniaoAnterior(queVem) : queVem;
   const { data: pessoa } = usePerfil();
   const { data: pessoas = [] } = usePessoas();
   const { data: nomesSugeridos = [] } = useNomesSugeridos();
   const { showToast } = useToast();
-  const r = useReuniao(data);
+  const r = useReuniao(data, !verAnterior);
   const { query } = r;
 
   const [ataAberta, setAtaAberta] = useState(false);
@@ -409,6 +413,21 @@ export function ReuniaoScreen({
                   : 'Ata em construção'}
             </div>
           </div>
+          <button
+            type="button"
+            className={styles.trocarReuniao}
+            onClick={() => {
+              setVerAnterior(!verAnterior);
+              setAtaAberta(false);
+              setObraSel(null);
+              setPasso(0);
+              window.scrollTo({ top: 0 });
+            }}
+          >
+            {verAnterior
+              ? `Próxima · ${formatarDataCurta(queVem)}`
+              : `Anterior · ${formatarDataCurta(reuniaoAnterior(queVem))}`}
+          </button>
         </div>
         {obras.length > 0 ? (
           <div className={styles.obras} role="tablist" aria-label="Obras da reunião">
@@ -488,7 +507,11 @@ export function ReuniaoScreen({
             )}
           </div>
         ) : !o || !reuniao ? (
-          <p className={styles.vazio}>Nenhuma obra em andamento para a pauta.</p>
+          <p className={styles.vazio}>
+            {verAnterior && !reuniao
+              ? `Não houve reunião em ${dataFmt}.`
+              : 'Nenhuma obra em andamento para a pauta.'}
+          </p>
         ) : (
           <>
             {cont && cont.total > 0 ? (
