@@ -1,0 +1,35 @@
+/* Aviso provisório de versão nova (fica acima da barra de baixo). */
+.aviso {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0));
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 14px;
+  border-radius: 14px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  box-shadow: 0 6px 18px rgb(24 24 24 / 25%);
+}
+.texto {
+  flex: 1;
+  font-weight: 800;
+  font-size: 14px;
+}
+.botao {
+  min-height: var(--contro-touch);
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.botao:disabled {
+  opacity: 0.6;
+}

@@ -7,6 +7,7 @@ import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
+import { NovaVersao } from './features/offline/NovaVersao';
 import { ReuniaoScreen } from './features/reuniao/ReuniaoScreen';
 import { ConfigBoletimScreen } from './features/boletim-auto/ConfigBoletimScreen';
 import { ConfigAvisosScreen } from './features/avisos/ConfigAvisosScreen';
@@ -123,6 +124,7 @@ export function App() {
         )}
       </PullToRefresh>
       <SyncIndicator />
+      <NovaVersao />
     </div>
   );
 }

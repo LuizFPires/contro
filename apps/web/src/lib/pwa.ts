@@ -33,6 +33,43 @@ export function iniciarPwa(): void {
   });
 }
 
+// ---------- Botão provisório "Atualizar" (pedido do usuário, 31/10/2026) ----------
+// Alguns celulares ficavam presos numa versão antiga. O app compara a própria
+// versão com /version.json (fora do cache do service worker) e, se mudou,
+// mostra "Nova versão · Atualizar"; o menu do perfil também tem "Atualizar o app".
+
+export const VERSAO_APP = __VERSAO__;
+
+/** Versão publicada no servidor (null se offline ou sem o arquivo, ex.: no dev). */
+export async function versaoNoServidor(): Promise<string | null> {
+  try {
+    const r = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const j = (await r.json()) as { versao?: string };
+    return j.versao ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Força a versão nova: tira o service worker e o cache dos arquivos do app e
+ * recarrega. Não mexe na fila offline nem nas fotos guardadas (ficam no
+ * IndexedDB), nem no login.
+ */
+export async function forcarAtualizacao(): Promise<void> {
+  try {
+    const regs = (await navigator.serviceWorker?.getRegistrations()) ?? [];
+    await Promise.all(regs.map((r) => r.unregister()));
+    if ('caches' in window) {
+      const nomes = await caches.keys();
+      await Promise.all(nomes.map((n) => caches.delete(n)));
+    }
+  } finally {
+    window.location.reload();
+  }
+}
+
 /**
  * Procura uma versão nova no servidor agora. Retorna `true` quando há uma
  * atualização a caminho — nesse caso o service worker novo assume e a página

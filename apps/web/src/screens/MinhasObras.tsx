@@ -16,6 +16,7 @@ import { AvisosCelularSheet } from '../features/avisos/AvisosCelularSheet';
 import { useConfigAvisos } from '../features/avisos/useConfigAvisos';
 import { hojeISO } from '../features/obras/api';
 import { formatarDataCurta } from '../lib/datas';
+import { VERSAO_APP, forcarAtualizacao } from '../lib/pwa';
 import styles from './MinhasObras.module.css';
 
 export type DestinoInicio =
@@ -289,6 +290,11 @@ export function MinhasObras({
               setPerfilAberto(false);
               setTrocarSenha(true);
             }}
+          />
+          <ItemMenu
+            icon="sync"
+            rotulo={`Atualizar o app · versão ${VERSAO_APP}`}
+            onClick={() => void forcarAtualizacao()}
           />
           <ItemMenu icon="sair" rotulo="Sair" separado onClick={onSair} semSeta />
         </div>
