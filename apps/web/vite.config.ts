@@ -2,9 +2,29 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Versão do build (commit na Vercel; data/hora no build local). Vai no app
+// (__VERSAO__) e em /version.json, que o app consulta para saber se há versão
+// nova (botão provisório "Atualizar", pedido do usuário em 31/10/2026).
+const VERSAO =
+  process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ??
+  new Date().toISOString().slice(0, 16).replace('T', ' ');
+
 export default defineConfig({
+  define: {
+    __VERSAO__: JSON.stringify(VERSAO),
+  },
   plugins: [
     react(),
+    {
+      name: 'contro-versao',
+      generateBundle() {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'version.json',
+          source: JSON.stringify({ versao: VERSAO }),
+        });
+      },
+    },
     VitePWA({
       registerType: 'autoUpdate',
       // O registro é assumido manualmente em src/lib/pwa.ts (para somar a

@@ -10,3 +10,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** Versão do build (commit curto na Vercel). */
+declare const __VERSAO__: string;

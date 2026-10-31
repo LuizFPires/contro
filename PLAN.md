@@ -308,6 +308,8 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-10-31 · **Botão provisório de atualizar o PWA.** Alguns celulares ficavam presos numa versão antiga. O build gera `/version.json` (commit da Vercel), fora do cache do service worker; o app compara com a própria versão ao abrir, ao voltar e a cada 10 min e mostra "Nova versão do CONTRO · Atualizar". O menu do perfil tem "Atualizar o app · versão X" (sempre). Atualizar = tirar o service worker e o cache dos arquivos e recarregar; a fila offline, as fotos guardadas e o login ficam. Provisório: sai quando a atualização automática estiver confiável. · pedido do usuário · usuário
+
 - 2026-10-30 · **Preparar a reunião (pauta antecipada em PDF).** Botão de prévia no rodapé da pauta da próxima reunião (prévia · Voltar · Continuar, pedido do usuário); sempre todas as obras (sem "só o meu", decisão do usuário); 1, 2 ou 3 formatos num PDF só — tabela em paisagem, folha e por pessoa em retrato (`@page` nomeado). Regras e textos em `core/preparo.ts`; dados da mesma pauta (`ataDados.montarPreparo`). Sai pela impressão do aparelho ("Salvar como PDF"), como a ata sem pdf-service; template no pdf-service fica para quando o serviço for publicado. Push na véspera fica para depois. · pedido do usuário · usuário
 
 - 2026-10-30 · **Card da reunião mostra a próxima.** Antes mostrava a reunião da semana corrente (na quarta, a segunda que já passou). Agora `reuniaoQueVem` (core): a de hoje até o fim do dia; depois, a da semana seguinte. A pauta da próxima já abre para preparar; a ata anterior fica em "Anterior · data" na tela da reunião. · pedido do usuário · usuário
