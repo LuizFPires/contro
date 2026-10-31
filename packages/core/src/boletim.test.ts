@@ -9,33 +9,38 @@ const base: BoletimDados = {
   ritmoTexto: 'Atrasada · 3 dias',
   ritmoAtrasado: true,
   atrasos: ['Contrapiso'],
-  concluir: [{ dataFmt: 'qua 28/10', nome: 'Pintura' }],
-  comecar: [{ dataFmt: 'ter 27/10', nome: 'Forro', motivo: 'aguarda predecessoras' }],
+  concluir: [{ dataFmt: 'qua 28/10', nome: 'Pintura', data: '2026-10-28' }],
+  comecar: [
+    { dataFmt: 'ter 27/10', nome: 'Forro', motivo: 'aguarda predecessoras', data: '2026-10-27' },
+  ],
   quemFazOQue: [
-    { pessoa: 'Rafael', itens: [{ dataFmt: 'qua 28/10', texto: 'Garantir conclusão: Pintura' }] },
+    {
+      pessoa: 'Rafael',
+      itens: [{ dataFmt: 'qua 28/10', texto: 'Garantir conclusão: Pintura', data: '2026-10-28' }],
+    },
   ],
 };
 
 describe('textoBoletimWhatsapp (SPEC §8.1)', () => {
   it('monta o texto com todas as seções', () => {
-    const t = textoBoletimWhatsapp(base);
-    expect(t).toContain('*CONTRO · Boletim da semana*');
-    expect(t).toContain('*CDC Eldorado* · seg 26/10 a sex 30/10');
-    expect(t).toContain('Avanço real 47% · previsto até sexta 63% · Atrasada · 3 dias');
-    expect(t).toContain('*ATENÇÃO · 1 em atraso*');
-    expect(t).toContain('• Contrapiso');
-    expect(t).toContain('*Concluir nesta semana*');
-    expect(t).toContain('• qua 28/10 · Pintura');
-    expect(t).toContain('• ter 27/10 · Forro (aguarda predecessoras)');
-    expect(t).toContain('*Quem faz o quê*');
-    expect(t).toContain('_Rafael_');
-    expect(t).toContain('PDF completo com fotos e cronograma no app CONTRO.');
-    expect(/\p{Emoji_Presentation}/u.test(t)).toBe(false);
+    const t = textoBoletimWhatsapp(base, '2026-10-26');
+    expect(t).toContain('*CONTRO · Boletim da semana*\n_seg 26/10 a sex 30/10_');
+    expect(t).toContain(
+      '*🏗 CDC ELDORADO*\n_real 47% · previsto até sexta 63% · Atrasada · 3 dias_',
+    );
+    expect(t).toContain('*🚨 Atenção · 1 em atraso*\n- 🔴 Contrapiso');
+    expect(t).toContain('*🏁 Concluir nesta semana*\n- 🟡 Pintura · qua 28/10');
+    expect(t).toContain(
+      '*▶️ Começar nesta semana*\n- 🟡 Forro · ter 27/10 (aguarda predecessoras)',
+    );
+    expect(t).toContain('*👥 Quem faz o quê*');
+    expect(t).toContain('*Rafael*\n- 🟡 qua 28/10 · Garantir conclusão: Pintura');
+    expect(t).toContain('_PDF completo com fotos e cronograma no app CONTRO._');
   });
 
   it('omite Atenção quando não há atraso', () => {
     const t = textoBoletimWhatsapp({ ...base, atrasos: [] });
-    expect(t).not.toContain('ATENÇÃO');
+    expect(t).not.toContain('Atenção');
   });
 
   it('trunca Quem faz o quê acima de ~4000 chars', () => {
@@ -47,6 +52,6 @@ describe('textoBoletimWhatsapp (SPEC §8.1)', () => {
     expect(t.length).toBeLessThanOrEqual(4000);
     expect(t).toContain('e o restante no PDF completo');
     // as seções curtas continuam
-    expect(t).toContain('*Concluir nesta semana*');
+    expect(t).toContain('*🏁 Concluir nesta semana*');
   });
 });

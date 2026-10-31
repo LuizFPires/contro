@@ -69,13 +69,17 @@ describe('preparar a reunião', () => {
   });
 
   it('WhatsApp', () => {
-    const t = textoPreparoWhatsapp('seg 02/11', '16h', [ressaca, jf]);
-    expect(t).toContain('*CONTRO · Pauta da reunião de seg 02/11 · 16h*');
-    expect(t).toContain('4 ações a cobrar (1 atrasada) · 1 providência');
-    expect(t).toContain('Cobrança: Comprar tubos — Marcos (até ter 03/11);');
-    expect(t).toContain('Previsto até a reunião: Terminar Hidráulica (fim qui 29/10)');
-    expect(t).toContain('Semana que vem: Começar Emassamento (início qua 04/11)');
-    expect(t).toContain('Providências: Contratar pintor (na obra qua 04/11)');
-    expect(/\p{Emoji_Presentation}/u.test(t)).toBe(false);
+    const t = textoPreparoWhatsapp('seg 02/11', '16h', [ressaca, jf], '2026-10-31');
+    expect(t).toContain('*CONTRO · Pauta da reunião*\n*seg 02/11 · 16h* · 2 obras');
+    expect(t).toContain('4 ações a cobrar · 1 atrasada · 1 providência');
+    expect(t).toContain('_🔴 atrasado · 🟡 vence em até 7 dias · 🔵 em dia_');
+    expect(t).toContain('*🏗 CDC RESSACA*\n_47% · atrasada · 3 dias_');
+    expect(t).toContain('*🔁 Cobrança*\n- 🔵 Comprar tubos · *Marcos* · até ter 03/11');
+    expect(t).toContain('- 🔴 Concluir contrapiso · 50% · *Marcos* · era 28/10');
+    expect(t).toContain('*📌 Previsto até a reunião*\n- 🔵 Terminar Hidráulica · fim qui 29/10');
+    expect(t).toContain('*📅 Semana que vem*\n- 🔵 Começar Emassamento · início qua 04/11');
+    expect(t).toContain('*🛒 Providências*\n- 🔵 Contratar pintor · na obra qua 04/11');
+    expect(t).toContain('━━━━━━━━━━━━━━\n\n*🏗 CDC JUIZ DE FORA*');
+    expect(t).not.toContain('; ');
   });
 });
