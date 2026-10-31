@@ -67,7 +67,7 @@ pnpm lint && pnpm typecheck
 - Tipografia Nunito Sans (títulos 700–800, corpo 400–600, números 800). Mínimo de 12 px.
 - Botão primário: fundo turquesa e **texto preto**. Secundário: preto com texto branco. Terciário: contorno.
 - Alvos de toque ≥ 44 px. Estados sempre com **texto e ícone**, nunca só cor. Contraste AA.
-- Ícones lineares arredondados com traço 1,8–2 px, inline SVG. Sem emoji na UI.
+- Ícones lineares arredondados com traço 1,8–2 px, inline SVG. Sem emoji na UI. **Exceção aprovada (31/10/2026):** os textos de WhatsApp (ata, pauta antecipada, boletim) usam as bolinhas de prazo 🔴 atrasado · 🟡 até 7 dias · 🔵 em dia · 🟢 feito · ⚪ sem resposta e ícones nas seções; o padrão está em `core/whatsapp.ts`. O app e os PDFs continuam sem emoji.
 - Marca **"CONTRO"** sempre em maiúsculas.
 - Decisões de layout já tomadas pelo usuário:
   - tela inicial sem card de XP e sem linha de contadores;

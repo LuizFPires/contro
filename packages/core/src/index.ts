@@ -46,3 +46,4 @@ export function podeEditarModelos(perfil: Perfil): boolean {
 }
 export * from './loteFotos';
 export * from './preparo';
+export * from './whatsapp';
