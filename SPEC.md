@@ -287,6 +287,9 @@ Dois perfis:
 ## 8. Boletim e ata
 
 ### 8.1 Texto do WhatsApp (gerado por `core/boletim.ts`)
+
+> **Atualizado em 31/10/2026 (opção A do protótipo "WhatsApp mais legível"):** todo texto de WhatsApp (boletim, ata, pauta antecipada) segue `core/whatsapp.ts`: obra em destaque (`*🏗 NOME*` + `_indicador_`), seções em negrito com ícone (ex.: 🚨 Atenção, 🏁 Concluir, ▶️ Começar, ✅ Aconteceu, ❌ Não aconteceu, 📅 Semana que vem, 🛒 Providências, 🔁 Cobrança, 👥 Quem faz o quê), **um item por linha** com `- ` e a **bolinha da temperatura** do prazo (`temperaturaPrazo`: 🔴 atrasado, 🟡 vence/começa em até 7 dias, 🔵 em dia, 🟢 feito, ⚪ sem resposta), separador `━━━━━━━━━━━━━━` entre obras. O modelo abaixo é o anterior, mantido para referência.
+
 ```
 *CONTRO · Boletim da semana*
 *{obra}* · {seg dd/mm} a {sex dd/mm}
