@@ -7,6 +7,7 @@ import { baixarPdf } from '../../lib/pdf';
 import { usePerfil } from '../perfil/usePerfil';
 import { montarAta } from './ataDados';
 import type { ReuniaoCompleta } from './reuniaoApi';
+import { hojeISO } from '../obras/api';
 import styles from './AtaView.module.css';
 
 type Formato = 'resumo' | 'lista';
@@ -38,7 +39,7 @@ export function AtaView({
   const ata = useMemo(() => montarAta(reuniao), [reuniao]);
   const totais = textosTotais(ata.totais);
   const wa = `https://wa.me/?text=${encodeURIComponent(
-    textoAtaWhatsapp(dataFmt, horaFmt, ata.obras, ata.pessoas),
+    textoAtaWhatsapp(dataFmt, horaFmt, ata.obras, ata.pessoas, hojeISO()),
   )}`;
 
   // Minhas ações abertas (em todas as obras da reunião).

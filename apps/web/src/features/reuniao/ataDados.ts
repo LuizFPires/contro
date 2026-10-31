@@ -54,6 +54,8 @@ export interface ItemSemanaPauta {
   sugestao: string;
   tipoProvidencia?: 'contratacao' | 'locacao' | 'compra';
   naObraEm: string | null;
+  /** Data do item (ISO): fim, início ou na obra. */
+  data: string | null;
 }
 
 export function itensPassada(o: ReuniaoObraDados): ItemPassadaPauta[] {
@@ -77,6 +79,7 @@ export function itensSemana(o: ReuniaoObraDados): ItemSemanaPauta[] {
         ? `Confirmar com ${a.prestador} a conclusão`
         : `Garantir conclusão: ${a.nome}`,
       naObraEm: null,
+      data: a.data,
     })),
     ...o.comecar.map((a) => ({
       id: a.atividadeId,
@@ -90,6 +93,7 @@ export function itensSemana(o: ReuniaoObraDados): ItemSemanaPauta[] {
         ? `Confirmar com ${a.prestador} o início`
         : `Mobilizar início: ${a.nome}`,
       naObraEm: null,
+      data: a.data,
     })),
     ...o.providenciasAtrasadas.map((p) => ({
       id: p.providenciaId,
@@ -102,6 +106,7 @@ export function itensSemana(o: ReuniaoObraDados): ItemSemanaPauta[] {
       sugestao: `${VERBO_PROV[p.tipo]} ${p.descricao}`,
       tipoProvidencia: p.tipo,
       naObraEm: p.naObraEm,
+      data: p.naObraEm,
     })),
     ...o.providenciar.map((p) => ({
       id: p.providenciaId,
@@ -116,6 +121,7 @@ export function itensSemana(o: ReuniaoObraDados): ItemSemanaPauta[] {
       sugestao: `${VERBO_PROV[p.tipo]} ${p.descricao}`,
       tipoProvidencia: p.tipo,
       naObraEm: p.naObraEm,
+      data: p.naObraEm,
     })),
   ];
 }
@@ -209,6 +215,7 @@ export function entradaObraAta(r: ReuniaoCompleta, o: ReuniaoObraDados): ObraAta
         avancoPct: it.avancoPct,
       }),
       avancoPct: it.avancoPct,
+      data: it.data,
     })),
     ...itensSemana(o).map((it) => ({
       id: it.id,
@@ -218,6 +225,7 @@ export function entradaObraAta(r: ReuniaoCompleta, o: ReuniaoObraDados): ObraAta
       prestador: it.prestador,
       tipoProvidencia: it.tipoProvidencia,
       naObraEmFmt: fmt(it.naObraEm),
+      data: it.data,
     })),
   ];
   return {
@@ -232,6 +240,7 @@ export function entradaObraAta(r: ReuniaoCompleta, o: ReuniaoObraDados): ObraAta
       texto: t.texto,
       pessoa: t.pessoa,
       prazoFmt: fmt(t.prazo),
+      prazo: t.prazo,
     })),
     cobranca: cobrancaDaObra(r, o.obraId).map((t) => ({
       texto: t.texto,
@@ -239,6 +248,7 @@ export function entradaObraAta(r: ReuniaoCompleta, o: ReuniaoObraDados): ObraAta
       feita: t.concluido,
       atrasada: t.atrasado,
       prazoFmt: fmt(t.prazo),
+      prazo: t.prazo,
       replanejamentos: t.replanejamentos,
       avancoPct: t.avancoPct,
     })),
@@ -279,6 +289,7 @@ export function montarAta(r: ReuniaoCompleta): AtaCompleta {
     itens: g.itens.map((it) => ({
       texto: `${it.prazo ? formatarDataCurta(it.prazo) : 'sem prazo'} · ${it.texto}`,
       atrasado: it.atrasado,
+      data: it.prazo,
     })),
   }));
   return { obras, totais: totaisAta(entradas, obras), pessoas };
@@ -302,6 +313,7 @@ export function montarPreparo(r: ReuniaoCompleta): ObraPreparo[] {
           ? `${t.atrasado ? 'era' : 'até'} ${formatarDataCurta(t.prazo)}`
           : 'sem prazo',
         atraso: t.atrasado,
+        data: t.prazo,
       }));
     const previstos = itensPassada(o)
       .filter((it) => !it.ok)
@@ -311,6 +323,7 @@ export function montarPreparo(r: ReuniaoCompleta): ObraPreparo[] {
           texto: `${terminar ? 'Terminar' : 'Começar'} ${it.nome}${it.avancoPct > 0 ? ` · ${it.avancoPct}%` : ''}`,
           prazo: `${terminar ? 'fim' : 'início'} ${formatarDataCurta(it.data)}`,
           atraso: it.data < hoje,
+          data: it.data,
         };
       });
     const semana = itensSemana(o);
@@ -320,6 +333,7 @@ export function montarPreparo(r: ReuniaoCompleta): ObraPreparo[] {
         texto: `${it.secao === 'semana_concluir' ? 'Terminar' : 'Começar'} ${it.nome}`,
         prazo: it.sub.replace(' previsto', ''),
         atraso: false,
+        data: it.data,
       }));
     const providencias = semana
       .filter((it) => it.secao === 'semana_providencia')
@@ -331,6 +345,7 @@ export function montarPreparo(r: ReuniaoCompleta): ObraPreparo[] {
             ? `na obra ${formatarDataCurta(it.naObraEm)}`
             : 'nesta semana',
         atraso: Boolean(it.atraso),
+        data: it.data,
       }));
     return {
       nome: o.nome,

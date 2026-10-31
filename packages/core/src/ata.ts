@@ -3,8 +3,9 @@
 // anterior, o que estava previsto na semana passada (TERMINAR ou COMEÇAR), o que
 // vem nesta semana (atividades e providências) e o fechamento. Cada resposta fica
 // gravada (reuniao_resposta) e decide em que bloco o item sai na ata. Datas
-// chegam já formatadas pela UI. Sem emoji; *negrito* do WhatsApp.
+// chegam já formatadas pela UI. O WhatsApp segue o padrão de whatsapp.ts.
 import type { DataISO } from './calendar';
+import { SEPARADOR, bolinha, cabecalhoObra, secao } from './whatsapp';
 
 /** Onde o item está na pauta (uma atividade pode estar em duas seções). */
 export type SecaoResposta =
@@ -132,6 +133,8 @@ export interface ItemPautaAta {
   prestador?: string | null;
   tipoProvidencia?: 'contratacao' | 'locacao' | 'compra';
   naObraEmFmt?: string | null;
+  /** Data do item (ISO: fim, início ou na obra), para a bolinha do WhatsApp. */
+  data?: DataISO | null;
 }
 
 /** Ação (tarefa) criada nesta reunião, ligada ou não a um item da pauta. */
@@ -142,6 +145,7 @@ export interface AcaoAtaEntrada {
   texto: string;
   pessoa: string;
   prazoFmt: string | null;
+  prazo?: DataISO | null;
 }
 
 /** Ação de reunião anterior, cobrada nesta. */
@@ -151,6 +155,7 @@ export interface CobrancaAtaEntrada {
   feita: boolean;
   atrasada: boolean;
   prazoFmt: string | null;
+  prazo?: DataISO | null;
   replanejamentos: number;
   avancoPct: number;
 }
@@ -179,6 +184,8 @@ export interface LinhaAta {
   /** ✓ (aconteceu, cumprida, segue o plano, já providenciado). */
   ok: boolean;
   semResposta: boolean;
+  /** Prazo que vale para a linha (o da ação, se houver; senão o do item). */
+  data?: DataISO | null;
 }
 
 export interface ObraAta {
@@ -206,15 +213,20 @@ const linha = (texto: string, p: Partial<LinhaAta> = {}): LinhaAta => ({
   nao: p.nao ?? false,
   ok: p.ok ?? false,
   semResposta: p.semResposta ?? false,
+  data: p.data ?? null,
 });
 
 /** Monta os blocos de uma obra na ata a partir das respostas da pauta. */
 export function montarObraAta(e: ObraAtaEntrada): ObraAta {
   const ids = new Set(e.itens.map((i) => i.id));
+  const acaoObj = (id: string, secao: SecaoResposta) =>
+    e.acoes.find((x) => x.vinculoId === id && (!x.secao || x.secao === secao)) ?? null;
   const acaoDe = (id: string, secao: SecaoResposta) => {
-    const a = e.acoes.find((x) => x.vinculoId === id && (!x.secao || x.secao === secao));
+    const a = acaoObj(id, secao);
     return a ? textoAcao(a) : null;
   };
+  // Prazo da linha: o da ação (quem cuida, até quando) ou, sem ação, o do item.
+  const dataDe = (it: ItemPautaAta) => acaoObj(it.id, it.secao)?.prazo ?? it.data ?? null;
   const aconteceu: LinhaAta[] = [];
   const naoAconteceu: LinhaAta[] = [];
   const proximaSemana: LinhaAta[] = [];
@@ -238,6 +250,7 @@ export function montarObraAta(e: ObraAtaEntrada): ObraAta {
             acao: acaoDe(it.id, it.secao),
             atraso: true,
             nao: true,
+            data: dataDe(it),
           }),
         );
       } else {
@@ -248,26 +261,35 @@ export function montarObraAta(e: ObraAtaEntrada): ObraAta {
     if (it.secao === 'semana_providencia') {
       const naObra = it.naObraEmFmt ? ` (na obra ${it.naObraEmFmt})` : '';
       const base = `${VERBO_PROVIDENCIA[it.tipoProvidencia ?? 'compra']} ${it.nome}${naObra}`;
-      if (!r) providencias.push(linha(`${base} · sem resposta`, { semResposta: true }));
+      if (!r)
+        providencias.push(
+          linha(`${base} · sem resposta`, { semResposta: true, data: it.data ?? null }),
+        );
       else if (r === 'ja_providenciado')
         providencias.push(linha(`${base} · já providenciado`, { ok: true }));
-      else providencias.push(linha(base, { acao: acaoDe(it.id, it.secao) }));
+      else providencias.push(linha(base, { acao: acaoDe(it.id, it.secao), data: dataDe(it) }));
       continue;
     }
     const verbo = it.secao === 'semana_concluir' ? 'Terminar' : 'Começar';
     const base = `${verbo} ${it.nome}`;
-    if (!r) proximaSemana.push(linha(`${base} · sem resposta`, { semResposta: true }));
+    if (!r)
+      proximaSemana.push(
+        linha(`${base} · sem resposta`, { semResposta: true, data: it.data ?? null }),
+      );
     else if (r === 'segue')
       proximaSemana.push(
-        linha(`${base} · segue o plano${it.prestador ? ` (${it.prestador})` : ''}`, { ok: true }),
+        linha(`${base} · segue o plano${it.prestador ? ` (${it.prestador})` : ''}`, {
+          ok: true,
+          data: it.data ?? null,
+        }),
       );
-    else proximaSemana.push(linha(base, { acao: acaoDe(it.id, it.secao) }));
+    else proximaSemana.push(linha(base, { acao: acaoDe(it.id, it.secao), data: dataDe(it) }));
   }
 
   // Ações avulsas (sem item da pauta): entram em Providências.
   for (const a of e.acoes) {
     if (a.vinculoId && ids.has(a.vinculoId)) continue;
-    providencias.push(linha(textoAcao(a)));
+    providencias.push(linha(textoAcao(a), { data: a.prazo ?? null }));
   }
 
   const cobranca = e.cobranca.map((c) => {
@@ -279,7 +301,7 @@ export function montarObraAta(e: ObraAtaEntrada): ObraAta {
         ? `remarcada (${c.replanejamentos}x), até ${c.prazoFmt ?? '—'}`
         : `até ${c.prazoFmt ?? '—'}`,
     );
-    return linha(partes.join(' · '), { atraso: c.atrasada });
+    return linha(partes.join(' · '), { atraso: c.atrasada, data: c.prazo ?? null });
   });
 
   return {
@@ -336,45 +358,55 @@ export function textosTotais(t: TotaisAta): string[] {
 /** "Quem faz o quê" já formatado: por pessoa, "qua 04/11 · Concluir contrapiso (CDC Ressaca)". */
 export interface PessoaAta {
   pessoa: string;
-  itens: { texto: string; atrasado: boolean }[];
+  itens: { texto: string; atrasado: boolean; data?: DataISO | null }[];
 }
 
-/** Monta o texto da ata (WhatsApp) a partir das obras já montadas. */
+/** Monta o texto da ata (WhatsApp) no padrão legível (whatsapp.ts). */
 export function textoAtaWhatsapp(
   dataFmt: string,
   horaFmt: string,
   obras: ObraAta[],
   pessoas: PessoaAta[] = [],
+  hoje: DataISO = '9999-12-31',
 ): string {
-  const L: string[] = [];
-  const itens = (ls: LinhaAta[]) =>
-    ls.map((l) => (l.acao ? `${l.texto} → ${l.acao}` : l.texto)).join('; ');
-  L.push('*CONTRO · Ata da semana*');
-  L.push(`${dataFmt} · ${horaFmt}`);
-  L.push(`${obras.length} ${obras.length === 1 ? 'obra' : 'obras'}`);
+  // "Segue o plano" é uma decisão, não algo feito: a bolinha vem do prazo.
+  const marca = (l: LinhaAta, feito: boolean) =>
+    bolinha(
+      { feito: feito && l.ok, atraso: l.atraso, data: l.data, semResposta: l.semResposta },
+      hoje,
+    );
+  const itens = (ls: LinhaAta[], feito = false) =>
+    ls.flatMap((l) => [`- ${marca(l, feito)} ${l.texto}`, ...(l.acao ? [`  → ${l.acao}`] : [])]);
 
-  for (const o of obras) {
+  const L: string[] = [
+    '*CONTRO · Ata da reunião*',
+    `*${dataFmt} · ${horaFmt}* · ${obras.length} ${obras.length === 1 ? 'obra' : 'obras'}`,
+    '_🟢 aconteceu · 🔴 não aconteceu ou atrasado · 🟡 até 7 dias · 🔵 em dia · ⚪ sem resposta_',
+  ];
+  obras.forEach((o, i) => {
     L.push('');
-    L.push(`*${o.nome}* — ${o.indicador}`);
-    if (o.aconteceu.length) L.push(`Aconteceu: ${itens(o.aconteceu)}`);
-    if (o.naoAconteceu.length) L.push(`Não aconteceu: ${itens(o.naoAconteceu)}`);
-    if (o.proximaSemana.length) L.push(`Próxima semana: ${itens(o.proximaSemana)}`);
-    if (o.providencias.length) L.push(`Providências: ${itens(o.providencias)}`);
-    if (o.cobranca.length)
-      L.push(
-        `Cobrança: ${o.cobranca.map((l) => (l.ok ? `${l.texto} (cumprida)` : l.texto)).join('; ')}`,
-      );
-    if (o.observacoes) L.push(`Obs: ${o.observacoes}`);
-  }
+    if (i > 0) L.push(SEPARADOR, '');
+    L.push(...cabecalhoObra(o.nome, o.indicador));
+    L.push(
+      ...secao('✅ Aconteceu', itens(o.aconteceu, true)),
+      ...secao('❌ Não aconteceu', itens(o.naoAconteceu)),
+      ...secao('📅 Próxima semana', itens(o.proximaSemana)),
+      ...secao('🛒 Providências', itens(o.providencias, true)),
+      ...secao('🔁 Cobrança', itens(o.cobranca, true)),
+      ...(o.observacoes ? ['', `*📝 Observações*`, o.observacoes] : []),
+    );
+  });
 
   if (pessoas.length) {
-    L.push('');
-    L.push('*Quem faz o quê*');
-    for (const p of pessoas) L.push(`${p.pessoa}: ${p.itens.map((i) => i.texto).join('; ')}`);
+    L.push('', SEPARADOR, '*👥 Quem faz o quê*');
+    for (const p of pessoas) {
+      L.push('', `*${p.pessoa}*`);
+      for (const it of p.itens)
+        L.push(`- ${bolinha({ atraso: it.atrasado, data: it.data }, hoje)} ${it.texto}`);
+    }
   }
 
-  L.push('');
-  L.push('Ata completa (PDF) no app CONTRO.');
+  L.push('', '_Ata completa (PDF) no app CONTRO._');
   return L.join('\n');
 }
 

@@ -61,15 +61,14 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
     }));
     const sem = classificarSemana(semEntrada, dec);
 
-    const concluir = sem.concluir.map((a) => ({
-      dataFmt: formatarDataCurta(cronOf(a.id)?.fim_previsto ?? obra.inicio),
-      nome: a.nome,
-    }));
-    const comecar = sem.comecar.map((a) => ({
-      dataFmt: formatarDataCurta(cronOf(a.id)?.inicio_previsto ?? obra.inicio),
-      nome: a.nome,
-      motivo: motivo(a.id),
-    }));
+    const concluir = sem.concluir.map((a) => {
+      const data = cronOf(a.id)?.fim_previsto ?? obra.inicio;
+      return { dataFmt: formatarDataCurta(data), nome: a.nome, data };
+    });
+    const comecar = sem.comecar.map((a) => {
+      const data = cronOf(a.id)?.inicio_previsto ?? obra.inicio;
+      return { dataFmt: formatarDataCurta(data), nome: a.nome, motivo: motivo(a.id), data };
+    });
 
     const atrasos: string[] = [];
     for (const a of topo) if (obra.estados[a.id]?.atrasada) atrasos.push(a.nome);
@@ -118,6 +117,8 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
       itens: g.itens.map((it) => ({
         dataFmt: it.prazo ? formatarDataCurta(it.prazo) : null,
         texto: it.texto,
+        data: it.prazo,
+        atrasado: it.atrasado,
       })),
     }));
 
@@ -136,7 +137,7 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
     };
   }, [obra, tarefas.query.data]);
 
-  const texto = textoBoletimWhatsapp(dados);
+  const texto = textoBoletimWhatsapp(dados, hojeISO());
   const wa = `https://wa.me/?text=${encodeURIComponent(texto)}`;
   const { showToast } = useToast();
   const [baixando, setBaixando] = useState(false);

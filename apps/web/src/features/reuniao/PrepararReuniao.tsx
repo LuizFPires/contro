@@ -16,6 +16,7 @@ import { BottomSheet, Icon } from '@contro/ui';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import { montarPreparo } from './ataDados';
 import { useReuniao } from './useReuniao';
+import { hojeISO } from '../obras/api';
 import styles from './PrepararReuniao.module.css';
 
 /**
@@ -38,7 +39,7 @@ export function PrepararSheet({
   const [imprimindo, setImprimindo] = useState<FormatoPreparo[] | null>(null);
   const obras = useMemo(() => (query.data ? montarPreparo(query.data) : []), [query.data]);
   const dataFmt = formatarDataCurta(data);
-  const wa = `https://wa.me/?text=${encodeURIComponent(textoPreparoWhatsapp(dataFmt, horaFmt, obras))}`;
+  const wa = `https://wa.me/?text=${encodeURIComponent(textoPreparoWhatsapp(dataFmt, horaFmt, obras, hojeISO()))}`;
 
   // Imprime só a pauta (o app some na impressão) e volta ao normal depois.
   useEffect(() => {

@@ -3,7 +3,9 @@
 // agir antes. São os mesmos quatro blocos da pauta (cobrança, previsto para a
 // semana que termina, semana que vem, providências). Em PDF, em até três
 // formatos num arquivo só: tabela (paisagem), folha para preencher e por pessoa.
-// Datas chegam já formatadas pela UI. Sem emoji.
+// Datas chegam já formatadas pela UI. O WhatsApp usa o padrão de whatsapp.ts.
+import type { DataISO } from './calendar';
+import { LEGENDA_PRAZOS, SEPARADOR, bolinha, cabecalhoObra, secao } from './whatsapp';
 
 export type FormatoPreparo = 'tabela' | 'folha' | 'pessoa';
 
@@ -27,6 +29,8 @@ export interface ItemPreparo {
   prazo: string;
   /** Vermelho: já venceu. */
   atraso: boolean;
+  /** Data do prazo (ISO), para a bolinha amarela/azul no WhatsApp. */
+  data?: DataISO | null;
 }
 
 /** Ação a cobrar: tem dono (ou "Sem responsável"). */
@@ -151,28 +155,32 @@ export function textoPreparoWhatsapp(
   dataFmt: string,
   horaFmt: string,
   obras: ObraPreparo[],
+  hoje: DataISO,
 ): string {
   const t = totaisPreparo(obras);
-  const L: string[] = [];
-  const item = (i: ItemPreparo) => `${i.texto} (${i.prazo})`;
-  L.push(`*CONTRO · Pauta da reunião de ${dataFmt} · ${horaFmt}*`);
-  L.push(
+  const item = (i: ItemPreparo) => `- ${bolinha(i, hoje)} ${i.texto} · ${i.prazo}`;
+  const L: string[] = [
+    '*CONTRO · Pauta da reunião*',
+    `*${dataFmt} · ${horaFmt}* · ${obras.length} ${obras.length === 1 ? 'obra' : 'obras'}`,
     `${t.cobrar} ${t.cobrar === 1 ? 'ação' : 'ações'} a cobrar` +
-      (t.atrasadas ? ` (${t.atrasadas} ${t.atrasadas === 1 ? 'atrasada' : 'atrasadas'})` : '') +
+      (t.atrasadas ? ` · ${t.atrasadas} ${t.atrasadas === 1 ? 'atrasada' : 'atrasadas'}` : '') +
       ` · ${t.providencias} ${t.providencias === 1 ? 'providência' : 'providências'}`,
-  );
-  for (const o of obras) {
+    LEGENDA_PRAZOS,
+  ];
+  obras.forEach((o, i) => {
     L.push('');
-    L.push(`*${o.nome}* — ${o.indicador}`);
-    if (o.cobranca.length)
-      L.push(
-        `Cobrança: ${o.cobranca.map((c) => `${c.texto} — ${c.pessoa} (${c.prazo})`).join('; ')}`,
-      );
-    if (o.previstos.length) L.push(`Previsto até a reunião: ${o.previstos.map(item).join('; ')}`);
-    if (o.semanaQueVem.length) L.push(`Semana que vem: ${o.semanaQueVem.map(item).join('; ')}`);
-    if (o.providencias.length) L.push(`Providências: ${o.providencias.map(item).join('; ')}`);
-  }
-  L.push('');
-  L.push('Prepare as respostas. PDF completo no app CONTRO.');
+    if (i > 0) L.push(SEPARADOR, '');
+    L.push(...cabecalhoObra(o.nome, o.indicador));
+    L.push(
+      ...secao(
+        '🔁 Cobrança',
+        o.cobranca.map((c) => `- ${bolinha(c, hoje)} ${c.texto} · *${c.pessoa}* · ${c.prazo}`),
+      ),
+      ...secao('📌 Previsto até a reunião', o.previstos.map(item)),
+      ...secao('📅 Semana que vem', o.semanaQueVem.map(item)),
+      ...secao('🛒 Providências', o.providencias.map(item)),
+    );
+  });
+  L.push('', '_Prepare as respostas. PDF completo no app CONTRO._');
   return L.join('\n');
 }

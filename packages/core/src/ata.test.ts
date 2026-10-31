@@ -140,6 +140,7 @@ describe('montarObraAta', () => {
         nao: false,
         ok: true,
         semResposta: false,
+        data: null,
       },
     ]);
     expect(o.naoAconteceu[0]).toEqual({
@@ -149,6 +150,7 @@ describe('montarObraAta', () => {
       nao: true,
       ok: false,
       semResposta: false,
+      data: null,
     });
   });
 
@@ -231,7 +233,7 @@ describe('montarObraAta', () => {
     ]);
   });
 
-  it('WhatsApp: blocos por obra, quem faz o quê e sem emoji', () => {
+  it('WhatsApp: obra em destaque, seções com ícone, um item por linha e bolinhas', () => {
     const t = textoAtaWhatsapp(
       'segunda, 02/11/2026',
       '16h',
@@ -239,23 +241,36 @@ describe('montarObraAta', () => {
       [
         {
           pessoa: 'Marcos',
-          itens: [{ texto: 'qua 04/11 · Concluir contrapiso (CDC Ressaca)', atrasado: false }],
+          itens: [
+            {
+              texto: 'qua 04/11 · Concluir contrapiso (CDC Ressaca)',
+              atrasado: false,
+              data: '2026-11-04',
+            },
+          ],
         },
       ],
+      '2026-11-02',
     );
-    expect(t).toContain('*CONTRO · Ata da semana*');
-    expect(t).toContain('segunda, 02/11/2026 · 16h');
-    expect(t).toContain('1 obra');
-    expect(t).toContain('*CDC Ressaca* — 47% · atrasada 3 dias');
-    expect(t).toContain('Aconteceu: Piso vinílico · começou');
+    const linhas = t.split('\n');
+    expect(linhas[0]).toBe('*CONTRO · Ata da reunião*');
+    expect(linhas[1]).toBe('*segunda, 02/11/2026 · 16h* · 1 obra');
+    expect(t).toContain('*🏗 CDC RESSACA*\n_47% · atrasada 3 dias_');
+    expect(t).toContain('*✅ Aconteceu*\n- 🟢 Piso vinílico · começou');
     expect(t).toContain(
-      'Não aconteceu: Contrapiso · está em 50% → Concluir contrapiso — Marcos, até qua 04/11',
+      '*❌ Não aconteceu*\n- 🔴 Contrapiso · está em 50%\n  → Concluir contrapiso — Marcos, até qua 04/11',
     );
-    expect(t).toContain('Cobrança: Caçamba — Marcos (cumprida);');
-    expect(t).toContain('Obs: Tapume entregue.');
-    expect(t).toContain('*Quem faz o quê*');
-    expect(t).toContain('Marcos: qua 04/11 · Concluir contrapiso (CDC Ressaca)');
-    expect(/\p{Emoji_Presentation}/u.test(t)).toBe(false);
+    // Segue o plano: a bolinha vem do prazo (sem data, em dia).
+    expect(t).toContain('- 🔵 Terminar Hidráulica · segue o plano (Hidro Silva)');
+    expect(t).toContain('- ⚪ Comprar Tubos e conexões (na obra qua 04/11) · sem resposta');
+    expect(t).toContain('- 🟢 Alugar Caçamba · já providenciado');
+    expect(t).toContain('*🔁 Cobrança*\n- 🟢 Caçamba — Marcos');
+    expect(t).toContain('- 🔴 Vidraceiro — Ana');
+    expect(t).toContain('*📝 Observações*\nTapume entregue.');
+    expect(t).toContain('*👥 Quem faz o quê*');
+    expect(t).toContain('*Marcos*\n- 🟡 qua 04/11 · Concluir contrapiso (CDC Ressaca)');
+    // Nada encadeado com ";" como antes.
+    expect(t).not.toContain('; ');
   });
 });
 
