@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Icon } from '@contro/ui';
+import { Icon, useToast } from '@contro/ui';
 import { VERSAO_APP, forcarAtualizacao, versaoNoServidor } from '../../lib/pwa';
 import styles from './NovaVersao.module.css';
 
-const INTERVALO = 10 * 60 * 1000; // 10 min
+const INTERVALO = 60 * 1000; // 1 min
 
 /**
  * Aviso provisório de versão nova (pedido do usuário, 31/10/2026): compara a
  * versão do app com a publicada e oferece "Atualizar". Checa ao abrir, ao voltar
- * para o app e a cada 10 min.
+ * para o app e a cada minuto.
  */
 export function NovaVersao() {
+  const { showToast } = useToast();
   const [nova, setNova] = useState(false);
   const [atualizando, setAtualizando] = useState(false);
 
@@ -18,7 +19,7 @@ export function NovaVersao() {
     let vivo = true;
     const checar = async () => {
       const v = await versaoNoServidor();
-      if (vivo && v && v !== VERSAO_APP) setNova(true);
+      if (vivo && v) setNova(v !== VERSAO_APP);
     };
     void checar();
     const t = window.setInterval(() => void checar(), INTERVALO);
@@ -34,20 +35,34 @@ export function NovaVersao() {
   }, []);
 
   if (!nova) return null;
+
   return (
     <div className={styles.aviso} role="status">
       <Icon name="sync" size={18} />
-      <span className={styles.texto}>Nova versão do CONTRO</span>
+      <span className={styles.texto}>Nova versão disponível</span>
       <button
         type="button"
         className={styles.botao}
         disabled={atualizando}
-        onClick={() => {
+        onClick={async () => {
           setAtualizando(true);
-          void forcarAtualizacao();
+          const versao = await versaoNoServidor();
+          if (!versao) {
+            setAtualizando(false);
+            showToast({
+              message: 'Não foi possível conectar. Tente atualizar quando estiver online.',
+            });
+            return;
+          }
+          try {
+            await forcarAtualizacao();
+          } catch {
+            setAtualizando(false);
+            showToast({ message: 'Não foi possível atualizar agora. Tente novamente.' });
+          }
         }}
       >
-        {atualizando ? 'Atualizando…' : 'Atualizar'}
+        {atualizando ? 'Atualizando…' : 'Atualizar versão'}
       </button>
     </div>
   );

@@ -172,7 +172,16 @@ export function useObraPendencias(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
 
+  const atribuir = useMutation({
+    networkMode: 'always',
+    mutationFn: (v: { id: string; responsavelId: string | null; nome: string | null }) =>
+      enfileirar('atribuir_pendencia', { obraId, ...v }),
+    onMutate: (v: { id: string; responsavelId: string | null; nome: string | null }) =>
+      patch(v.id, (p) => ({ ...p, responsavel_id: v.responsavelId, responsavelNome: v.nome })),
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
   return {
+    atribuir,
     query,
     apontar,
     resolver,

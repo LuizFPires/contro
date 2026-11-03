@@ -46,6 +46,11 @@ export function useObraCampo(obraId: string) {
   });
   // Prestador: otimista e offline (fila), para não perder o que foi digitado.
   const prestador = useMutation({
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['propostas-mapa', obraId] });
+      void qc.invalidateQueries({ queryKey: ['reuniao'] });
+      void qc.invalidateQueries({ queryKey: ['sugestao', 'prestador'] });
+    },
     networkMode: 'always',
     mutationFn: ({ id, prestador }: { id: string; prestador: string | null }) =>
       enfileirar('editar_prestador', { obraId, id, prestador }),
@@ -106,6 +111,10 @@ export function useObraCampo(obraId: string) {
       tipo: 'contratacao' | 'locacao' | 'compra';
       descricao: string;
     }) => adicionarProvidencia(obraId, p.atividadeId, p.tipo, p.descricao),
+    onSuccess: inval,
+  });
+  const restaurarProv = useMutation({
+    mutationFn: (id: string) => removerProvidencia(id, true),
     onSuccess: inval,
   });
   const removerProv = useMutation({
@@ -292,6 +301,7 @@ export function useObraCampo(obraId: string) {
     providencia,
     addProvidencia,
     removerProv,
+    restaurarProv,
     inicio,
     duracao,
     addPred,

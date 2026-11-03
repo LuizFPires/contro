@@ -529,3 +529,33 @@
 .passoFoto:disabled {
   opacity: 0.6;
 }
+
+.sugestaoLinha {
+  display: flex;
+  align-items: stretch;
+}
+.sugestaoLinha .sugestao {
+  flex: 1;
+  min-width: 0;
+}
+.excluirSugestao {
+  flex-shrink: 0;
+  min-width: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  cursor: pointer;
+}
+.confirmarSugestao {
+  padding: 12px;
+  font-size: 13px;
+}
+.confirmarSugestao button {
+  padding: 10px 12px;
+  margin-right: 8px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  cursor: pointer;
+}

@@ -52,22 +52,31 @@ export async function versaoNoServidor(): Promise<string | null> {
   }
 }
 
-/**
- * Força a versão nova: tira o service worker e o cache dos arquivos do app e
- * recarrega. Não mexe na fila offline nem nas fotos guardadas (ficam no
- * IndexedDB), nem no login.
- */
+/** Atualiza o worker sem removê-lo: a assinatura push pertence ao registro. */
 export async function forcarAtualizacao(): Promise<void> {
-  try {
-    const regs = (await navigator.serviceWorker?.getRegistrations()) ?? [];
-    await Promise.all(regs.map((r) => r.unregister()));
-    if ('caches' in window) {
-      const nomes = await caches.keys();
-      await Promise.all(nomes.map((n) => caches.delete(n)));
+  const reg = await navigator.serviceWorker?.getRegistration();
+  if (reg) {
+    await reg.update();
+    const worker = reg.installing ?? reg.waiting;
+    if (worker && worker.state !== 'activated' && worker.state !== 'redundant') {
+      await new Promise<void>((resolve) => {
+        const terminar = () => {
+          clearTimeout(timer);
+          worker.removeEventListener('statechange', mudou);
+          resolve();
+        };
+        const mudou = () => {
+          if (worker.state === 'installed') worker.postMessage({ type: 'SKIP_WAITING' });
+          if (worker.state === 'activated' || worker.state === 'redundant') terminar();
+        };
+        const timer = setTimeout(terminar, 15000);
+        worker.addEventListener('statechange', mudou);
+        worker.postMessage({ type: 'SKIP_WAITING' });
+        mudou();
+      });
     }
-  } finally {
-    window.location.reload();
   }
+  window.location.reload();
 }
 
 /**

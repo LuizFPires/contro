@@ -22,7 +22,9 @@ export function AtaView({
   reuniao,
   onVoltar,
   onMinhas,
+  baixarAoAbrir = false,
 }: {
+  baixarAoAbrir?: boolean;
   reuniao: ReuniaoCompleta;
   onVoltar: () => void;
   onMinhas: () => void;
@@ -30,7 +32,7 @@ export function AtaView({
   const { data: pessoa } = usePerfil();
   const { showToast } = useToast();
   const [baixando, setBaixando] = useState(false);
-  const [formatoAberto, setFormatoAberto] = useState(false);
+  const [formatoAberto, setFormatoAberto] = useState(baixarAoAbrir);
   const [formato, setFormato] = useState<Formato>('resumo');
   const [imprimindo, setImprimindo] = useState<Formato | null>(null);
 
@@ -111,6 +113,15 @@ export function AtaView({
             {dataFmt} · {horaFmt}
           </div>
         </div>
+        <button
+          type="button"
+          className={styles.baixarTopo}
+          onClick={() => setFormatoAberto(true)}
+          disabled={baixando}
+        >
+          <Icon name="baixar" size={18} />
+          {baixando ? 'Gerando…' : 'Baixar ata'}
+        </button>
       </header>
 
       {imprimindo === 'resumo' ? (

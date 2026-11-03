@@ -96,7 +96,8 @@ export async function listarObras(): Promise<ObraResumo[]> {
       supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id,defasagem_du'),
       supabase
         .from('obra_providencia')
-        .select('id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du'),
+        .select('id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du')
+        .is('deleted_at', null),
       supabase
         .from('tarefa')
         .select(

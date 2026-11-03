@@ -89,3 +89,15 @@
   background: var(--contro-turquoise);
   color: var(--contro-black);
 }
+
+.acoes {
+  flex-wrap: wrap;
+}
+.item {
+  flex-wrap: wrap;
+}
+.recusar:disabled,
+.aprovar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

@@ -101,6 +101,13 @@
   size: A4;
   margin: 12mm;
 }
+@page retrato {
+  size: A4 portrait;
+  margin: 12mm;
+}
+.retrato {
+  page: retrato;
+}
 @page paisagem {
   size: A4 landscape;
   margin: 10mm;
@@ -284,4 +291,13 @@
   font-weight: 800;
   font-size: 12.5px;
   margin-bottom: 4px;
+}
+
+.pessoaNome {
+  background: #e6e6e6;
+  color: #181818;
+  border-bottom: 2px solid #181818;
+  padding: 8px;
+  margin: 0 0 8px;
+  break-after: avoid;
 }

@@ -14,6 +14,7 @@ import {
 } from '@contro/core';
 import { BottomSheet, Icon } from '@contro/ui';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
+import { resumoTodosContratados } from './ataContratado';
 import { montarPreparo } from './ataDados';
 import { useReuniao } from './useReuniao';
 import { hojeISO } from '../obras/api';
@@ -38,6 +39,10 @@ export function PrepararSheet({
   const [marcados, setMarcados] = useState<FormatoPreparo[]>(['tabela']);
   const [imprimindo, setImprimindo] = useState<FormatoPreparo[] | null>(null);
   const obras = useMemo(() => (query.data ? montarPreparo(query.data) : []), [query.data]);
+  const obrasPorPessoa = useMemo(
+    () => (query.data ? montarPreparo(query.data, true) : []),
+    [query.data],
+  );
   const dataFmt = formatarDataCurta(data);
   const wa = `https://wa.me/?text=${encodeURIComponent(textoPreparoWhatsapp(dataFmt, horaFmt, obras, hojeISO()))}`;
 
@@ -62,7 +67,8 @@ export function PrepararSheet({
     <>
       <BottomSheet open title={`Preparar a reunião de ${dataFmt}`} onClose={onFechar}>
         <p className={styles.dica}>
-          Todas as obras · o que vai ser cobrado e perguntado. Marque um, dois ou os três formatos.
+          Todas as obras · o que vai ser cobrado e perguntado. Marque os formatos que deseja incluir
+          no PDF.
         </p>
         <div className={styles.formatos} role="group" aria-label="Formatos do PDF">
           {FORMATOS_PREPARO.map((f) => {
@@ -132,9 +138,16 @@ export function PrepararSheet({
                   <Tabela key={f} obras={obras} data={data} horaFmt={horaFmt} />
                 ) : f === 'folha' ? (
                   <Folha key={f} obras={obras} data={data} horaFmt={horaFmt} />
-                ) : (
-                  <PorPessoa key={f} obras={obras} data={data} horaFmt={horaFmt} />
-                ),
+                ) : f === 'pessoa' ? (
+                  <PorPessoa key={f} obras={obrasPorPessoa} data={data} horaFmt={horaFmt} />
+                ) : query.data ? (
+                  <PorContratado
+                    key={f}
+                    ata={resumoTodosContratados(query.data)}
+                    data={data}
+                    horaFmt={horaFmt}
+                  />
+                ) : null,
               )}
             </div>,
             document.body,
@@ -328,17 +341,17 @@ function PorPessoa({ obras, data, horaFmt }: Props) {
   return (
     <section className={`${styles.pagina} ${styles.retrato}`}>
       <Topo
-        titulo={`CONTRO · quem prepara o quê · reunião de ${formatarDataCurta(data)} · ${horaFmt}`}
-        sub="O que cada pessoa vai ser cobrada e o que precisa de dono na reunião."
+        titulo={`CONTRO · pendências por pessoa · reunião de ${formatarDataCurta(data)} · ${horaFmt}`}
+        sub="Todas as tarefas abertas, agrupadas pelo responsável."
       />
       {pessoas.map((p) => {
         const atr = p.itens.filter((i) => i.atraso).length;
         return (
           <div key={p.pessoa} className={styles.pessoa}>
-            <div className={styles.pessoaNome}>
+            <h2 className={styles.pessoaNome}>
               {p.pessoa} · {p.itens.length} {p.itens.length === 1 ? 'ação' : 'ações'}
               {atr ? ` · ${atr} ${atr === 1 ? 'atrasada' : 'atrasadas'}` : ''}
-            </div>
+            </h2>
             {p.itens.map((i, k) => (
               <div key={k} className={i.atraso ? styles.atraso : undefined}>
                 <span className={styles.box} /> {i.texto} · {i.prazo}
@@ -349,7 +362,7 @@ function PorPessoa({ obras, data, horaFmt }: Props) {
       })}
       {semDono.length ? (
         <div className={styles.pessoa}>
-          <div className={styles.pessoaNome}>Providências · decidir quem cuida na reunião</div>
+          <h2 className={styles.pessoaNome}>Sem responsável · providências</h2>
           {semDono.map((i, k) => (
             <div key={k} className={i.atraso ? styles.atraso : undefined}>
               <span className={styles.box} /> {i.texto} · {i.prazo}
@@ -360,6 +373,38 @@ function PorPessoa({ obras, data, horaFmt }: Props) {
       {!pessoas.length && !semDono.length ? (
         <p className={styles.cinza}>Nenhuma ação aberta para cobrar.</p>
       ) : null}
+    </section>
+  );
+}
+
+function PorContratado({
+  ata,
+  data,
+  horaFmt,
+}: {
+  ata: ReturnType<typeof resumoTodosContratados>;
+  data: string;
+  horaFmt: string;
+}) {
+  return (
+    <section className={`${styles.pagina} ${styles.retrato}`}>
+      <Topo
+        titulo={`CONTRO · pendências por contratado · ${formatarDataCompleta(data)} · ${horaFmt}`}
+        sub="Contratados com pendências em ordem alfabética · identificadas por obra"
+      />
+      {!ata.obras.length ? <p>Nenhum contratado com pendências nesta reunião.</p> : null}
+      {ata.obras.map((o) => (
+        <div key={o.nome}>
+          <h2 className={styles.faixa}>{o.nome}</h2>
+          {o.providencias.map((l, i) => (
+            <p key={i} className={l.atraso ? styles.atraso : undefined}>
+              {l.texto}
+              {l.acao ? ` → ${l.acao}` : ''}
+            </p>
+          ))}
+          {o.observacoes ? <p>{o.observacoes}</p> : null}
+        </div>
+      ))}
     </section>
   );
 }

@@ -100,6 +100,7 @@ export function ReuniaoScreen({
   const { query } = r;
 
   const [ataAberta, setAtaAberta] = useState(false);
+  const [baixarAtaAberta, setBaixarAtaAberta] = useState(false);
   const [gerarAberto, setGerarAberto] = useState(false);
   const [obraSel, setObraSel] = useState<string | null>(null);
   const [passo, setPasso] = useState(0);
@@ -386,8 +387,18 @@ export function ReuniaoScreen({
     );
   }
 
-  if (ataAberta && reuniao) {
-    return <AtaView reuniao={reuniao} onVoltar={() => setAtaAberta(false)} onMinhas={onMinhas} />;
+  if ((ataAberta || baixarAtaAberta) && reuniao) {
+    return (
+      <AtaView
+        reuniao={reuniao}
+        baixarAoAbrir={baixarAtaAberta}
+        onVoltar={() => {
+          setAtaAberta(false);
+          setBaixarAtaAberta(false);
+        }}
+        onMinhas={onMinhas}
+      />
+    );
   }
 
   const ultimaObra = idx >= obras.length - 1;
@@ -432,6 +443,15 @@ export function ReuniaoScreen({
               : `Anterior · ${formatarDataCurta(reuniaoAnterior(queVem))}`}
           </button>
         </div>
+        {reuniao ? (
+          <button
+            type="button"
+            className={styles.baixarAtaTopo}
+            onClick={() => setBaixarAtaAberta(true)}
+          >
+            <Icon name="baixar" size={18} /> Baixar ata
+          </button>
+        ) : null}
         {obras.length > 0 ? (
           <div className={styles.obras} role="tablist" aria-label="Obras da reunião">
             {obras.map((x, i) => {
@@ -798,17 +818,15 @@ export function ReuniaoScreen({
 
       {o ? (
         <div className={styles.rodape}>
-          {!verAnterior && !fechada ? (
-            <button
-              type="button"
-              className={styles.previa}
-              aria-label="Prévia da reunião em PDF"
-              title="Prévia da reunião em PDF"
-              onClick={() => setPrevia(true)}
-            >
-              <Icon name="baixar" size={20} strokeWidth={2.2} />
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className={styles.previa}
+            aria-label="Baixar ata em PDF"
+            title="Baixar ata em PDF"
+            onClick={() => setPrevia(true)}
+          >
+            <Icon name="baixar" size={20} strokeWidth={2.2} />
+          </button>
           <button
             type="button"
             className={styles.anterior}

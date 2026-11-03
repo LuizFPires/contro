@@ -59,12 +59,22 @@ Deno.serve(async (req: Request) => {
   webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
   const sb = createClient(url, serviceKey);
 
-  const { data: avisos, error: e1 } = await sb
-    .from('aviso_disparo')
-    .select('id, tipo, user_id, titulo, corpo, url')
-    .is('notificado_em', null)
-    .order('criado_em')
-    .limit(500);
+  let avisoId: string | null = null;
+  try {
+    const body = await req.json();
+    if (body.aviso_id !== undefined) {
+      if (
+        typeof body.aviso_id !== 'string' ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.aviso_id)
+      ) {
+        return json({ error: 'aviso_id inválido' }, 400);
+      }
+      avisoId = body.aviso_id;
+    }
+  } catch {
+    return json({ error: 'JSON inválido' }, 400);
+  }
+  const { data: avisos, error: e1 } = await sb.rpc('reservar_avisos', { p_id: avisoId });
   if (e1) return json({ error: e1.message }, 500);
   if (!avisos || avisos.length === 0) return json({ avisos: 0, enviados: 0 });
 
@@ -77,6 +87,8 @@ Deno.serve(async (req: Request) => {
 
   let enviados = 0;
   for (const a of avisos as any[]) {
+    let aceitos = 0;
+    let falhaTemporaria = false;
     const payload = JSON.stringify({
       title: a.titulo,
       body: a.corpo,
@@ -90,19 +102,26 @@ Deno.serve(async (req: Request) => {
         await webpush.sendNotification(
           { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
           payload,
+          { urgency: 'high', TTL: 86400 },
         );
         enviados++;
+        aceitos++;
       } catch (err: any) {
         const code = err?.statusCode;
         if (code === 404 || code === 410) {
           await sb.from('push_subscription').delete().eq('endpoint', s.endpoint);
+        } else {
+          falhaTemporaria = true;
         }
       }
     }
-    // Marca como enviado mesmo sem aparelho inscrito, para não repetir toda rodada.
+    // Falha transitória sem aceite: libera a reserva para nova tentativa pelo cron.
     await sb
       .from('aviso_disparo')
-      .update({ notificado_em: new Date().toISOString() })
+      .update({
+        notificado_em: falhaTemporaria && aceitos === 0 ? null : new Date().toISOString(),
+        processamento_em: null,
+      })
       .eq('id', a.id);
   }
 

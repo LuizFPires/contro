@@ -100,7 +100,9 @@ export function ApontarSheet({
   onFechar,
   onApontar,
   onDesfazer,
+  atividadeInicial,
 }: {
+  atividadeInicial?: string;
   aberto: boolean;
   obra: ObraCompleta;
   onFechar: () => void;
@@ -171,7 +173,7 @@ export function ApontarSheet({
           titulo: '',
           local: base?.local ?? '',
           criticidade: base?.criticidade ?? ('media' as const),
-          atividadeId: base?.atividadeId ?? null,
+          atividadeId: base ? base.atividadeId : (atividadeInicial ?? null),
         })),
       ];
     });

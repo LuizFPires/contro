@@ -1,0 +1,46 @@
+.secao {
+  margin: 16px 0;
+}
+.secao h3 {
+  font-size: 14px;
+}
+.item,
+.form {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 8px 0;
+  display: grid;
+  gap: 8px;
+}
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.secao button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  cursor: pointer;
+}
+.secao button:disabled {
+  opacity: 0.5;
+}
+.form label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+.form textarea,
+.form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  font: inherit;
+}

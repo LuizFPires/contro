@@ -1,0 +1,39 @@
+.conteudo {
+  display: grid;
+  gap: 14px;
+  padding-bottom: 12px;
+}
+.conteudo label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+}
+.conteudo select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #bbb;
+  border-radius: 10px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+}
+.conteudo button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #bbb;
+  border-radius: 10px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.conteudo button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

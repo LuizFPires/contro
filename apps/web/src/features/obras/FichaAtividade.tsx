@@ -11,6 +11,8 @@ import {
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
+import { PropostasMapa } from './PropostasMapa';
+import { PendenciasAba } from './PendenciasAba';
 import { AjustePrazo } from './AjustePrazo';
 import { Camera } from './Camera';
 import { CampoPrestador } from './CampoPrestador';
@@ -51,6 +53,7 @@ export function FichaAtividade({
   const conclusao = useConcluirAtividade(obra);
   const avanco = useAvanco(obra, onConcluida);
   // "⋯" de um lembrete do "Para começar": abre o detalhe (editar, reabrir, excluir).
+  const [excluirItemId, setExcluirItemId] = useState<string | null>(null);
   const [detalheProvId, setDetalheProvId] = useState<string | null>(null);
   // Menu "⋯" do topo da ficha e edição do nome aberta por ele.
   const [menuAberto, setMenuAberto] = useState(false);
@@ -270,6 +273,8 @@ export function FichaAtividade({
             onSalvar={(v) => campo.prestador.mutate({ id: a.id, prestador: v })}
           />
 
+          {mapa ? <PropostasMapa key={a.id} obraId={obra.id} atividadeId={a.id} /> : null}
+
           <section className={styles.secao}>
             <h3 className={styles.rotulo}>
               Para começar ·{' '}
@@ -292,6 +297,7 @@ export function FichaAtividade({
                       feito={feito}
                       atrasado={atrasado}
                       pendente={conclusao.pendente}
+                      onMais={() => setExcluirItemId(m.id)}
                       meta={
                         feito
                           ? `Pronto ${formatarDataCurta(dataLocal(m.concluida_em!))}${m.prestador ? ` · ${m.prestador}` : ''}`
@@ -357,13 +363,19 @@ export function FichaAtividade({
             ) : null}
           </section>
 
+          <section className={styles.secao}>
+            <h3 className={styles.rotulo}>Pendências da atividade</h3>
+            <PendenciasAba key={a.id} obra={obra} atividadeId={a.id} />
+          </section>
+
           {subitens.length > 0 ? (
             <section className={styles.secao}>
               <h3 className={styles.rotulo}>Subitens</h3>
               {subitens.map((s) => (
-                <label key={s.id} className={styles.linhaCheck}>
+                <div key={s.id} className={styles.linhaCheck}>
                   <input
                     type="checkbox"
+                    aria-label={`Concluir ${s.nome}`}
                     checked={Boolean(s.concluida_em)}
                     disabled={Boolean(a.concluida_em)}
                     onChange={(e) => campo.subitem.mutate({ id: s.id, feito: e.target.checked })}
@@ -371,7 +383,15 @@ export function FichaAtividade({
                   <span className={s.concluida_em ? styles.feito : ''}>
                     {s.nome} · {s.duracao_du} dias úteis
                   </span>
-                </label>
+                  <button
+                    type="button"
+                    className={styles.fechar}
+                    aria-label={`Excluir ${s.nome}`}
+                    onClick={() => setExcluirItemId(s.id)}
+                  >
+                    <Icon name="lixeira" size={18} />
+                  </button>
+                </div>
               ))}
             </section>
           ) : null}
@@ -561,33 +581,56 @@ export function FichaAtividade({
               <Icon name={provDet.feito ? 'undo' : 'checkGrosso'} size={18} strokeWidth={2.2} />
               {provDet.feito ? 'Reabrir' : 'Marcar como providenciado'}
             </button>
-            {provDet.p.manual ? (
-              <button
-                type="button"
-                className={linhaStyles.acao}
-                onClick={() => {
-                  const p = provDet.p;
-                  setDetalheProvId(null);
-                  campo.removerProv.mutate(p.id, {
-                    onSuccess: () =>
-                      showToast({
-                        message: 'Lembrete excluído',
-                        onUndo: () =>
-                          campo.addProvidencia.mutate({
-                            atividadeId: a.id,
-                            tipo: p.tipo,
-                            descricao: p.descricao,
-                          }),
-                      }),
-                  });
-                }}
-              >
-                <Icon name="lixeira" size={18} strokeWidth={2} />
-                Excluir lembrete
-              </button>
-            ) : null}
+            <button
+              type="button"
+              className={linhaStyles.acao}
+              disabled={campo.removerProv.isPending}
+              onClick={() => {
+                const p = provDet.p;
+                campo.removerProv.mutate(p.id, {
+                  onSuccess: () => {
+                    setDetalheProvId(null);
+                    showToast({
+                      message: 'Item excluído',
+                      onUndo: () => campo.restaurarProv.mutate(p.id),
+                    });
+                  },
+                  onError: () =>
+                    showToast({ message: 'Não foi possível excluir o item. Tente novamente.' }),
+                });
+              }}
+            >
+              <Icon name="lixeira" size={18} strokeWidth={2} />
+              Excluir item
+            </button>
           </div>
         ) : null}
+      </BottomSheet>
+
+      <BottomSheet
+        open={Boolean(excluirItemId)}
+        onClose={() => setExcluirItemId(null)}
+        title={nomeDe(excluirItemId ?? '')}
+      >
+        <button
+          type="button"
+          className={linhaStyles.acao}
+          disabled={campo.excluir.isPending}
+          onClick={() => {
+            if (!excluirItemId) return;
+            const id = excluirItemId;
+            campo.excluir.mutate(id, {
+              onSuccess: () => {
+                setExcluirItemId(null);
+                showToast({ message: 'Item excluído', onUndo: () => campo.restaurar.mutate(id) });
+              },
+              onError: () => showToast({ message: 'Não foi possível excluir o item.' }),
+            });
+          }}
+        >
+          <Icon name="lixeira" size={18} />
+          Excluir item
+        </button>
       </BottomSheet>
 
       <NovaProvidenciaSheet

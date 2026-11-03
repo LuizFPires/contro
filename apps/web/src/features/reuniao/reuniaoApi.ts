@@ -1,3 +1,4 @@
+import { carregarPropostas, type PropostaMapa } from '../obras/propostasMapaApi';
 import {
   classificarSemana,
   providenciaAtrasada,
@@ -108,6 +109,8 @@ export interface ItemProv {
 }
 
 export interface ReuniaoObraDados {
+  /** Contratado por atividade ou providência, para exportação da ata. */
+  contratadosPorVinculo?: Record<string, string>;
   obraId: string;
   nome: string;
   modeloRotulo: string;
@@ -137,6 +140,7 @@ export interface TarefaAtrib {
   origem: string | null;
   texto: string;
   pessoa: string;
+  pessoaNomeCompleto?: string;
   prazo: string | null;
   atrasado: boolean;
   concluido: boolean;
@@ -156,6 +160,7 @@ export interface TarefaAtrib {
 }
 
 export interface ReuniaoCompleta {
+  propostas?: PropostaMapa[];
   id: string;
   data: string;
   /** Horário da reunião ("16:00"), gravado quando a pauta abriu. */
@@ -275,6 +280,13 @@ function derivarObra(
   const faseAtual = montarTrilha(obra).find((f) => f.status === 'execucao');
 
   return {
+    contratadosPorVinculo: Object.fromEntries(
+      obra.atividades.flatMap((a) =>
+        a.prestador?.trim()
+          ? [[a.id, a.prestador.trim()], ...a.providencias.map((p) => [p.id, a.prestador!.trim()])]
+          : [],
+      ),
+    ),
     obraId: obra.id,
     nome: obra.nome,
     modeloRotulo: obra.modelo_rotulo,
@@ -394,6 +406,7 @@ export async function loadReuniao(data: string, criar = true): Promise<ReuniaoCo
       origem: t.origem_texto,
       texto: t.texto,
       pessoa: nomeCurto(t.responsavel?.nome ?? t.responsavel_nome) || 'Sem responsável',
+      pessoaNomeCompleto: t.responsavel?.nome ?? t.responsavel_nome ?? 'Sem responsável',
       prazo: t.prazo,
       atrasado: tarefaAtrasada(t, hoje),
       concluido: t.status === 'feita',
@@ -412,6 +425,7 @@ export async function loadReuniao(data: string, criar = true): Promise<ReuniaoCo
   }
 
   return {
+    propostas: await carregarPropostas(obraIds),
     id: r.id,
     data: r.data,
     hora: (r.hora ?? '16:00').slice(0, 5),

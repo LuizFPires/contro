@@ -1,10 +1,7 @@
-/* Aviso provisório de versão nova (fica acima da barra de baixo). */
+/* Aviso de atualização disponível, sem cobrir o conteúdo. */
 .aviso {
-  position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: calc(84px + env(safe-area-inset-bottom, 0));
-  z-index: 70;
+  flex-shrink: 0;
+  margin: 8px 12px;
   display: flex;
   align-items: center;
   gap: 10px;
