@@ -14,8 +14,13 @@ begin
   insert into public.aviso_disparo(tipo,dia,user_id,titulo,corpo,url)
   select 'atribuicao',current_date,user_id,'Teste transacional imediato','Teste','/?ir=minhas' from public.pessoa where user_id is not null and ativo and deleted_at is null limit 1 returning id into v_id;
   if v_id is null then raise exception 'Sem fixture'; end if;
-  select count(*) into v_count from net.http_request_queue where convert_from(body,'UTF8')::jsonb->>'aviso_id'=v_id::text;
-  if v_count <> 1 then raise exception 'Gatilho não enfileirou HTTP direcionado'; end if;
+  -- A fila do pg_net só existe onde a extensão está instalada (produção); no CI
+  -- local confere-se só a reserva contra envio duplicado.
+  if to_regclass('net.http_request_queue') is not null then
+    execute $q$select count(*) from net.http_request_queue where convert_from(body,'UTF8')::jsonb->>'aviso_id'=$1$q$
+      into v_count using v_id::text;
+    if v_count <> 1 then raise exception 'Gatilho não enfileirou HTTP direcionado'; end if;
+  end if;
   select count(*) into v_count from public.reservar_avisos(v_id);
   if v_count <> 1 then raise exception 'Reserva não selecionou o aviso'; end if;
   select count(*) into v_count from public.reservar_avisos(v_id);
