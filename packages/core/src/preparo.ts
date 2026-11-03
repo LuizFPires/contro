@@ -1,26 +1,31 @@
 // Preparar a reunião (pedido do usuário, 30/10/2026): a pauta antecipada da
 // próxima reunião, para cada um saber o que vai ser cobrado e perguntado e
 // agir antes. São os mesmos quatro blocos da pauta (cobrança, previsto para a
-// semana que termina, semana que vem, providências). Em PDF, em até três
-// formatos num arquivo só: tabela (paisagem), folha para preencher e por pessoa.
+// semana que termina, semana que vem, providências). Em PDF, em até quatro
+// formatos num arquivo só: tabela (paisagem), por pessoa, por contratado e Check List.
 // Datas chegam já formatadas pela UI. O WhatsApp usa o padrão de whatsapp.ts.
 import type { DataISO } from './calendar';
 import { LEGENDA_PRAZOS, SEPARADOR, bolinha, cabecalhoObra, secao } from './whatsapp';
 
-export type FormatoPreparo = 'tabela' | 'folha' | 'pessoa';
+export type FormatoPreparo = 'tabela' | 'folha' | 'pessoa' | 'contratado';
 
 export const FORMATOS_PREPARO: { id: FormatoPreparo; titulo: string; desc: string }[] = [
   {
     id: 'tabela',
-    titulo: 'Tabela da pauta',
+    titulo: 'Por obra',
     desc: 'paisagem · uma linha por obra (como o resumo da ata)',
+  },
+  { id: 'pessoa', titulo: 'Por pessoa', desc: 'retrato · o que cada um vai ser cobrado' },
+  {
+    id: 'contratado',
+    titulo: 'Por contratado',
+    desc: 'A4 retrato · somente contratados com pendências, por obra',
   },
   {
     id: 'folha',
-    titulo: 'Folha para preencher',
+    titulo: 'Check List',
     desc: 'retrato · por obra, com caixinhas para marcar',
   },
-  { id: 'pessoa', titulo: 'Por pessoa', desc: 'retrato · o que cada um vai ser cobrado' },
 ];
 
 /** Um item da pauta antecipada: o que é e o prazo ("fim qui 29/10", "era 28/10"). */

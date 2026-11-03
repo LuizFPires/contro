@@ -28,6 +28,7 @@ export function useMembrosPendentes(ativo = true) {
         .from('pessoa')
         .select('id, nome, created_at')
         .eq('ativo', false)
+        .is('desativado_em', null)
         .is('deleted_at', null)
         .order('created_at');
       if (error) throw error;
@@ -45,7 +46,10 @@ export function useMembrosPendentes(ativo = true) {
       const { error } = await supabase.rpc('aprovar_pessoa', { p_id: id });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ['membros-todos'] });
+    },
   });
 
   const recusar = useMutation({
@@ -54,8 +58,47 @@ export function useMembrosPendentes(ativo = true) {
       const { error } = await supabase.rpc('recusar_pessoa', { p_id: id });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ['membros-todos'] });
+    },
   });
 
   return { query, aprovar, recusar };
+}
+
+export function useTodosMembros() {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: ['membros-todos'],
+    queryFn: async () => {
+      if (!supabase) throw new Error('Sem conexão');
+      const { data, error } = await supabase
+        .from('pessoa')
+        .select('id,nome,perfil,ativo,desativado_em')
+        .is('deleted_at', null)
+        .order('nome');
+      if (error) throw error;
+      return data as {
+        id: string;
+        nome: string;
+        perfil: string;
+        ativo: boolean;
+        desativado_em: string | null;
+      }[];
+    },
+  });
+  const definirAtivo = useMutation({
+    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+      if (!supabase) throw new Error('Sem conexão');
+      const { error } = await supabase.rpc('definir_membro_ativo', { p_id: id, p_ativo: ativo });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['membros-todos'] });
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ['perfil'] });
+    },
+  });
+  return { query, definirAtivo };
 }

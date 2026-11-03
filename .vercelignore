@@ -13,3 +13,13 @@ coverage
 playwright-report
 test-results
 *.log
+
+# Arquivos locais de teste e credenciais
+.playwright-mcp
+.env*
+**/.env*
+
+exemplos de projetos
+.claude
+/*.zip
+/*.png

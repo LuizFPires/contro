@@ -9,6 +9,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "preview": "vite preview",
     "gen:icons": "node scripts/gen-icons.mjs",
+    "gen:badge": "node scripts/gen-notification-badge.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -18,6 +19,7 @@
     "@supabase/supabase-js": "2.47.10",
     "@tanstack/react-query": "5.62.7",
     "dexie": "^4.4.7",
+    "jspdf": "4.2.1",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },

@@ -121,6 +121,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
         'id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du,na_obra_em,manual,feito_em,' +
           'feito:pessoa!feito_por(nome)',
       )
+      .is('deleted_at', null)
       .eq('obra_id', id),
     supabase.from('obra_mapa_libera').select('mapa_id,atividade_id').eq('obra_id', id),
   ]);

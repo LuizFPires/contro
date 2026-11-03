@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { esquecerTelas, useLembrado } from './lib/useLembrado';
 import { useQueryClient } from '@tanstack/react-query';
 import { PullToRefresh } from './components/PullToRefresh';
+import { usePush } from './lib/usePush';
 import { verificarAtualizacao } from './lib/pwa';
 import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
@@ -24,6 +25,7 @@ export function App() {
   const { carregando, session, recovery, fecharRecovery } = useSession();
   const { data: pessoa, isLoading: perfilCarregando } = usePerfil();
   const qc = useQueryClient();
+  usePush(Boolean(session && pessoa?.ativo), session?.user.id);
   // Lembrada: ao voltar ao app (ou à guia), continua na mesma tela.
   const [tela, setTela] = useLembrado<'inicio' | DestinoInicio>('app', 'inicio');
 
@@ -98,6 +100,7 @@ export function App() {
 
   return (
     <div className="app-shell">
+      <NovaVersao />
       <PullToRefresh onRefresh={aoAtualizar}>
         {tela === 'modelos' && ehGestor ? (
           <ModelosScreen onVoltar={voltar} />
@@ -124,7 +127,6 @@ export function App() {
         )}
       </PullToRefresh>
       <SyncIndicator />
-      <NovaVersao />
     </div>
   );
 }

@@ -1,0 +1,16 @@
+begin;
+select plan(5);
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000fc', 'excluir-prov@contro.test');
+insert into pessoa (user_id, nome, perfil, ativo) values ('00000000-0000-0000-0000-0000000000fc', 'Equipe Exclusao', 'equipe', true)
+  on conflict (user_id) do update set nome = excluded.nome, perfil = excluded.perfil, ativo = true, deleted_at = null;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000fc","role":"authenticated"}';
+select gerar_obra((select id from unidade order by nome limit 1), '2026-11-03', 'Teste excluir providencia', (select id from modelo where nome = 'Modelo 1 · CDC completo'));
+create temp table alvo as select p.* from obra_providencia p join obra o on o.id = p.obra_id where o.nome = 'Teste excluir providencia' and not p.manual limit 1;
+select is((select count(*)::int from alvo), 1, 'fixture possui item vindo do modelo');
+select lives_ok($$ update obra_providencia set deleted_at = now() where id = (select id from alvo) $$, 'membro exclui item do modelo');
+select ok((select deleted_at is not null from obra_providencia where id = (select id from alvo)), 'exclusao e logica');
+select lives_ok($$ update obra_providencia set deleted_at = null where id = (select id from alvo) $$, 'membro restaura o mesmo item');
+select ok((select p.deleted_at is null and p.status = a.status and p.antecedencia_du = a.antecedencia_du and p.manual = a.manual and p.feito_em is not distinct from a.feito_em from obra_providencia p join alvo a on a.id = p.id), 'restauracao preserva origem prazos e conclusao');
+select * from finish();
+rollback;

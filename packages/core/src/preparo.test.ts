@@ -46,6 +46,12 @@ const jf = obra({
 describe('preparar a reunião', () => {
   it('formatos na ordem fixa e texto do botão', () => {
     expect(formatosEmOrdem(['pessoa', 'tabela'])).toEqual(['tabela', 'pessoa']);
+    expect(formatosEmOrdem(['contratado', 'pessoa', 'folha', 'tabela'])).toEqual([
+      'tabela',
+      'pessoa',
+      'contratado',
+      'folha',
+    ]);
     expect(textoBotaoPreparo(0)).toBe('Marque um formato');
     expect(textoBotaoPreparo(1)).toBe('Baixar PDF');
     expect(textoBotaoPreparo(3)).toBe('Baixar PDF · 3 formatos');

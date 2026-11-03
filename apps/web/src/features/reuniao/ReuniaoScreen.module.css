@@ -602,3 +602,20 @@
   flex-shrink: 0;
   cursor: pointer;
 }
+
+.baixarAtaTopo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--contro-touch);
+  margin: 8px 4px 0;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}

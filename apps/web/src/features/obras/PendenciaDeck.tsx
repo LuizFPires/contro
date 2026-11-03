@@ -131,7 +131,13 @@ export function PendenciaDeck({
               <div className={styles.corpoTexto}>
                 <div className={styles.titulo}>{atual.titulo}</div>
                 <div className={styles.onde}>
-                  {[atual.local, atual.atividadeNome ?? 'Geral'].filter(Boolean).join(' · ')}
+                  {[
+                    atual.local,
+                    atual.atividadeNome ?? 'Geral',
+                    `Responsável: ${atual.responsavelNome || 'Sem responsável'}`,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </div>
                 <div className={styles.meta}>
                   {atual.apontouNome ? `Apontado por ${atual.apontouNome} · ` : ''}pendente há{' '}

@@ -39,6 +39,15 @@ import { db, type OpDB } from './db';
  */
 type Handler = (payload: Record<string, unknown>, opId: string) => Promise<void>;
 const DISPATCH: Record<string, Handler> = {
+  atribuir_pendencia: async (p, opId) => {
+    if (!supabase) throw new Error('Sem conexão');
+    const { error } = await supabase.rpc('atribuir_pendencia', {
+      p_id: p.id,
+      p_responsavel_id: p.responsavelId ?? null,
+      p_client_op_id: opId,
+    });
+    if (error) throw error;
+  },
   marcar_providencia: (p, opId) => marcarProvidencia(p.id as string, p.feito as boolean, opId),
   // Textos livres da obra: update idempotente (repetir grava o mesmo valor).
   editar_prestador: (p) => editarPrestador(p.id as string, (p.prestador as string | null) ?? null),
@@ -125,6 +134,9 @@ function invalidar(payload: Record<string, unknown>) {
     qc.invalidateQueries({ queryKey: ['obras'] });
     qc.invalidateQueries({ queryKey: ['tarefas', obraId] });
     qc.invalidateQueries({ queryKey: ['pendencias', obraId] });
+    qc.invalidateQueries({ queryKey: ['propostas-mapa', obraId] });
+    qc.invalidateQueries({ queryKey: ['reuniao'] });
+    qc.invalidateQueries({ queryKey: ['sugestao', 'prestador'] });
   }
 }
 

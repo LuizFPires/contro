@@ -5,9 +5,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 // Versão do build (commit na Vercel; data/hora no build local). Vai no app
 // (__VERSAO__) e em /version.json, que o app consulta para saber se há versão
 // nova (botão provisório "Atualizar", pedido do usuário em 31/10/2026).
-const VERSAO =
-  process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ??
-  new Date().toISOString().slice(0, 16).replace('T', ' ');
+const VERSAO = [process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7), new Date().toISOString()]
+  .filter(Boolean)
+  .join('-');
 
 export default defineConfig({
   define: {

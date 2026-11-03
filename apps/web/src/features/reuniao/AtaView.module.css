@@ -435,3 +435,43 @@
     break-before: page;
   }
 }
+
+.seletorContratado {
+  display: block;
+  width: 100%;
+  min-height: var(--contro-touch);
+  margin: 8px 0;
+  padding: 8px;
+  font: inherit;
+  border: 1px solid var(--contro-border);
+  border-radius: 8px;
+  background: var(--contro-surface);
+  color: var(--contro-text);
+}
+.baixar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.cabecalho {
+  flex-wrap: wrap;
+}
+.baixarTopo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--contro-touch);
+  margin-left: auto;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.baixarTopo:disabled {
+  opacity: 0.6;
+}

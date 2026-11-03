@@ -300,15 +300,20 @@ export function montarAta(r: ReuniaoCompleta): AtaCompleta {
  * perguntar, obra por obra. Usa os mesmos itens da pauta; só entra o que ainda
  * está aberto (ação feita ou atividade concluída no app não precisa de resposta).
  */
-export function montarPreparo(r: ReuniaoCompleta): ObraPreparo[] {
+export function montarPreparo(r: ReuniaoCompleta, porPessoa = false): ObraPreparo[] {
   const hoje = hojeISO();
   return r.obras.map((o) => {
     const ritmo = ritmoTexto(o.ritmoDias, true);
-    const cobranca = cobrancaDaObra(r, o.obraId)
+    const tarefas = porPessoa
+      ? r.tarefas.filter((t) => t.obraId === o.obraId)
+      : cobrancaDaObra(r, o.obraId);
+    const cobranca = tarefas
       .filter((t) => !t.concluido)
       .map((t) => ({
         texto: t.avancoPct > 0 ? `${t.texto} · ${t.avancoPct}%` : t.texto,
-        pessoa: t.pessoa,
+        pessoa: porPessoa
+          ? t.pessoaNomeCompleto || t.responsavelNome || t.pessoa || 'Sem responsável'
+          : t.pessoa,
         prazo: t.prazo
           ? `${t.atrasado ? 'era' : 'até'} ${formatarDataCurta(t.prazo)}`
           : 'sem prazo',
@@ -337,6 +342,13 @@ export function montarPreparo(r: ReuniaoCompleta): ObraPreparo[] {
       }));
     const providencias = semana
       .filter((it) => it.secao === 'semana_providencia')
+      .filter(
+        (it) =>
+          !porPessoa ||
+          !tarefas.some(
+            (t) => !t.concluido && t.vinculoTipo === 'providencia' && t.vinculoId === it.id,
+          ),
+      )
       .map((it) => ({
         texto: `${VERBO_PROV[it.tipoProvidencia ?? 'compra']} ${it.nome}`,
         prazo: it.atraso

@@ -1,3 +1,5 @@
+import { ChecklistResponsavel } from './ChecklistResponsavel';
+import { ChecklistPdfSheet } from './ChecklistPdfSheet';
 import { useMemo, useState } from 'react';
 import { classificarPendencias, pendenteHa, pendentesPorCriticidade } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
@@ -27,19 +29,30 @@ const CRIT: Record<string, string> = { alta: 'Alta', media: 'Média', baixa: 'Ba
  * compacta que abre com antes e depois). Sem fila, sem adiar e sem vistoria:
  * tirou a foto do depois, está resolvido.
  */
-export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
+export function PendenciasAba({ obra, atividadeId }: { obra: ObraCompleta; atividadeId?: string }) {
   const { data: pessoa } = usePerfil();
   const { showToast } = useToast();
   const campo = useObraPendencias(obra.id);
-  const [aba, setAba] = useLembrado<Aba>(`obra:${obra.id}:check`, 'pendentes');
-  const [vista, setVista] = useLembrado<Vista>(`obra:${obra.id}:checkVista`, 'fotos');
+  const [aba, setAba] = useLembrado<Aba>(
+    `obra:${obra.id}:${atividadeId ?? 'geral'}:check`,
+    'pendentes',
+  );
+  const [vista, setVista] = useLembrado<Vista>(
+    `obra:${obra.id}:${atividadeId ?? 'geral'}:checkVista`,
+    atividadeId ? 'lista' : 'fotos',
+  );
   const [apontar, setApontar] = useState(false);
   const [resolver, setResolver] = useState<PendenciaObra | null>(null);
   const [info, setInfo] = useState(false);
+  const [pdf, setPdf] = useState(false);
+  const [atribuir, setAtribuir] = useState<PendenciaObra | null>(null);
   const [aberto, setAberto] = useState<string | null>(null);
   const hoje = hojeISO();
 
-  const lista = useMemo(() => campo.query.data ?? [], [campo.query.data]);
+  const lista = useMemo(
+    () => (campo.query.data ?? []).filter((p) => !atividadeId || p.atividade_id === atividadeId),
+    [campo.query.data, atividadeId],
+  );
   const { pendentes, resolvidas } = useMemo(() => classificarPendencias(lista), [lista]);
   const grupos = useMemo(() => pendentesPorCriticidade(pendentes), [pendentes]);
 
@@ -110,7 +123,9 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
   }
 
   const onde = (p: PendenciaObra) =>
-    [p.local, p.atividadeNome ?? 'Geral'].filter(Boolean).join(' · ');
+    [p.local, p.atividadeNome ?? 'Geral', `Responsável: ${p.responsavelNome || 'Sem responsável'}`]
+      .filter(Boolean)
+      .join(' · ');
   const resolvidoTxt = (p: PendenciaObra) =>
     `Resolvido${p.resolvida_em ? ` ${p.resolvida_em.slice(0, 10) === hoje ? 'hoje' : formatarDataCurta(p.resolvida_em.slice(0, 10))}` : ''}${p.resolveuNome ? ` · ${p.resolveuNome}` : ''}`;
 
@@ -157,6 +172,36 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
         </button>
       </div>
 
+      <button
+        type="button"
+        className={styles.trocaVista}
+        disabled={campo.query.isLoading || campo.query.isError}
+        onClick={() => setPdf(true)}
+      >
+        <Icon name="baixar" size={18} /> PDF por responsável
+      </button>
+      {pdf ? (
+        <ChecklistPdfSheet
+          obra={obra}
+          lista={lista}
+          atividadeId={atividadeId}
+          onFechar={() => setPdf(false)}
+        />
+      ) : null}
+      {atribuir ? (
+        <ChecklistResponsavel
+          key={atribuir.id}
+          pendencia={atribuir}
+          onFechar={() => setAtribuir(null)}
+          onSalvar={(id, nome) =>
+            campo.atribuir.mutateAsync({
+              id: atribuir.id,
+              responsavelId: id,
+              nome: id ? nome : null,
+            })
+          }
+        />
+      ) : null}
       {aba === 'pendentes' ? (
         <>
           {vista === 'fotos' ? (
@@ -244,7 +289,9 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
                 </section>
               ))}
               {pendentes.length === 0 ? (
-                <div className={styles.vazio}>Nada pendente nesta obra.</div>
+                <div className={styles.vazio}>
+                  {atividadeId ? 'Nenhuma pendência nesta atividade.' : 'Nada pendente nesta obra.'}
+                </div>
               ) : null}
             </div>
           )}
@@ -337,6 +384,7 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
       <ApontarSheet
         aberto={apontar}
         obra={obra}
+        atividadeInicial={atividadeId}
         onFechar={() => setApontar(false)}
         onApontar={(dados, file) => campo.apontar.mutateAsync({ dados, file })}
         onDesfazer={(ids) => ids.forEach((id) => campo.excluir.mutate(id))}
@@ -385,6 +433,16 @@ export function PendenciasAba({ obra }: { obra: ObraCompleta }) {
                 <div className={styles.meta}>{onde(menuPend)}</div>
               </div>
             </div>
+            <button
+              type="button"
+              className={styles.menuPendItem}
+              onClick={() => {
+                setAtribuir(menuPend);
+                setMenuPend(null);
+              }}
+            >
+              <Icon name="pessoa" size={20} /> Atribuir responsável
+            </button>
             {fotosDe(menuPend).length ? (
               <button
                 type="button"

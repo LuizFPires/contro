@@ -196,9 +196,14 @@ export async function adicionarProvidencia(
   if (error) throw error;
 }
 
-export async function removerProvidencia(id: string): Promise<void> {
+export async function removerProvidencia(id: string, restaurar = false): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
-  const { error } = await supabase.from('obra_providencia').delete().eq('id', id);
+  const { error } = await supabase
+    .from('obra_providencia')
+    .update({ deleted_at: restaurar ? null : new Date().toISOString() })
+    .eq('id', id)
+    .select('id')
+    .single();
   if (error) throw error;
 }
 

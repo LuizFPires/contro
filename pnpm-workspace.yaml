@@ -4,5 +4,6 @@ packages:
 
 # Build scripts aprovados (pnpm 11 pede opt-in explícito)
 allowBuilds:
+  core-js: false
   esbuild: true
   sharp: true
