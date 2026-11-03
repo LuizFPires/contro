@@ -1,5 +1,19 @@
 begin;
 select plan(1);
+-- Dados do próprio teste (o CI começa só com o seed: modelos e unidades).
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-00000000f131', 'fx-gestor-131@contro.test'),
+  ('00000000-0000-0000-0000-00000000f132', 'fx-equipe-131@contro.test');
+insert into pessoa (user_id, nome, perfil, ativo) values
+  ('00000000-0000-0000-0000-00000000f131', 'Fixture Gestor 131', 'gestor', true),
+  ('00000000-0000-0000-0000-00000000f132', 'Fixture Equipe 131', 'equipe', true)
+  on conflict (user_id) do update set nome = excluded.nome, perfil = excluded.perfil, ativo = true, deleted_at = null;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000f131","role":"authenticated"}';
+select gerar_obra((select id from unidade order by nome limit 1), current_date, 'Obra Fixture 131',
+  (select id from modelo where nome = 'Modelo 1 · CDC completo'));
+reset role;
+set local request.jwt.claims = '';
 do $$
 declare v_obra uuid; v_p1 uuid; v_p2 uuid; v_t uuid; v_base int; v_count int;
 begin

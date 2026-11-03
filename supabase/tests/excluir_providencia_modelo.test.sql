@@ -1,7 +1,8 @@
 begin;
 select plan(5);
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000fc', 'excluir-prov@contro.test');
-insert into pessoa (user_id, nome, perfil, ativo) values ('00000000-0000-0000-0000-0000000000fc', 'Equipe Exclusao', 'equipe', true);
+insert into pessoa (user_id, nome, perfil, ativo) values ('00000000-0000-0000-0000-0000000000fc', 'Equipe Exclusao', 'equipe', true)
+  on conflict (user_id) do update set nome = excluded.nome, perfil = excluded.perfil, ativo = true, deleted_at = null;
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000fc","role":"authenticated"}';
 select gerar_obra((select id from unidade order by nome limit 1), '2026-11-03', 'Teste excluir providencia', (select id from modelo where nome = 'Modelo 1 · CDC completo'));

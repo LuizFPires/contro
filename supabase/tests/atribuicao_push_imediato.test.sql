@@ -1,5 +1,13 @@
 begin;
 select plan(1);
+-- Dados do próprio teste (o CI começa só com o seed: modelos e unidades).
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-00000000f101', 'fx-gestor-101@contro.test'),
+  ('00000000-0000-0000-0000-00000000f102', 'fx-equipe-101@contro.test');
+insert into pessoa (user_id, nome, perfil, ativo) values
+  ('00000000-0000-0000-0000-00000000f101', 'Fixture Gestor 101', 'gestor', true),
+  ('00000000-0000-0000-0000-00000000f102', 'Fixture Equipe 101', 'equipe', true)
+  on conflict (user_id) do update set nome = excluded.nome, perfil = excluded.perfil, ativo = true, deleted_at = null;
 do $$
 declare v_id uuid; v_req bigint; v_count int;
 begin
