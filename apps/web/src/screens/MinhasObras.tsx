@@ -22,6 +22,7 @@ import styles from './MinhasObras.module.css';
 export type DestinoInicio =
   | 'modelos'
   | 'reuniao'
+  | 'reunioes'
   | 'tarefas'
   | 'minhas'
   | 'config'
@@ -152,7 +153,7 @@ export function MinhasObras({
           </div>
 
           <div className={styles.blocos}>
-            <button type="button" className={styles.blocoReuniao} onClick={() => onIr('reuniao')}>
+            <button type="button" className={styles.blocoReuniao} onClick={() => onIr('reunioes')}>
               <span className={styles.blocoTitulo}>
                 <Icon
                   name="calendario"
@@ -166,7 +167,7 @@ export function MinhasObras({
                 {formatarDataCurta(reuniaoQueVem(hojeISO(), agenda.reuniaoDia))} ·{' '}
                 {horaCurta(agenda.reuniaoHora)}
               </span>
-              <span className={styles.blocoStatus}>Abrir pauta da próxima reunião</span>
+              <span className={styles.blocoStatus}>Pauta, preparar e atas</span>
             </button>
             <button type="button" className={styles.blocoTarefas} onClick={() => onIr('tarefas')}>
               <span className={styles.blocoTitulo}>
