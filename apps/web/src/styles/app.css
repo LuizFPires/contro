@@ -23,3 +23,21 @@
   text-align: center;
   color: var(--contro-muted);
 }
+
+/* Impressão (ata, prévia): a tela tem altura fixa com rolagem própria, e a
+   impressão só pegava o trecho visível (o PDF saía com 2 páginas). Na
+   impressão, o conteúdo volta a ocupar a altura que precisar. */
+@media print {
+  html,
+  body,
+  #root,
+  .app-shell,
+  .app-main {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+  .app-shell {
+    display: block;
+  }
+}

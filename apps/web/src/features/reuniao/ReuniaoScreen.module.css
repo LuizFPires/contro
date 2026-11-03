@@ -350,6 +350,49 @@
   background: var(--contro-white);
   color: var(--contro-black);
 }
+.mais {
+  margin-left: auto;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1.5px solid rgb(255 255 255 / 40%);
+  background: transparent;
+  color: var(--contro-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.menu {
+  display: flex;
+  flex-direction: column;
+}
+.menuItem {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--contro-border);
+  background: none;
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.menuItem:last-child {
+  border-bottom: 0;
+}
+.menuItem > span {
+  display: flex;
+  flex-direction: column;
+}
+.menuItem > span > span {
+  font-size: 13px;
+  color: #464646;
+}
 .previa {
   width: var(--contro-control-h);
   min-height: var(--contro-control-h);

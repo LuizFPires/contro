@@ -7,7 +7,6 @@ import {
   horaCurta,
   destinoNaAta,
   montarObraAta,
-  reuniaoAnterior,
   reuniaoQueVem,
   simularConclusaoEm,
   type LinhaAta,
@@ -79,19 +78,26 @@ interface Sheet {
 
 /** Reunião semanal: obra por obra, em 4 passos, até a ata. */
 export function ReuniaoScreen({
+  data: dataEscolhida,
   onVoltar,
   onMinhas,
+  onReunioes,
 }: {
+  /** Reunião escolhida na central; sem ela, a que vem. */
+  data?: string | null;
   onVoltar: () => void;
   onMinhas: () => void;
+  /** Central de reuniões (lista das atas). */
+  onReunioes: () => void;
 }) {
   const hoje = hojeISO();
-  // A reunião que vem, no dia configurado pelo gestor (Reunião e avisos); dá
-  // para voltar à anterior para ver a ata.
+  // A reunião que vem, no dia configurado pelo gestor (Reunião e avisos), ou a
+  // escolhida na central de reuniões (as passadas só são lidas, não criadas).
   const { config: agenda } = useConfigAvisos();
-  const [verAnterior, setVerAnterior] = useState(false);
   const queVem = reuniaoQueVem(hoje, agenda.reuniaoDia);
-  const data = verAnterior ? reuniaoAnterior(queVem) : queVem;
+  const data = dataEscolhida ?? queVem;
+  const verAnterior = data < queVem;
+  const [menuAberto, setMenuAberto] = useState(false);
   const { data: pessoa } = usePerfil();
   const { data: pessoas = [] } = usePessoas();
   const { data: nomesSugeridos = [] } = useNomesSugeridos();
@@ -429,29 +435,14 @@ export function ReuniaoScreen({
           </div>
           <button
             type="button"
-            className={styles.trocarReuniao}
-            onClick={() => {
-              setVerAnterior(!verAnterior);
-              setAtaAberta(false);
-              setObraSel(null);
-              setPasso(0);
-              window.scrollTo({ top: 0 });
-            }}
+            className={styles.mais}
+            aria-label="Mais opções da reunião"
+            title="Mais opções"
+            onClick={() => setMenuAberto(true)}
           >
-            {verAnterior
-              ? `Próxima · ${formatarDataCurta(queVem)}`
-              : `Anterior · ${formatarDataCurta(reuniaoAnterior(queVem))}`}
+            <Icon name="more" size={22} />
           </button>
         </div>
-        {reuniao ? (
-          <button
-            type="button"
-            className={styles.baixarAtaTopo}
-            onClick={() => setBaixarAtaAberta(true)}
-          >
-            <Icon name="baixar" size={18} /> Baixar ata
-          </button>
-        ) : null}
         {obras.length > 0 ? (
           <div className={styles.obras} role="tablist" aria-label="Obras da reunião">
             {obras.map((x, i) => {
@@ -820,15 +811,6 @@ export function ReuniaoScreen({
         <div className={styles.rodape}>
           <button
             type="button"
-            className={styles.previa}
-            aria-label="Baixar ata em PDF"
-            title="Baixar ata em PDF"
-            onClick={() => setPrevia(true)}
-          >
-            <Icon name="baixar" size={20} strokeWidth={2.2} />
-          </button>
-          <button
-            type="button"
             className={styles.anterior}
             disabled={passo === 0 && idx === 0}
             onClick={() => (passo > 0 ? irPasso(passo - 1) : irObra(idx - 1))}
@@ -899,6 +881,61 @@ export function ReuniaoScreen({
         ) : (
           <p className={styles.soGestor}>O gestor gera a ata ao fim da reunião.</p>
         )}
+      </BottomSheet>
+
+      <BottomSheet
+        open={menuAberto}
+        title={`Reunião de ${dataFmt}`}
+        onClose={() => setMenuAberto(false)}
+      >
+        <div className={styles.menu}>
+          {!fechada && reuniao ? (
+            <button
+              type="button"
+              className={styles.menuItem}
+              onClick={() => {
+                setMenuAberto(false);
+                setPrevia(true);
+              }}
+            >
+              <Icon name="documento" size={20} />
+              <span>
+                <b>Preparar a reunião · PDF</b>
+                <span>O que vai ser cobrado e perguntado em cada obra</span>
+              </span>
+            </button>
+          ) : null}
+          {fechada && reuniao ? (
+            <button
+              type="button"
+              className={styles.menuItem}
+              onClick={() => {
+                setMenuAberto(false);
+                setBaixarAtaAberta(true);
+              }}
+            >
+              <Icon name="baixar" size={20} />
+              <span>
+                <b>Baixar ata · PDF</b>
+                <span>Resumo em tabela e ata completa, todas as obras</span>
+              </span>
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className={styles.menuItem}
+            onClick={() => {
+              setMenuAberto(false);
+              onReunioes();
+            }}
+          >
+            <Icon name="calendario" size={20} />
+            <span>
+              <b>Reuniões e atas</b>
+              <span>A próxima e as atas das reuniões passadas</span>
+            </span>
+          </button>
+        </div>
       </BottomSheet>
 
       {previa ? (

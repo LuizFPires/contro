@@ -10,6 +10,7 @@ import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
 import { NovaVersao } from './features/offline/NovaVersao';
 import { ReuniaoScreen } from './features/reuniao/ReuniaoScreen';
+import { ReunioesScreen } from './features/reuniao/ReunioesScreen';
 import { ConfigBoletimScreen } from './features/boletim-auto/ConfigBoletimScreen';
 import { ConfigAvisosScreen } from './features/avisos/ConfigAvisosScreen';
 import { AprovarMembros } from './features/membros/AprovarMembros';
@@ -28,6 +29,9 @@ export function App() {
   usePush(Boolean(session && pessoa?.ativo), session?.user.id);
   // Lembrada: ao voltar ao app (ou à guia), continua na mesma tela.
   const [tela, setTela] = useLembrado<'inicio' | DestinoInicio>('app', 'inicio');
+
+  // Reunião escolhida na central (null = a que vem).
+  const [reuniaoData, setReuniaoData] = useState<string | null>(null);
 
   // Minhas ações abre da ata e das Tarefas: o Voltar retorna para lá.
   const [voltarMinhas, setVoltarMinhas] = useState<'inicio' | DestinoInicio>('inicio');
@@ -105,7 +109,20 @@ export function App() {
         {tela === 'modelos' && ehGestor ? (
           <ModelosScreen onVoltar={voltar} />
         ) : tela === 'reuniao' ? (
-          <ReuniaoScreen onVoltar={voltar} onMinhas={() => irMinhas('reuniao')} />
+          <ReuniaoScreen
+            data={reuniaoData}
+            onVoltar={() => setTela('reunioes')}
+            onMinhas={() => irMinhas('reuniao')}
+            onReunioes={() => setTela('reunioes')}
+          />
+        ) : tela === 'reunioes' ? (
+          <ReunioesScreen
+            onVoltar={voltar}
+            onAbrir={(d) => {
+              setReuniaoData(d);
+              setTela('reuniao');
+            }}
+          />
         ) : tela === 'tarefas' ? (
           <TarefasScreen onVoltar={voltar} onMinhas={() => irMinhas('tarefas')} />
         ) : tela === 'minhas' ? (
