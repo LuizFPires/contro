@@ -1,10 +1,24 @@
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 import { topoFila } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
 import { type NovaPendencia } from './campo';
 import { guardarFotoLocal } from './foto';
 import { loadPendencias, type PendenciaObra } from './pendenciasObra';
+
+/** Referência estável: o combine só reexecuta quando os resultados mudam. */
+function combinarPendencias(rs: UseQueryResult<PendenciaObra[]>[]) {
+  return {
+    pendencias: rs.flatMap((r) => r.data ?? []),
+    carregando: rs.some((r) => r.isLoading),
+  };
+}
 
 /** Pendências de várias obras, no mesmo cache por obra (patches otimistas chegam aqui). */
 export function usePendenciasDasObras(obraIds: string[]) {
@@ -14,10 +28,7 @@ export function usePendenciasDasObras(obraIds: string[]) {
       enabled: Boolean(supabase),
       queryFn: () => loadPendencias(id),
     })),
-    combine: (rs) => ({
-      pendencias: rs.flatMap((r) => r.data ?? []),
-      carregando: rs.some((r) => r.isLoading),
-    }),
+    combine: combinarPendencias,
   });
 }
 

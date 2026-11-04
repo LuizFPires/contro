@@ -11,7 +11,7 @@ export function useAcoesDasObras(obraIds: string[]): { acoes: AcaoObra[]; carreg
   const { pendencias, carregando: carregandoP } = usePendenciasDasObras(obraIds);
   const { query: configQuery } = useConfigAvisos();
   const cfg = configQuery.data;
-  const prazos = cfg ? prazosDaConfig(cfg) : PRAZOS_PENDENCIA_PADRAO;
+  const prazos = useMemo(() => (cfg ? prazosDaConfig(cfg) : PRAZOS_PENDENCIA_PADRAO), [cfg]);
   const acoes = useMemo(
     () => [...tarefas.map(tarefaParaAcao), ...pendencias.map((p) => pendenciaParaAcao(p, prazos))],
     [tarefas, pendencias, prazos],

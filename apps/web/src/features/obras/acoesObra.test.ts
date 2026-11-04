@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { PRAZOS_PENDENCIA_PADRAO } from '@contro/core';
+import { PRAZOS_PENDENCIA_PADRAO, prazoPendencia } from '@contro/core';
+import { dataLocal } from './api';
 import { pendenciaParaAcao, tarefaParaAcao } from './acoesObra';
 import type { PendenciaObra } from './pendenciasObra';
 import type { TarefaObra } from './tarefasObra';
@@ -72,10 +73,11 @@ describe('tarefaParaAcao', () => {
 });
 
 describe('pendenciaParaAcao', () => {
-  it('pendência aberta alta apontada na segunda vence na quarta', () => {
-    const a = pendenciaParaAcao(pendencia(), PRAZOS_PENDENCIA_PADRAO);
+  it('prazo parte da data local do apontamento, não da data UTC', () => {
+    const ts = '2026-11-02T23:30:00-03:00'; // 02:30 UTC do dia 3
+    const a = pendenciaParaAcao(pendencia({ apontada_em: ts }), PRAZOS_PENDENCIA_PADRAO);
     expect(a.origem).toBe('pendencia');
-    expect(a.prazo).toBe('2026-11-04');
+    expect(a.prazo).toBe(prazoPendencia('alta', dataLocal(ts), PRAZOS_PENDENCIA_PADRAO));
     expect(a.aberta).toBe(true);
     expect(a.texto).toBe('Rejunte manchado');
   });

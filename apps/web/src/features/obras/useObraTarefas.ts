@@ -1,5 +1,11 @@
 import { useRef } from 'react';
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
 import { type EntradaTarefa } from './campo';
@@ -17,6 +23,13 @@ export function useObraTarefas(obraId: string) {
   return { query };
 }
 
+function combinarTarefas(rs: UseQueryResult<TarefaObra[]>[]) {
+  return {
+    tarefas: rs.flatMap((r) => r.data ?? []),
+    carregando: rs.some((r) => r.isLoading),
+  };
+}
+
 /** Tarefas de várias obras (tela Tarefas da equipe), no mesmo cache por obra. */
 export function useTarefasDasObras(obraIds: string[]) {
   return useQueries({
@@ -25,10 +38,7 @@ export function useTarefasDasObras(obraIds: string[]) {
       enabled: Boolean(supabase),
       queryFn: () => loadTarefas(id),
     })),
-    combine: (rs) => ({
-      tarefas: rs.flatMap((r) => r.data ?? []),
-      carregando: rs.some((r) => r.isLoading),
-    }),
+    combine: combinarTarefas,
   });
 }
 
