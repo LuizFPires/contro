@@ -12,7 +12,7 @@ const ROTULO: Record<TipoItemDia, string> = {
   contratacao: 'Contratação',
   locacao: 'Locação',
   compra: 'Compra',
-  tarefa: 'Tarefa',
+  acao: 'Ação',
 };
 
 function detalhe(i: ItemDia): string {
@@ -21,7 +21,7 @@ function detalhe(i: ItemDia): string {
   const libera = i.libera ? ` · ${i.libera.nome} começa ${formatarDataCurta(i.libera.inicio)}` : '';
   if (i.atraso) {
     if (i.tipo === 'concluir') return `devia terminar ${formatarDataCurta(i.data)}${libera}`;
-    if (i.tipo === 'tarefa') return `${quem} · venceu ${formatarDataCurta(i.data)}`;
+    if (i.tipo === 'acao') return `${quem} · venceu ${formatarDataCurta(i.data)}`;
     return `era para providenciar até ${formatarDataCurta(i.data)}`;
   }
   if (i.tipo === 'concluir') return `previsto concluir hoje${libera}`;
@@ -31,7 +31,7 @@ function detalhe(i: ItemDia): string {
       : `previsto começar hoje${libera}`;
   if (i.tipo === 'andamento')
     return `desde ${formatarDataCurta(i.inicio ?? i.data)} · terminar até ${formatarDataCurta(i.fim ?? i.data)}${libera}`;
-  if (i.tipo === 'tarefa') return `${quem} · até hoje`;
+  if (i.tipo === 'acao') return `${quem} · até hoje`;
   // Lembrete que leva dias: avisa desde o dia de começar até o prazo.
   if (i.fim && i.fim !== i.data)
     return i.inicio === i.data
@@ -145,7 +145,7 @@ export function HojeObras({
                       <Linha
                         key={i.chave}
                         i={i}
-                        onClick={() => (i.tipo === 'tarefa' ? onAbrirTarefas() : onAbrirObra(o.id))}
+                        onClick={() => (i.tipo === 'acao' ? onAbrirTarefas() : onAbrirObra(o.id))}
                       />
                     ))}
                   </>
@@ -157,7 +157,7 @@ export function HojeObras({
                       <Linha
                         key={i.chave}
                         i={i}
-                        onClick={() => (i.tipo === 'tarefa' ? onAbrirTarefas() : onAbrirObra(o.id))}
+                        onClick={() => (i.tipo === 'acao' ? onAbrirTarefas() : onAbrirObra(o.id))}
                       />
                     ))}
                   </>

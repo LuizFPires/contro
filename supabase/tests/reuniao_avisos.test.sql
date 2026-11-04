@@ -1,10 +1,10 @@
 -- Reunião e avisos (pgTAP): gerar_avisos cria os avisos certos no horário de
--- São Paulo, uma vez por pessoa/dia, respeitando "quem recebe"; tarefas só para
--- o responsável; nada no fim de semana; equipe não altera a configuração.
+-- São Paulo, uma vez por pessoa/dia; nada no fim de semana; equipe não altera a
+-- configuração. As ações do dia têm teste próprio (acoes_avisos.test.sql).
 -- Requer o seed de homologação (Modelo 1 + unidades Contorno).
 
 begin;
-select plan(10);
+select plan(7);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a1', 'gestor@avisos.contro'),
@@ -38,28 +38,15 @@ create temp view meus as
 select gerar_avisos('2031-01-06 11:05:00+00');
 select is((select count(*)::int from meus where tipo = 'reuniao_manha'), 2,
   'lembrete da manhã para todos no dia da reunião');
-select is((select count(*)::int from meus where tipo = 'resumo'), 2, 'resumo da manhã para todos');
-select is(
-  (select array_agg(user_id::text) from meus where tipo = 'tarefas'),
-  array['00000000-0000-0000-0000-0000000000a2'], 'tarefa de hoje só para o responsável'
-);
 select is((select count(*)::int from meus where tipo = 'reuniao_antes'), 0, 'antes de começar ainda não');
 
--- Mesma rodada de novo: nada duplicado.
+-- Mesma rodada de novo: nada duplicado (2 da reunião + ações da equipe + do gestor).
 select gerar_avisos('2031-01-06 11:10:00+00');
-select is((select count(*)::int from meus where dia = '2031-01-06'), 5, 'cron repetido não duplica');
+select is((select count(*)::int from meus where dia = '2031-01-06'), 4, 'cron repetido não duplica');
 
 -- 15:05 em São Paulo: 1 hora antes da reunião das 16h.
 select gerar_avisos('2031-01-06 18:05:00+00');
 select is((select count(*)::int from meus where tipo = 'reuniao_antes'), 2, 'lembrete 1 hora antes');
-
--- Resumo só para gestores, na terça.
-update config_avisos set resumo_para = 'gestores' where id;
-select gerar_avisos('2031-01-07 10:35:00+00');
-select is(
-  (select array_agg(user_id::text) from meus where tipo = 'resumo' and dia = '2031-01-07'),
-  array['00000000-0000-0000-0000-0000000000a1'], 'resumo só para gestores quando configurado'
-);
 
 -- Sábado: nada.
 select gerar_avisos('2031-01-11 11:05:00+00');

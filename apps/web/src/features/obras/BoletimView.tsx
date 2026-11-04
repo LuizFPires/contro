@@ -1,11 +1,8 @@
 import { useMemo, useState } from 'react';
 import {
   classificarSemana,
-  compilarPorPessoa,
-  derivarAtribuicoes,
   providenciaAtrasada,
   ritmoTexto,
-  tarefaAtrasada,
   textoBoletimWhatsapp,
   type AtividadeSemana,
   type BoletimDados,
@@ -16,7 +13,8 @@ import { pdfServiceConfigurado } from '../../lib/env';
 import { baixarPdf } from '../../lib/pdf';
 import { hojeISO } from './api';
 import type { ObraCompleta } from './detalhe';
-import { useObraTarefas } from './useObraTarefas';
+import { quemFazOQueBoletim } from './boletimAcoes';
+import { useAcoesDasObras } from './useAcoesDasObras';
 import styles from './BoletimView.module.css';
 
 const TIPO: Record<string, string> = {
@@ -39,7 +37,7 @@ function semanaFmt(): string {
 
 /** Boletim da semana (protótipo · BOLETIM), dentro da tela da obra. */
 export function BoletimView({ obra }: { obra: ObraCompleta }) {
-  const tarefas = useObraTarefas(obra.id);
+  const { acoes } = useAcoesDasObras([obra.id]);
 
   const dados = useMemo<BoletimDados>(() => {
     const hoje = hojeISO();
@@ -90,37 +88,7 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
       }
     }
 
-    const tabTarefas = (tarefas.query.data ?? []).map((t) => ({
-      texto: t.texto,
-      pessoa: t.responsavelNome ?? 'Sem responsável',
-      prazo: t.prazo,
-      atrasado: tarefaAtrasada(t, hoje),
-      concluido: t.status === 'feita',
-    }));
-    const grupos = compilarPorPessoa(
-      derivarAtribuicoes(
-        {
-          tarefas: tabTarefas,
-          engenheiroNome: null,
-          comprasNome: null,
-          atividadesAtrasadas: [],
-          concluirSemana: [],
-          comecarSemana: [],
-          providenciasAtrasadas: [],
-          providenciarSemana: [],
-        },
-        hoje,
-      ),
-    );
-    const quemFazOQue = grupos.map((g) => ({
-      pessoa: g.pessoa,
-      itens: g.itens.map((it) => ({
-        dataFmt: it.prazo ? formatarDataCurta(it.prazo) : null,
-        texto: it.texto,
-        data: it.prazo,
-        atrasado: it.atrasado,
-      })),
-    }));
+    const quemFazOQue = quemFazOQueBoletim(acoes, hoje);
 
     const ritmo = ritmoTexto(obra.ritmoDias);
     return {
@@ -135,7 +103,7 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
       comecar,
       quemFazOQue,
     };
-  }, [obra, tarefas.query.data]);
+  }, [obra, acoes]);
 
   const texto = textoBoletimWhatsapp(dados, hojeISO());
   const wa = `https://wa.me/?text=${encodeURIComponent(texto)}`;

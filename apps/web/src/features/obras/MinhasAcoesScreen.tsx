@@ -1,13 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { addDU, tarefaAtrasada, textoReplanejamento } from '@contro/core';
+import {
+  addDU,
+  classificarAcoes,
+  estadoAcao,
+  textoReplanejamento,
+  textoResumoSecoes,
+} from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { EscolherData } from '../../components/EscolherData';
 import { formatarDataCurta } from '../../lib/datas';
 import { usePerfil } from '../perfil/usePerfil';
-import { dataLocal, hojeISO } from './api';
+import { acoesVisiveis, secoesAcoes, type AcaoObra } from './acoesObra';
+import { hojeISO } from './api';
+import { CardAcao, MarcadorAcao, TituloSecao } from './CardAcao';
 import type { TarefaObra } from './tarefasObra';
+import { useAcoesDasObras } from './useAcoesDasObras';
 import { useObras } from './useObras';
-import { useTarefasAcoes, useTarefasDasObras } from './useObraTarefas';
+import { useTarefasAcoes } from './useObraTarefas';
 import styles from './MinhasAcoesScreen.module.css';
 
 const PASSOS = [0, 25, 50, 75];
@@ -16,37 +25,45 @@ const CIRC = 2 * Math.PI * R;
 
 /**
  * Minhas ações (pedido do usuário, 29/10/2026): o que ficou com a pessoa, em
- * todas as obras, para ela dar avanço durante a semana. O gestor vê o avanço e
- * o comentário nas Tarefas e na cobrança da próxima reunião.
+ * todas as obras (tarefas e pendências do Check list), em quatro seções e,
+ * dentro de cada uma, por obra. O gestor vê o avanço e o comentário nas
+ * Tarefas e na cobrança da próxima reunião.
  */
-export function MinhasAcoesScreen({ onVoltar }: { onVoltar: () => void }) {
+export function MinhasAcoesScreen({
+  onVoltar,
+  onAbrirPendencia,
+}: {
+  onVoltar: () => void;
+  /** Abre o Check list da obra da pendência. */
+  onAbrirPendencia: (obraId: string, pendenciaId: string) => void;
+}) {
   const { data: pessoa } = usePerfil();
   const { data: obras = [] } = useObras();
-  const { tarefas, carregando } = useTarefasDasObras(obras.map((o) => o.id));
+  const { acoes: todas, carregando } = useAcoesDasObras(obras.map((o) => o.id));
   const acoes = useTarefasAcoes();
   const { showToast } = useToast();
-  const [aba, setAba] = useState<'abertas' | 'feitas'>('abertas');
   const [sel, setSel] = useState<TarefaObra | null>(null);
   const hoje = hojeISO();
 
   const minhas = useMemo(
-    () => tarefas.filter((t) => pessoa && t.responsavel_id === pessoa.id),
-    [tarefas, pessoa],
+    () => (pessoa ? acoesVisiveis(todas, hoje).filter((a) => a.responsavelId === pessoa.id) : []),
+    [todas, pessoa, hoje],
   );
-  const abertas = minhas.filter((t) => t.status === 'aberta');
-  const feitas = minhas
-    .filter((t) => t.status === 'feita')
-    .sort((a, b) => (b.feita_em ?? '').localeCompare(a.feita_em ?? ''));
-  const atrasadas = abertas.filter((t) => tarefaAtrasada(t, hoje)).length;
-  const lista = aba === 'abertas' ? abertas : feitas;
+  const classificadas = useMemo(() => classificarAcoes(minhas, hoje), [minhas, hoje]);
+  const resumo = `Você: ${textoResumoSecoes({
+    atrasadas: classificadas.atrasadas.length,
+    hoje: classificadas.hoje.length,
+    proximas: classificadas.proximas.length,
+    concluidas: classificadas.concluidas.length,
+  })}`;
 
-  // Por obra, na ordem das obras; dentro, por prazo.
-  const grupos = obras
-    .map((o) => ({
-      obra: o,
-      itens: lista.filter((t) => t.obra_id === o.id).sort((a, b) => a.prazo.localeCompare(b.prazo)),
-    }))
-    .filter((g) => g.itens.length);
+  // Seções → obras (na ordem das obras) → itens (na ordem da seção).
+  const secoes = secoesAcoes(classificadas).map((sec) => ({
+    ...sec,
+    grupos: obras
+      .map((o) => ({ obra: o, itens: sec.itens.filter((a) => a.obraId === o.id) }))
+      .filter((g) => g.itens.length),
+  }));
 
   function salvar(t: TarefaObra, v: { pct: number | 'feita'; comentario: string; prazo: string }) {
     const alvo = { obraId: t.obra_id, id: t.id };
@@ -86,6 +103,42 @@ export function MinhasAcoesScreen({ onVoltar }: { onVoltar: () => void }) {
     });
   }
 
+  function card(a: AcaoObra) {
+    const feita = !a.aberta;
+    const seta = feita ? null : <Icon name="chevronRight" size={18} />;
+    if (a.origem === 'pendencia') {
+      return (
+        <CardAcao
+          key={`pendencia:${a.id}`}
+          acao={a}
+          hoje={hoje}
+          comResponsavel={false}
+          cardInteiro
+          esquerda={<MarcadorAcao feita={feita} />}
+          direita={<Icon name="chevronRight" size={18} />}
+          rotulo={`${a.texto}: abrir no Check list`}
+          onToque={() => onAbrirPendencia(a.obraId, a.id)}
+        />
+      );
+    }
+    const t = a.tarefa;
+    return (
+      <CardAcao
+        key={`tarefa:${a.id}`}
+        acao={a}
+        hoje={hoje}
+        comResponsavel={false}
+        cardInteiro
+        esquerda={
+          <Anel pct={feita ? 100 : t.avanco_pct} atrasada={estadoAcao(a, hoje) === 'atrasada'} />
+        }
+        direita={seta}
+        rotulo={feita ? `${a.texto}: concluída. Tocar para reabrir` : `${a.texto}: dar avanço`}
+        onToque={() => (feita ? reabrir(t) : setSel(t))}
+      />
+    );
+  }
+
   return (
     <div className={styles.screen}>
       <header className={styles.cabecalho}>
@@ -94,88 +147,27 @@ export function MinhasAcoesScreen({ onVoltar }: { onVoltar: () => void }) {
         </button>
         <div>
           <h1 className={styles.titulo}>Minhas ações</h1>
-          <div className={styles.sub}>
-            {pessoa?.nome ?? ''} · {abertas.length} {abertas.length === 1 ? 'aberta' : 'abertas'}
-            {atrasadas ? ` · ${atrasadas} ${atrasadas === 1 ? 'atrasada' : 'atrasadas'}` : ''}
-          </div>
+          <div className={styles.sub}>O que está com você, em todas as obras</div>
         </div>
       </header>
 
-      <div className={styles.abas} role="tablist" aria-label="Situação">
-        {(
-          [
-            ['abertas', `Abertas · ${abertas.length}`],
-            ['feitas', `Feitas · ${feitas.length}`],
-          ] as const
-        ).map(([k, t]) => (
-          <button
-            key={k}
-            type="button"
-            role="tab"
-            aria-selected={aba === k}
-            className={`${styles.aba} ${aba === k ? styles.abaOn : ''}`}
-            onClick={() => setAba(k)}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      <div className={styles.resumo}>{carregando ? 'Carregando…' : resumo}</div>
 
       <div className={styles.lista}>
-        {carregando ? <p className={styles.vazio}>Carregando…</p> : null}
-        {!carregando && grupos.length === 0 ? (
+        {!carregando && minhas.length === 0 ? (
           <p className={styles.vazio}>
-            {aba === 'abertas'
-              ? 'Nenhuma ação aberta com você. As da reunião aparecem aqui.'
-              : 'Nenhuma ação concluída ainda.'}
+            Nenhuma ação com você. As da reunião e as pendências do Check list aparecem aqui.
           </p>
         ) : null}
-        {grupos.map((g) => (
-          <section key={g.obra.id}>
-            <h2 className={styles.obra}>{g.obra.nome}</h2>
-            <div className={styles.cartao}>
-              {g.itens.map((t) => {
-                const feita = t.status === 'feita';
-                const atrasada = tarefaAtrasada(t, hoje);
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={styles.item}
-                    onClick={() => (feita ? reabrir(t) : setSel(t))}
-                    aria-label={
-                      feita ? `${t.texto}: concluída. Tocar para reabrir` : `${t.texto}: dar avanço`
-                    }
-                  >
-                    <Anel pct={feita ? 100 : t.avanco_pct} atrasada={atrasada} />
-                    <span className={styles.itemTexto}>
-                      <span className={styles.itemTitulo}>{t.texto}</span>
-                      {feita ? (
-                        <span className={styles.meta}>
-                          Concluída
-                          {t.feita_em ? ` em ${formatarDataCurta(dataLocal(t.feita_em))}` : ''} ·
-                          tocar para reabrir
-                        </span>
-                      ) : atrasada ? (
-                        <span className={styles.atraso}>
-                          <Icon name="relogio" size={14} strokeWidth={2.4} />
-                          Atrasada · era até {formatarDataCurta(t.prazo)}
-                        </span>
-                      ) : (
-                        <span className={styles.meta}>até {formatarDataCurta(t.prazo)}</span>
-                      )}
-                      {!feita && t.comentario ? (
-                        <span className={styles.comentario}>“{t.comentario}”</span>
-                      ) : null}
-                      {t.origem_texto ? (
-                        <span className={styles.meta}>{t.origem_texto}</span>
-                      ) : null}
-                    </span>
-                    {feita ? null : <Icon name="chevronRight" size={18} />}
-                  </button>
-                );
-              })}
-            </div>
+        {secoes.map((sec) => (
+          <section key={sec.estado} className={styles.secao}>
+            <TituloSecao secao={sec} />
+            {sec.grupos.map((g) => (
+              <div key={g.obra.id} className={styles.grupo}>
+                <h3 className={styles.obra}>{g.obra.nome}</h3>
+                {g.itens.map(card)}
+              </div>
+            ))}
           </section>
         ))}
       </div>
@@ -201,7 +193,7 @@ function Anel({ pct, atrasada }: { pct: number; atrasada: boolean }) {
   }
   return (
     <span className={styles.anel} aria-hidden="true">
-      <svg width="40" height="40" viewBox="0 0 36 36">
+      <svg className={styles.anelSvg} width="40" height="40" viewBox="0 0 36 36">
         <circle cx="18" cy="18" r={R} className={styles.trilho} />
         {pct > 0 ? (
           <circle

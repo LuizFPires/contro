@@ -18,7 +18,7 @@ import { supabase } from './lib/supabase';
 import { Login } from './screens/Login';
 import { NovaSenha } from './screens/NovaSenha';
 import { AguardandoAprovacao } from './screens/AguardandoAprovacao';
-import { MinhasObras, type DestinoInicio } from './screens/MinhasObras';
+import { MinhasObras, type AbrirObra, type DestinoInicio } from './screens/MinhasObras';
 import { TarefasScreen } from './features/obras/TarefasScreen';
 import { MinhasAcoesScreen } from './features/obras/MinhasAcoesScreen';
 
@@ -38,6 +38,14 @@ export function App() {
   const irMinhas = (de: 'reuniao' | 'tarefas') => {
     setVoltarMinhas(de);
     setTela('minhas');
+  };
+
+  // Toque numa pendência (Tarefas / Minhas ações) abre o Check list da obra
+  // naquela pendência; o Voltar da obra retorna para a tela de origem.
+  const [abrirObra, setAbrirObra] = useState<AbrirObra | null>(null);
+  const abrirPendencia = (de: 'tarefas' | 'minhas') => (obraId: string, pendenciaId: string) => {
+    setAbrirObra({ id: obraId, aba: 'pendencias', pendenciaId, voltar: de });
+    setTela('inicio');
   };
 
   // Toque num aviso por push abre a tela certa (/?ir=reuniao | tarefas | minhas | hoje).
@@ -124,9 +132,16 @@ export function App() {
             }}
           />
         ) : tela === 'tarefas' ? (
-          <TarefasScreen onVoltar={voltar} onMinhas={() => irMinhas('tarefas')} />
+          <TarefasScreen
+            onVoltar={voltar}
+            onMinhas={() => irMinhas('tarefas')}
+            onAbrirPendencia={abrirPendencia('tarefas')}
+          />
         ) : tela === 'minhas' ? (
-          <MinhasAcoesScreen onVoltar={() => setTela(voltarMinhas)} />
+          <MinhasAcoesScreen
+            onVoltar={() => setTela(voltarMinhas)}
+            onAbrirPendencia={abrirPendencia('minhas')}
+          />
         ) : tela === 'avisos' && ehGestor ? (
           <ConfigAvisosScreen onVoltar={voltar} />
         ) : tela === 'config' && ehGestor ? (
@@ -135,6 +150,8 @@ export function App() {
           <AprovarMembros onVoltar={voltar} />
         ) : (
           <MinhasObras
+            abrirObra={abrirObra}
+            onAbrirObraConsumida={() => setAbrirObra(null)}
             onIr={setTela}
             onSair={() => {
               esquecerTelas();

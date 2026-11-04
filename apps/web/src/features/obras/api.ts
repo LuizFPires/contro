@@ -5,7 +5,10 @@ import {
   dependenciasAtivas,
   estadoObra,
   previsaoEntrega,
-  tarefaAtrasada,
+  estadoAcao,
+  prazoPendencia,
+  PRAZOS_PENDENCIA_PADRAO,
+  type PrazosPendencia,
   type AgendaObra,
   type AtividadeEntrada,
   nomeCurto,
@@ -47,8 +50,10 @@ export interface ObraResumo {
   entrega: string;
   atrasada: boolean;
   fasesEstado: FaseEstado[];
-  tarefasAbertas: number;
-  tarefasAtrasadas: number;
+  /** Ações = tarefas + pendências abertas. */
+  acoesAbertas: number;
+  acoesAtrasadas: number;
+  acoesHoje: number;
   /** "Hoje" da tela inicial: atrasados e o que é para hoje. */
   agenda: AgendaObra;
   /** Inauguração prevista depois da planejada (null = no prazo). */
@@ -78,8 +83,8 @@ export async function listarUnidades(): Promise<Unidade[]> {
 export async function listarObras(): Promise<ObraResumo[]> {
   if (!supabase) return [];
   const hoje = hojeISO();
-  const [obrasRes, fasesRes, atvsRes, depsRes, provsRes, tarefasRes, liberaRes] = await Promise.all(
-    [
+  const [obrasRes, fasesRes, atvsRes, depsRes, provsRes, tarefasRes, pendRes, cfgRes, liberaRes] =
+    await Promise.all([
       supabase
         .from('obra')
         .select('id,nome,modelo_rotulo,inicio,entrega_original')
@@ -105,9 +110,19 @@ export async function listarObras(): Promise<ObraResumo[]> {
         )
         .eq('status', 'aberta')
         .is('deleted_at', null),
+      supabase
+        .from('pendencia')
+        .select(
+          'id,obra_id,titulo,criticidade,apontada_em,responsavel_id,responsavel:pessoa!responsavel_id(nome)',
+        )
+        .eq('status', 'aberta')
+        .is('deleted_at', null),
+      supabase
+        .from('config_avisos')
+        .select('pend_alta_du,pend_media_du,pend_baixa_du')
+        .maybeSingle(),
       supabase.from('obra_mapa_libera').select('mapa_id,atividade_id'),
-    ],
-  );
+    ]);
   const liberaPorMapa = new Map<string, string[]>();
   for (const l of (liberaRes.data ?? []) as { mapa_id: string; atividade_id: string }[])
     liberaPorMapa.set(l.mapa_id, [...(liberaPorMapa.get(l.mapa_id) ?? []), l.atividade_id]);
@@ -169,12 +184,49 @@ export async function listarObras(): Promise<ObraResumo[]> {
     responsavel_nome: string | null;
     responsavel: { nome: string } | null;
   }[];
-  const tAbertas = new Map<string, number>();
-  const tAtrasadas = new Map<string, number>();
-  for (const t of tarefas) {
-    tAbertas.set(t.obra_id, (tAbertas.get(t.obra_id) ?? 0) + 1);
-    if (tarefaAtrasada(t, hoje)) tAtrasadas.set(t.obra_id, (tAtrasadas.get(t.obra_id) ?? 0) + 1);
-  }
+  const cfg = cfgRes.data as {
+    pend_alta_du: number;
+    pend_media_du: number;
+    pend_baixa_du: number;
+  } | null;
+  const prazos: PrazosPendencia = cfg
+    ? { alta: cfg.pend_alta_du, media: cfg.pend_media_du, baixa: cfg.pend_baixa_du }
+    : PRAZOS_PENDENCIA_PADRAO;
+  const pendencias = (pendRes.data ?? []) as unknown as {
+    id: string;
+    obra_id: string;
+    titulo: string;
+    criticidade: 'alta' | 'media' | 'baixa';
+    apontada_em: string;
+    responsavel: { nome: string } | null;
+  }[];
+  // Ação = tarefa ou pendência aberta (mesma conta de Tarefas da equipe).
+  type AcaoLinha = {
+    id: string;
+    texto: string;
+    prazo: string;
+    aberta: boolean;
+    pessoa: string | null;
+  };
+  const acoesPorObra = new Map<string, AcaoLinha[]>();
+  const somar = (obraId: string, a: AcaoLinha) =>
+    acoesPorObra.set(obraId, [...(acoesPorObra.get(obraId) ?? []), a]);
+  for (const t of tarefas)
+    somar(t.obra_id, {
+      id: t.id,
+      texto: t.texto,
+      prazo: t.prazo,
+      aberta: t.status === 'aberta',
+      pessoa: nomeCurto(t.responsavel?.nome ?? t.responsavel_nome) || null,
+    });
+  for (const p of pendencias)
+    somar(p.obra_id, {
+      id: p.id,
+      texto: p.titulo,
+      prazo: prazoPendencia(p.criticidade, dataLocal(new Date(p.apontada_em)), prazos),
+      aberta: true,
+      pessoa: nomeCurto(p.responsavel?.nome) || null,
+    });
 
   return obras.map((o) => {
     const todasFases = fases.filter((f) => f.obra_id === o.id).sort((a, b) => a.ordem - b.ordem);
@@ -256,8 +308,12 @@ export async function listarObras(): Promise<ObraResumo[]> {
       entrega: est.indicadores.entrega,
       atrasada: est.indicadores.ritmoDias <= -2,
       fasesEstado,
-      tarefasAbertas: tAbertas.get(o.id) ?? 0,
-      tarefasAtrasadas: tAtrasadas.get(o.id) ?? 0,
+      acoesAbertas: (acoesPorObra.get(o.id) ?? []).length,
+      acoesAtrasadas: (acoesPorObra.get(o.id) ?? []).filter(
+        (a) => estadoAcao(a, hoje) === 'atrasada',
+      ).length,
+      acoesHoje: (acoesPorObra.get(o.id) ?? []).filter((a) => estadoAcao(a, hoje) === 'hoje')
+        .length,
       risco: (() => {
         try {
           const p = previsaoEntrega({
@@ -340,15 +396,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
             antecedenciaDu: p.antecedencia_du,
             duracaoDu: p.duracao_du,
           })),
-        tarefas: tarefas
-          .filter((t) => t.obra_id === o.id)
-          .map((t) => ({
-            id: t.id,
-            texto: t.texto,
-            prazo: t.prazo,
-            aberta: t.status === 'aberta',
-            pessoa: nomeCurto(t.responsavel?.nome ?? t.responsavel_nome) || null,
-          })),
+        acoes: acoesPorObra.get(o.id) ?? [],
       }),
     };
   });

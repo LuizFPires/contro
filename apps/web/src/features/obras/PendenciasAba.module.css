@@ -589,3 +589,9 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+/* Pendência tocada em Tarefas ou Minhas ações. */
+.destaque {
+  outline: 3px solid var(--contro-turquoise);
+  outline-offset: 2px;
+}

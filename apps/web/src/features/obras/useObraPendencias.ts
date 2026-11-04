@@ -1,10 +1,36 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 import { topoFila } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
 import { type NovaPendencia } from './campo';
 import { guardarFotoLocal } from './foto';
 import { loadPendencias, type PendenciaObra } from './pendenciasObra';
+
+/** Referência estável: o combine só reexecuta quando os resultados mudam. */
+function combinarPendencias(rs: UseQueryResult<PendenciaObra[]>[]) {
+  return {
+    pendencias: rs.flatMap((r) => r.data ?? []),
+    carregando: rs.some((r) => r.isLoading),
+  };
+}
+
+/** Pendências de várias obras, no mesmo cache por obra (patches otimistas chegam aqui). */
+export function usePendenciasDasObras(obraIds: string[]) {
+  return useQueries({
+    queries: obraIds.map((id) => ({
+      queryKey: ['pendencias', id],
+      enabled: Boolean(supabase),
+      queryFn: () => loadPendencias(id),
+    })),
+    combine: combinarPendencias,
+  });
+}
 
 export function useObraPendencias(obraId: string) {
   const qc = useQueryClient();
@@ -81,6 +107,7 @@ export function useObraPendencias(obraId: string) {
       return { prev };
     },
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
   // Resolver: otimista e offline. Guarda a foto de depois no Dexie (sobe em 2º
   // plano) e enfileira; a pendência vai para Resolvidos na hora (sem vistoria).
@@ -98,6 +125,7 @@ export function useObraPendencias(obraId: string) {
         resolvida_em: new Date().toISOString(),
       })),
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
 
   // Ações de campo otimistas, offline e idempotentes.
@@ -116,6 +144,7 @@ export function useObraPendencias(obraId: string) {
         atividadeNome: v.atividadeNome,
       })),
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
   const excluir = useMutation({
     networkMode: 'always',
@@ -131,6 +160,7 @@ export function useObraPendencias(obraId: string) {
       return { prev };
     },
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
   // Desfazer do apagar: devolve a pendência (a tela guarda o objeto) na hora.
   const restaurar = useMutation({
@@ -146,6 +176,7 @@ export function useObraPendencias(obraId: string) {
       return { prev };
     },
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
 
   // Concluída volta para pendente (topo da fila), mantendo ou tirando a foto do depois.
@@ -170,6 +201,7 @@ export function useObraPendencias(obraId: string) {
       }));
     },
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
 
   const atribuir = useMutation({
@@ -179,6 +211,7 @@ export function useObraPendencias(obraId: string) {
     onMutate: (v: { id: string; responsavelId: string | null; nome: string | null }) =>
       patch(v.id, (p) => ({ ...p, responsavel_id: v.responsavelId, responsavelNome: v.nome })),
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
   return {
     atribuir,

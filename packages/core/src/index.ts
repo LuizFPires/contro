@@ -27,6 +27,7 @@ export * from './dependencias';
 export * from './avanco';
 export * from './busca';
 export * from './agendaReuniao';
+export * from './acoes';
 
 export type Perfil = 'gestor' | 'equipe';
 

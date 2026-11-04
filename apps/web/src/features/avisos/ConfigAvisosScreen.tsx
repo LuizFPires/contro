@@ -149,26 +149,33 @@ export function ConfigAvisosScreen({ onVoltar }: { onVoltar: () => void }) {
           <h2 className={styles.secao}>Avisos do dia · seg a sex</h2>
           <div className={styles.cartao}>
             <Aviso
-              titulo="Resumo da manhã"
-              desc="Obras em andamento e tarefas atrasadas"
-              ligado={cfg.resumoAtivo}
-              onLigar={(v) => set('resumoAtivo', v)}
+              titulo="Ações do dia"
+              desc="Cada um recebe as suas atrasadas e as de hoje; o gestor recebe a equipe inteira"
+              ligado={cfg.acoesAtivo}
+              onLigar={(v) => set('acoesAtivo', v)}
             >
-              <HoraEPara
-                hora={cfg.resumoHora}
-                onHora={(v) => set('resumoHora', v)}
-                para={cfg.resumoPara}
-                onPara={(v) => set('resumoPara', v)}
+              <HoraEPara hora={cfg.acoesHora} onHora={(v) => set('acoesHora', v)} />
+            </Aviso>
+            {/* Fora do aviso: o prazo vale para as listas, a tela inicial e o boletim,
+                mesmo com o push desligado. */}
+            <div className={styles.prazoBloco}>
+              <div className={styles.prazoTitulo}>Prazo da pendência (dias úteis)</div>
+              <PrazoPendencia
+                rotulo="Alta"
+                valor={cfg.pendAltaDu}
+                onEscolher={(v) => set('pendAltaDu', v)}
               />
-            </Aviso>
-            <Aviso
-              titulo="Tarefas que vencem hoje"
-              desc="Cada pessoa recebe só as suas"
-              ligado={cfg.tarefasAtivo}
-              onLigar={(v) => set('tarefasAtivo', v)}
-            >
-              <HoraEPara hora={cfg.tarefasHora} onHora={(v) => set('tarefasHora', v)} />
-            </Aviso>
+              <PrazoPendencia
+                rotulo="Média"
+                valor={cfg.pendMediaDu}
+                onEscolher={(v) => set('pendMediaDu', v)}
+              />
+              <PrazoPendencia
+                rotulo="Baixa"
+                valor={cfg.pendBaixaDu}
+                onEscolher={(v) => set('pendBaixaDu', v)}
+              />
+            </div>
             <Aviso
               titulo="Providências para começar"
               desc="Lembra de conferir o que contratar, alugar ou comprar"
@@ -262,6 +269,32 @@ function Opcoes({
           {o.t}
         </button>
       ))}
+    </div>
+  );
+}
+
+const PRAZOS_OPCOES = Array.from({ length: 10 }, (_, i) => ({
+  v: String(i + 1),
+  t: String(i + 1),
+}));
+
+function PrazoPendencia({
+  rotulo,
+  valor,
+  onEscolher,
+}: {
+  rotulo: string;
+  valor: number;
+  onEscolher: (v: number) => void;
+}) {
+  return (
+    <div className={styles.prazoPend}>
+      <span className={styles.prazoRotulo}>{rotulo}</span>
+      <Opcoes
+        opcoes={PRAZOS_OPCOES}
+        valor={String(valor)}
+        onEscolher={(v) => onEscolher(Number(v))}
+      />
     </div>
   );
 }

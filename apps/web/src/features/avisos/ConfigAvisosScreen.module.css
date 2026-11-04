@@ -218,3 +218,28 @@
   font-size: 13px;
   color: #464646;
 }
+.prazoBloco {
+  padding: 4px 0 10px;
+  border-bottom: 1px solid rgb(24 24 24 / 8%);
+}
+.prazoTitulo {
+  margin: 10px 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.prazoPend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 6px;
+}
+/* Alvo de toque: 1 a 10 com pelo menos 44 px de largura (quebram a linha). */
+.prazoPend .opcao {
+  min-width: 44px;
+}
+.prazoRotulo {
+  min-width: 44px;
+  font-size: 13px;
+  font-weight: 600;
+}

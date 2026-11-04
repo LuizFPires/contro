@@ -1,0 +1,123 @@
+/* Card de ação e cabeçalho de seção (Tarefas da equipe e Minhas ações). */
+.secao {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--contro-black);
+}
+/* Vermelho só para atraso; âmbar só para "vence hoje". */
+.sAtraso {
+  color: var(--contro-late);
+}
+.sHoje {
+  color: var(--contro-attention);
+}
+.sFeita {
+  color: #696969;
+}
+.item {
+  width: 100%;
+  background: var(--contro-white);
+  border: 1.5px solid rgb(24 24 24 / 10%);
+  border-left: 6px solid var(--contro-black);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+}
+.inteiro {
+  min-height: var(--contro-touch);
+  cursor: pointer;
+}
+.corpo {
+  min-width: 0;
+  min-height: var(--contro-touch);
+  flex-grow: 1;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 2px 0;
+  cursor: pointer;
+  color: var(--contro-black);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  font: inherit;
+}
+.texto {
+  font-weight: 800;
+  font-size: 15px;
+}
+.meta {
+  font-size: 12px;
+  color: #696969;
+}
+.prazo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.repl {
+  font-size: 12px;
+  font-weight: 700;
+  color: #464646;
+}
+.marcador {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  border: 2px solid var(--contro-black);
+  background: var(--contro-white);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.marcadorFeito {
+  border: 0;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.atrasada {
+  border-color: var(--contro-late);
+  background: var(--contro-late-bg);
+}
+.atrasada .texto,
+.atrasada .prazo {
+  color: var(--contro-late);
+}
+.atrasada .marcador {
+  border-color: var(--contro-late);
+}
+.venceHoje {
+  border-color: var(--contro-attention);
+}
+.venceHoje .texto,
+.venceHoje .prazo {
+  color: var(--contro-attention);
+}
+.venceHoje .marcador {
+  border-color: var(--contro-attention);
+}
+.feita {
+  border-left-color: var(--contro-turquoise);
+}
+.feita .texto {
+  color: #696969;
+  text-decoration: line-through;
+}
+.feita .prazo {
+  color: #696969;
+}
