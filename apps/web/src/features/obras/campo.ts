@@ -359,6 +359,8 @@ export interface EntradaTarefa {
   observacao?: string | null;
   /** Nome digitado de quem não tem login (vale só sem responsavelId). */
   responsavelNome?: string | null;
+  /** Motivo opcional do replanejamento (vai em depois.motivo do evento). */
+  motivoReplanejamento?: string | null;
 }
 
 export async function salvarTarefa(
@@ -379,6 +381,7 @@ export async function salvarTarefa(
     p_client_op_id: clientOpId ?? null,
     p_observacao: t.observacao ?? null,
     p_responsavel_nome: t.responsavelNome ?? null,
+    p_motivo: t.motivoReplanejamento ?? null,
   });
   if (error) throw error;
   return data as string;
