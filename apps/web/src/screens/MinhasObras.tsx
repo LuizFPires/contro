@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLembrado } from '../lib/useLembrado';
 import { horaCurta, reuniaoQueVem, rotuloPerfil } from '@contro/core';
 import { BottomSheet, Icon, Logo, Simbolo, useToast, type IconName } from '@contro/ui';
@@ -33,6 +33,10 @@ export type DestinoInicio =
 export interface AbrirObra {
   id: string;
   aba?: AbaObra;
+  /** Pendência para destacar no Check list. */
+  pendenciaId?: string;
+  /** Tela para onde o Voltar da obra retorna (em vez da lista). */
+  voltar?: DestinoInicio;
 }
 
 export function MinhasObras({
@@ -65,12 +69,23 @@ export function MinhasObras({
     boletim?: boolean;
     plano?: boolean;
     aba?: AbaObra;
+    pendenciaId?: string;
+    voltar?: DestinoInicio;
   } | null>('inicio:obra', null);
   useEffect(() => {
     if (!abrirObra) return;
-    setObraAberta({ id: abrirObra.id, aba: abrirObra.aba });
+    setObraAberta({ ...abrirObra });
     onAbrirObraConsumida?.();
   }, [abrirObra, onAbrirObraConsumida, setObraAberta]);
+  // Aba e pendência do atalho valem uma vez: depois de aplicadas, saem do que
+  // fica lembrado (recarregar não força o Check list de novo).
+  const atalhoUsado = useCallback(
+    () =>
+      setObraAberta((o) =>
+        o && (o.aba || o.pendenciaId) ? { ...o, aba: undefined, pendenciaId: undefined } : o,
+      ),
+    [setObraAberta],
+  );
   // Menu inferior da tela inicial: "Hoje" abre por padrão.
   const [aba, setAba] = useLembrado<'hoje' | 'obras'>('inicio:aba', 'hoje');
 
@@ -81,7 +96,13 @@ export function MinhasObras({
         abrirBoletim={obraAberta.boletim}
         abrirPlano={obraAberta.plano}
         abrirAba={obraAberta.aba}
-        onVoltar={() => setObraAberta(null)}
+        abrirPendenciaId={obraAberta.pendenciaId}
+        onAtalhoUsado={atalhoUsado}
+        onVoltar={() => {
+          const de = obraAberta.voltar;
+          setObraAberta(null);
+          if (de) onIr(de);
+        }}
       />
     );
   }

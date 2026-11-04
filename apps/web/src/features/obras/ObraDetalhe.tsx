@@ -51,6 +51,8 @@ export function ObraDetalhe({
   abrirBoletim,
   abrirPlano,
   abrirAba,
+  abrirPendenciaId,
+  onAtalhoUsado,
 }: {
   id: string;
   onVoltar: () => void;
@@ -59,6 +61,10 @@ export function ObraDetalhe({
   abrirPlano?: boolean;
   /** Abre direto numa aba (pendência tocada em Tarefas ou Minhas ações). */
   abrirAba?: AbaObra;
+  /** Pendência para destacar no Check list (vem com abrirAba = 'pendencias'). */
+  abrirPendenciaId?: string;
+  /** Avisa que a aba e a pendência do atalho já foram aplicadas. */
+  onAtalhoUsado?: () => void;
 }) {
   const { data: obra, isLoading } = useObraDetalhe(id);
   const pendencias = useObraPendencias(id);
@@ -74,8 +80,11 @@ export function ObraDetalhe({
     if (abrirBoletim) setAba('boletim');
   }, [abrirBoletim, setAba]);
   useEffect(() => {
-    if (abrirAba) setAba(abrirAba);
-  }, [abrirAba, setAba]);
+    if (!abrirAba) return;
+    setAba(abrirAba);
+    // Com pendência, o Check list avisa quando chegar nela.
+    if (!abrirPendenciaId) onAtalhoUsado?.();
+  }, [abrirAba, abrirPendenciaId, onAtalhoUsado, setAba]);
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
   const [planoAberto, setPlanoAberto] = useState(Boolean(abrirPlano));
   // Mapa de coleta: "+ Quem foi contratado" abre o campo (opcional, depois do check).
@@ -362,7 +371,9 @@ export function ObraDetalhe({
             </div>
           </div>
         ) : null}
-        {aba === 'pendencias' ? <PendenciasAba obra={obra} /> : null}
+        {aba === 'pendencias' ? (
+          <PendenciasAba obra={obra} focoId={abrirPendenciaId} onFocoAplicado={onAtalhoUsado} />
+        ) : null}
         {aba === 'providencias' ? <ProvidenciasAba obra={obra} /> : null}
         {aba === 'cronograma' ? <GanttAba obra={obra} onAbrir={setFichaAtvId} /> : null}
         {aba === 'boletim' ? <BoletimView obra={obra} /> : null}

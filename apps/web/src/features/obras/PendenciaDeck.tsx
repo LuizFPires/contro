@@ -27,8 +27,11 @@ export function PendenciaDeck({
   onMais,
   onFoto,
   acao,
+  focoId,
 }: {
   pendencias: PendenciaObra[];
+  /** Começa nesta pendência (tocada em Tarefas ou Minhas ações). */
+  focoId?: string;
   /** Botão à direita do contador ("Ver em lista"). */
   acao?: React.ReactNode;
   onResolver: (p: PendenciaObra) => void;
@@ -36,6 +39,15 @@ export function PendenciaDeck({
   onFoto: (p: PendenciaObra) => void;
 }) {
   const [indice, setIndice] = useState(0);
+  // Posiciona uma vez em cada pendência pedida (quando ela estiver na lista).
+  const focoAplicado = useRef<string | null>(null);
+  useEffect(() => {
+    if (!focoId || focoAplicado.current === focoId) return;
+    const i = pendencias.findIndex((p) => p.id === focoId);
+    if (i < 0) return;
+    focoAplicado.current = focoId;
+    setIndice(i);
+  }, [focoId, pendencias]);
   const [dx, setDx] = useState(0);
   const inicio = useRef<number | null>(null);
   // A lista muda (resolveu, apontou, apagou): mantém o índice dentro dela.

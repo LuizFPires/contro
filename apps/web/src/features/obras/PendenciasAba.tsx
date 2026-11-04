@@ -1,6 +1,6 @@
 import { ChecklistResponsavel } from './ChecklistResponsavel';
 import { ChecklistPdfSheet } from './ChecklistPdfSheet';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { classificarPendencias, pendenteHa, pendentesPorCriticidade } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
@@ -29,7 +29,18 @@ const CRIT: Record<string, string> = { alta: 'Alta', media: 'Média', baixa: 'Ba
  * compacta que abre com antes e depois). Sem fila, sem adiar e sem vistoria:
  * tirou a foto do depois, está resolvido.
  */
-export function PendenciasAba({ obra, atividadeId }: { obra: ObraCompleta; atividadeId?: string }) {
+export function PendenciasAba({
+  obra,
+  atividadeId,
+  focoId,
+  onFocoAplicado,
+}: {
+  obra: ObraCompleta;
+  atividadeId?: string;
+  /** Pendência tocada em Tarefas ou Minhas ações: abre nela, com destaque. */
+  focoId?: string;
+  onFocoAplicado?: () => void;
+}) {
   const { data: pessoa } = usePerfil();
   const { showToast } = useToast();
   const campo = useObraPendencias(obra.id);
@@ -55,6 +66,31 @@ export function PendenciasAba({ obra, atividadeId }: { obra: ObraCompleta; ativi
   );
   const { pendentes, resolvidas } = useMemo(() => classificarPendencias(lista), [lista]);
   const grupos = useMemo(() => pendentesPorCriticidade(pendentes), [pendentes]);
+
+  // Chegou por uma pendência: vai para a aba dela, posiciona e destaca.
+  const [destaque, setDestaque] = useState<string | null>(null);
+  const raiz = useRef<HTMLDivElement>(null);
+  const carregou = campo.query.data !== undefined;
+  useEffect(() => {
+    if (!focoId || !carregou) return;
+    const p = lista.find((x) => x.id === focoId);
+    if (p) {
+      setDestaque(p.id);
+      if (p.status === 'aberta') setAba('pendentes');
+      else {
+        setAba('resolvidos');
+        setAberto(p.id);
+      }
+    }
+    onFocoAplicado?.();
+  }, [focoId, carregou, lista, onFocoAplicado, setAba]);
+  useEffect(() => {
+    if (!destaque) return;
+    const el = raiz.current?.querySelector(`[data-pendencia="${destaque}"]`);
+    el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+  }, [destaque, aba, vista]);
+  const cls = (base: string | undefined, id: string) =>
+    destaque === id ? `${base} ${styles.destaque}` : base;
 
   // Foto ampliada (antes e depois, com zoom) e "Voltar para pendente" da resolvida.
   const [ampliar, setAmpliar] = useState<{ p: PendenciaObra; i: number } | null>(null);
@@ -130,7 +166,7 @@ export function PendenciasAba({ obra, atividadeId }: { obra: ObraCompleta; ativi
     `Resolvido${p.resolvida_em ? ` ${p.resolvida_em.slice(0, 10) === hoje ? 'hoje' : formatarDataCurta(p.resolvida_em.slice(0, 10))}` : ''}${p.resolveuNome ? ` · ${p.resolveuNome}` : ''}`;
 
   return (
-    <div className={styles.aba}>
+    <div className={styles.aba} ref={raiz}>
       <div className={styles.topo}>
         <div role="tablist" aria-label="Pendências e resolvidos" className={styles.modos}>
           <button
@@ -207,6 +243,7 @@ export function PendenciasAba({ obra, atividadeId }: { obra: ObraCompleta; ativi
           {vista === 'fotos' ? (
             <PendenciaDeck
               pendencias={pendentes}
+              focoId={destaque ?? undefined}
               onResolver={setResolver}
               onMais={setMenuPend}
               onFoto={(p) => abrirFoto(p)}
@@ -244,7 +281,7 @@ export function PendenciasAba({ obra, atividadeId }: { obra: ObraCompleta; ativi
                     {CRIT[g.criticidade]} · {g.itens.length}
                   </h3>
                   {g.itens.map((p) => (
-                    <div key={p.id} className={styles.linha}>
+                    <div key={p.id} className={cls(styles.linha, p.id)} data-pendencia={p.id}>
                       <button
                         type="button"
                         className={styles.miniatura}
@@ -300,7 +337,7 @@ export function PendenciasAba({ obra, atividadeId }: { obra: ObraCompleta; ativi
         <div className={styles.grupos}>
           {resolvidas.map((p) =>
             aberto === p.id ? (
-              <div key={p.id} className={styles.vCard}>
+              <div key={p.id} className={cls(styles.vCard, p.id)} data-pendencia={p.id}>
                 <div className={styles.vCabeca}>
                   <button
                     type="button"
@@ -349,7 +386,8 @@ export function PendenciasAba({ obra, atividadeId }: { obra: ObraCompleta; ativi
               <button
                 key={p.id}
                 type="button"
-                className={styles.resLinha}
+                className={cls(styles.resLinha, p.id)}
+                data-pendencia={p.id}
                 aria-expanded={false}
                 onClick={() => setAberto(p.id)}
               >

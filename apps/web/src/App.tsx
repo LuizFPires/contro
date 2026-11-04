@@ -40,10 +40,11 @@ export function App() {
     setTela('minhas');
   };
 
-  // Toque numa pendência (Tarefas / Minhas ações) abre o Check list da obra.
+  // Toque numa pendência (Tarefas / Minhas ações) abre o Check list da obra
+  // naquela pendência; o Voltar da obra retorna para a tela de origem.
   const [abrirObra, setAbrirObra] = useState<AbrirObra | null>(null);
-  const abrirPendencia = (obraId: string) => {
-    setAbrirObra({ id: obraId, aba: 'pendencias' });
+  const abrirPendencia = (de: 'tarefas' | 'minhas') => (obraId: string, pendenciaId: string) => {
+    setAbrirObra({ id: obraId, aba: 'pendencias', pendenciaId, voltar: de });
     setTela('inicio');
   };
 
@@ -134,12 +135,12 @@ export function App() {
           <TarefasScreen
             onVoltar={voltar}
             onMinhas={() => irMinhas('tarefas')}
-            onAbrirPendencia={abrirPendencia}
+            onAbrirPendencia={abrirPendencia('tarefas')}
           />
         ) : tela === 'minhas' ? (
           <MinhasAcoesScreen
             onVoltar={() => setTela(voltarMinhas)}
-            onAbrirPendencia={abrirPendencia}
+            onAbrirPendencia={abrirPendencia('minhas')}
           />
         ) : tela === 'avisos' && ehGestor ? (
           <ConfigAvisosScreen onVoltar={voltar} />
