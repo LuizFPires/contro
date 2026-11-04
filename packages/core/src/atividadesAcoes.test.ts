@@ -59,12 +59,11 @@ describe('atividadesSemDono', () => {
     ]);
   });
 
-  it('exclui subitem, concluída, pré-obra, fora do cronograma e com tarefa aberta vinculada', () => {
+  it('exclui subitem, concluída, fora do cronograma e com tarefa aberta vinculada', () => {
     const r = atividadesSemDono(
       [
         atv({ id: 'a1', pai_id: 'a2' }),
         atv({ id: 'a2', concluida_em: '2026-11-03T10:00:00Z' }),
-        atv({ id: 'a3', fase_id: 'f0' }),
         atv({ id: 'x9' }),
         atv({ id: 'a4' }),
         atv({ id: 'a5' }),
@@ -81,6 +80,28 @@ describe('atividadesSemDono', () => {
     expect(r.map((x) => x.id)).toEqual(['a5']);
   });
 
+  it('inclui o pré-obra (ex.: item do Mapa de coleta atrasado), com a fase dele', () => {
+    const r = atividadesSemDono(
+      [atv({ id: 'a3', fase_id: 'f0' })],
+      fases,
+      cron,
+      [],
+      'o1',
+      'Paquetá',
+    );
+    expect(r).toEqual([
+      {
+        id: 'a3',
+        obraId: 'o1',
+        obraNome: 'Paquetá',
+        nome: 'Atividade a3',
+        faseNome: 'Pré-obra',
+        prestador: null,
+        prazo: '2026-11-12',
+      },
+    ]);
+  });
+
   it('passa null quando o prestador está em branco', () => {
     const r = atividadesSemDono([atv({ id: 'a1', prestador: '  ' })], fases, cron, [], 'o1', 'C');
     expect(r[0]?.prestador).toBeNull();
@@ -88,7 +109,7 @@ describe('atividadesSemDono', () => {
 });
 
 describe('prazosParaGravarAtividades', () => {
-  it('devolve só as que diferem do gravado, de topo, abertas e fora do pré-obra', () => {
+  it('devolve só as que diferem do gravado, de topo e abertas (pré-obra incluído)', () => {
     const r = prazosParaGravarAtividades(
       [
         atv({ id: 'a1', fim_previsto_calc: null }),
@@ -104,6 +125,7 @@ describe('prazosParaGravarAtividades', () => {
     );
     expect(r).toEqual([
       { id: 'a1', ate: '2026-11-10' },
+      { id: 'a3', ate: '2026-11-12' },
       { id: 'a6', ate: '2026-11-17' },
     ]);
   });

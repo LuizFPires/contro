@@ -361,16 +361,38 @@ export async function listarObras(): Promise<ObraResumo[]> {
     const minhasProvs = provs.filter((p) => p.obra_id === o.id);
     const tarefasDaObra = tarefas.filter((t) => t.obra_id === o.id);
     const atvsDaObra = atvs.filter((a) => a.obra_id === o.id);
+    // Pré-obra (Orçamento, Mapa de coleta): datas para trás a partir do dia 0.
+    const pre = (() => {
+      try {
+        return cronogramaPreObra(
+          o.inicio,
+          cron,
+          atvsPre.map((a) => ({
+            id: a.id,
+            pai_id: a.pai_id,
+            duracao_du: a.duracao_du,
+            em_sequencia: a.em_sequencia,
+            predecessoras: predsPorAtv.get(a.id),
+            mapaAlvos: liberaPorMapa.get(a.id) ?? [],
+            mapaAntecedenciaDu: a.mapa_antecedencia_du,
+          })),
+        );
+      } catch {
+        return {} as ReturnType<typeof cronogramaPreObra>;
+      }
+    })();
+    // Prazo de cada atividade de topo: obra (cronograma) + pré-obra, para a regra "sem dono".
+    const cronComPre = { porId: { ...cron.porId, ...pre } };
     const semDono = providenciasSemDono(
       minhasProvs,
       tarefasDaObra,
       atvsDaObra,
-      cron,
+      cronComPre,
       o.inicio,
       o.nome,
     );
     // Grava o prazo calculado (aviso do gestor no servidor): sem esperar nem falhar.
-    const gravar = prazosParaGravar(minhasProvs, cron, o.inicio);
+    const gravar = prazosParaGravar(minhasProvs, cronComPre, o.inicio);
     if (gravar.length && supabase)
       void supabase
         .rpc('atualizar_prazos_providencias', { p_obra_id: o.id, p_prazos: gravar })
@@ -378,9 +400,16 @@ export async function listarObras(): Promise<ObraResumo[]> {
           () => undefined,
           () => undefined,
         );
-    const atvSemDono = atividadesSemDono(atvsDaObra, todasFases, cron, tarefasDaObra, o.id, o.nome);
+    const atvSemDono = atividadesSemDono(
+      atvsDaObra,
+      todasFases,
+      cronComPre,
+      tarefasDaObra,
+      o.id,
+      o.nome,
+    );
     // Grava o fim previsto (aviso do gestor no servidor): sem esperar nem falhar.
-    const gravarAtv = prazosParaGravarAtividades(atvsDaObra, cron, todasFases);
+    const gravarAtv = prazosParaGravarAtividades(atvsDaObra, cronComPre, todasFases);
     if (gravarAtv.length && supabase)
       void supabase
         .rpc('atualizar_prazos_atividades', { p_obra_id: o.id, p_prazos: gravarAtv })
@@ -470,20 +499,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
           }))
           .concat(
             (() => {
-              // Pré-obra: datas para trás a partir do dia 0; atrasa se passou do fim.
-              const pre = cronogramaPreObra(
-                o.inicio,
-                cron,
-                atvsPre.map((a) => ({
-                  id: a.id,
-                  pai_id: a.pai_id,
-                  duracao_du: a.duracao_du,
-                  em_sequencia: a.em_sequencia,
-                  predecessoras: predsPorAtv.get(a.id),
-                  mapaAlvos: liberaPorMapa.get(a.id) ?? [],
-                  mapaAntecedenciaDu: a.mapa_antecedencia_du,
-                })),
-              );
+              // Pré-obra: datas calculadas acima (atrasa se passou do fim).
               return atvsPre
                 .filter((a) => !a.pai_id && pre[a.id])
                 .map((a) => ({
