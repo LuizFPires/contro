@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useLembrado } from '../lib/useLembrado';
+import { lembrar, useLembrado } from '../lib/useLembrado';
 import { horaCurta, reuniaoQueVem, rotuloPerfil } from '@contro/core';
 import { BottomSheet, Icon, Logo, Simbolo, useToast, type IconName } from '@contro/ui';
 import { ObraCard } from '../features/obras/ObraCard';
@@ -263,7 +263,12 @@ export function MinhasObras({
 
       <NavInferior
         ativo={aba}
-        onEscolher={(item) => (item === 'hoje' || item === 'obras' ? setAba(item) : onIr(item))}
+        onEscolher={(item) => {
+          if (item === 'hoje' || item === 'obras') return setAba(item);
+          // Log pelo menu: todas as obras (o filtro da obra é do relógio da obra).
+          if (item === 'log') lembrar('log:obra', null);
+          onIr(item);
+        }}
       />
 
       <BottomSheet open={perfilAberto} onClose={() => setPerfilAberto(false)}>

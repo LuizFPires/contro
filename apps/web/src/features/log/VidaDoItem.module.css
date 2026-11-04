@@ -32,7 +32,7 @@
 .passo::before {
   content: '';
   position: absolute;
-  left: -21px;
+  left: -20px;
   top: 4px;
   width: 10px;
   height: 10px;

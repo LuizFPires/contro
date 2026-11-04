@@ -61,6 +61,8 @@ export function App() {
   // Menu inferior no Score e no Log: Hoje/Obras voltam ao início naquela aba.
   const irNav = (item: ItemNav) => {
     setLogObra(null);
+    // Log pelo menu: todas as obras (o filtro da obra é do relógio da obra).
+    if (item === 'log') lembrar('log:obra', null);
     if (item === 'score' || item === 'log') {
       setTela(item);
       return;
