@@ -107,6 +107,7 @@ export function useObraPendencias(obraId: string) {
       return { prev };
     },
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
   // Resolver: otimista e offline. Guarda a foto de depois no Dexie (sobe em 2º
   // plano) e enfileira; a pendência vai para Resolvidos na hora (sem vistoria).
@@ -124,6 +125,7 @@ export function useObraPendencias(obraId: string) {
         resolvida_em: new Date().toISOString(),
       })),
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
 
   // Ações de campo otimistas, offline e idempotentes.
@@ -142,6 +144,7 @@ export function useObraPendencias(obraId: string) {
         atividadeNome: v.atividadeNome,
       })),
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
   const excluir = useMutation({
     networkMode: 'always',
@@ -157,6 +160,7 @@ export function useObraPendencias(obraId: string) {
       return { prev };
     },
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
   // Desfazer do apagar: devolve a pendência (a tela guarda o objeto) na hora.
   const restaurar = useMutation({
@@ -172,6 +176,7 @@ export function useObraPendencias(obraId: string) {
       return { prev };
     },
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
 
   // Concluída volta para pendente (topo da fila), mantendo ou tirando a foto do depois.
@@ -196,6 +201,7 @@ export function useObraPendencias(obraId: string) {
       }));
     },
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
 
   const atribuir = useMutation({
@@ -205,6 +211,7 @@ export function useObraPendencias(obraId: string) {
     onMutate: (v: { id: string; responsavelId: string | null; nome: string | null }) =>
       patch(v.id, (p) => ({ ...p, responsavel_id: v.responsavelId, responsavelNome: v.nome })),
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
   return {
     atribuir,

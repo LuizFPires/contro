@@ -101,8 +101,9 @@ export function MinhasObras({
   }
 
   const lista = obras ?? [];
-  const tarAbertas = lista.reduce((s, o) => s + o.tarefasAbertas, 0);
-  const tarAtrasadas = lista.reduce((s, o) => s + o.tarefasAtrasadas, 0);
+  const acAbertas = lista.reduce((s, o) => s + o.acoesAbertas, 0);
+  const acAtrasadas = lista.reduce((s, o) => s + o.acoesAtrasadas, 0);
+  const acHoje = lista.reduce((s, o) => s + o.acoesHoje, 0);
   const nMembros = ehGestor ? (membros.query.data?.length ?? 0) : 0;
   const nAtrasos = lista.reduce((s, o) => s + o.agenda.atrasados.length, 0);
 
@@ -190,13 +191,13 @@ export function MinhasObras({
             <button type="button" className={styles.blocoTarefas} onClick={() => onIr('tarefas')}>
               <span className={styles.blocoTitulo}>
                 <Icon name="tarefas" size={18} strokeWidth={2} />
-                Tarefas
+                Ações da equipe
               </span>
-              <span className={styles.blocoSubClaro}>{tarAbertas} abertas na equipe</span>
-              <span className={tarAtrasadas ? styles.blocoAtraso : styles.blocoOk}>
-                {tarAtrasadas
-                  ? `${tarAtrasadas} ${tarAtrasadas === 1 ? 'atrasada' : 'atrasadas'}`
-                  : 'nenhuma atrasada'}
+              <span className={styles.blocoSubClaro}>
+                {acAbertas} {acAbertas === 1 ? 'aberta' : 'abertas'} na equipe
+              </span>
+              <span className={acAtrasadas ? styles.blocoAtraso : styles.blocoOk}>
+                {textoStatusAcoes(acAtrasadas, acHoje)}
               </span>
             </button>
           </div>
@@ -359,4 +360,13 @@ function ItemMenu({
       {semSeta ? null : <Icon name="seta" size={18} className={styles.itemSeta} />}
     </button>
   );
+}
+
+function textoStatusAcoes(atrasadas: number, hoje: number): string {
+  const venceHoje = hoje === 1 ? '1 vence hoje' : `${hoje} vencem hoje`;
+  if (atrasadas > 0) {
+    const atr = atrasadas === 1 ? '1 atrasada' : `${atrasadas} atrasadas`;
+    return hoje > 0 ? `${atr} · ${venceHoje}` : atr;
+  }
+  return hoje > 0 ? `nenhuma atrasada · ${venceHoje}` : 'nenhuma atrasada';
 }
