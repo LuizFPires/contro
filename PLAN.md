@@ -333,7 +333,7 @@ Atividade sem tarefa vinculada aberta vira ação "Sem responsável"; o gestor a
 - [x] 3. Web: `listarObras`, contadores, `useAcoesDasObras` e `CardAcao` da atividade.
 - [x] 4. Tarefas da equipe: folha "Atribuir atividade" e "Quem cuida" na ficha.
 - [x] 5. Documentação: PRD, SPEC e PLAN.
-- [ ] 6. Verificação final e PR.
+- [x] 6. Verificação final e PR.
 
 ---
 
