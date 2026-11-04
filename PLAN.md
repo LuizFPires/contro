@@ -311,7 +311,7 @@ Menu inferior com Score e Log, histórico das mudanças com Vida do item e pontu
 - [x] 4. Web: carregador, menu inferior `NavInferior`, telas Log e Vida do item, motivo ao replanejar.
 - [x] 5. Web: tela Score e detalhe.
 - [x] 6. Documentação: PRD, SPEC, PLAN e CLAUDE.
-- [ ] 7. Verificação final e PR.
+- [x] 7. Verificação final e PR.
 
 ---
 
