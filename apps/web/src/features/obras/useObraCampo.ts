@@ -15,6 +15,7 @@ import {
 } from './campo';
 import { guardarFotoLocal } from './foto';
 import type { ObraCompleta } from './detalhe';
+import type { TarefaObra } from './tarefasObra';
 
 export function useObraCampo(obraId: string) {
   const qc = useQueryClient();
@@ -175,8 +176,8 @@ export function useObraCampo(obraId: string) {
       await enfileirar('concluir_atividade', { obraId, atividadeId: v.atividadeId, fotoLocalId });
       return { xp: v.xp ?? 50, fase_fechada: v.faseFechada ?? false };
     },
-    onMutate: (v) =>
-      patchAtv(
+    onMutate: async (v) => {
+      const ctx = await patchAtv(
         v.atividadeId,
         (a) => ({
           ...a,
@@ -185,8 +186,28 @@ export function useObraCampo(obraId: string) {
           foto_conclusao_id: v.file ? 'pendente' : null,
         }),
         v.xp ?? 50,
-      ),
-    onError: (_e, _v, ctx) => reverter(ctx),
+      );
+      // O servidor fecha as tarefas abertas vinculadas à atividade: espelha aqui.
+      // (O sync refaz ['tarefas'] e ['obras'] quando o servidor confirma.)
+      await qc.cancelQueries({ queryKey: ['tarefas', obraId] });
+      const prevTarefas = qc.getQueryData<TarefaObra[]>(['tarefas', obraId]);
+      if (prevTarefas)
+        qc.setQueryData<TarefaObra[]>(
+          ['tarefas', obraId],
+          prevTarefas.map((t) =>
+            t.vinculo_tipo === 'atividade' &&
+            t.vinculo_id === v.atividadeId &&
+            t.status === 'aberta'
+              ? { ...t, status: 'feita', feita_em: new Date().toISOString() }
+              : t,
+          ),
+        );
+      return { ...ctx, prevTarefas };
+    },
+    onError: (_e, _v, ctx) => {
+      reverter(ctx);
+      if (ctx?.prevTarefas) qc.setQueryData(['tarefas', obraId], ctx.prevTarefas);
+    },
   });
 
   // Anexar a foto a uma atividade concluída sem foto (otimista e offline).
@@ -325,4 +346,35 @@ export function useObraCampo(obraId: string) {
     reconcluir,
     avanco,
   };
+}
+
+/**
+ * Desfazer da conclusão feita pela câmera da tarefa (Tarefas da equipe e
+ * Minhas ações): reabre a atividade de qualquer obra, otimista e offline. A
+ * tela reabre a tarefa logo depois (desfazer_conclusao não mexe em tarefas).
+ */
+export function useReabrirAtividade() {
+  const qc = useQueryClient();
+  return useMutation({
+    networkMode: 'always',
+    mutationFn: (v: { obraId: string; atividadeId: string }) =>
+      enfileirar('desfazer_conclusao', { obraId: v.obraId, atividadeId: v.atividadeId }),
+    onMutate: async (v) => {
+      await qc.cancelQueries({ queryKey: ['obra', v.obraId] });
+      const prev = qc.getQueryData<ObraCompleta>(['obra', v.obraId]);
+      if (prev)
+        qc.setQueryData<ObraCompleta>(['obra', v.obraId], {
+          ...prev,
+          // Devolve o XP otimista da conclusão (o servidor acerta no sync).
+          xp: Math.max(0, prev.xp - 50),
+          atividades: prev.atividades.map((a) =>
+            a.id === v.atividadeId ? { ...a, concluida_em: null, foto_conclusao_id: null } : a,
+          ),
+        });
+      return { prev };
+    },
+    onError: (_e, v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['obra', v.obraId], ctx.prev);
+    },
+  });
 }
