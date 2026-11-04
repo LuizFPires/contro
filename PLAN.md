@@ -276,6 +276,22 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 
 ---
 
+## Ações do dia (04/11/2026)
+Tarefa e pendência viram "ação"; um push por pessoa e um da equipe para o gestor. Spec: `docs/superpowers/specs/2026-11-04-acoes-do-dia-design.md` · plano: `docs/superpowers/plans/2026-11-04-acoes-do-dia.md` · protótipos: [telas](https://claude.ai/artifact/JeSVVNoHoYFxexKh9exjJH) e [fluxo](https://claude.ai/artifact/ENLyqf2QeGbmmS76VUPXU4).
+- [x] 1. Regra de domínio `acoes.ts` no core (`Acao`, `prazoPendencia`, `estadoAcao`, `classificarAcoes`, resumos e textos).
+- [x] 2. Hoje (`agendaDia.ts`) passa a receber ações (item `'acao'`).
+- [x] 3. Tokens (`--contro-attention`, `--contro-late-bg`), ícones e CLAUDE.md.
+- [x] 4. Migration `20261104100000_acoes_do_dia.sql`, `gerar_avisos` (`acoes`, `acoes_equipe`) e pgTAP.
+- [x] 5. Tela Avisos do gestor: bloco "Ações do dia" (hora e três prazos).
+- [x] 6. Adaptador `acoesObra.ts` e hooks `useAcoesDasObras` e `usePendenciasDasObras`.
+- [x] 7. Tarefas da equipe e Minhas ações com quatro seções (`CardAcao`).
+- [x] 8. Tela inicial e cards de obra contam ações.
+- [x] 9. Boletim com pendências em "Quem faz o quê".
+- [x] 10. Documentação: PRD, SPEC e PLAN.
+- [ ] 11. Verificação final e PR.
+
+---
+
 ## Melhorias (fora do plano principal)
 
 ### E1 · Maquete 3D gamificada (melhoria)
@@ -308,6 +324,7 @@ Melhorias fora do plano principal (só começam com aprovação do usuário): **
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-11-04 · **Ações do dia.** Um push por pessoa com atrasadas + vencem hoje e um da equipe para o gestor, no lugar de "Bom dia" e "Tarefas que vencem hoje". Tarefa e pendência viram "ação" com a mesma importância, sem etiqueta de origem; pendência ganha prazo pela criticidade (alta 2, média 4, baixa 6 d.u., configurável). Seções Atrasadas · Vencem hoje · Próximos dias · Concluídas com ícone; âmbar #B45309 só para "vence hoje" (exceção ao design system); card atrasado com fundo #FBEAEA. Tela inicial, cards e boletim contam ações. **Ata não muda** (as pendências não são itens de reunião; decisão de quem implementou, a confirmar com o usuário). · pedido do usuário · usuário
 - 2026-11-03 · **Central de reuniões (opção C) e PDF completo.** Card Reunião → tela Reuniões (próxima: abrir pauta, Preparar · PDF, WhatsApp; lista de atas passadas, até 30). Na pauta, menu ⋯ (Preparar, Baixar ata, Reuniões e atas) no lugar de "Anterior", "Baixar ata" no topo e do ícone sem nome no rodapé. **Defeito corrigido:** a ata e a prévia são impressas a partir da tela, que tem altura fixa com rolagem própria (`.app-shell` 100dvh, `.app-main` overflow); a impressão só pegava o trecho visível (≈2 páginas, só as primeiras obras). Agora, na impressão, a casca do app perde altura fixa e rolagem (conferido: ata de 7 obras sai inteira). · pedido do usuário · usuário
 
 - 2026-10-31 · **Botão provisório de atualizar o PWA.** Alguns celulares ficavam presos numa versão antiga. O build gera `/version.json` (commit da Vercel), fora do cache do service worker; o app compara com a própria versão ao abrir, ao voltar e a cada 10 min e mostra "Nova versão do CONTRO · Atualizar". O menu do perfil tem "Atualizar o app · versão X" (sempre). Atualizar = tirar o service worker e o cache dos arquivos e recarregar; a fila offline, as fotos guardadas e o login ficam. Provisório: sai quando a atualização automática estiver confiável. · pedido do usuário · usuário

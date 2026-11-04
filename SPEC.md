@@ -116,6 +116,8 @@ reuniao_resposta(reuniao_id, obra_id, secao, item_id, resposta, respondido_por, 
   -- grava/apaga por responder_reuniao (membro; reunião fechada não muda). A ata (core/ata.ts) monta os blocos a partir daqui.
 ```
 
+**Ações (04/11/2026, `packages/core/src/acoes.ts`):** tarefa e pendência com responsável viram `Acao` (tipo, obra, responsável, prazo, concluída em). `prazoPendencia(criticidade, apontadaEm, config)` = `addDU(diaUtilAPartir(apontadaEm), n)` com n = 2 (alta), 4 (média), 6 (baixa) dias úteis (`config_avisos.pend_*_du`). `estadoAcao(acao, hoje)` → atrasada | hoje | proxima | concluida; `classificarAcoes(acoes, hoje)` → `{atrasadas, hoje, proximas, concluidas}` (concluídas: 30 dias); `resumoAcoesDia` (contagem por pessoa) e `resumoEquipeDia` (por responsável, ordenado); textos `textoAvisoAcoes`, `textoAvisoEquipe` (≤ 120 caracteres) e `textoResumoSecoes`. `agendaDia.ts` ganha o item de tipo `'acao'`. O web só adapta (`acoesObra.ts`, `useAcoesDasObras`, `usePendenciasDasObras`) e não recalcula.
+
 ### 3.7 Boletim
 ```
 boletim(id, obra_id, semana_inicio date, edicao: 'segunda'|'sexta', snapshot jsonb, texto_whatsapp text, pdf_path, gerado_em)
@@ -302,9 +304,9 @@ Avanço real {x}% · previsto até sexta {y}% · {ritmo}
 • {dia dd/mm} · {atividade}
 *Começar nesta semana*
 • {dia dd/mm} · {atividade} ({motivo se bloqueada})
-*Quem faz o quê*
+*Quem faz o quê*      (tarefas e pendências, 04/11/2026)
 _{pessoa}_
-• {dia dd/mm} · {tarefa}
+• {dia dd/mm} · {tarefa ou pendência}
 
 PDF completo com fotos e cronograma no app CONTRO.
 ```
@@ -391,10 +393,12 @@ Alvos de toque ≥ 44 px. Nunca branco sobre turquesa em texto pequeno; usar pre
 |---|---|
 | Diário 00:10 | Devolve à fila as pendências com `adiada_ate ≤ hoje` (registra evento) |
 | Segunda 06:30 | `gerar_boletim(obra, 'segunda')` para cada obra ativa; notificação push ao engenheiro: "Boletim pronto para enviar" |
-| A cada 5 min | `gerar_avisos()`: lembretes da reunião e avisos do dia de `config_avisos` (fuso de São Paulo), um `aviso_disparo` por pessoa/tipo/dia, dentro de 3 h após o horário; a Edge Function `enviar-avisos` manda o push (runbook em `supabase/functions/enviar-avisos/README.md`) |
+| A cada 5 min | `gerar_avisos()`: lembretes da reunião e avisos do dia de `config_avisos` (fuso de São Paulo), um `aviso_disparo` por pessoa/tipo/dia, dentro de 3 h após o horário; a Edge Function `enviar-avisos` manda o push (runbook em `supabase/functions/enviar-avisos/README.md`). Tipos (`aviso_disparo.tipo`): `reuniao_manha`, `reuniao_antes`, `acoes`, `acoes_equipe`, `providencias`, `atribuicao` |
 | Sexta 17:00 | `gerar_boletim(obra, 'sexta')` (fechamento) |
 
 A reunião também deixa de ser fixa (28/10/2026): `config_avisos` (linha única, membro lê, gestor edita) guarda `reuniao_dia` (1–5) e `reuniao_hora`; a pauta é a da **reunião que vem**, `reuniaoQueVem(hoje, dia)` (core): a desta semana até o fim do dia da reunião, depois a da semana seguinte (30/10/2026); nasce com esse horário. A tela da reunião tem "Anterior · data" para ver a ata da semana passada (só lê: não cria reunião). O cron fixo "Segunda 15:30" saiu: a pauta abre sob demanda pela tela.
+
+**Ações do dia (migration `20261104100000_acoes_do_dia.sql`, 04/11/2026):** `config_avisos` ganha `acoes_ativo`, `acoes_hora` (07:30) e `pend_alta_du`/`pend_media_du`/`pend_baixa_du` (2/4/6, 1–30); saem `resumo_*` e `tarefas_*` ("Bom dia" e "Tarefas que vencem hoje"). Helpers SQL `contro_add_du`, `contro_prazo_pendencia` (espelham o core), `contro_nome_curto`, `contro_totais_acoes` e `contro_texto_equipe`. `gerar_avisos` manda `acoes` a cada pessoa com login (título "CONTRO · Ações de hoje"; "N atrasadas e M vencem hoje. Toque para ver a lista."; url `/?ir=minhas`) e `acoes_equipe` ao gestor (título "CONTRO · Equipe hoje"; "N atrasadas e M vencem hoje · Nome C a+h, … e mais K."; ≤ 120 caracteres; url `/?ir=tarefas`); com 0 ações não há push. Teste pgTAP: `supabase/tests/acoes_avisos.test.sql`. Nota local: a CLI do Supabase v3 rejeita o `config.toml`; use `npx supabase@2.122.1`. Regra de prazo e textos: `core/acoes.ts` (§3.6).
 
 Os horários do boletim **deixam de ser fixos**: o gestor configura dia e hora (global, vale para todas as obras) em `config_boletim` — edição principal + edição de fechamento opcional. Os valores acima viram apenas o **padrão** da linha única. O cron da geração lê `config_boletim` e dispara no horário configurado (fatia 2); o aviso é por push (fatia 3).
 

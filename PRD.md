@@ -52,13 +52,13 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 ### 5.1 Carteira (tela inicial)
 - **Menu inferior com duas abas:** **Hoje** (abre por padrão, com o número de atrasos em vermelho) e **Minhas obras**. O cabeçalho (CONTRO, Modelos, boletins prontos e perfil) fica nas duas.
 - **Hoje** (aba padrão; opção A do protótipo): "Hoje · segunda, 26/10" e um resumo ("4 atrasos e 5 coisas para hoje em 3 obras"). Um **card por obra, recolhível**, só das obras com algo no dia; **todos começam recolhidos** (o cabeçalho já mostra "2 atrasados · 2 para hoje" e a borda vermelha).
-  - **Atrasado** (faixa vermelha, no topo do card): lembrete não providenciado no prazo, atividade que devia ter terminado e tarefa vencida, do mais antigo para o mais novo.
-  - **Para hoje**: atividade que termina ou começa hoje, lembrete com prazo hoje e tarefa de hoje.
+  - **Atrasado** (faixa vermelha, no topo do card): lembrete não providenciado no prazo, atividade que devia ter terminado e ação vencida (tarefa ou pendência), do mais antigo para o mais novo.
+  - **Para hoje**: atividade que termina ou começa hoje, lembrete com prazo hoje e ação de hoje (rotulada "Ação").
   - **Em andamento** (dentro do Para hoje): o corte é hoje, mas nada que ficou para trás some. Atividade (inclusive do pré-obra) que devia ter começado e ainda está no prazo aparece todo dia, "desde seg 20/10 · terminar até sex 24/10", até ser concluída; passou do fim, vai para Atrasado.
   - **Mapa de coleta** mostra para que serve o prazo: "começar hoje · pronto até qua 15/10 · Instalações elétricas começa seg 27/10". O mapa começa (antecedência + duração do mapa) dias úteis antes da atividade que libera: ex.: mapa de 5 du com antecedência de 10 du começa 15 du antes e fica pronto 10 du antes, a tempo de contratar.
-  - Tocar no item abre a obra (ou as Tarefas, se for tarefa).
+  - Tocar no item abre a obra (ou as Tarefas, se for ação).
 - Título "Minhas obras" com **ícone "+"** discreto para criar obra a partir do modelo.
-- Atalhos **Reunião** (próxima reunião e status da pauta) e **Tarefas** (abertas e atrasadas da equipe).
+- Atalhos **Reunião** (próxima reunião e status da pauta) e **Tarefas** (ações abertas e atrasadas da equipe). Bloco **"Ações da equipe"** na tela inicial conta ações abertas, atrasadas e de hoje (tarefas e pendências com responsável).
 - Card por obra: nome, fase atual, % real, barra de 6 segmentos (uma por fase), etiqueta de ritmo, data de entrega e aviso em vermelho de atividades e lembretes atrasados.
 - Não há cards de XP nem de contadores gerais na tela inicial (decisão do usuário: o foco é a obra).
 
@@ -146,8 +146,8 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 ### 5.10 Reunião semanal (dia e horário do gestor; padrão segunda, 16h)
 - **Reunião e avisos** (gestor, menu do perfil; 28/10/2026): escolhe o **dia** (seg a sex) e o **horário** da reunião e os avisos por push:
   - lembretes da reunião, para todos: **no dia, de manhã** (07:00, 08:00 ou 09:00) e **antes de começar** (30 min, 1 hora ou 2 horas);
-  - avisos do dia, seg a sex: **resumo da manhã** (obras em andamento e tarefas atrasadas; todos ou só gestores), **tarefas que vencem hoje** (só o responsável) e **providências para começar** (todos ou só gestores; vem desligado). Cada aviso liga/desliga e tem horário.
-  - Cada pessoa liga o push no seu celular em **"Avisos neste celular"** (menu do perfil). No iPhone, só com o app instalado na tela inicial. Tocar no aviso abre a reunião, as tarefas ou a tela inicial.
+  - avisos do dia, seg a sex (**Ações do dia**, 04/11/2026): **ações do dia** (07:30; cada pessoa com login recebe as suas atrasadas e as que vencem hoje; o gestor recebe também um resumo da **equipe inteira**; sem nada a cobrar, não há push) e **providências para começar** (todos ou só gestores; vem desligado). Cada aviso liga/desliga e tem horário. Tocar abre **Minhas ações** (pessoa) ou **Tarefas da equipe** (gestor).
+  - Cada pessoa liga o push no seu celular em **"Avisos neste celular"** (menu do perfil). No iPhone, só com o app instalado na tela inicial. Tocar no aviso abre a reunião, as ações ou a tela inicial.
 - O card **Reunião** da tela inicial mostra sempre a **próxima reunião** (a de hoje vale até o fim do dia) e abre a pauta dela; na tela da reunião, **"Anterior · data"** mostra a reunião e a ata da semana passada (30/10/2026).
 - **Preparar a reunião** (30/10/2026): botão de prévia no rodapé da pauta, antes de "Voltar" e "Continuar" (só na próxima reunião, enquanto não fechada). Gera a **pauta antecipada da próxima reunião**, de todas as obras: (1) ações abertas que serão cobradas, (2) o previsto até a reunião, que será perguntado, (3) a semana seguinte e (4) as providências. Formatos de marcar (1, 2 ou os 3, num PDF só): **Tabela da pauta** (paisagem, uma linha por obra), **Folha para preencher** (retrato, colunas fixas com caixinhas: Feita/Não, Sim/Não, Segue/Ação, Feito/Falta) e **Por pessoa** (o que cada um vai ser cobrado; providências sem dono à parte). WhatsApp com o resumo em texto.
 - **Central de reuniões** (opção C, 03/11/2026): o card Reunião da tela inicial abre **Reuniões**: no topo a **próxima reunião** (Abrir a pauta, **Preparar · PDF** e WhatsApp da pauta antecipada) e, embaixo, a lista das **atas** das reuniões passadas (abrir mostra a ata com WhatsApp e Baixar PDF). Dentro da pauta, o botão **⋯** reúne Preparar a reunião (PDF), Baixar ata (PDF, depois de gerada) e Reuniões e atas. Saem o botão "Anterior · data", o "Baixar ata" do topo e o ícone sem nome do rodapé.
@@ -165,10 +165,10 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - **Minhas ações** (sistema colaborativo): quem tem ações abertas vê na ata o botão **"Minhas ações · N"** e o próprio nome destacado. A tela lista as ações da pessoa em todas as obras, por obra, com o anel de avanço; ela informa **0/25/50/75% ou Feita**, um comentário e pode mudar o prazo (calendário livre; conta como replanejamento). Também abre por Tarefas → "Minhas". O gestor vê o avanço nas Tarefas e na Cobrança.
 - **WhatsApp** no mesmo formato da ata. **Baixar PDF** pergunta o formato: **Resumo em tabela + ata** (padrão, A4 paisagem: linhas = obras; colunas = cumprido, não cumprido → ação, próxima semana, providências, cobrança; depois a ata) ou **Só a ata**. A tabela só existe no PDF.
 
-### 5.11 Tarefas (providências da equipe)
+### 5.11 Tarefas e pendências (ações da equipe)
 - Filtro por pessoa, com o número de atrasadas em cada uma. Na v1 começa com **nomes fictícios**; não há cadastro prévio obrigatório.
 - **Cadastro pelo uso:** ao digitar um responsável ou um prestador novo, o nome é salvo e passa a ser **sugerido** nos próximos lançamentos (autocompletar). Os nomes podem ser editados ou unificados depois.
-- Grupos: Atrasadas, Abertas e Concluídas.
+- **Ações (04/11/2026):** tarefas e pendências com responsável aparecem juntas como **ações**, com a mesma importância e sem etiqueta de origem. Grupos, com ícone: **Atrasadas**, **Vencem hoje**, **Próximos dias** e **Concluídas** (pendências fechadas ficam 30 dias). O card de pendência não tem check: tocar abre a obra no Check list; fechar é com a foto de depois. A pendência ganha prazo pela criticidade, contado em dias úteis a partir do dia em que foi apontada: **alta 2, média 4, baixa 6** (configurável em Avisos, 1 a 30). O selo dos filtros mostra as atrasadas. Âmbar `#B45309` só para "vence hoje" (exceção ao design system) e card atrasado com fundo `#FBEAEA`. O boletim ("Quem faz o quê") inclui as pendências. A ata não muda: pendência não é item de reunião.
 - **Concluir** em um toque, com "Desfazer". O vínculo produz efeito na obra:
   - **Lembrete:** marca como providenciado e pode liberar a atividade.
   - **Atividade:** abre a câmera de conclusão.
