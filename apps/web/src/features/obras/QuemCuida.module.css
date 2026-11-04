@@ -1,0 +1,12 @@
+.quem {
+  margin-top: 4px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--contro-radius-pill);
+  background: rgb(84 180 176 / 18%);
+}

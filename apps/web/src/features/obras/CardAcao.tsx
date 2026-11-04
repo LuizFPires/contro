@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import {
   estadoAcao,
   textoReplanejamento,
+  type AtividadeSemDono,
   type EstadoAcao,
   type ProvidenciaSemDono,
 } from '@contro/core';
@@ -79,8 +80,8 @@ const CLASSE_CARD: Record<EstadoAcao, string> = {
  * Card de ação (tarefa, pendência ou providência sem dono), igual nas Tarefas
  * da equipe e em Minhas ações, sem rótulo de origem. `esquerda` é o marcador
  * (check ou anel); com `cardInteiro`, o card todo é o botão (o marcador vai
- * dentro, sem ação própria). Providência: card inteiro, marcador sem check e
- * toque em `onAtribuir`.
+ * dentro, sem ação própria). Providência e atividade sem dono: card inteiro,
+ * marcador sem check e toque em `onAtribuir` / `onAtribuirAtividade`.
  */
 export function CardAcao({
   acao: a,
@@ -93,6 +94,7 @@ export function CardAcao({
   rotulo,
   onToque,
   onAtribuir,
+  onAtribuirAtividade,
 }: {
   acao: AcaoObra;
   hoje: string;
@@ -107,13 +109,22 @@ export function CardAcao({
   onToque?: () => void;
   /** Providência sem dono: toque abre a atribuição de responsável. */
   onAtribuir?: (p: ProvidenciaSemDono) => void;
+  /** Atividade sem dono: toque abre a atribuição de responsável. */
+  onAtribuirAtividade?: (a: AtividadeSemDono) => void;
 }) {
-  // Providência sem dono: card inteiro, marcador sem check, toque atribui.
+  // Providência ou atividade sem dono: card inteiro, marcador sem check, toque atribui.
   const prov = a.origem === 'providencia' ? a.providencia : null;
-  const inteiro = cardInteiro || prov !== null;
-  const marcador = esquerda ?? (prov ? <MarcadorAcao feita={false} /> : null);
-  const nome = rotulo ?? (prov ? `${a.texto}: atribuir responsável` : a.texto);
-  const toque = onToque ?? (() => (prov ? onAtribuir?.(prov) : undefined));
+  const ativ = a.origem === 'atividade' ? a.atividade : null;
+  const semDono = prov !== null || ativ !== null;
+  const inteiro = cardInteiro || semDono;
+  const marcador = esquerda ?? (semDono ? <MarcadorAcao feita={false} /> : null);
+  const nome = rotulo ?? (semDono ? `${a.texto}: atribuir responsável` : a.texto);
+  const toque =
+    onToque ??
+    (() => {
+      if (prov) onAtribuir?.(prov);
+      else if (ativ) onAtribuirAtividade?.(ativ);
+    });
   const e = estadoAcao(a, hoje);
   const t = a.origem === 'tarefa' ? a.tarefa : null;
   const repl =

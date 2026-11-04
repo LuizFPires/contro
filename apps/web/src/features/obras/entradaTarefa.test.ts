@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   entradaAtribuicao,
+  entradaAtribuicaoAtividade,
   entradaDaFolha,
   motivoReplanejamento,
   OUTRO,
@@ -60,6 +61,39 @@ describe('entradaAtribuicao', () => {
     );
     expect(e.responsavelId).toBe('u1');
     expect(e.responsavelNome).toBeNull();
+  });
+});
+
+describe('entradaAtribuicaoAtividade', () => {
+  it('vincula à atividade com o nome digitado completo', () => {
+    const e = entradaAtribuicaoAtividade(
+      { id: 'a1' },
+      {
+        texto: 'Atividade: Pintura',
+        responsavelId: null,
+        responsavelNome: '  Maria Souza ',
+        prazo: '2026-11-10',
+      },
+    );
+    expect(e).toEqual({
+      texto: 'Atividade: Pintura',
+      responsavelId: null,
+      responsavelNome: 'Maria Souza',
+      prazo: '2026-11-10',
+      vinculoTipo: 'atividade',
+      vinculoId: 'a1',
+      origemTexto: 'Atividade da obra',
+    });
+  });
+
+  it('com pessoa do app, o nome vai nulo', () => {
+    const e = entradaAtribuicaoAtividade(
+      { id: 'a1' },
+      { texto: 'x', responsavelId: 'u1', responsavelNome: 'Ana Lima', prazo: '2026-11-10' },
+    );
+    expect(e.responsavelId).toBe('u1');
+    expect(e.responsavelNome).toBeNull();
+    expect(e.vinculoTipo).toBe('atividade');
   });
 });
 

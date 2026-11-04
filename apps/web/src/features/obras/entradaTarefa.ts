@@ -62,6 +62,25 @@ export function entradaAtribuicao(
   };
 }
 
+/**
+ * Tarefa que atribui a atividade sem dono: vinculada a ela (concluir a tarefa
+ * abre a câmera da atividade), com o nome digitado completo.
+ */
+export function entradaAtribuicaoAtividade(
+  a: { id: string },
+  e: Pick<EntradaTarefa, 'texto' | 'responsavelId' | 'responsavelNome' | 'prazo'>,
+): EntradaTarefa {
+  return {
+    texto: e.texto,
+    responsavelId: e.responsavelId,
+    responsavelNome: e.responsavelId ? null : e.responsavelNome?.trim() || null,
+    prazo: e.prazo,
+    vinculoTipo: 'atividade',
+    vinculoId: a.id,
+    origemTexto: 'Atividade da obra',
+  };
+}
+
 /** Tamanho máximo do motivo do replanejamento. */
 export const MOTIVO_MAX = 120;
 

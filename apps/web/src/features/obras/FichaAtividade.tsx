@@ -26,6 +26,9 @@ import { numeracaoObra } from './numeracaoObra';
 import { useConcluirAtividade, type AoConcluir } from './useConcluirAtividade';
 import { useAvanco } from './useAvanco';
 import { useObraCampo } from './useObraCampo';
+import { useObraTarefas } from './useObraTarefas';
+import { QuemCuida } from './QuemCuida';
+import { useQuemCuida } from './useQuemCuida';
 import styles from './FichaAtividade.module.css';
 
 type Tipo = 'contratacao' | 'locacao' | 'compra';
@@ -53,6 +56,9 @@ export function FichaAtividade({
   const campo = useObraCampo(obra.id);
   const conclusao = useConcluirAtividade(obra);
   const avanco = useAvanco(obra, onConcluida);
+  // Tarefa aberta vinculada à atividade (atribuída em Tarefas da equipe): quem cuida.
+  const { query: tarefasQ } = useObraTarefas(obra.id);
+  const quemCuida = useQuemCuida(tarefasQ.data, 'atividade');
   // "⋯" de um lembrete do "Para começar": abre o detalhe (editar, reabrir, excluir).
   const [excluirItemId, setExcluirItemId] = useState<string | null>(null);
   const [detalheProvId, setDetalheProvId] = useState<string | null>(null);
@@ -198,6 +204,11 @@ export function FichaAtividade({
                   {est?.atrasada
                     ? `Devia terminar ${formatarDataCurta(cron.fim_previsto)} · previsto ${diaMes(cron.inicio_previsto)}–${diaMes(cron.fim_previsto)}`
                     : `Previsto ${formatarDataCurta(cron.inicio_previsto)} a ${formatarDataCurta(cron.fim_previsto)} · ${a.duracao_du} dias úteis`}
+                </div>
+              ) : null}
+              {!a.concluida_em && quemCuida.has(a.id) ? (
+                <div>
+                  <QuemCuida tarefa={quemCuida.get(a.id)} />
                 </div>
               ) : null}
             </div>
