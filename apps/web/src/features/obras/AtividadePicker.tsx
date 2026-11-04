@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { filtrarAtividades } from '@contro/core';
 import { Icon } from '@contro/ui';
 import type { ObraCompleta } from './detalhe';
-import { numeracaoObra } from './numeracaoObra';
+import { agruparPorFase, itensAtividadesObra } from './listaAtividades';
 import styles from './AtividadePicker.module.css';
 
 /**
@@ -21,28 +21,11 @@ export function AtividadePicker({
   const [aberto, setAberto] = useState(false);
   const [busca, setBusca] = useState('');
 
-  const itens = useMemo(() => {
-    const num = numeracaoObra(obra);
-    const ordemFase = new Map(obra.fases.map((f) => [f.id, f.ordem]));
-    return obra.atividades
-      .filter((a) => !a.pai_id)
-      .map((a) => ({
-        id: a.id,
-        nome: a.nome,
-        numero: num.get(a.id) ?? null,
-        faseId: a.fase_id,
-        ordem: (ordemFase.get(a.fase_id) ?? 0) * 10000 + a.ordem,
-      }))
-      .sort((x, y) => x.ordem - y.ordem);
-  }, [obra]);
+  const itens = useMemo(() => itensAtividadesObra(obra), [obra]);
 
   const escolhida = itens.find((a) => a.id === valor) ?? null;
   const achadas = filtrarAtividades(itens, busca);
-  const grupos = obra.fases
-    .slice()
-    .sort((a, b) => a.ordem - b.ordem)
-    .map((f) => ({ fase: f, itens: achadas.filter((a) => a.faseId === f.id) }))
-    .filter((g) => g.itens.length > 0);
+  const grupos = agruparPorFase(obra.fases, achadas);
 
   function escolher(id: string | null) {
     onMudar(id);

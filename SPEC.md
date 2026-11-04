@@ -98,6 +98,7 @@ modelo_atividade/obra_atividade.mapa_alvo_id, mapa_antecedencia_du  -- mapa de c
 obra.entrega_original date null                                -- inauguração planejada (fixar_entrega_original, uma vez)
 obra_dependencia.defasagem_du int default 0 (≤ 0)             -- paralelismo: começa N du antes do fim da predecessora
 obra_atividade excluída (deleted_at): as dependências ficam; no cálculo a sucessora herda as predecessoras dela (core dependenciasAtivas). RPCs adicionar_atividade_obra / excluir_atividade_obra / restaurar_atividade_obra (eventos criada/excluida/restaurada).
+RPC adicionar_mapa_obra(p_obra_id, p_nome, p_duracao_du, p_antecedencia_du, p_libera uuid[], p_id): security definer, membro; valida fase preliminar "Mapa de coleta" e alvos de topo, de fases não preliminares, da mesma obra (pelo menos um); insere a atividade com mapa_antecedencia_du e as linhas de obra_mapa_libera; evento criada; idempotente por p_id. Web: campo.ts adicionarMapa e useObraCampo.novoMapa chamam a RPC direto e invalidam a obra (como "Adicionar atividade"; **não passa pela fila offline**); folha NovoMapaSheet; Desfazer = excluir_atividade_obra, otimista.
 obra.excluida_por (pessoa) + RPCs excluir_obra / restaurar_obra (só gestor; trigger obra_protege_exclusao barra update direto de deleted_at pela equipe).
 tarefa(id, obra_id, texto, responsavel_id → pessoa, prazo date,
        prazo_original date null, replanejamentos int default 0,

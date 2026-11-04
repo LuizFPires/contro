@@ -13,6 +13,9 @@ import { ApagarObraSheet } from './ApagarObraSheet';
 import { RenomearObraSheet } from './RenomearObraSheet';
 import { CampoPrestador } from './CampoPrestador';
 import { NovaAtividadeSheet } from './NovaAtividadeSheet';
+import { NovoMapaSheet } from './NovoMapaSheet';
+import type { ObraFase } from './detalhe';
+import { ehFaseMapa } from './listaAtividades';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { BoletimView } from './BoletimView';
@@ -106,6 +109,8 @@ export function ObraDetalhe({
   const [contratadoId, setContratadoId] = useState<string | null>(null);
   // Fase que recebe um card novo ("+ Adicionar atividade").
   const [novaFaseId, setNovaFaseId] = useState<string | null>(null);
+  // Novo item do Mapa de coleta ("+ Adicionar item do mapa").
+  const [novoMapaAberto, setNovoMapaAberto] = useState(false);
   // Apagar obra: só o gestor, sempre com confirmação.
   const { data: perfil } = usePerfil();
   const [apagarAberto, setApagarAberto] = useState(false);
@@ -194,6 +199,20 @@ export function ObraDetalhe({
   const atual = fases.find((f) => f.status === 'execucao' && !preliminares.has(f.id));
   const aberta = faseAberta ?? atual?.id ?? null;
   const nFasesConcl = fases.filter((f) => f.status === 'concluida').length;
+  // Botão de adicionar por fase: card novo nas fases da obra; no pré-obra, só o
+  // Mapa de coleta (item do mapa). O Orçamento fica sem botão.
+  const adicionarDaFase = (
+    fase: ObraFase | undefined,
+  ): { onAdicionar?: () => void; rotuloAdicionar?: string } => {
+    if (!fase) return {};
+    if (!fase.preliminar) return { onAdicionar: () => setNovaFaseId(fase.id) };
+    if (ehFaseMapa(fase))
+      return {
+        onAdicionar: () => setNovoMapaAberto(true),
+        rotuloAdicionar: 'Adicionar item do mapa',
+      };
+    return {};
+  };
 
   const ritmo = ritmoTexto(obra.ritmoDias);
   const restantes = diasUteisRestantes(obra.decorridos, obra.dia.m);
@@ -363,11 +382,7 @@ export function ObraDetalhe({
                   });
                 }}
                 onContratado={setContratadoId}
-                onAdicionar={
-                  obra.fases.find((x) => x.id === f.id)?.preliminar
-                    ? undefined
-                    : () => setNovaFaseId(f.id)
-                }
+                {...adicionarDaFase(obra.fases.find((x) => x.id === f.id))}
                 subitensDe={(id) =>
                   obra.atividades
                     .filter((x) => x.pai_id === id)
@@ -454,6 +469,18 @@ export function ObraDetalhe({
 
       <NovaAtividadeSheet obra={obra} faseId={novaFaseId} onFechar={() => setNovaFaseId(null)} />
 
+      <NovoMapaSheet
+        obra={obra}
+        aberto={novoMapaAberto}
+        onFechar={() => setNovoMapaAberto(false)}
+        onAdicionado={(id) =>
+          showToast({
+            message: 'Item do mapa adicionado',
+            onUndo: () => campo.excluir.mutate(id),
+          })
+        }
+      />
+
       <BottomSheet
         open={Boolean(contratadoId)}
         title="Quem foi contratado?"
@@ -491,6 +518,7 @@ function Fase({
   onMarcarMapa,
   onContratado,
   onAdicionar,
+  rotuloAdicionar = 'Adicionar atividade',
   subitensDe,
 }: {
   fase: FaseTrilha;
@@ -503,8 +531,10 @@ function Fase({
   mapaDe: (id: string) => { prontoEm: string | null; contratado: string | null } | null;
   onMarcarMapa: (id: string, nome: string, pronto: boolean) => void;
   onContratado: (id: string) => void;
-  /** Novo card nesta fase (fases da obra; o pré-obra não). */
+  /** Novo card nesta fase (fases da obra e o Mapa de coleta; o Orçamento não). */
   onAdicionar?: () => void;
+  /** Texto do botão de adicionar (o Mapa de coleta adiciona item do mapa). */
+  rotuloAdicionar?: string;
   /** Subitens da atividade, para listar embaixo dela na trilha. */
   subitensDe: (id: string) => { id: string; nome: string; feito: boolean }[];
 }) {
@@ -604,7 +634,7 @@ function Fase({
             {onAdicionar ? (
               <button type="button" className={styles.adicionarAtv} onClick={onAdicionar}>
                 <Icon name="plus" size={18} strokeWidth={2.2} />
-                Adicionar atividade
+                {rotuloAdicionar}
               </button>
             ) : null}
           </div>

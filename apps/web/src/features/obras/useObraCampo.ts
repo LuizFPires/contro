@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { enfileirar } from '../../lib/sync';
 import {
   adicionarAtividade,
+  adicionarMapa,
   adicionarPredecessora,
   adicionarProvidencia,
   ajustarInicio,
@@ -268,6 +269,17 @@ export function useObraCampo(obraId: string) {
       adicionarAtividade({ obraId, ...v }),
     onSettled: inval,
   });
+  // Item do Mapa de coleta (pré-obra): igual ao card novo; inval também refaz ['obras'] (agenda).
+  const novoMapa = useMutation({
+    mutationFn: (v: {
+      nome: string;
+      duracaoDu: number;
+      antecedenciaDu: number;
+      libera: string[];
+      id?: string;
+    }) => adicionarMapa({ obraId, ...v }),
+    onSettled: inval,
+  });
   const excluir = useMutation({
     mutationFn: (atividadeId: string) => excluirAtividade(atividadeId),
     onMutate: async (atividadeId: string) => {
@@ -292,6 +304,7 @@ export function useObraCampo(obraId: string) {
 
   return {
     novaAtividade,
+    novoMapa,
     excluir,
     restaurar,
     renomear,
