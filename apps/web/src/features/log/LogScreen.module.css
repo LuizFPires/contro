@@ -47,3 +47,168 @@
   font-size: 13px;
   color: rgb(255 255 255 / 72%);
 }
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 10px 4px 2px;
+  scrollbar-width: none;
+}
+.chip {
+  flex-shrink: 0;
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border-radius: 99px;
+  border: 1.5px solid rgb(255 255 255 / 40%);
+  background: transparent;
+  color: var(--contro-white);
+  font: inherit;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chipAtivo {
+  background: var(--contro-turquoise);
+  border-color: var(--contro-turquoise);
+  color: var(--contro-black);
+}
+.chipSep {
+  flex-shrink: 0;
+  width: 1px;
+  margin: 8px 2px;
+  background: rgb(255 255 255 / 30%);
+}
+.lista {
+  padding: 4px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vazio {
+  margin: 24px 0;
+  text-align: center;
+  font-size: 14px;
+  color: #5f5f5f;
+}
+.dia {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.diaTitulo {
+  margin: 12px 0 2px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #5f5f5f;
+}
+
+/* Uma mudança (card). Âmbar = replanejada/início ajustado; vermelho = venceu. */
+.ev {
+  width: 100%;
+  min-height: var(--contro-touch);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--contro-black);
+  border-radius: 12px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.evIcone {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid currentcolor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.evTexto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.evLinha {
+  font-size: 14px;
+  line-height: 1.35;
+}
+.evTipo {
+  font-weight: 800;
+}
+.evMeta {
+  font-size: 12px;
+  color: #5f5f5f;
+  line-height: 1.35;
+}
+.evHora {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5f5f5f;
+}
+.cor_ok .evIcone {
+  border-color: var(--contro-black);
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.cor_atencao {
+  border-color: var(--contro-attention);
+}
+.cor_atencao .evIcone,
+.cor_atencao .evTipo {
+  color: var(--contro-attention);
+}
+.cor_atraso {
+  border-color: var(--contro-late);
+  background: var(--contro-late-bg);
+}
+.cor_atraso .evIcone,
+.cor_atraso .evTipo {
+  color: var(--contro-late);
+}
+
+/* Filtro Replanejadas: card por item com a vida dele. */
+.ficha {
+  border: 1.5px solid var(--contro-black);
+  border-radius: 14px;
+  background: var(--contro-white);
+  padding: 4px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fichaTopo {
+  min-height: var(--contro-touch);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  padding: 6px 0;
+  font: inherit;
+  color: var(--contro-black);
+  text-align: left;
+  cursor: pointer;
+}
+.fichaTexto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fichaTitulo {
+  font-size: 15px;
+  font-weight: 800;
+}

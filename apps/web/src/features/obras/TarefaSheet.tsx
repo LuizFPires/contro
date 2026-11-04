@@ -7,6 +7,7 @@ import { formatarDataCurta } from '../../lib/datas';
 import { useRascunho } from '../../lib/useRascunho';
 import type { PessoaResumo } from '../perfil/usePessoas';
 import { useNomesSugeridos } from '../reuniao/useNomesSugeridos';
+import { VidaDoItem } from '../log/VidaDoItem';
 import { dataLocal } from './api';
 import type { EntradaTarefa } from './campo';
 import { entradaDaFolha, OUTRO, responsavelDaTarefa } from './entradaTarefa';
@@ -214,6 +215,12 @@ export function TarefaSheet({
         <p className={styles.resumo} style={{ marginTop: 8 }}>
           {repl}
         </p>
+      ) : null}
+
+      {tarefa && !atribuir ? (
+        <div style={{ marginTop: 16 }}>
+          <VidaDoItem itemId={tarefa.id} />
+        </div>
       ) : null}
 
       <div className={styles.rodape}>

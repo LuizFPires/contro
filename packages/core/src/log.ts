@@ -108,6 +108,11 @@ const ROTULO: Record<TipoLinhaLog, string> = {
   apontada: 'Apontada',
 };
 
+/** Rótulo do tipo na linha do Log (a "vencida" por extenso). */
+export function rotuloLinhaLog(tipo: TipoLinhaLog): string {
+  return tipo === 'vencida' ? 'Venceu sem concluir' : ROTULO[tipo];
+}
+
 const RE_DATA = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Dia local de um timestamp ISO (ou a própria data, se já for data). */

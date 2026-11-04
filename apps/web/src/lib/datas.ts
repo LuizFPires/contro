@@ -18,3 +18,10 @@ export function formatarDataCompleta(iso: string): string {
   const dt = parse(iso);
   return `${DIAS_LONGO[dt.getUTCDay()]}, ${p2(dt.getUTCDate())}/${p2(dt.getUTCMonth() + 1)}/${dt.getUTCFullYear()}`;
 }
+
+/** Cabeçalho de dia do Log: "Quarta, 04/11". */
+export function formatarDiaSemana(iso: string): string {
+  const dt = parse(iso);
+  const dia = DIAS_LONGO[dt.getUTCDay()];
+  return `${dia.charAt(0).toUpperCase()}${dia.slice(1)}, ${p2(dt.getUTCDate())}/${p2(dt.getUTCMonth() + 1)}`;
+}

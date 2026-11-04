@@ -31,3 +31,25 @@ export function nomeCurto(nome: string | null | undefined): string {
 export function normalizarNome(nome: string): string {
   return nome.normalize('NFD').replace(/\p{M}/gu, '').trim().replace(/\s+/g, ' ').toLowerCase();
 }
+
+/**
+ * Iniciais para o avatar: primeira letra do nome e do sobrenome, sem
+ * partículas ("Thaina Costa" → "TC"; "Pinturas Silva" → "PS"; "João" → "J").
+ */
+export function iniciais(nome: string | null | undefined): string {
+  const partes = (nome ?? '')
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p && !PARTICULAS.has(p.toLowerCase()));
+  if (partes.length === 0) return '';
+  const letras = [partes[0], partes.length > 1 ? partes[partes.length - 1] : '']
+    .map((p) => p.charAt(0))
+    .join('');
+  return letras.toLocaleUpperCase('pt-BR');
+}
+
+/** Nome curto da obra para chips: sem o prefixo "CDC - " ("CDC - Ressaca" → "Ressaca"). */
+export function nomeCurtoObra(nome: string): string {
+  const curto = nome.replace(/^\s*CDC\s*[-–—·:]\s*/i, '').trim();
+  return curto || nome.trim();
+}

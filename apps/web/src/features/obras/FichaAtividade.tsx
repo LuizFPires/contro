@@ -14,6 +14,7 @@ import { hojeISO } from './api';
 import { PropostasMapa } from './PropostasMapa';
 import { PendenciasAba } from './PendenciasAba';
 import { AjustePrazo } from './AjustePrazo';
+import { VidaDoItem } from '../log/VidaDoItem';
 import { Camera } from './Camera';
 import { CampoPrestador } from './CampoPrestador';
 import type { ObraCompleta } from './detalhe';
@@ -412,6 +413,8 @@ export function FichaAtividade({
               </div>
             ) : null}
           </div>
+
+          <VidaDoItem itemId={a.id} />
 
           {a.concluida_em && !a.foto_conclusao_id && !mapa ? (
             <div className={styles.semFoto}>

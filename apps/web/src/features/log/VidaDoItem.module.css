@@ -1,0 +1,71 @@
+/* Vida do item — protótipo aprovado (Score e Log): linha vertical, ponto por passo. */
+.vida {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.titulo {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #696969;
+}
+.passos {
+  list-style: none;
+  margin: 2px 0 0 6px;
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--contro-black);
+}
+.passo {
+  position: relative;
+  padding: 0 0 10px 6px;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.passo:last-child {
+  padding-bottom: 0;
+}
+.passo::before {
+  content: '';
+  position: absolute;
+  left: -21px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--contro-black);
+}
+.rotulo {
+  font-weight: 700;
+}
+.detalhe {
+  color: #5f5f5f;
+  font-size: 12px;
+}
+.atencao::before {
+  background: var(--contro-attention);
+}
+.atencao .rotulo {
+  color: var(--contro-attention);
+}
+.ok::before {
+  background: var(--contro-turquoise);
+}
+.atraso::before {
+  background: var(--contro-late);
+}
+.atraso .rotulo {
+  color: var(--contro-late);
+}
+.resumo {
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--contro-bg-app);
+  font-size: 12px;
+  font-weight: 700;
+}

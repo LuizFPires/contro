@@ -137,6 +137,8 @@ function invalidar(payload: Record<string, unknown>) {
     qc.invalidateQueries({ queryKey: ['propostas-mapa', obraId] });
     qc.invalidateQueries({ queryKey: ['reuniao'] });
     qc.invalidateQueries({ queryKey: ['sugestao', 'prestador'] });
+    // Log, Score e Vida do item leem os eventos gravados pela ação.
+    qc.invalidateQueries({ queryKey: ['log-score'] });
   }
 }
 

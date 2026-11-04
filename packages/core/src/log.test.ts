@@ -3,6 +3,7 @@ import {
   agruparPorDia,
   filtrarLog,
   montarLog,
+  rotuloLinhaLog,
   vidaDoItem,
   type EventoBruto,
   type ItemLog,
@@ -433,5 +434,14 @@ describe('vidaDoItem', () => {
     expect(vidaDoItem(item({ id: 'z' }), [], HOJE, fmt).resumo).toBe(
       '0 d.u. além do prazo original · 0 replanejamentos · 0 dias aberta',
     );
+  });
+});
+
+describe('rotuloLinhaLog', () => {
+  it('rótulos em pt-BR, a vencida por extenso', () => {
+    expect(rotuloLinhaLog('replanejada')).toBe('Replanejada');
+    expect(rotuloLinhaLog('inicio_ajustado')).toBe('Início ajustado');
+    expect(rotuloLinhaLog('vencida')).toBe('Venceu sem concluir');
+    expect(rotuloLinhaLog('atribuida')).toBe('Atribuída');
   });
 });
