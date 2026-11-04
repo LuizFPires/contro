@@ -6,11 +6,11 @@ import {
   type AcoesClassificadas,
   type EstadoAcao,
   type PrazosPendencia,
+  type ProvidenciaSemDono,
 } from '@contro/core';
 import type { IconName } from '@contro/ui';
 import { dataLocal } from './api';
 import type { PendenciaObra } from './pendenciasObra';
-import type { ProvidenciaSemDono } from './providenciasSemDono';
 import type { TarefaObra } from './tarefasObra';
 
 /** Ação (tarefa, pendência ou providência sem dono) com o original à mão para abrir o detalhe. */

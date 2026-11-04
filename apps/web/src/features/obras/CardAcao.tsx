@@ -1,10 +1,14 @@
 import type { ReactNode } from 'react';
-import { estadoAcao, textoReplanejamento, type EstadoAcao } from '@contro/core';
+import {
+  estadoAcao,
+  textoReplanejamento,
+  type EstadoAcao,
+  type ProvidenciaSemDono,
+} from '@contro/core';
 import { Icon, type IconName } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { dataLocal } from './api';
 import type { AcaoObra, SecaoAcoes } from './acoesObra';
-import type { ProvidenciaSemDono } from './providenciasSemDono';
 import styles from './CardAcao.module.css';
 
 const CRIT: Record<string, string> = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };

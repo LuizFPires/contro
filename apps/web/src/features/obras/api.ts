@@ -12,16 +12,14 @@ import {
   type AgendaObra,
   type AtividadeEntrada,
   nomeCurto,
-} from '@contro/core';
-import { supabase } from '../../lib/supabase';
-import {
   prazosParaGravar,
   providenciasSemDono,
   type LinhaProvidencia,
   type ProvidenciaSemDono,
-} from './providenciasSemDono';
+} from '@contro/core';
+import { supabase } from '../../lib/supabase';
 
-export type { ProvidenciaSemDono } from './providenciasSemDono';
+export type { ProvidenciaSemDono } from '@contro/core';
 
 /** Data de hoje no fuso do aparelho (UTC virava "amanhã" depois das 21h em Brasília). */
 export function hojeISO(): string {

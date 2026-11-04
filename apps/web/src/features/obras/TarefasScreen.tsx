@@ -5,6 +5,7 @@ import {
   nomeCurto,
   providenciaParaAcaoBase,
   textoResumoSecoes,
+  type ProvidenciaSemDono,
 } from '@contro/core';
 import { Icon, useToast } from '@contro/ui';
 import { usePessoas } from '../perfil/usePessoas';
@@ -14,7 +15,6 @@ import { Camera } from './Camera';
 import { CardAcao, MarcadorAcao, TituloSecao } from './CardAcao';
 import { TarefaSheet } from './TarefaSheet';
 import type { EntradaTarefa } from './campo';
-import type { ProvidenciaSemDono } from './providenciasSemDono';
 import type { TarefaObra } from './tarefasObra';
 import { useObraCampo } from './useObraCampo';
 import { useObras } from './useObras';

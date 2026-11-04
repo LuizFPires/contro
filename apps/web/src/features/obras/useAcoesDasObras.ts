@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
-import { PRAZOS_PENDENCIA_PADRAO } from '@contro/core';
+import { PRAZOS_PENDENCIA_PADRAO, semTarefaAberta } from '@contro/core';
 import { prazosDaConfig, useConfigAvisos } from '../avisos/useConfigAvisos';
 import { pendenciaParaAcao, providenciaParaAcao, tarefaParaAcao, type AcaoObra } from './acoesObra';
-import { semTarefaAberta } from './providenciasSemDono';
 import { useObras } from './useObras';
 import { usePendenciasDasObras } from './useObraPendencias';
 import { useTarefasDasObras } from './useObraTarefas';

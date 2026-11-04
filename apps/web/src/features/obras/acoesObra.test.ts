@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { PRAZOS_PENDENCIA_PADRAO, classificarAcoes, nomeCurto, prazoPendencia } from '@contro/core';
+import {
+  PRAZOS_PENDENCIA_PADRAO,
+  classificarAcoes,
+  nomeCurto,
+  prazoPendencia,
+  type ProvidenciaSemDono,
+} from '@contro/core';
 import { dataLocal } from './api';
 import {
   acoesVisiveis,
@@ -8,7 +14,6 @@ import {
   secoesAcoes,
   tarefaParaAcao,
 } from './acoesObra';
-import type { ProvidenciaSemDono } from './providenciasSemDono';
 import type { PendenciaObra } from './pendenciasObra';
 import type { TarefaObra } from './tarefasObra';
 
