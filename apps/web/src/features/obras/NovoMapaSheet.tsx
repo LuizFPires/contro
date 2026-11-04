@@ -11,6 +11,9 @@ const ANTECEDENCIA_PADRAO = 10;
 /** Mensagem do erro do servidor (as RPCs já falam pt-BR), com um texto de reserva. */
 function mensagemErro(e: unknown): string {
   const m = e && typeof e === 'object' && 'message' in e ? String(e.message) : '';
+  if (e instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(m)) {
+    return 'Sem conexão. Tente de novo.';
+  }
   return m.trim() || 'Não foi possível adicionar o item';
 }
 
@@ -38,6 +41,8 @@ export function NovoMapaSheet({
   const [libera, setLibera] = useState<string[]>([]);
   const [busca, setBusca] = useState('');
   const [erro, setErro] = useState('');
+  // Um id por abertura: se a resposta se perder, a nova tentativa repete o mesmo id (a RPC é idempotente).
+  const [opId, setOpId] = useState(() => crypto.randomUUID());
 
   // Fechou: volta tudo ao começo.
   useEffect(() => {
@@ -48,6 +53,7 @@ export function NovoMapaSheet({
       setLibera([]);
       setBusca('');
       setErro('');
+      setOpId(crypto.randomUUID());
     }
   }, [aberto]);
 
@@ -65,7 +71,7 @@ export function NovoMapaSheet({
     if (!pode) return;
     setErro('');
     campo.novoMapa.mutate(
-      { nome: nomeLimpo, duracaoDu: dias, antecedenciaDu: antecedencia, libera },
+      { nome: nomeLimpo, duracaoDu: dias, antecedenciaDu: antecedencia, libera, id: opId },
       {
         onSuccess: (id) => {
           onAdicionado(id, nomeLimpo);

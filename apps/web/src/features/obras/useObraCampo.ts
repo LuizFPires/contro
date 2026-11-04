@@ -276,6 +276,7 @@ export function useObraCampo(obraId: string) {
       duracaoDu: number;
       antecedenciaDu: number;
       libera: string[];
+      id?: string;
     }) => adicionarMapa({ obraId, ...v }),
     onSettled: inval,
   });

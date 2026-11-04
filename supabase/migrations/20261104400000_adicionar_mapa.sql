@@ -33,7 +33,7 @@ begin
     return v_id;
   end if;
   select id into v_fase from public.obra_fase
-  where obra_id = p_obra_id and preliminar and titulo ilike 'mapa%'
+  where obra_id = p_obra_id and preliminar and btrim(titulo) ilike 'mapa%'
   order by ordem limit 1;
   if v_fase is null then
     raise exception 'Obra sem fase Mapa de coleta' using errcode = '23503';
