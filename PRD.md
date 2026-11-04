@@ -81,6 +81,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 
 ### 5.4 Obra · Fases (mapa do jogo)
 - **Cards livres na obra:** cada fase tem "+ Adicionar atividade" (nome, prazo em dias úteis e depois de qual atividade começa; padrão: junto com o início da fase). Na ficha, "Excluir atividade" (com Desfazer; exclusão lógica). Quem dependia da excluída passa a depender do que ela dependia. Vale só para a obra; o modelo não muda.
+- **Item do mapa na obra:** a fase Mapa de coleta tem o botão "Adicionar item do mapa" (a fase Orçamento não tem). A folha pede nome (com sugestões dos mapas da obra), duração em dias úteis (padrão 5), antecedência da contratação em dias úteis (padrão 10) e quais atividades ele libera (busca e seleção múltipla, pelo menos uma). O prazo vem da regra do mapa e aparece na hora; "Desfazer" no aviso. Vale só para a obra; o modelo não muda.
 - Trilha vertical com o **pré-obra** e as 6 fases da obra: **Orçamento** e **Mapa de coleta** (pré-obra), Mobilização, Infraestrutura, Fechamentos, Acabamentos, Instalações finais e Entrega.
   - **Pré-obra** acontece **antes do dia 0** (início da Mobilização) e fica **fora do % e do prazo** da obra; as datas são calculadas para trás e a atividade fica vermelha se passar do fim previsto. A etiqueta da fase diz "pré-obra". **Nada do pré-obra trava**: é aviso para o usuário se programar.
   - **Orçamento** (fase 1): 3 atividades em sequência de 5 dias úteis: #1 Recebimento dos projetos → #2 Levantamento de quantitativos → #3 Montagem da EAP no Grana; terminam antes do primeiro mapa.
