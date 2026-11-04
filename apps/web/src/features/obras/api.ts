@@ -11,6 +11,7 @@ import {
   type PrazosPendencia,
   type AgendaObra,
   type AtividadeEntrada,
+  type Cronograma,
   nomeCurto,
   prazosParaGravar,
   providenciasSemDono,
@@ -80,6 +81,91 @@ interface LinhaAtv {
   concluida_em: string | null;
   mapa_antecedencia_du: number | null;
   avanco_pct: number;
+}
+
+export interface LinhaFaseCron {
+  id: string;
+  obra_id: string;
+  ordem: number;
+  preliminar: boolean;
+}
+
+export interface LinhaAtvCron {
+  id: string;
+  obra_id: string;
+  fase_id: string;
+  duracao_du: number;
+  pai_id: string | null;
+  em_sequencia: boolean;
+  inicio_manual: string | null;
+}
+
+export interface LinhaDependencia {
+  obra_id: string;
+  atividade_id: string;
+  predecessora_id: string;
+  defasagem_du: number;
+}
+
+export interface MapasDependencia {
+  preds: Map<string, string[]>;
+  defas: Map<string, Record<string, number>>;
+}
+
+/** Predecessoras e defasagens por atividade, só entre atividades ativas (core). */
+export function mapasDeDependencia(
+  deps: LinhaDependencia[],
+  ativas: Set<string>,
+): MapasDependencia {
+  const preds = new Map<string, string[]>();
+  const defas = new Map<string, Record<string, number>>();
+  // Atividade excluída: a sucessora herda as predecessoras dela (core).
+  for (const d of dependenciasAtivas(deps, ativas)) {
+    const a = preds.get(d.atividade_id) ?? [];
+    a.push(d.predecessora_id);
+    preds.set(d.atividade_id, a);
+    if (d.defasagem_du)
+      defas.set(d.atividade_id, {
+        ...defas.get(d.atividade_id),
+        [d.predecessora_id]: d.defasagem_du,
+      });
+  }
+  return { preds, defas };
+}
+
+/**
+ * Cronograma vigente de uma obra (sem a pré-obra), igual em toda tela que lista
+ * obras: separa as fases preliminares e calcula pelo core.
+ */
+export function cronogramaDaObra<F extends LinhaFaseCron, A extends LinhaAtvCron>(
+  o: { id: string; inicio: string },
+  fases: F[],
+  atividades: A[],
+  dep: MapasDependencia,
+) {
+  const todasFases = fases.filter((f) => f.obra_id === o.id).sort((a, b) => a.ordem - b.ordem);
+  // Pré-obra (Orçamento, Mapa de coleta) fica fora do cronograma, do % e das fases do card.
+  const fasesPre = new Set(todasFases.filter((f) => f.preliminar).map((f) => f.id));
+  const minhasFases = todasFases.filter((f) => !f.preliminar);
+  const atvsPre = atividades.filter((a) => a.obra_id === o.id && fasesPre.has(a.fase_id));
+  const minhasAtvs = atividades.filter((a) => a.obra_id === o.id && !fasesPre.has(a.fase_id));
+  const entrada: AtividadeEntrada[] = minhasAtvs.map((a) => ({
+    id: a.id,
+    duracao_du: a.duracao_du,
+    pai_id: a.pai_id,
+    em_sequencia: a.em_sequencia,
+    inicio_manual: a.inicio_manual,
+    predecessoras: dep.preds.get(a.id),
+    defasagens: dep.defas.get(a.id),
+  }));
+
+  let cron: Cronograma;
+  try {
+    cron = calcularCronograma({ inicio: o.inicio, atividades: entrada });
+  } catch {
+    cron = { itens: [], porId: {}, total: 0, entrega: o.inicio };
+  }
+  return { cron, entrada, todasFases, minhasFases, atvsPre, minhasAtvs };
 }
 
 export async function listarUnidades(): Promise<Unidade[]> {
@@ -153,29 +239,13 @@ export async function listarObras(): Promise<ObraResumo[]> {
     preliminar: boolean;
   }[];
   const atvs = (atvsRes.data ?? []) as unknown as LinhaAtv[];
-  const deps = (depsRes.data ?? []) as {
-    obra_id: string;
-    atividade_id: string;
-    predecessora_id: string;
-    defasagem_du: number;
-  }[];
+  const deps = (depsRes.data ?? []) as LinhaDependencia[];
   const provs = (provsRes.data ?? []) as unknown as (LinhaProvidencia & {
     duracao_du: number;
   })[];
 
-  const predsPorAtv = new Map<string, string[]>();
-  const defasPorAtv = new Map<string, Record<string, number>>();
-  // Atividade excluída: a sucessora herda as predecessoras dela (core).
-  for (const d of dependenciasAtivas(deps, new Set(atvs.map((a) => a.id)))) {
-    const a = predsPorAtv.get(d.atividade_id) ?? [];
-    a.push(d.predecessora_id);
-    predsPorAtv.set(d.atividade_id, a);
-    if (d.defasagem_du)
-      defasPorAtv.set(d.atividade_id, {
-        ...defasPorAtv.get(d.atividade_id),
-        [d.predecessora_id]: d.defasagem_du,
-      });
-  }
+  const mapasDep = mapasDeDependencia(deps, new Set(atvs.map((a) => a.id)));
+  const predsPorAtv = mapasDep.preds;
   const provPendentePorAtv = new Set<string>();
   for (const p of provs) if (p.status === 'pendente') provPendentePorAtv.add(p.atividade_id);
 
@@ -241,28 +311,12 @@ export async function listarObras(): Promise<ObraResumo[]> {
     });
 
   return obras.map((o) => {
-    const todasFases = fases.filter((f) => f.obra_id === o.id).sort((a, b) => a.ordem - b.ordem);
-    // Pré-obra (Orçamento, Mapa de coleta) fica fora do cronograma, do % e das fases do card.
-    const fasesPre = new Set(todasFases.filter((f) => f.preliminar).map((f) => f.id));
-    const minhasFases = todasFases.filter((f) => !f.preliminar);
-    const atvsPre = atvs.filter((a) => a.obra_id === o.id && fasesPre.has(a.fase_id));
-    const minhasAtvs = atvs.filter((a) => a.obra_id === o.id && !fasesPre.has(a.fase_id));
-    const entrada: AtividadeEntrada[] = minhasAtvs.map((a) => ({
-      id: a.id,
-      duracao_du: a.duracao_du,
-      pai_id: a.pai_id,
-      em_sequencia: a.em_sequencia,
-      inicio_manual: a.inicio_manual,
-      predecessoras: predsPorAtv.get(a.id),
-      defasagens: defasPorAtv.get(a.id),
-    }));
-
-    let cron;
-    try {
-      cron = calcularCronograma({ inicio: o.inicio, atividades: entrada });
-    } catch {
-      cron = { itens: [], porId: {}, total: 0, entrega: o.inicio };
-    }
+    const { cron, entrada, todasFases, minhasFases, atvsPre, minhasAtvs } = cronogramaDaObra(
+      o,
+      fases,
+      atvs,
+      mapasDep,
+    );
 
     const concluidas = new Set(
       minhasAtvs.filter((a) => !a.pai_id && a.concluida_em).map((a) => a.id),
