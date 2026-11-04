@@ -61,3 +61,24 @@ export function entradaAtribuicao(
     origemTexto: 'Providência da obra',
   };
 }
+
+/** Tamanho máximo do motivo do replanejamento. */
+export const MOTIVO_MAX = 120;
+
+/** O prazo da tarefa aberta mudou? (Só então a folha pede o motivo.) */
+export function prazoMudou(
+  tarefa: Pick<TarefaObra, 'prazo' | 'status'> | null,
+  prazo: string,
+): boolean {
+  return Boolean(tarefa && tarefa.status === 'aberta' && prazo && prazo !== tarefa.prazo);
+}
+
+/** Motivo opcional do replanejamento: só quando o prazo da tarefa aberta muda. */
+export function motivoReplanejamento(
+  tarefa: Pick<TarefaObra, 'prazo' | 'status'> | null,
+  prazo: string,
+  motivo: string,
+): string | null {
+  if (!prazoMudou(tarefa, prazo)) return null;
+  return motivo.trim().slice(0, MOTIVO_MAX) || null;
+}

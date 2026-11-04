@@ -13,6 +13,7 @@ import { usePerfil } from '../perfil/usePerfil';
 import { acoesVisiveis, secoesAcoes, type AcaoObra } from './acoesObra';
 import { hojeISO } from './api';
 import { CardAcao, MarcadorAcao, TituloSecao } from './CardAcao';
+import { MOTIVO_MAX, motivoReplanejamento, prazoMudou } from './entradaTarefa';
 import type { TarefaObra } from './tarefasObra';
 import { useAcoesDasObras } from './useAcoesDasObras';
 import { useObras } from './useObras';
@@ -65,7 +66,10 @@ export function MinhasAcoesScreen({
       .filter((g) => g.itens.length),
   }));
 
-  function salvar(t: TarefaObra, v: { pct: number | 'feita'; comentario: string; prazo: string }) {
+  function salvar(
+    t: TarefaObra,
+    v: { pct: number | 'feita'; comentario: string; prazo: string; motivo: string },
+  ) {
     const alvo = { obraId: t.obra_id, id: t.id };
     const comentario = v.comentario.trim() || null;
     if (v.prazo !== t.prazo) {
@@ -78,6 +82,7 @@ export function MinhasAcoesScreen({
           responsavelNome: t.responsavel_id ? null : t.responsavelNomeBruto,
           observacao: t.observacao,
           prazo: v.prazo,
+          motivoReplanejamento: motivoReplanejamento(t, v.prazo, v.motivo),
         },
       });
     }
@@ -224,12 +229,18 @@ function AvancoSheet({
   obra: string;
   hoje: string;
   onFechar: () => void;
-  onSalvar: (v: { pct: number | 'feita'; comentario: string; prazo: string }) => void;
+  onSalvar: (v: {
+    pct: number | 'feita';
+    comentario: string;
+    prazo: string;
+    motivo: string;
+  }) => void;
 }) {
   const [pct, setPct] = useState<number | 'feita'>(0);
   const [comentario, setComentario] = useState('');
   const [prazo, setPrazo] = useState('');
   const [mudarPrazo, setMudarPrazo] = useState(false);
+  const [motivo, setMotivo] = useState('');
 
   useEffect(() => {
     if (!tarefa) return;
@@ -237,6 +248,7 @@ function AvancoSheet({
     setComentario(tarefa.comentario ?? '');
     setPrazo(tarefa.prazo);
     setMudarPrazo(false);
+    setMotivo('');
   }, [tarefa]);
 
   const repl = tarefa
@@ -312,6 +324,21 @@ function AvancoSheet({
             </div>
           )}
           {repl ? <p className={styles.meta}>{repl}</p> : null}
+          {prazoMudou(tarefa, prazo) ? (
+            <>
+              <label className={styles.rotulo} htmlFor="avanco-motivo">
+                Motivo (opcional)
+              </label>
+              <input
+                id="avanco-motivo"
+                className={styles.campo}
+                placeholder="Ex.: fornecedor sem estoque"
+                maxLength={MOTIVO_MAX}
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+              />
+            </>
+          ) : null}
           <p className={styles.aviso}>
             O gestor vê o avanço e o comentário nas Tarefas e na cobrança da próxima reunião.
           </p>
@@ -319,7 +346,7 @@ function AvancoSheet({
           <button
             type="button"
             className={styles.salvar}
-            onClick={() => onSalvar({ pct, comentario, prazo: prazo || tarefa.prazo })}
+            onClick={() => onSalvar({ pct, comentario, prazo: prazo || tarefa.prazo, motivo })}
           >
             {pct === 'feita' ? 'Concluir ação' : 'Salvar avanço'}
           </button>
