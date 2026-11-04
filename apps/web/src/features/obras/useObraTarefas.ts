@@ -65,6 +65,8 @@ export function useTarefasAcoes() {
   const reverter = (ctx: { obraId: string; prev?: TarefaObra[] } | undefined) => {
     if (ctx?.prev) qc.setQueryData(chave(ctx.obraId), ctx.prev);
   };
+  // Tarefa vinculada a providência tira/devolve a providência de "Sem responsável".
+  const refazerObras = () => void qc.invalidateQueries({ queryKey: ['obras'] });
 
   // Salvar (criar/editar). Para nova tarefa o id é gerado no cliente — o MESMO
   // no card otimista e na op (onMutate roda antes do mutationFn, com o mesmo
@@ -111,6 +113,7 @@ export function useTarefasAcoes() {
       );
     },
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: refazerObras,
   });
 
   const status = (s: 'aberta' | 'feita') => (v: Alvo) =>
@@ -122,12 +125,14 @@ export function useTarefasAcoes() {
     mutationFn: (v: Alvo) => enfileirar('concluir_tarefa', { obraId: v.obraId, id: v.id }),
     onMutate: status('feita'),
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: refazerObras,
   });
   const reabrir = useMutation({
     networkMode: 'always',
     mutationFn: (v: Alvo) => enfileirar('reabrir_tarefa', { obraId: v.obraId, id: v.id }),
     onMutate: status('aberta'),
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: refazerObras,
   });
   // Avanço e comentário da ação (Minhas ações): também é ação de campo.
   const avancar = useMutation({
@@ -169,6 +174,7 @@ export function useTarefasAcoes() {
       return trocar(v.obraId, (prev) => prev.filter((t) => t.id !== v.id));
     },
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: refazerObras,
   });
   const restaurar = useMutation({
     networkMode: 'always',
@@ -182,6 +188,7 @@ export function useTarefasAcoes() {
     // Só libera o stash quando o enfileiramento deu certo (onError pode reverter).
     onSuccess: (_d, v) => removidas.current.delete(v.id),
     onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: refazerObras,
   });
 
   return { salvar, concluir, reabrir, avancar, excluir, restaurar };

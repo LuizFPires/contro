@@ -298,6 +298,20 @@ function Linha({
       />
     );
   }
+  if (a.origem === 'providencia') {
+    // Atribuir responsável chega na próxima etapa; por ora o card só mostra.
+    return (
+      <CardAcao
+        acao={a}
+        hoje={hoje}
+        obra={obra}
+        cardInteiro
+        esquerda={<MarcadorAcao feita={false} />}
+        rotulo={`${a.texto}: sem responsável`}
+        onToque={() => undefined}
+      />
+    );
+  }
   const t = a.tarefa;
   const feita = !a.aberta;
   return (

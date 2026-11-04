@@ -121,6 +121,8 @@ export function MinhasAcoesScreen({
         />
       );
     }
+    // Providência sem dono não tem responsável: não entra em Minhas ações.
+    if (a.origem === 'providencia') return null;
     const t = a.tarefa;
     return (
       <CardAcao

@@ -39,13 +39,15 @@ function linhaMeta(a: AcaoObra, obra: string | null, comResponsavel: boolean): s
   const partes =
     a.origem === 'tarefa'
       ? [obra, resp, a.tarefa.origem_texto]
-      : [
-          obra,
-          resp,
-          CRIT[a.pendencia.criticidade] ?? null,
-          a.pendencia.local,
-          `apontada ${formatarDataCurta(dataLocal(a.pendencia.apontada_em))}`,
-        ];
+      : a.origem === 'providencia'
+        ? [obra, resp, a.providencia.atividadeNome]
+        : [
+            obra,
+            resp,
+            CRIT[a.pendencia.criticidade] ?? null,
+            a.pendencia.local,
+            `apontada ${formatarDataCurta(dataLocal(a.pendencia.apontada_em))}`,
+          ];
   return partes.filter(Boolean).join(' · ');
 }
 

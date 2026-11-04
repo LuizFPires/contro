@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { PRAZOS_PENDENCIA_PADRAO, nomeCurto, prazoPendencia } from '@contro/core';
+import { PRAZOS_PENDENCIA_PADRAO, classificarAcoes, nomeCurto, prazoPendencia } from '@contro/core';
 import { dataLocal } from './api';
-import { acoesVisiveis, pendenciaParaAcao, tarefaParaAcao } from './acoesObra';
+import {
+  acoesVisiveis,
+  pendenciaParaAcao,
+  providenciaParaAcao,
+  secoesAcoes,
+  tarefaParaAcao,
+} from './acoesObra';
+import type { ProvidenciaSemDono } from './providenciasSemDono';
 import type { PendenciaObra } from './pendenciasObra';
 import type { TarefaObra } from './tarefasObra';
 
@@ -141,5 +148,38 @@ describe('acoesVisiveis', () => {
       hoje,
     );
     expect(r.map((a) => a.id)).toEqual(['aberta', 'sem-data', 'feita']);
+  });
+});
+
+describe('providenciaParaAcao', () => {
+  const p: ProvidenciaSemDono = {
+    id: 'pv1',
+    obraId: 'o1',
+    obraNome: 'Savassi',
+    tipo: 'compra',
+    descricao: 'Cabos',
+    prazo: '2026-11-03',
+    atividadeNome: 'Elétrica',
+  };
+
+  it('vira ação de origem providência, sem responsável, com a providência anexada', () => {
+    const a = providenciaParaAcao(p);
+    expect(a).toMatchObject({
+      origem: 'providencia',
+      id: 'pv1',
+      obraId: 'o1',
+      texto: 'Compra: Cabos',
+      prazo: '2026-11-03',
+      aberta: true,
+      responsavelId: null,
+      responsavelNome: null,
+    });
+    expect(a.origem === 'providencia' && a.providencia).toBe(p);
+  });
+
+  it('providência vencida cai em Atrasadas', () => {
+    const s = secoesAcoes(classificarAcoes([providenciaParaAcao(p)], '2026-11-04'));
+    expect(s.map((x) => x.estado)).toEqual(['atrasada']);
+    expect(s[0].itens[0].id).toBe('pv1');
   });
 });
