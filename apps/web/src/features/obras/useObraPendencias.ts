@@ -1,10 +1,25 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { topoFila } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
 import { type NovaPendencia } from './campo';
 import { guardarFotoLocal } from './foto';
 import { loadPendencias, type PendenciaObra } from './pendenciasObra';
+
+/** Pendências de várias obras, no mesmo cache por obra (patches otimistas chegam aqui). */
+export function usePendenciasDasObras(obraIds: string[]) {
+  return useQueries({
+    queries: obraIds.map((id) => ({
+      queryKey: ['pendencias', id],
+      enabled: Boolean(supabase),
+      queryFn: () => loadPendencias(id),
+    })),
+    combine: (rs) => ({
+      pendencias: rs.flatMap((r) => r.data ?? []),
+      carregando: rs.some((r) => r.isLoading),
+    }),
+  });
+}
 
 export function useObraPendencias(obraId: string) {
   const qc = useQueryClient();
