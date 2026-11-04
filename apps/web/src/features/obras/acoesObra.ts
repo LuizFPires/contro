@@ -1,20 +1,23 @@
 import {
   nomeCurto,
   prazoPendencia,
+  providenciaParaAcaoBase,
   type Acao,
   type AcoesClassificadas,
   type EstadoAcao,
   type PrazosPendencia,
+  type ProvidenciaSemDono,
 } from '@contro/core';
 import type { IconName } from '@contro/ui';
 import { dataLocal } from './api';
 import type { PendenciaObra } from './pendenciasObra';
 import type { TarefaObra } from './tarefasObra';
 
-/** Ação (tarefa ou pendência) com o original à mão para abrir o detalhe. */
+/** Ação (tarefa, pendência ou providência sem dono) com o original à mão para abrir o detalhe. */
 export type AcaoObra =
   | (Acao & { origem: 'tarefa'; tarefa: TarefaObra })
-  | (Acao & { origem: 'pendencia'; pendencia: PendenciaObra });
+  | (Acao & { origem: 'pendencia'; pendencia: PendenciaObra })
+  | (Acao & { origem: 'providencia'; providencia: ProvidenciaSemDono });
 
 export function tarefaParaAcao(t: TarefaObra): AcaoObra {
   return {
@@ -46,6 +49,16 @@ export function pendenciaParaAcao(p: PendenciaObra, prazos: PrazosPendencia): Ac
     responsavelNome: nomeCurto(p.responsavelNome) || null,
     concluidaEm: aberta ? undefined : p.resolvida_em,
     pendencia: p,
+  };
+}
+
+/** Providência sem dono vira ação aberta, sem responsável ("Compra: Cabos"). */
+export function providenciaParaAcao(p: ProvidenciaSemDono): AcaoObra {
+  const { id, obraId, tipo, descricao, prazo } = p;
+  return {
+    ...providenciaParaAcaoBase({ id, obraId, tipo, descricao, prazo }),
+    origem: 'providencia',
+    providencia: p,
   };
 }
 

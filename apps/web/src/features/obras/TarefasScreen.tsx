@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react';
-import { classificarAcoes, estadoAcao, textoResumoSecoes } from '@contro/core';
+import {
+  classificarAcoes,
+  estadoAcao,
+  nomeCurto,
+  providenciaParaAcaoBase,
+  textoResumoSecoes,
+  type ProvidenciaSemDono,
+} from '@contro/core';
 import { Icon, useToast } from '@contro/ui';
 import { usePessoas } from '../perfil/usePessoas';
 import { acoesVisiveis, secoesAcoes, type AcaoObra } from './acoesObra';
@@ -7,6 +14,7 @@ import { hojeISO } from './api';
 import { Camera } from './Camera';
 import { CardAcao, MarcadorAcao, TituloSecao } from './CardAcao';
 import { TarefaSheet } from './TarefaSheet';
+import { entradaAtribuicao } from './entradaTarefa';
 import type { EntradaTarefa } from './campo';
 import type { TarefaObra } from './tarefasObra';
 import { useObraCampo } from './useObraCampo';
@@ -22,8 +30,10 @@ const chaveResp = (a: AcaoObra) =>
   a.responsavelId ?? (a.responsavelNome ? `nome:${a.responsavelNome}` : SEM);
 
 /**
- * Tarefas da equipe (protótipo · TAREFAS): tarefas e pendências do Check list
- * de todas as obras, como "ação", em quatro seções; filtro por pessoa.
+ * Tarefas da equipe (protótipo · TAREFAS): tarefas, pendências do Check list e
+ * providências sem dono de todas as obras, como "ação", em quatro seções;
+ * filtro por pessoa. Providência sem dono cai em "Sem responsável" e o toque
+ * abre a atribuição (vira tarefa vinculada).
  */
 export function TarefasScreen({
   onVoltar,
@@ -45,10 +55,13 @@ export function TarefasScreen({
   const [editando, setEditando] = useState<TarefaObra | null>(null);
   const [nova, setNova] = useState(false);
   const [camera, setCamera] = useState<TarefaObra | null>(null);
+  const [atribuindo, setAtribuindo] = useState<ProvidenciaSemDono | null>(null);
   const hoje = hojeISO();
   const lista = useMemo(() => acoesVisiveis(todas, hoje), [todas, hoje]);
 
   const nomeObra = useMemo(() => new Map(obras.map((o) => [o.id, o.nome])), [obras]);
+  // Estável: a folha reinicia o formulário quando `obras` muda de identidade.
+  const opcoesObra = useMemo(() => obras.map((o) => ({ id: o.id, nome: o.nome })), [obras]);
 
   // Chips: uma pessoa por responsável com ação; o selo conta só as atrasadas.
   const chips = useMemo(() => {
@@ -110,6 +123,30 @@ export function TarefasScreen({
           if (nova) showToast({ message: 'Tarefa criada' });
         },
         onError: () => showToast({ message: 'Não foi possível salvar a tarefa' }),
+      },
+    );
+  }
+
+  function atribuir(e: EntradaTarefa) {
+    const p = atribuindo;
+    if (!p) return;
+    // O nome digitado vai completo (fica gravado e vira sugestão); o curto é só
+    // para o toast. O card otimista encurta o nome em useTarefasAcoes.
+    const nome =
+      nomeCurto(
+        e.responsavelId ? pessoas.find((x) => x.id === e.responsavelId)?.nome : e.responsavelNome,
+      ) || null;
+    acoes.salvar.mutate(
+      { obraId: p.obraId, entrada: entradaAtribuicao(p, e) },
+      {
+        onSuccess: (id) => {
+          setAtribuindo(null);
+          showToast({
+            message: `Providência atribuída a ${nome ?? 'responsável'}`,
+            onUndo: () => acoes.excluir.mutate({ obraId: p.obraId, id }),
+          });
+        },
+        onError: () => showToast({ message: 'Não foi possível atribuir a providência' }),
       },
     );
   }
@@ -187,6 +224,7 @@ export function TarefasScreen({
                 onReabrir={reabrir}
                 onEditar={setEditando}
                 onAbrirPendencia={onAbrirPendencia}
+                onAtribuir={setAtribuindo}
               />
             ))}
           </section>
@@ -204,7 +242,7 @@ export function TarefasScreen({
         aberto={editando !== null || nova}
         tarefa={editando}
         pessoas={pessoas}
-        obras={obras.map((o) => ({ id: o.id, nome: o.nome }))}
+        obras={opcoesObra}
         pendente={acoes.salvar.isPending}
         onFechar={() => {
           setEditando(null);
@@ -212,6 +250,26 @@ export function TarefasScreen({
         }}
         onSalvar={salvar}
         onExcluir={editando ? () => excluir(editando) : undefined}
+      />
+
+      <TarefaSheet
+        modo="atribuir"
+        aberto={atribuindo !== null}
+        tarefa={null}
+        inicial={
+          atribuindo
+            ? {
+                texto: providenciaParaAcaoBase(atribuindo).texto,
+                prazo: atribuindo.prazo,
+                obraId: atribuindo.obraId,
+              }
+            : undefined
+        }
+        pessoas={pessoas}
+        obras={opcoesObra}
+        pendente={acoes.salvar.isPending}
+        onFechar={() => setAtribuindo(null)}
+        onSalvar={atribuir}
       />
 
       {camera ? (
@@ -276,6 +334,7 @@ function Linha({
   onReabrir,
   onEditar,
   onAbrirPendencia,
+  onAtribuir,
 }: {
   a: AcaoObra;
   hoje: string;
@@ -284,6 +343,7 @@ function Linha({
   onReabrir: (t: TarefaObra) => void;
   onEditar: (t: TarefaObra) => void;
   onAbrirPendencia: (obraId: string, pendenciaId: string) => void;
+  onAtribuir: (p: ProvidenciaSemDono) => void;
 }) {
   if (a.origem === 'pendencia') {
     return (
@@ -297,6 +357,9 @@ function Linha({
         onToque={() => onAbrirPendencia(a.obraId, a.id)}
       />
     );
+  }
+  if (a.origem === 'providencia') {
+    return <CardAcao acao={a} hoje={hoje} obra={obra} onAtribuir={onAtribuir} />;
   }
   const t = a.tarefa;
   const feita = !a.aberta;

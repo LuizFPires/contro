@@ -1,0 +1,63 @@
+import type { EntradaTarefa } from './campo';
+import type { TarefaObra } from './tarefasObra';
+
+/** Valor do select da folha de tarefa para digitar o nome de quem não tem login. */
+export const OUTRO = '__outro';
+
+/** Campos da folha de tarefa (responsavelId: '' = ninguém, OUTRO = nome digitado). */
+export interface FormTarefa {
+  texto: string;
+  responsavelId: string;
+  nomeDigitado: string;
+  prazo: string;
+}
+
+/**
+ * Responsável da folha a partir da tarefa: pessoa do app pelo id; nome digitado
+ * abre em "Outro nome" com o nome completo gravado (não o curto da etiqueta).
+ */
+export function responsavelDaTarefa(
+  t: Pick<TarefaObra, 'responsavel_id' | 'responsavelNomeBruto'>,
+): { responsavelId: string; nomeDigitado: string } {
+  if (t.responsavel_id) return { responsavelId: t.responsavel_id, nomeDigitado: '' };
+  const nome = t.responsavelNomeBruto?.trim() ?? '';
+  return nome
+    ? { responsavelId: OUTRO, nomeDigitado: nome }
+    : { responsavelId: '', nomeDigitado: '' };
+}
+
+/**
+ * Entrada de `salvar_tarefa` a partir da folha. O nome digitado vai completo (é
+ * o que fica gravado e vira sugestão). Na edição, a observação segue igual
+ * (a folha não a edita e o servidor grava o que receber).
+ */
+export function entradaDaFolha(f: FormTarefa, tarefa: TarefaObra | null): EntradaTarefa {
+  const outro = f.responsavelId === OUTRO;
+  return {
+    id: tarefa?.id ?? null,
+    texto: f.texto.trim(),
+    responsavelId: outro ? null : f.responsavelId || null,
+    responsavelNome: outro ? f.nomeDigitado.trim() || null : null,
+    prazo: f.prazo,
+    ...(tarefa ? { observacao: tarefa.observacao } : {}),
+  };
+}
+
+/**
+ * Tarefa que atribui a providência: vinculada a ela, com o nome digitado
+ * completo (com pessoa do app o nome vai nulo: o servidor usa o id).
+ */
+export function entradaAtribuicao(
+  p: { id: string },
+  e: Pick<EntradaTarefa, 'texto' | 'responsavelId' | 'responsavelNome' | 'prazo'>,
+): EntradaTarefa {
+  return {
+    texto: e.texto,
+    responsavelId: e.responsavelId,
+    responsavelNome: e.responsavelId ? null : e.responsavelNome?.trim() || null,
+    prazo: e.prazo,
+    vinculoTipo: 'providencia',
+    vinculoId: p.id,
+    origemTexto: 'Providência da obra',
+  };
+}

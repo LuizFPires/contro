@@ -44,4 +44,16 @@ describe('quemFazOQueBoletim', () => {
     expect(g[0]!.pessoa).toBe('Sem responsável');
     expect(g[0]!.itens[0]).toMatchObject({ atrasado: false, data: '2026-11-10' });
   });
+
+  it('deixa de fora a providência sem dono (o boletim não muda)', () => {
+    const g = quemFazOQueBoletim(
+      [
+        acao({ origem: 'providencia', id: 'pr1', texto: 'Compra: Cabos', responsavelNome: null }),
+        acao({ origem: 'tarefa', id: 't1', texto: 'Comprar cabos', responsavelNome: 'Ana' }),
+      ],
+      hoje,
+    );
+    expect(g.map((x) => x.pessoa)).toEqual(['Ana']);
+    expect(g.flatMap((x) => x.itens.map((i) => i.texto))).toEqual(['Comprar cabos']);
+  });
 });

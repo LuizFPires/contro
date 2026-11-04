@@ -12,8 +12,14 @@ import {
   type AgendaObra,
   type AtividadeEntrada,
   nomeCurto,
+  prazosParaGravar,
+  providenciasSemDono,
+  type LinhaProvidencia,
+  type ProvidenciaSemDono,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
+
+export type { ProvidenciaSemDono } from '@contro/core';
 
 /** Data de hoje no fuso do aparelho (UTC virava "amanhã" depois das 21h em Brasília). */
 export function hojeISO(): string {
@@ -50,12 +56,14 @@ export interface ObraResumo {
   entrega: string;
   atrasada: boolean;
   fasesEstado: FaseEstado[];
-  /** Ações = tarefas + pendências abertas. */
+  /** Ações = tarefas + pendências abertas + providências sem dono. */
   acoesAbertas: number;
   acoesAtrasadas: number;
   acoesHoje: number;
   /** "Hoje" da tela inicial: atrasados e o que é para hoje. */
   agenda: AgendaObra;
+  /** Providências pendentes sem tarefa aberta vinculada ("Sem responsável"). */
+  providenciasSemDono: ProvidenciaSemDono[];
   /** Inauguração prevista depois da planejada (null = no prazo). */
   risco: { original: string; prevista: string; atrasoDu: number } | null;
 }
@@ -101,12 +109,15 @@ export async function listarObras(): Promise<ObraResumo[]> {
       supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id,defasagem_du'),
       supabase
         .from('obra_providencia')
-        .select('id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du')
+        .select(
+          'id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du,providenciar_ate',
+        )
         .is('deleted_at', null),
       supabase
         .from('tarefa')
         .select(
-          'id,obra_id,texto,prazo,status,responsavel_nome,responsavel:pessoa!responsavel_id(nome)',
+          'id,obra_id,texto,prazo,status,responsavel_nome,vinculo_tipo,vinculo_id,' +
+            'responsavel:pessoa!responsavel_id(nome)',
         )
         .eq('status', 'aberta')
         .is('deleted_at', null),
@@ -148,16 +159,9 @@ export async function listarObras(): Promise<ObraResumo[]> {
     predecessora_id: string;
     defasagem_du: number;
   }[];
-  const provs = (provsRes.data ?? []) as {
-    id: string;
-    obra_id: string;
-    atividade_id: string;
-    tipo: 'contratacao' | 'locacao' | 'compra';
-    descricao: string;
-    status: 'pendente' | 'feito';
-    antecedencia_du: number;
+  const provs = (provsRes.data ?? []) as unknown as (LinhaProvidencia & {
     duracao_du: number;
-  }[];
+  })[];
 
   const predsPorAtv = new Map<string, string[]>();
   const defasPorAtv = new Map<string, Record<string, number>>();
@@ -182,8 +186,16 @@ export async function listarObras(): Promise<ObraResumo[]> {
     prazo: string;
     status: 'aberta' | 'feita';
     responsavel_nome: string | null;
+    vinculo_tipo: string | null;
+    vinculo_id: string | null;
     responsavel: { nome: string } | null;
   }[];
+  // Providência com tarefa aberta vinculada: a tarefa a representa (sem duplicar).
+  const provComTarefa = new Set(
+    tarefas
+      .filter((t) => t.vinculo_tipo === 'providencia' && t.vinculo_id)
+      .map((t) => t.vinculo_id),
+  );
   const cfg = cfgRes.data as {
     pend_alta_du: number;
     pend_media_du: number;
@@ -280,6 +292,29 @@ export async function listarObras(): Promise<ObraResumo[]> {
       }
     }
 
+    const minhasProvs = provs.filter((p) => p.obra_id === o.id);
+    const semDono = providenciasSemDono(
+      minhasProvs,
+      tarefas.filter((t) => t.obra_id === o.id),
+      atvs.filter((a) => a.obra_id === o.id),
+      cron,
+      o.inicio,
+      o.nome,
+    );
+    // Grava o prazo calculado (aviso do gestor no servidor): sem esperar nem falhar.
+    const gravar = prazosParaGravar(minhasProvs, cron, o.inicio);
+    if (gravar.length && supabase)
+      void supabase
+        .rpc('atualizar_prazos_providencias', { p_obra_id: o.id, p_prazos: gravar })
+        .then(
+          () => undefined,
+          () => undefined,
+        );
+    const acoesObra = acoesPorObra.get(o.id) ?? [];
+    const contaEstado = (e: 'atrasada' | 'hoje') =>
+      acoesObra.filter((a) => estadoAcao(a, hoje) === e).length +
+      semDono.filter((p) => estadoAcao({ aberta: true, prazo: p.prazo }, hoje) === e).length;
+
     const fasesEstado: FaseEstado[] = minhasFases.map((f) => {
       const itens = cron.itens.filter((it) => faseDaAtv.get(it.id) === f.id);
       const todasConcluidas = itens.length > 0 && itens.every((it) => concluidas.has(it.id));
@@ -308,12 +343,10 @@ export async function listarObras(): Promise<ObraResumo[]> {
       entrega: est.indicadores.entrega,
       atrasada: est.indicadores.ritmoDias <= -2,
       fasesEstado,
-      acoesAbertas: (acoesPorObra.get(o.id) ?? []).length,
-      acoesAtrasadas: (acoesPorObra.get(o.id) ?? []).filter(
-        (a) => estadoAcao(a, hoje) === 'atrasada',
-      ).length,
-      acoesHoje: (acoesPorObra.get(o.id) ?? []).filter((a) => estadoAcao(a, hoje) === 'hoje')
-        .length,
+      acoesAbertas: acoesObra.length + semDono.length,
+      acoesAtrasadas: contaEstado('atrasada'),
+      acoesHoje: contaEstado('hoje'),
+      providenciasSemDono: semDono,
       risco: (() => {
         try {
           const p = previsaoEntrega({
@@ -385,8 +418,8 @@ export async function listarObras(): Promise<ObraResumo[]> {
                 }));
             })(),
           ),
-        providencias: provs
-          .filter((p) => p.obra_id === o.id)
+        providencias: minhasProvs
+          .filter((p) => !provComTarefa.has(p.id))
           .map((p) => ({
             id: p.id,
             atividadeId: p.atividade_id,
@@ -396,7 +429,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
             antecedenciaDu: p.antecedencia_du,
             duracaoDu: p.duracao_du,
           })),
-        acoes: acoesPorObra.get(o.id) ?? [],
+        acoes: acoesObra,
       }),
     };
   });
