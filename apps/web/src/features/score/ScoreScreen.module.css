@@ -237,17 +237,17 @@
 .kpiValor.nota_regular {
   color: var(--contro-attention);
 }
-.kpiValor.nota_atencao {
-  color: var(--contro-late);
+.kpiValor.nota_baixa {
+  color: var(--contro-black);
 }
 .barra i.nota_ok {
-  background: #2a7f7b;
+  background: var(--contro-turquoise);
 }
 .barra i.nota_regular {
   background: var(--contro-attention);
 }
-.barra i.nota_atencao {
-  background: var(--contro-late);
+.barra i.nota_baixa {
+  background: var(--contro-black);
 }
 .secao {
   margin: 12px 0 2px;

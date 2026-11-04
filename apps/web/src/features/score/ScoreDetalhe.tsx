@@ -82,11 +82,14 @@ function kpisPrestador(l: LinhaQualquer): Kpi[] {
   ];
 }
 
-/** Cor da barra pela mesma régua das faixas (≥ 75 ok, 50–74 regular, < 50 atenção). */
-function corNota(nota: number): 'ok' | 'regular' | 'atencao' {
+/**
+ * Cor da nota pela régua das faixas: ≥ 75 turquesa, 50–74 âmbar, < 50 preto.
+ * Vermelho fica só na faixa "Atenção" e no atraso das ações que mais pesaram.
+ */
+function corNota(nota: number): 'ok' | 'regular' | 'baixa' {
   if (nota >= 0.75) return 'ok';
   if (nota >= 0.5) return 'regular';
-  return 'atencao';
+  return 'baixa';
 }
 
 /** Detalhe de um nome: score e faixa, tendência 30 × 90, indicadores e as ações que mais pesaram. */
