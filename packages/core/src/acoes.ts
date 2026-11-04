@@ -187,8 +187,7 @@ export function textoAvisoEquipe(r: ResumoEquipe): { titulo: string; corpo: stri
   }
 
   const so = `${tot}.`;
-  const corpo =
-    so.length <= LIMITE_CORPO_EQUIPE ? so : `${so.slice(0, LIMITE_CORPO_EQUIPE - 1)}…`;
+  const corpo = so.length <= LIMITE_CORPO_EQUIPE ? so : `${so.slice(0, LIMITE_CORPO_EQUIPE - 1)}…`;
   return { titulo, corpo };
 }
 
