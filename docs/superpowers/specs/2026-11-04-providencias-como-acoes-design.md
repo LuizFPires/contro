@@ -1,6 +1,6 @@
 # Providências como ações: "Sem responsável" e atribuição pelo gestor
 
-Data: 04/11/2026 · Estado: rascunho para aprovação do usuário · Continua o desenho de `2026-11-04-acoes-do-dia-design.md` (PR #111)
+Data: 04/11/2026 · Estado: aprovado pelo usuário em 04/11/2026 · Continua o desenho de `2026-11-04-acoes-do-dia-design.md` (PR #111)
 
 ## Intenção e por quê
 
@@ -45,7 +45,7 @@ O CONTRO já tem **tarefa vinculada a providência** (`tarefa.vinculo_tipo = 'pr
 
 O prazo da providência depende do cronograma (`es` da atividade), que hoje é calculado **só no cliente** (core `schedule.ts`); o SQL de `gerar_avisos` não sabe calcular. Para o push do gestor não divergir da tela:
 
-**Minha escolha:** persistir a data calculada. `obra_providencia` ganha a coluna `providenciar_ate date` (derivada, não editável), e o app grava via RPC `atualizar_prazos_providencias(p_obra_id, p_prazos jsonb)` sempre que `listarObras`/`loadObraDetalhe` recalculam o cronograma (idempotente; só escreve se mudou). `gerar_avisos` conta, no total da equipe e no grupo "Sem responsável", as providências pendentes sem tarefa vinculada aberta com `providenciar_ate < hoje` (atrasadas) ou `= hoje`. Fica registrado no SPEC que o valor pode estar defasado até alguém abrir o app depois de mudar o cronograma; o gestor abre o app todo dia.
+**Minha escolha:** persistir a data calculada. `obra_providencia` ganha a coluna `providenciar_ate date` (derivada, não editável), e o app grava via RPC `atualizar_prazos_providencias(p_obra_id, p_prazos jsonb)` sempre que `listarObras` recalcula o cronograma (idempotente; só escreve se mudou). `gerar_avisos` conta, no total da equipe e no grupo "Sem responsável", as providências pendentes sem tarefa vinculada aberta com `providenciar_ate < hoje` (atrasadas) ou `= hoje`. Fica registrado no SPEC que o valor pode estar defasado até alguém abrir o app depois de mudar o cronograma; o gestor abre o app todo dia.
 
 Alternativa rejeitada: push ignorar providências (voltaria a divergência que motivou este pedido).
 
@@ -72,7 +72,7 @@ Alternativa rejeitada: push ignorar providências (voltaria a divergência que m
 
 ### 5. Banco (`supabase/migrations/20261104200000_providencia_prazo.sql`)
 - `alter table obra_providencia add column providenciar_ate date;`
-- RPC `atualizar_prazos_providencias(p_obra_id uuid, p_prazos jsonb)` (security definer, membro da obra; `jsonb` = `[{id, ate}]`; atualiza só quando diferente).
+- RPC `atualizar_prazos_providencias(p_obra_id uuid, p_prazos jsonb)` (security definer, membro da instalação via `contro_e_membro()`; `jsonb` = `[{id, ate}]`; atualiza só quando diferente).
 - `gerar_avisos`: CTE `acoes` ganha `union all` das providências pendentes sem tarefa vinculada aberta, com `prazo = providenciar_ate` (ignora as com `providenciar_ate null`), chave `'sem'`.
 - pgTAP: RPC só para membro; cenário com providência atrasada entra no total do gestor e não ocupa vaga de nome.
 
