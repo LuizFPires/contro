@@ -361,6 +361,10 @@ function Linha({
   if (a.origem === 'providencia') {
     return <CardAcao acao={a} hoje={hoje} obra={obra} onAtribuir={onAtribuir} />;
   }
+  if (a.origem === 'atividade') {
+    // Atribuir responsável à atividade vem no próximo passo (Task 4).
+    return <CardAcao acao={a} hoje={hoje} obra={obra} />;
+  }
   const t = a.tarefa;
   const feita = !a.aberta;
   return (

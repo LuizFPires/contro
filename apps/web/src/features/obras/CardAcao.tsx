@@ -51,13 +51,20 @@ function linhaMeta(a: AcaoObra, obra: string | null, comResponsavel: boolean): s
             a.providencia.atividadeNome,
             `providenciar até ${formatarDataCurta(a.providencia.prazo)}`,
           ]
-        : [
-            obra,
-            resp,
-            CRIT[a.pendencia.criticidade] ?? null,
-            a.pendencia.local,
-            `apontada ${formatarDataCurta(dataLocal(a.pendencia.apontada_em))}`,
-          ];
+        : a.origem === 'atividade'
+          ? [
+              obra,
+              a.atividade.faseNome,
+              a.atividade.prestador,
+              `fim previsto ${formatarDataCurta(a.atividade.prazo)}`,
+            ]
+          : [
+              obra,
+              resp,
+              CRIT[a.pendencia.criticidade] ?? null,
+              a.pendencia.local,
+              `apontada ${formatarDataCurta(dataLocal(a.pendencia.apontada_em))}`,
+            ];
   return partes.filter(Boolean).join(' · ');
 }
 

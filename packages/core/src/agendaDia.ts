@@ -53,6 +53,11 @@ export interface EntradaAgenda {
     atrasada: boolean;
     /** Mapa de coleta: a atividade mais cedo que ele libera. */
     libera?: { nome: string; inicio: DataISO };
+    /**
+     * Tem tarefa aberta vinculada: a tarefa (com a pessoa) já aparece, então o
+     * item da atividade some; os lembretes dela continuam.
+     */
+    comTarefa?: boolean;
   }[];
   providencias: {
     id: string;
@@ -84,7 +89,7 @@ export function agendaDoDia(e: EntradaAgenda): AgendaObra {
   const atvPorId = new Map(e.atividades.map((a) => [a.id, a]));
 
   for (const a of e.atividades) {
-    if (a.concluida) continue;
+    if (a.concluida || a.comTarefa) continue;
     const base = {
       nome: a.nome,
       pessoa: null,

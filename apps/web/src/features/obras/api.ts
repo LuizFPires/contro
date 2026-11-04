@@ -15,12 +15,15 @@ import {
   nomeCurto,
   prazosParaGravar,
   providenciasSemDono,
+  atividadesSemDono,
+  prazosParaGravarAtividades,
+  type AtividadeSemDono,
   type LinhaProvidencia,
   type ProvidenciaSemDono,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
-export type { ProvidenciaSemDono } from '@contro/core';
+export type { AtividadeSemDono, ProvidenciaSemDono } from '@contro/core';
 
 /** Data de hoje no fuso do aparelho (UTC virava "amanhã" depois das 21h em Brasília). */
 export function hojeISO(): string {
@@ -57,7 +60,7 @@ export interface ObraResumo {
   entrega: string;
   atrasada: boolean;
   fasesEstado: FaseEstado[];
-  /** Ações = tarefas + pendências abertas + providências sem dono. */
+  /** Ações = tarefas + pendências abertas + providências e atividades sem dono. */
   acoesAbertas: number;
   acoesAtrasadas: number;
   acoesHoje: number;
@@ -65,6 +68,8 @@ export interface ObraResumo {
   agenda: AgendaObra;
   /** Providências pendentes sem tarefa aberta vinculada ("Sem responsável"). */
   providenciasSemDono: ProvidenciaSemDono[];
+  /** Atividades de topo abertas sem tarefa aberta vinculada ("Sem responsável"). */
+  atividadesSemDono: AtividadeSemDono[];
   /** Inauguração prevista depois da planejada (null = no prazo). */
   risco: { original: string; prevista: string; atrasoDu: number } | null;
 }
@@ -81,6 +86,8 @@ interface LinhaAtv {
   concluida_em: string | null;
   mapa_antecedencia_du: number | null;
   avanco_pct: number;
+  prestador: string | null;
+  fim_previsto_calc: string | null;
 }
 
 export interface LinhaFaseCron {
@@ -189,7 +196,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
         .from('obra_atividade')
         .select(
           'id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,' +
-            'mapa_antecedencia_du,avanco_pct',
+            'mapa_antecedencia_du,avanco_pct,prestador,fim_previsto_calc',
         )
         .is('deleted_at', null),
       supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id,defasagem_du'),
@@ -265,6 +272,10 @@ export async function listarObras(): Promise<ObraResumo[]> {
     tarefas
       .filter((t) => t.vinculo_tipo === 'providencia' && t.vinculo_id)
       .map((t) => t.vinculo_id),
+  );
+  // Atividade com tarefa aberta vinculada: no Hoje, a tarefa (com a pessoa) a representa.
+  const atvComTarefa = new Set(
+    tarefas.filter((t) => t.vinculo_tipo === 'atividade' && t.vinculo_id).map((t) => t.vinculo_id),
   );
   const cfg = cfgRes.data as {
     pend_alta_du: number;
@@ -347,10 +358,12 @@ export async function listarObras(): Promise<ObraResumo[]> {
     }
 
     const minhasProvs = provs.filter((p) => p.obra_id === o.id);
+    const tarefasDaObra = tarefas.filter((t) => t.obra_id === o.id);
+    const atvsDaObra = atvs.filter((a) => a.obra_id === o.id);
     const semDono = providenciasSemDono(
       minhasProvs,
-      tarefas.filter((t) => t.obra_id === o.id),
-      atvs.filter((a) => a.obra_id === o.id),
+      tarefasDaObra,
+      atvsDaObra,
       cron,
       o.inicio,
       o.nome,
@@ -364,10 +377,22 @@ export async function listarObras(): Promise<ObraResumo[]> {
           () => undefined,
           () => undefined,
         );
+    const atvSemDono = atividadesSemDono(atvsDaObra, todasFases, cron, tarefasDaObra, o.id, o.nome);
+    // Grava o fim previsto (aviso do gestor no servidor): sem esperar nem falhar.
+    const gravarAtv = prazosParaGravarAtividades(atvsDaObra, cron, todasFases);
+    if (gravarAtv.length && supabase)
+      void supabase
+        .rpc('atualizar_prazos_atividades', { p_obra_id: o.id, p_prazos: gravarAtv })
+        .then(
+          () => undefined,
+          () => undefined,
+        );
     const acoesObra = acoesPorObra.get(o.id) ?? [];
     const contaEstado = (e: 'atrasada' | 'hoje') =>
       acoesObra.filter((a) => estadoAcao(a, hoje) === e).length +
-      semDono.filter((p) => estadoAcao({ aberta: true, prazo: p.prazo }, hoje) === e).length;
+      [...semDono, ...atvSemDono].filter(
+        (p) => estadoAcao({ aberta: true, prazo: p.prazo }, hoje) === e,
+      ).length;
 
     const fasesEstado: FaseEstado[] = minhasFases.map((f) => {
       const itens = cron.itens.filter((it) => faseDaAtv.get(it.id) === f.id);
@@ -397,10 +422,11 @@ export async function listarObras(): Promise<ObraResumo[]> {
       entrega: est.indicadores.entrega,
       atrasada: est.indicadores.ritmoDias <= -2,
       fasesEstado,
-      acoesAbertas: acoesObra.length + semDono.length,
+      acoesAbertas: acoesObra.length + semDono.length + atvSemDono.length,
       acoesAtrasadas: contaEstado('atrasada'),
       acoesHoje: contaEstado('hoje'),
       providenciasSemDono: semDono,
+      atividadesSemDono: atvSemDono,
       risco: (() => {
         try {
           const p = previsaoEntrega({
@@ -432,6 +458,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
             fim_previsto: cron.porId[a.id].fim_previsto,
             concluida: Boolean(a.concluida_em),
             atrasada: Boolean(est.atividades[a.id]?.atrasada),
+            comTarefa: atvComTarefa.has(a.id),
           }))
           .concat(
             (() => {
@@ -459,6 +486,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
                   fim_previsto: pre[a.id].fim_previsto,
                   concluida: Boolean(a.concluida_em),
                   atrasada: !a.concluida_em && pre[a.id].fim_previsto < hoje,
+                  comTarefa: atvComTarefa.has(a.id),
                   libera: (() => {
                     // Mapa: a mais cedo das atividades que libera (é ela que dita o prazo).
                     const alvo = (liberaPorMapa.get(a.id) ?? [])

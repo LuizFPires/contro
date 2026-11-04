@@ -1,9 +1,11 @@
 import {
+  atividadeParaAcaoBase,
   nomeCurto,
   prazoPendencia,
   providenciaParaAcaoBase,
   type Acao,
   type AcoesClassificadas,
+  type AtividadeSemDono,
   type EstadoAcao,
   type PrazosPendencia,
   type ProvidenciaSemDono,
@@ -13,11 +15,15 @@ import { dataLocal } from './api';
 import type { PendenciaObra } from './pendenciasObra';
 import type { TarefaObra } from './tarefasObra';
 
-/** Ação (tarefa, pendência ou providência sem dono) com o original à mão para abrir o detalhe. */
+/**
+ * Ação (tarefa, pendência, providência ou atividade sem dono) com o original à
+ * mão para abrir o detalhe.
+ */
 export type AcaoObra =
   | (Acao & { origem: 'tarefa'; tarefa: TarefaObra })
   | (Acao & { origem: 'pendencia'; pendencia: PendenciaObra })
-  | (Acao & { origem: 'providencia'; providencia: ProvidenciaSemDono });
+  | (Acao & { origem: 'providencia'; providencia: ProvidenciaSemDono })
+  | (Acao & { origem: 'atividade'; atividade: AtividadeSemDono });
 
 export function tarefaParaAcao(t: TarefaObra): AcaoObra {
   return {
@@ -59,6 +65,16 @@ export function providenciaParaAcao(p: ProvidenciaSemDono): AcaoObra {
     ...providenciaParaAcaoBase({ id, obraId, tipo, descricao, prazo }),
     origem: 'providencia',
     providencia: p,
+  };
+}
+
+/** Atividade sem dono vira ação aberta, sem responsável ("Atividade: Pintura"). */
+export function atividadeParaAcao(a: AtividadeSemDono): AcaoObra {
+  const { id, obraId, nome, prazo } = a;
+  return {
+    ...atividadeParaAcaoBase({ id, obraId, nome, prazo }),
+    origem: 'atividade',
+    atividade: a,
   };
 }
 

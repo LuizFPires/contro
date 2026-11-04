@@ -126,8 +126,8 @@ export function MinhasAcoesScreen({
         />
       );
     }
-    // Providência sem dono não tem responsável: não entra em Minhas ações.
-    if (a.origem === 'providencia') return null;
+    // Providência e atividade sem dono não têm responsável: não entram em Minhas ações.
+    if (a.origem === 'providencia' || a.origem === 'atividade') return null;
     const t = a.tarefa;
     return (
       <CardAcao

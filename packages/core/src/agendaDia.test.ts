@@ -109,6 +109,34 @@ describe('agendaDoDia', () => {
     expect(hoje.find((i) => i.tipo === 'acao')?.pessoa).toBe('Rafael');
   });
 
+  it('atividade com tarefa vinculada aberta não aparece (a tarefa já mostra), mas o lembrete dela sim', () => {
+    const marcar = (ids: string[]) =>
+      entrada().atividades.map((a) => (ids.includes(a.id) ? { ...a, comTarefa: true } : a));
+    const r = agendaDoDia(entrada({ atividades: marcar(['mob', 'for', 'dem']) }));
+    const chaves = [...r.atrasados, ...r.hoje].map((i) => i.chave);
+    expect(chaves.filter((c) => /^(concluir|comecar|andamento)-/.test(c))).toEqual([]);
+    // O lembrete da Demolição (Caçamba) continua.
+    expect(r.atrasados.map((i) => i.nome)).toContain('Caçamba');
+  });
+
+  it('atividade em andamento com tarefa vinculada aberta não vira "andamento"', () => {
+    const atv = {
+      id: 'and',
+      nome: 'Alvenaria',
+      es: 2,
+      inicio_previsto: '2026-10-21',
+      fim_previsto: '2026-10-28',
+      concluida: false,
+      atrasada: false,
+    };
+    const sem = agendaDoDia(entrada({ atividades: [atv], providencias: [], acoes: [] }));
+    expect(sem.hoje.map((i) => i.chave)).toEqual(['andamento-and']);
+    const com = agendaDoDia(
+      entrada({ atividades: [{ ...atv, comTarefa: true }], providencias: [], acoes: [] }),
+    );
+    expect(com.hoje).toEqual([]);
+  });
+
   it('lembrete que leva dias aparece desde o dia de começar até o prazo', () => {
     // Elétrica no dia 12; contratar 4 du antes (dia 8 = qui 29/10); leva 3 du.
     const ele = {
