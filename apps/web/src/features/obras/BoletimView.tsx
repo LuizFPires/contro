@@ -5,7 +5,7 @@ import {
   derivarAtribuicoes,
   providenciaAtrasada,
   ritmoTexto,
-  tarefaAtrasada,
+  estadoAcao,
   textoBoletimWhatsapp,
   type AtividadeSemana,
   type BoletimDados,
@@ -16,7 +16,7 @@ import { pdfServiceConfigurado } from '../../lib/env';
 import { baixarPdf } from '../../lib/pdf';
 import { hojeISO } from './api';
 import type { ObraCompleta } from './detalhe';
-import { useObraTarefas } from './useObraTarefas';
+import { useAcoesDasObras } from './useAcoesDasObras';
 import styles from './BoletimView.module.css';
 
 const TIPO: Record<string, string> = {
@@ -39,7 +39,7 @@ function semanaFmt(): string {
 
 /** Boletim da semana (protótipo · BOLETIM), dentro da tela da obra. */
 export function BoletimView({ obra }: { obra: ObraCompleta }) {
-  const tarefas = useObraTarefas(obra.id);
+  const { acoes } = useAcoesDasObras([obra.id]);
 
   const dados = useMemo<BoletimDados>(() => {
     const hoje = hojeISO();
@@ -90,17 +90,17 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
       }
     }
 
-    const tabTarefas = (tarefas.query.data ?? []).map((t) => ({
-      texto: t.texto,
-      pessoa: t.responsavelNome ?? 'Sem responsável',
-      prazo: t.prazo,
-      atrasado: tarefaAtrasada(t, hoje),
-      concluido: t.status === 'feita',
+    const tabAcoes = acoes.map((a) => ({
+      texto: a.texto,
+      pessoa: a.responsavelNome ?? 'Sem responsável',
+      prazo: a.prazo,
+      atrasado: estadoAcao(a, hoje) === 'atrasada',
+      concluido: !a.aberta,
     }));
     const grupos = compilarPorPessoa(
       derivarAtribuicoes(
         {
-          tarefas: tabTarefas,
+          tarefas: tabAcoes,
           engenheiroNome: null,
           comprasNome: null,
           atividadesAtrasadas: [],
@@ -135,7 +135,7 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
       comecar,
       quemFazOQue,
     };
-  }, [obra, tarefas.query.data]);
+  }, [obra, acoes]);
 
   const texto = textoBoletimWhatsapp(dados, hojeISO());
   const wa = `https://wa.me/?text=${encodeURIComponent(texto)}`;
