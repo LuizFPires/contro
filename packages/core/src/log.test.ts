@@ -66,6 +66,7 @@ const eventosTarefa: EventoBruto[] = [
     itemId: 't1',
     tipo: 'criada',
     em: '2026-10-22T09:00:00',
+    por: 'u-ana',
     porNome: 'Ana Paula Souza',
     depois: { prazo: '2026-10-26' },
   }),
@@ -118,6 +119,8 @@ describe('montarLog', () => {
       detalhe: '4 d.u. depois do prazo',
     });
     expect(linhas[3].pessoa).toBe('Ana P');
+    expect(linhas[3].pessoaId).toBe('u-ana');
+    expect(linhas[0].pessoaId).toBeNull();
   });
 
   it('deriva "vencida" no primeiro dia útil após o prazo quando o item seguia aberto', () => {
@@ -126,6 +129,7 @@ describe('montarLog', () => {
       prazo: '2026-10-29',
       prazoOriginal: '2026-10-29',
       responsavelNome: 'João Lima',
+      responsavelId: 'u-joao',
     });
     const linhas = montarLog(entrada([t], []));
     expect(linhas).toHaveLength(1);
@@ -137,6 +141,7 @@ describe('montarLog', () => {
       dia: '2026-10-30',
       detalhe: 'prazo era qui 29/10',
       pessoa: 'João L',
+      pessoaId: 'u-joao',
     });
   });
 
@@ -358,6 +363,7 @@ function linha(p: Partial<LinhaLog> & { id: string }): LinhaLog {
     obraId: 'o1',
     obraNome: 'Savassi',
     pessoa: null,
+    pessoaId: null,
     detalhe: '',
     cor: 'neutra',
     ...p,
@@ -385,8 +391,16 @@ describe('filtrarLog', () => {
   const linhas = [
     linha({ id: '1', tipo: 'replanejada', cor: 'atencao' }),
     linha({ id: '2', tipo: 'inicio_ajustado', origem: 'atividade', obraId: 'o2' }),
-    linha({ id: '3', tipo: 'concluida', origem: 'pendencia', pessoa: 'Matheus T' }),
+    linha({
+      id: '3',
+      tipo: 'concluida',
+      origem: 'pendencia',
+      pessoa: 'Matheus T',
+      pessoaId: 'u-matheus',
+    }),
     linha({ id: '4', tipo: 'atribuida', origem: 'providencia' }),
+    // Homônimo de nome curto, outra pessoa: o filtro por id não confunde.
+    linha({ id: '5', tipo: 'criada', pessoa: 'Matheus T', pessoaId: 'u-outro' }),
   ];
   const ids = (ls: LinhaLog[]) => ls.map((l) => l.id);
 
@@ -395,17 +409,22 @@ describe('filtrarLog', () => {
   });
   it('por origem: atividades, tarefas (com providências) e pendências', () => {
     expect(ids(filtrarLog(linhas, { tipo: 'atividades' }))).toEqual(['2']);
-    expect(ids(filtrarLog(linhas, { tipo: 'tarefas' }))).toEqual(['1', '4']);
+    expect(ids(filtrarLog(linhas, { tipo: 'tarefas' }))).toEqual(['1', '4', '5']);
     expect(ids(filtrarLog(linhas, { tipo: 'pendencias' }))).toEqual(['3']);
   });
   it('por obra', () => {
     expect(ids(filtrarLog(linhas, { obraId: 'o2' }))).toEqual(['2']);
   });
   it('por pessoa (nome completo comparado pelo nome curto)', () => {
-    expect(ids(filtrarLog(linhas, { pessoaNome: 'Matheus Teófilo' }))).toEqual(['3']);
+    expect(ids(filtrarLog(linhas, { pessoaNome: 'Matheus Teófilo' }))).toEqual(['3', '5']);
+  });
+  it('por pessoa pelo id (precede o nome)', () => {
+    expect(
+      ids(filtrarLog(linhas, { pessoaId: 'u-matheus', pessoaNome: 'Matheus Teófilo' })),
+    ).toEqual(['3']);
   });
   it('sem filtro devolve tudo', () => {
-    expect(filtrarLog(linhas, {})).toHaveLength(4);
+    expect(filtrarLog(linhas, {})).toHaveLength(5);
   });
 });
 
@@ -417,6 +436,12 @@ describe('vidaDoItem', () => {
       ['Replanejada 1x', 'de seg 26/10 para qua 28/10', 'atencao'],
       ['Replanejada 2x', 'de qua 28/10 para sex 30/10 · "faltou material"', 'atencao'],
       ['Concluída', '4 d.u. depois do prazo', 'ok'],
+    ]);
+    expect(vida.passos.map((p) => p.pessoa)).toEqual([
+      'Ana P',
+      'Matheus T',
+      'Matheus T',
+      'Matheus T',
     ]);
     expect(vida.resumo).toBe('4 d.u. além do prazo original · 2 replanejamentos · 8 dias aberta');
   });
@@ -447,6 +472,24 @@ describe('vidaDoItem', () => {
       ['Início ajustado', 'atencao'],
     ]);
     expect(vida.resumo).toBe('1 d.u. além do prazo original · 1 replanejamento · 1 dia aberta');
+  });
+
+  it('sem evento de criação na janela, conta os dias aberta desde criadaEm', () => {
+    const t = item({
+      id: 'v1',
+      origem: 'atividade',
+      prazo: '2026-12-01',
+      criadaEm: '2026-10-05',
+    });
+    const vida = vidaDoItem(
+      t,
+      [ev({ itemId: 'v1', tipo: 'avanco', em: '2026-11-03T10:00:00', depois: { pct: 50 } })],
+      HOJE,
+      fmt,
+    );
+    expect(vida.resumo).toBe('0 d.u. além do prazo original · 0 replanejamentos · 30 dias aberta');
+    // Sem eventos também usa criadaEm.
+    expect(vidaDoItem(t, [], HOJE, fmt).resumo).toMatch(/30 dias aberta$/);
   });
 
   it('sem prazo nem eventos: tudo zero', () => {

@@ -37,6 +37,8 @@ export interface LinhaLog {
   obraNome: string;
   /** Nome curto de quem mudou (na "vencida", do responsável). */
   pessoa: string | null;
+  /** Id de quem mudou (na "vencida", do responsável, se tiver login). */
+  pessoaId: string | null;
   detalhe: string;
   cor: CorLog;
 }
@@ -64,6 +66,14 @@ export interface ItemLog {
   aberta: boolean;
   concluidaEm: string | null;
   responsavelNome: string | null;
+  /** Id do responsável com login (filtro "Eu" na linha "vencida"). */
+  responsavelId?: string | null;
+  /**
+   * Quando o item nasceu (tarefa: created_at; pendência: apontada_em; atividade:
+   * início da obra). Base dos "dias aberta" quando o evento de criação está fora
+   * da janela carregada.
+   */
+  criadaEm?: string | null;
   excluida: boolean;
   /** Tarefa ligada a uma providência: aparece no log como "providencia". */
   vinculoProvidencia?: boolean;
@@ -291,6 +301,7 @@ function linhaVencida(item: ItemLog, dia: DataISO, formatarData: (d: DataISO) =>
     obraId: item.obraId,
     obraNome: item.obraNome,
     pessoa: nomeCurto(item.responsavelNome) || null,
+    pessoaId: item.responsavelId ?? null,
     detalhe: `prazo era ${formatarData(item.prazo as DataISO)}`,
     cor: 'atraso',
   };
@@ -321,6 +332,7 @@ export function montarLog(e: EntradaLog): LinhaLog[] {
         obraId: item.obraId,
         obraNome: item.obraNome,
         pessoa: nomeCurto(p.evento.porNome) || null,
+        pessoaId: p.evento.por,
         detalhe: juntar([p.base, p.vez ? `${p.vez}ª vez` : null, p.extra ?? null]),
         cor: COR[p.tipo],
       });
@@ -359,14 +371,18 @@ export function agruparPorDia(
 export type FiltroLog = {
   obraId?: string;
   tipo?: 'replanejadas' | 'atividades' | 'tarefas' | 'pendencias';
-  /** "Eu": nome completo da pessoa, comparado pelo nome curto da linha. */
+  /** "Eu": id da pessoa logada (comparado com o id da linha). Tem precedência sobre o nome. */
+  pessoaId?: string;
+  /** "Eu" antigo: nome completo da pessoa, comparado pelo nome curto da linha. */
   pessoaNome?: string;
 };
 
 export function filtrarLog(linhas: LinhaLog[], f: FiltroLog): LinhaLog[] {
-  const pessoa = f.pessoaNome ? nomeCurto(f.pessoaNome).toLocaleLowerCase('pt-BR') : null;
+  const pessoa =
+    !f.pessoaId && f.pessoaNome ? nomeCurto(f.pessoaNome).toLocaleLowerCase('pt-BR') : null;
   return linhas.filter((l) => {
     if (f.obraId && l.obraId !== f.obraId) return false;
+    if (f.pessoaId && l.pessoaId !== f.pessoaId) return false;
     if (pessoa && (l.pessoa ?? '').toLocaleLowerCase('pt-BR') !== pessoa) return false;
     switch (f.tipo) {
       case 'replanejadas':
@@ -388,6 +404,8 @@ export interface PassoVida {
   rotulo: string;
   detalhe: string;
   cor: CorLog;
+  /** Nome curto de quem fez (na "vencida", do responsável). */
+  pessoa: string | null;
 }
 
 function plural(n: number, um: string, varios: string): string {
@@ -411,15 +429,28 @@ export function vidaDoItem(
     rotulo: p.vez ? `${ROTULO[p.tipo]} ${p.vez}x` : ROTULO[p.tipo],
     detalhe: juntar([p.base, p.extra ?? null]),
     cor: COR[p.tipo],
+    pessoa: nomeCurto(p.evento.porNome) || null,
   }));
   for (const ev of doItem) {
     if (ev.tipo === 'foto_anexada')
-      passos.push({ em: ev.em, rotulo: 'Foto anexada', detalhe: '', cor: 'neutra' });
+      passos.push({
+        em: ev.em,
+        rotulo: 'Foto anexada',
+        detalhe: '',
+        cor: 'neutra',
+        pessoa: nomeCurto(ev.porNome) || null,
+      });
   }
   const dia = diaVencida(item, hoje);
   if (dia) {
     const l = linhaVencida(item, dia, formatarData);
-    passos.push({ em: l.em, rotulo: ROTULO.vencida, detalhe: l.detalhe, cor: l.cor });
+    passos.push({
+      em: l.em,
+      rotulo: ROTULO.vencida,
+      detalhe: l.detalhe,
+      cor: l.cor,
+      pessoa: l.pessoa,
+    });
   }
   passos.sort((a, b) => instante(a.em) - instante(b.em));
 
@@ -430,9 +461,13 @@ export function vidaDoItem(
     (ev) => ev.tipo === 'replanejada' || ev.tipo === 'inicio_ajustado',
   ).length;
   const ordenados = [...doItem].sort((a, b) => instante(a.em) - instante(b.em));
+  // Nascimento: o evento de criação; fora da janela, a data de criação do item;
+  // sem nenhuma das duas, o primeiro evento carregado.
   const nascimento =
-    ordenados.find((ev) => ev.tipo === 'criada' || ev.tipo === 'apontada') ?? ordenados[0];
-  const aberta = nascimento ? Math.max(0, diasCorridos(diaLocal(nascimento.em), fim)) : 0;
+    ordenados.find((ev) => ev.tipo === 'criada' || ev.tipo === 'apontada')?.em ??
+    item.criadaEm ??
+    ordenados[0]?.em;
+  const aberta = nascimento ? Math.max(0, diasCorridos(diaLocal(nascimento), fim)) : 0;
 
   return {
     passos,
