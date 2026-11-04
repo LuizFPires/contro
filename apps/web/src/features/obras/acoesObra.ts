@@ -92,7 +92,7 @@ export function secoesAcoes(c: AcoesClassificadas<AcaoObra>): SecaoAcoes[] {
   const todas: SecaoAcoes[] = [
     { estado: 'atrasada', titulo: 'Atrasadas', icone: 'alert', itens: c.atrasadas },
     { estado: 'hoje', titulo: 'Vencem hoje', icone: 'atencao', itens: c.hoje },
-    { estado: 'proxima', titulo: 'Próximos dias', icone: 'calendario', itens: c.proximas },
+    { estado: 'proxima', titulo: 'Próximos 5 dias', icone: 'calendario', itens: c.proximas },
     { estado: 'concluida', titulo: 'Concluídas', icone: 'checkCirculo', itens: c.concluidas },
   ];
   return todas.filter((s) => s.itens.length);

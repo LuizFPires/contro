@@ -315,6 +315,11 @@ Menu inferior com Score e Log, histórico das mudanças com Vida do item e pontu
 
 ---
 
+## Próximos 5 dias (04/11/2026)
+As listas de ações mostram só o que vence de amanhã até 4 d.u. depois. Spec: `docs/superpowers/specs/2026-11-04-proximos-5-dias-design.md`.
+- [x] 1. Core e web: `classificarAcoes` com `proximosDU` (padrão 5) e `depois`; seção "Próximos 5 dias" e resumo.
+- [x] 2. Documentação: PRD, SPEC e PLAN.
+
 ## Item do Mapa de coleta (04/11/2026)
 Botão "Adicionar item do mapa" na fase Mapa de coleta da obra. Spec: `docs/superpowers/specs/2026-11-04-item-do-mapa-design.md`.
 - [x] 1. Migration `20261104400000_adicionar_mapa.sql` (RPC `adicionar_mapa_obra`) e pgTAP.
@@ -355,7 +360,8 @@ Botão "Adicionar item do mapa" na fase Mapa de coleta da obra. Spec: `docs/supe
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
-- 2026-11-04 · **Item do mapa pela obra.** Botão "Adicionar item do mapa" na fase Mapa de coleta; folha com nome, duração, antecedência e atividades liberadas; RPC adicionar_mapa_obra; não altera o modelo. Salva direto, sem fila offline, como o adicionar de atividade. · pedido do usuário · usuário
+- 2026-11-04 · **Item do mapa pela obra.** Botão "Adicionar item do mapa" na fase Mapa de coleta; folha com nome, duração, antecedência e atividades liberadas; RPC adicionar_mapa_obra; não altera o modelo. Salva direto, sem fila offline, como o adicionar de atividade. · pedido do usuário · usuário Adicionar um item renumera os #N da obra, como ao adicionar atividade.
+- 2026-11-04 · **Próximos 5 dias.** As listas de ações mostram só o que vence de amanhã até 4 d.u. depois; o resto não aparece (sem "Mais adiante"). · pedido do usuário · usuário
 - 2026-11-04 · **Score e Log.** Menu inferior Hoje · Obras · Score · Log (ativo preto/branco), para todos os perfis. Log = eventos já gravados (90 dias), com "vencida" derivada e Vida do item nas fichas; motivo opcional ao replanejar tarefa (p_motivo). Score 0–100 por nome: equipe (pontualidade 35, conclusão do dia 20, resposta ao atraso 20, replanejamentos 15, pendências 10) e prestadores (no fim previsto 45, atraso médio 30, com foto 25), mínimo 5 itens, faixas ≥75/50–74/<50; "empurrou a fase" descartado (sem início real da sucessora); prazo da atividade = cronograma vigente. Conclusão do dia conta concluída até o prazo vigente; vencida no Log aparece no primeiro dia útil após o prazo. **Exceção aprovada (04/11/2026, Score e Log):** vermelho também na faixa **Atenção** do Score e nas linhas **vencidas** do Log; âmbar também em **replanejada**, **início ajustado** e na faixa **Regular**. · pedido do usuário · usuário
 - 2026-11-04 · **Providências como ações.** Providência pendente sem dono entra em Tarefas da equipe ("Sem responsável") e nos contadores; o gestor atribui responsável pela folha de tarefa, criando a tarefa vinculada à providência (mecanismo já existente; sem campo novo no lembrete). O app grava `providenciar_ate` (derivado) para o push do gestor contar as mesmas providências; pode ficar defasado até alguém abrir o app. Providências de atividades do pré-obra (fora do cronograma) não viram ação nem gravam prazo. Regra 'sem dono' e `prazosParaGravar` no core (`providencias.ts`). · pedido do usuário · usuário
 - 2026-11-04 · **Ações do dia.** Um push por pessoa com atrasadas + vencem hoje e um da equipe para o gestor, no lugar de "Bom dia" e "Tarefas que vencem hoje". Tarefa e pendência viram "ação" com a mesma importância, sem etiqueta de origem; pendência ganha prazo pela criticidade (alta 2, média 4, baixa 6 d.u., configurável). Seções Atrasadas · Vencem hoje · Próximos dias · Concluídas com ícone; âmbar #B45309 só para "vence hoje" (exceção ao design system); card atrasado com fundo #FBEAEA. Tela inicial, cards e boletim contam ações. **Ata não muda** (as pendências não são itens de reunião; decisão de quem implementou, a confirmar com o usuário). · pedido do usuário · usuário
