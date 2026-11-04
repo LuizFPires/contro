@@ -42,11 +42,15 @@
   padding: 0 5px;
   box-sizing: border-box;
   border-radius: 99px;
-  background: var(--contro-late);
+  background: var(--contro-black);
   color: var(--contro-white);
   font-size: 12px;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* Vermelho só quando há atraso na lista do dia. */
+.navBadgeAtraso {
+  background: var(--contro-late);
 }
