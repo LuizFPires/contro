@@ -288,7 +288,7 @@ Tarefa e pendência viram "ação"; um push por pessoa e um da equipe para o ges
 - [x] 8. Tela inicial e cards de obra contam ações.
 - [x] 9. Boletim com pendências em "Quem faz o quê".
 - [x] 10. Documentação: PRD, SPEC e PLAN.
-- [ ] 11. Verificação final e PR.
+- [x] 11. Verificação final e PR (#111).
 
 ---
 
