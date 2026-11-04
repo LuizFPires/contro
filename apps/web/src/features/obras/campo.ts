@@ -101,6 +101,31 @@ export async function adicionarAtividade(v: {
   return data as string;
 }
 
+/**
+ * Novo item do Mapa de coleta só nesta obra: nome, quanto leva, antecedência da
+ * contratação e as atividades que libera. Devolve o id da atividade criada.
+ */
+export async function adicionarMapa(v: {
+  obraId: string;
+  nome: string;
+  duracaoDu: number;
+  antecedenciaDu: number;
+  libera: string[];
+  id?: string;
+}): Promise<string> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { data, error } = await supabase.rpc('adicionar_mapa_obra', {
+    p_obra_id: v.obraId,
+    p_nome: v.nome,
+    p_duracao_du: v.duracaoDu,
+    p_antecedencia_du: v.antecedenciaDu,
+    p_libera: v.libera,
+    p_id: v.id ?? null,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
 /** Exclusão lógica da atividade (e dos subitens), com evento; volta com restaurar. */
 export async function excluirAtividade(id: string): Promise<void> {
   if (!supabase) throw new Error('Supabase não configurado');
