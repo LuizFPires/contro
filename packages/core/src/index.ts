@@ -28,6 +28,8 @@ export * from './avanco';
 export * from './busca';
 export * from './agendaReuniao';
 export * from './acoes';
+export * from './log';
+export * from './score';
 
 export type Perfil = 'gestor' | 'equipe';
 

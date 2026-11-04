@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { entradaAtribuicao, entradaDaFolha, OUTRO, responsavelDaTarefa } from './entradaTarefa';
+import {
+  entradaAtribuicao,
+  entradaDaFolha,
+  motivoReplanejamento,
+  OUTRO,
+  prazoMudou,
+  responsavelDaTarefa,
+} from './entradaTarefa';
 import { tarefaDaLinha, type LinhaTarefa, type TarefaObra } from './tarefasObra';
 
 const linha = (o: Partial<LinhaTarefa> = {}): LinhaTarefa => ({
@@ -109,5 +116,23 @@ describe('folha de tarefa (edição)', () => {
       responsavelNome: null,
       prazo: '2026-11-05',
     });
+  });
+});
+
+describe('motivo do replanejamento', () => {
+  const aberta = { prazo: '2026-11-03', status: 'aberta' as const };
+  it('só pede e envia quando o prazo da tarefa aberta muda', () => {
+    expect(prazoMudou(aberta, '2026-11-06')).toBe(true);
+    expect(prazoMudou(aberta, '2026-11-03')).toBe(false);
+    expect(prazoMudou(null, '2026-11-06')).toBe(false);
+    expect(prazoMudou({ ...aberta, status: 'feita' }, '2026-11-06')).toBe(false);
+  });
+  it('apara, corta em 120 e vazio vira nulo', () => {
+    expect(motivoReplanejamento(aberta, '2026-11-06', '  fornecedor sem estoque ')).toBe(
+      'fornecedor sem estoque',
+    );
+    expect(motivoReplanejamento(aberta, '2026-11-06', '   ')).toBeNull();
+    expect(motivoReplanejamento(aberta, '2026-11-03', 'sem mudança')).toBeNull();
+    expect(motivoReplanejamento(aberta, '2026-11-06', 'x'.repeat(200))).toHaveLength(120);
   });
 });

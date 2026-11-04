@@ -359,15 +359,20 @@ export interface EntradaTarefa {
   observacao?: string | null;
   /** Nome digitado de quem não tem login (vale só sem responsavelId). */
   responsavelNome?: string | null;
+  /** Motivo opcional do replanejamento (vai em depois.motivo do evento). */
+  motivoReplanejamento?: string | null;
 }
 
-export async function salvarTarefa(
+/**
+ * Argumentos do RPC `salvar_tarefa`. `p_motivo` só vai quando há motivo: assim o
+ * app novo continua funcionando com o banco antigo (sem o parâmetro) até o db push.
+ */
+export function argsSalvarTarefa(
   obraId: string,
   t: EntradaTarefa,
   clientOpId?: string,
-): Promise<string> {
-  if (!supabase) throw new Error('Sem conexão');
-  const { data, error } = await supabase.rpc('salvar_tarefa', {
+): Record<string, unknown> {
+  return {
     p_id: t.id ?? null,
     p_obra_id: obraId,
     p_texto: t.texto,
@@ -379,7 +384,20 @@ export async function salvarTarefa(
     p_client_op_id: clientOpId ?? null,
     p_observacao: t.observacao ?? null,
     p_responsavel_nome: t.responsavelNome ?? null,
-  });
+    ...(t.motivoReplanejamento ? { p_motivo: t.motivoReplanejamento } : {}),
+  };
+}
+
+export async function salvarTarefa(
+  obraId: string,
+  t: EntradaTarefa,
+  clientOpId?: string,
+): Promise<string> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { data, error } = await supabase.rpc(
+    'salvar_tarefa',
+    argsSalvarTarefa(obraId, t, clientOpId),
+  );
   if (error) throw error;
   return data as string;
 }

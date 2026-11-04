@@ -595,3 +595,14 @@
   outline: 3px solid var(--contro-turquoise);
   outline-offset: 2px;
 }
+/* Vida da pendência (card resolvido aberto e folha "Mais opções"). */
+.vVida {
+  padding: 10px 12px 4px;
+}
+.vVida:empty,
+.menuPendVida:empty {
+  display: none;
+}
+.menuPendVida {
+  margin: 12px 0 4px;
+}

@@ -200,6 +200,18 @@ const paths = {
     </>
   ),
   seta: <path d="M8 5l8 7-8 7" />,
+  // Score: três barras verticais sobre a base.
+  score: (
+    <>
+      <path d="M4 20h16" />
+      <path d="M7 16v-4" />
+      <path d="M12 16V6" />
+      <path d="M17 16V9" />
+    </>
+  ),
+  // Replanejar (Log): seta para a frente.
+  replanejar: <path d="M4 12h14M13 6l6 6-6 6" />,
+  ponto: <circle cx="12" cy="12" r="2.5" fill="currentColor" />,
   pessoa: (
     <>
       <circle cx="12" cy="8" r="3.5" />

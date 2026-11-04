@@ -16,6 +16,7 @@ import type { ObraCompleta } from './detalhe';
 import type { PendenciaObra } from './pendenciasObra';
 import type { NovaPendencia } from './campo';
 import { useObraPendencias } from './useObraPendencias';
+import { VidaDoItem } from '../log/VidaDoItem';
 import styles from './PendenciasAba.module.css';
 
 type Aba = 'pendentes' | 'resolvidos';
@@ -371,6 +372,9 @@ export function PendenciasAba({
                     <Icon name="more" size={22} />
                   </button>
                 </div>
+                <div className={styles.vVida}>
+                  <VidaDoItem itemId={p.id} />
+                </div>
                 <div className={styles.vFotos}>
                   <button
                     type="button"
@@ -529,6 +533,9 @@ export function PendenciasAba({
               <Icon name="lixeira" size={20} />
               Apagar pendência
             </button>
+            <div className={styles.menuPendVida}>
+              <VidaDoItem itemId={menuPend.id} />
+            </div>
             <p className={styles.menuPendDica}>
               Foto errada? Apague e aponte de novo com a foto certa.
             </p>

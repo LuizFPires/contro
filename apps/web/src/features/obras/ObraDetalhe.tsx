@@ -52,10 +52,15 @@ export function ObraDetalhe({
   abrirPlano,
   abrirAba,
   abrirPendenciaId,
+  abrirAtividadeId,
   onAtalhoUsado,
+  onAbrirLog,
+  rotuloVoltar = 'Voltar para obras',
 }: {
   id: string;
   onVoltar: () => void;
+  /** Rótulo acessível do Voltar (ex.: "Voltar para o Log" quando veio do Log). */
+  rotuloVoltar?: string;
   abrirBoletim?: boolean;
   /** Abre direto no plano de recuperação (atalho da aba Hoje). */
   abrirPlano?: boolean;
@@ -63,8 +68,12 @@ export function ObraDetalhe({
   abrirAba?: AbaObra;
   /** Pendência para destacar no Check list (vem com abrirAba = 'pendencias'). */
   abrirPendenciaId?: string;
+  /** Abre a ficha desta atividade (toque numa linha do Log). */
+  abrirAtividadeId?: string;
   /** Avisa que a aba e a pendência do atalho já foram aplicadas. */
   onAtalhoUsado?: () => void;
+  /** Ícone de relógio: abre o Log filtrado por esta obra. */
+  onAbrirLog?: () => void;
 }) {
   const { data: obra, isLoading } = useObraDetalhe(id);
   const pendencias = useObraPendencias(id);
@@ -85,6 +94,12 @@ export function ObraDetalhe({
     // Com pendência, o Check list avisa quando chegar nela.
     if (!abrirPendenciaId) onAtalhoUsado?.();
   }, [abrirAba, abrirPendenciaId, onAtalhoUsado, setAba]);
+  useEffect(() => {
+    if (!abrirAtividadeId) return;
+    setAba('fases');
+    setFichaAtvId(abrirAtividadeId);
+    onAtalhoUsado?.();
+  }, [abrirAtividadeId, onAtalhoUsado, setAba, setFichaAtvId]);
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
   const [planoAberto, setPlanoAberto] = useState(Boolean(abrirPlano));
   // Mapa de coleta: "+ Quem foi contratado" abre o campo (opcional, depois do check).
@@ -153,7 +168,7 @@ export function ObraDetalhe({
             <button
               type="button"
               className={styles.voltar}
-              aria-label="Voltar para obras"
+              aria-label={rotuloVoltar}
               onClick={onVoltar}
             >
               <Icon name="chevronLeft" size={22} />
@@ -193,7 +208,7 @@ export function ObraDetalhe({
           <button
             type="button"
             className={styles.voltar}
-            aria-label="Voltar para obras"
+            aria-label={rotuloVoltar}
             onClick={onVoltar}
           >
             <Icon name="chevronLeft" size={22} />
@@ -218,6 +233,17 @@ export function ObraDetalhe({
           >
             <Icon name="documento" size={20} />
           </button>
+          {onAbrirLog ? (
+            <button
+              type="button"
+              className={styles.iconeBtn}
+              aria-label="Log da obra: o que mudou e quem mudou"
+              title="Log da obra"
+              onClick={onAbrirLog}
+            >
+              <Icon name="relogio" size={20} />
+            </button>
+          ) : null}
           {/* "⋮": editar o nome da obra e (só o gestor) apagar a obra. */}
           <div className={styles.menuObraAncora}>
             <button

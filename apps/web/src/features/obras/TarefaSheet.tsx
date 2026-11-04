@@ -7,9 +7,17 @@ import { formatarDataCurta } from '../../lib/datas';
 import { useRascunho } from '../../lib/useRascunho';
 import type { PessoaResumo } from '../perfil/usePessoas';
 import { useNomesSugeridos } from '../reuniao/useNomesSugeridos';
+import { VidaDoItem } from '../log/VidaDoItem';
 import { dataLocal } from './api';
 import type { EntradaTarefa } from './campo';
-import { entradaDaFolha, OUTRO, responsavelDaTarefa } from './entradaTarefa';
+import {
+  entradaDaFolha,
+  MOTIVO_MAX,
+  motivoReplanejamento,
+  OUTRO,
+  prazoMudou,
+  responsavelDaTarefa,
+} from './entradaTarefa';
 import type { TarefaObra } from './tarefasObra';
 import styles from './AdiarSheet.module.css';
 
@@ -54,6 +62,8 @@ export function TarefaSheet({
   const [nomeDigitado, setNomeDigitado] = useState('');
   const [prazo, setPrazo] = useState(emDias(1));
   const [obraId, setObraId] = useState('');
+  // Motivo opcional do replanejamento (só quando o prazo da tarefa aberta muda).
+  const [motivo, setMotivo] = useState('');
   const { data: nomesSugeridos = [] } = useNomesSugeridos();
   const idNomes = useId();
   const pedeObra = !tarefa && !atribuir && Boolean(obras?.length);
@@ -94,6 +104,7 @@ export function TarefaSheet({
     setNomeDigitado(resp.nomeDigitado);
     setPrazo(tarefa?.prazo ?? r?.prazo ?? emDias(1));
     setObraId(r?.obraId || (obras?.length === 1 ? obras[0].id : ''));
+    setMotivo('');
     setRecuperado(Boolean(r));
   }, [tarefa, aberto, obras, lido, atribuir]);
   const guardarRascunho = rascunho.guardar;
@@ -216,6 +227,24 @@ export function TarefaSheet({
         </p>
       ) : null}
 
+      {!atribuir && prazoMudou(tarefa, prazo) ? (
+        <div style={{ marginTop: 12 }}>
+          <Input
+            label="Motivo (opcional)"
+            placeholder="Ex.: fornecedor sem estoque"
+            maxLength={MOTIVO_MAX}
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+          />
+        </div>
+      ) : null}
+
+      {tarefa && !atribuir ? (
+        <div style={{ marginTop: 16 }}>
+          <VidaDoItem itemId={tarefa.id} />
+        </div>
+      ) : null}
+
       <div className={styles.rodape}>
         <Button
           full
@@ -228,8 +257,12 @@ export function TarefaSheet({
           }
           onClick={() => {
             if (!atribuir) rascunho.limpar();
+            const motivoRepl = atribuir ? null : motivoReplanejamento(tarefa, prazo, motivo);
             onSalvar(
-              entradaDaFolha({ texto, responsavelId, nomeDigitado, prazo }, tarefa),
+              {
+                ...entradaDaFolha({ texto, responsavelId, nomeDigitado, prazo }, tarefa),
+                ...(motivoRepl ? { motivoReplanejamento: motivoRepl } : {}),
+              },
               pedeObra ? obraId : atribuir ? obraId || undefined : undefined,
             );
           }}

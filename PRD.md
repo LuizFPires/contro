@@ -50,7 +50,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 ## 5. Escopo da versão 1
 
 ### 5.1 Carteira (tela inicial)
-- **Menu inferior com duas abas:** **Hoje** (abre por padrão, com o número de atrasos em vermelho) e **Minhas obras**. O cabeçalho (CONTRO, Modelos, boletins prontos e perfil) fica nas duas.
+- **Menu inferior com quatro itens, para todos os perfis:** **Hoje** (abre por padrão, com o número de atrasos em vermelho), **Obras**, **Score** e **Log** (ícones lineares; item ativo com fundo preto e ícone e texto brancos). O cabeçalho (CONTRO, Modelos, boletins prontos e perfil) fica em todos.
 - **Hoje** (aba padrão; opção A do protótipo): "Hoje · segunda, 26/10" e um resumo ("4 atrasos e 5 coisas para hoje em 3 obras"). Um **card por obra, recolhível**, só das obras com algo no dia; **todos começam recolhidos** (o cabeçalho já mostra "2 atrasados · 2 para hoje" e a borda vermelha).
   - **Atrasado** (faixa vermelha, no topo do card): lembrete não providenciado no prazo, atividade que devia ter terminado e ação vencida (tarefa ou pendência), do mais antigo para o mais novo.
   - **Para hoje**: atividade que termina ou começa hoje, lembrete com prazo hoje e ação de hoje (rotulada "Ação").
@@ -194,7 +194,16 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - Incluir e remover atividades; ligar e desligar predecessoras de **qualquer fase** (anterior ou posterior), desde que não forme ciclo: a lista esconde quem já depende da atividade; incluir e remover providências padrão.
 - Versão desktop (tabela + Gantt) é complementar; o fluxo principal é o celular.
 
-### 5.13 Gamificação
+### 5.13 Score e Log
+- **Menu inferior** Hoje · Obras · Score · Log, igual para Gestor e Equipe de obra. Os avisos e o relógio no cabeçalho da obra abrem o Log direto.
+- **Log:** lista por dia (do mais recente ao mais antigo, últimos 90 dias) do que aconteceu: tarefas, pendências e atividades concluídas, reabertas, replanejadas, excluídas etc. Chips: obra, Replanejadas, Atividades, Tarefas, Pendências e Eu. Em Replanejadas há o modo por item. Item **vencido** aparece no **primeiro dia útil** após o prazo, se ainda estava aberto. Item **excluído não aparece** no Log; a linha "Excluída" só aparece para item excluído e depois restaurado. Tocar numa linha abre o item.
+- **Vida do item:** na folha da tarefa, na ficha da atividade e na pendência, a linha do tempo do item (passos) e o resumo "N d.u. além do prazo original · N replanejamentos · N dias aberta".
+- **Motivo opcional ao replanejar:** ao mudar o prazo de uma tarefa aberta (folha da tarefa e Minhas ações), campo "Motivo (opcional)", de até 120 caracteres, que aparece no Log.
+- **Score 0 a 100 por nome**, em duas abas: **Equipe** e **Prestadores**, com janela de 30 ou 90 dias; o usuário se vê marcado como "você". Só conta item concluído ou vencido na janela; **abaixo de 5 itens não há score**. Faixas: 75 ou mais Resolutivo (equipe) / Em dia (prestador), 50 a 74 Regular, abaixo de 50 Atenção. Detalhe com os indicadores em barra, tendência (30 x 90 dias) e "Ações que mais pesaram".
+- Equipe: pontualidade 35, conclusão do dia 20 (concluída até o prazo vigente), resposta ao atraso 20, replanejamentos 15, pendências 10. Prestadores: no fim previsto 45, atraso médio 30, com foto 25.
+- Escolhas: prazo da atividade = cronograma vigente; "empurrou a fase" descartado; responsável = o atual; obras ativas e concluídas; itens excluídos e prestador em branco ficam fora; providências do pré-obra fora do cronograma aparecem no Log sem prazo.
+
+### 5.14 Gamificação
 - Mapa de fases, celebração de fase concluída e conquistas da obra (por exemplo "Canteiro em 2 dias", "Foto em 100% das etapas").
 - **XP da equipe** registrado (concluir atividade, resolver pendência, vistoriar, concluir tarefa), mas **sem card de XP na tela inicial**.
 - Sem ranking entre pessoas: a comparação é sempre com o modelo.
