@@ -340,7 +340,7 @@ export async function listarObras(): Promise<ObraResumo[]> {
             antecedenciaDu: p.antecedencia_du,
             duracaoDu: p.duracao_du,
           })),
-        tarefas: tarefas
+        acoes: tarefas
           .filter((t) => t.obra_id === o.id)
           .map((t) => ({
             id: t.id,

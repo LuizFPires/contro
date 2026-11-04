@@ -79,7 +79,7 @@ function entrada(p: Partial<EntradaAgenda> = {}): EntradaAgenda {
         antecedenciaDu: 0,
       },
     ],
-    tarefas: [
+    acoes: [
       { id: 't1', texto: 'Fechar o pintor', prazo: '2026-10-21', aberta: true, pessoa: 'Paulo' },
       { id: 't2', texto: 'Confirmar caçamba', prazo: HOJE, aberta: true, pessoa: 'Rafael' },
       { id: 't3', texto: 'Já feita', prazo: '2026-10-20', aberta: false, pessoa: 'Paulo' },
@@ -89,24 +89,24 @@ function entrada(p: Partial<EntradaAgenda> = {}): EntradaAgenda {
 }
 
 describe('agendaDoDia', () => {
-  it('atrasados: atividade, lembrete e tarefa vencidos, do mais antigo para o mais novo', () => {
+  it('atrasados: atividade, lembrete e ação vencidos, do mais antigo para o mais novo', () => {
     const { atrasados } = agendaDoDia(entrada());
     expect(atrasados.map((i) => [i.tipo, i.nome, i.data])).toEqual([
       ['locacao', 'Caçamba', '2026-10-21'],
-      ['tarefa', 'Fechar o pintor', '2026-10-21'],
+      ['acao', 'Fechar o pintor', '2026-10-21'],
       ['concluir', 'Mobilização', '2026-10-23'],
     ]);
     expect(atrasados.every((i) => i.atraso)).toBe(true);
   });
 
-  it('para hoje: concluir, começar, lembrete com prazo hoje e tarefa de hoje', () => {
+  it('para hoje: concluir, começar, lembrete com prazo hoje e ação de hoje', () => {
     const { hoje } = agendaDoDia(entrada());
     expect(hoje.map((i) => [i.tipo, i.nome])).toEqual([
       ['concluir', 'Forro'],
       ['comecar', 'Demolições'],
-      ['tarefa', 'Confirmar caçamba'],
+      ['acao', 'Confirmar caçamba'],
     ]);
-    expect(hoje.find((i) => i.tipo === 'tarefa')?.pessoa).toBe('Rafael');
+    expect(hoje.find((i) => i.tipo === 'acao')?.pessoa).toBe('Rafael');
   });
 
   it('lembrete que leva dias aparece desde o dia de começar até o prazo', () => {
