@@ -299,7 +299,7 @@ Providência pendente sem dono vira ação da equipe; o gestor atribui responsá
 - [x] 3. Regra `providenciasSemDono`, contadores, Hoje e gravação dos prazos.
 - [x] 4. Tarefas da equipe: chip "Sem responsável", folha "Atribuir providência" e aba Providências.
 - [x] 5. Documentação: PRD, SPEC e PLAN.
-- [ ] 6. Verificação final e PR.
+- [x] 6. Verificação final e PR.
 
 ---
 
