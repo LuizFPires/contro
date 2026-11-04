@@ -74,26 +74,42 @@ export function estadoAcao(a: Pick<Acao, 'aberta' | 'prazo'>, hoje: DataISO): Es
   return 'proxima';
 }
 
+/** Janela da seção "Próximos 5 dias", em dias úteis a partir de hoje. */
+export const PROXIMOS_DU = 5;
+
 export interface AcoesClassificadas<T extends Acao> {
   atrasadas: T[]; // por prazo
   hoje: T[];
-  proximas: T[]; // por prazo
+  proximas: T[]; // por prazo, até hoje + proximosDU dias úteis
+  depois: T[]; // por prazo, além da janela; nunca é exibida
   concluidas: T[]; // da mais recente
 }
 
-export function classificarAcoes<T extends Acao>(acoes: T[], hoje: DataISO): AcoesClassificadas<T> {
-  const r: AcoesClassificadas<T> = { atrasadas: [], hoje: [], proximas: [], concluidas: [] };
+export function classificarAcoes<T extends Acao>(
+  acoes: T[],
+  hoje: DataISO,
+  opcoes: { proximosDU?: number } = {},
+): AcoesClassificadas<T> {
+  const limite = addDU(hoje, opcoes.proximosDU ?? PROXIMOS_DU);
+  const r: AcoesClassificadas<T> = {
+    atrasadas: [],
+    hoje: [],
+    proximas: [],
+    depois: [],
+    concluidas: [],
+  };
   for (const a of acoes) {
     const e = estadoAcao(a, hoje);
     if (e === 'atrasada') r.atrasadas.push(a);
     else if (e === 'hoje') r.hoje.push(a);
-    else if (e === 'proxima') r.proximas.push(a);
+    else if (e === 'proxima') (a.prazo <= limite ? r.proximas : r.depois).push(a);
     else r.concluidas.push(a);
   }
   const porPrazo = (a: T, b: T) => a.prazo.localeCompare(b.prazo);
   r.atrasadas.sort(porPrazo);
   r.hoje.sort(porPrazo);
   r.proximas.sort(porPrazo);
+  r.depois.sort(porPrazo);
   r.concluidas.sort((a, b) => (b.concluidaEm ?? '').localeCompare(a.concluidaEm ?? ''));
   return r;
 }
@@ -215,7 +231,7 @@ export function textoAvisoEquipe(r: ResumoEquipe): { titulo: string; corpo: stri
   return { titulo, corpo };
 }
 
-/** "1 atrasada · 7 vencem hoje · 43 próximas · 2 concluídas". */
+/** "1 atrasada · 7 vencem hoje · 43 nos próximos 5 dias · 2 concluídas". */
 export function textoResumoSecoes(c: {
   atrasadas: number;
   hoje: number;
@@ -225,7 +241,7 @@ export function textoResumoSecoes(c: {
   return [
     rotuloAtrasadas(c.atrasadas),
     rotuloHoje(c.hoje),
-    c.proximas === 1 ? '1 próxima' : `${c.proximas} próximas`,
+    c.proximas === 1 ? '1 nos próximos 5 dias' : `${c.proximas} nos próximos 5 dias`,
     c.concluidas === 1 ? '1 concluída' : `${c.concluidas} concluídas`,
   ].join(' · ');
 }

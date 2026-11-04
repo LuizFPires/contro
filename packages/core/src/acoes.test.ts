@@ -3,6 +3,7 @@ import {
   classificarAcoes,
   estadoAcao,
   prazoPendencia,
+  PROXIMOS_DU,
   providenciaParaAcaoBase,
   resumoAcoesDia,
   resumoEquipeDia,
@@ -69,6 +70,26 @@ describe('classificarAcoes', () => {
     expect(r.hoje.map((a) => a.id)).toEqual(['h']);
     expect(r.proximas.map((a) => a.id)).toEqual(['p1', 'p2']);
     expect(r.concluidas.map((a) => a.id)).toEqual(['c2', 'c1']);
+  });
+});
+
+describe('classificarAcoes · próximos 5 dias', () => {
+  const sexta = '2026-11-06';
+  it('proximas vai até 5 dias úteis; o resto vai para depois, ordenado', () => {
+    expect(PROXIMOS_DU).toBe(5);
+    const r = classificarAcoes(
+      [
+        acao({ id: 'd2', prazo: '2026-11-20' }),
+        acao({ id: 'x', prazo: '2026-11-16' }),
+        acao({ id: 'lim', prazo: '2026-11-13' }),
+        acao({ id: 'seg', prazo: '2026-11-09' }),
+        acao({ id: 'c', aberta: false, prazo: '2026-12-01', concluidaEm: '2026-11-05T10:00:00Z' }),
+      ],
+      sexta,
+    );
+    expect(r.proximas.map((a) => a.id)).toEqual(['seg', 'lim']);
+    expect(r.depois.map((a) => a.id)).toEqual(['x', 'd2']);
+    expect(r.concluidas.map((a) => a.id)).toEqual(['c']);
   });
 });
 
@@ -189,11 +210,11 @@ describe('textoAvisoEquipe', () => {
 describe('textoResumoSecoes', () => {
   it('plural', () =>
     expect(textoResumoSecoes({ atrasadas: 1, hoje: 7, proximas: 43, concluidas: 2 })).toBe(
-      '1 atrasada · 7 vencem hoje · 43 próximas · 2 concluídas',
+      '1 atrasada · 7 vencem hoje · 43 nos próximos 5 dias · 2 concluídas',
     ));
   it('singular', () =>
     expect(textoResumoSecoes({ atrasadas: 0, hoje: 1, proximas: 1, concluidas: 1 })).toBe(
-      '0 atrasadas · 1 vence hoje · 1 próxima · 1 concluída',
+      '0 atrasadas · 1 vence hoje · 1 nos próximos 5 dias · 1 concluída',
     ));
 });
 
