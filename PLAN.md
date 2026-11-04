@@ -292,6 +292,17 @@ Tarefa e pendência viram "ação"; um push por pessoa e um da equipe para o ges
 
 ---
 
+## Providências como ações (04/11/2026)
+Providência pendente sem dono vira ação da equipe; o gestor atribui responsável. Spec: `docs/superpowers/specs/2026-11-04-providencias-como-acoes-design.md` · plano: `docs/superpowers/plans/2026-11-04-providencias-como-acoes.md`.
+- [x] 1. Core: `OrigemAcao` com `'providencia'` e `providenciaParaAcaoBase`.
+- [x] 2. Migration `20261104200000_providencia_prazo.sql` (`providenciar_ate`, RPC, `gerar_avisos`) e pgTAP.
+- [x] 3. Regra `providenciasSemDono`, contadores, Hoje e gravação dos prazos.
+- [x] 4. Tarefas da equipe: chip "Sem responsável", folha "Atribuir providência" e aba Providências.
+- [x] 5. Documentação: PRD, SPEC e PLAN.
+- [ ] 6. Verificação final e PR.
+
+---
+
 ## Melhorias (fora do plano principal)
 
 ### E1 · Maquete 3D gamificada (melhoria)
@@ -324,6 +335,7 @@ Tarefa e pendência viram "ação"; um push por pessoa e um da equipe para o ges
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-11-04 · **Providências como ações.** Providência pendente sem dono entra em Tarefas da equipe ("Sem responsável") e nos contadores; o gestor atribui responsável pela folha de tarefa, criando a tarefa vinculada à providência (mecanismo já existente; sem campo novo no lembrete). O app grava `providenciar_ate` (derivado) para o push do gestor contar as mesmas providências; pode ficar defasado até alguém abrir o app. Providências de atividades do pré-obra (fora do cronograma) não viram ação nem gravam prazo. · pedido do usuário · usuário
 - 2026-11-04 · **Ações do dia.** Um push por pessoa com atrasadas + vencem hoje e um da equipe para o gestor, no lugar de "Bom dia" e "Tarefas que vencem hoje". Tarefa e pendência viram "ação" com a mesma importância, sem etiqueta de origem; pendência ganha prazo pela criticidade (alta 2, média 4, baixa 6 d.u., configurável). Seções Atrasadas · Vencem hoje · Próximos dias · Concluídas com ícone; âmbar #B45309 só para "vence hoje" (exceção ao design system); card atrasado com fundo #FBEAEA. Tela inicial, cards e boletim contam ações. **Ata não muda** (as pendências não são itens de reunião; decisão de quem implementou, a confirmar com o usuário). · pedido do usuário · usuário
 - 2026-11-03 · **Central de reuniões (opção C) e PDF completo.** Card Reunião → tela Reuniões (próxima: abrir pauta, Preparar · PDF, WhatsApp; lista de atas passadas, até 30). Na pauta, menu ⋯ (Preparar, Baixar ata, Reuniões e atas) no lugar de "Anterior", "Baixar ata" no topo e do ícone sem nome no rodapé. **Defeito corrigido:** a ata e a prévia são impressas a partir da tela, que tem altura fixa com rolagem própria (`.app-shell` 100dvh, `.app-main` overflow); a impressão só pegava o trecho visível (≈2 páginas, só as primeiras obras). Agora, na impressão, a casca do app perde altura fixa e rolagem (conferido: ata de 7 obras sai inteira). · pedido do usuário · usuário
 
