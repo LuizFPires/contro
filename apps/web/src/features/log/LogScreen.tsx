@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   agruparPorDia,
   filtrarLog,
@@ -11,16 +11,11 @@ import {
   type LinhaLog,
   type TipoLinhaLog,
 } from '@contro/core';
-import { Icon, useToast, type IconName } from '@contro/ui';
+import { Icon, type IconName } from '@contro/ui';
 import { formatarDiaSemana } from '../../lib/datas';
 import { useLembrado } from '../../lib/useLembrado';
 import { NavInferior, type ItemNav } from '../../screens/NavInferior';
-import type { AbrirObra } from '../../screens/MinhasObras';
 import { usePerfil } from '../perfil/usePerfil';
-import { usePessoas } from '../perfil/usePessoas';
-import type { EntradaTarefa } from '../obras/campo';
-import { TarefaSheet } from '../obras/TarefaSheet';
-import { useObraTarefas, useTarefasAcoes } from '../obras/useObraTarefas';
 import { useLogDados } from './dadosLogScore';
 import { horaDe } from './formatos';
 import { LinhaDoTempo } from './VidaDoItem';
@@ -64,30 +59,22 @@ function iconeDo(tipo: TipoLinhaLog): IconName {
   }
 }
 
-/** Alvo do toque numa linha: o item e a obra dele. */
-interface Alvo {
-  origem: ItemLog['origem'];
-  itemId: string;
-  obraId: string;
-}
-
 /**
  * Log: o que mudou e quem mudou (protótipo Score e Log, 04/11/2026). Linha do
  * tempo de todas as obras, por dia; chips por obra, por tipo e "Eu". No filtro
- * Replanejadas a lista vira um card por item, com a vida dele. Tocar abre o item.
+ * Replanejadas a lista vira um card por item, com a vida dele. Só leitura: o Log é a
+ * foto do que aconteceu; editar fica nas telas de cada item (pedido do usuário, 04/11/2026).
  */
 export function LogScreen({
   obraInicial,
   onVoltar,
   onNav,
-  onAbrirObra,
 }: {
   /** Começa filtrado por esta obra (relógio do cabeçalho da obra). */
   obraInicial?: string | null;
   /** Só quando veio de uma obra: volta para ela. */
   onVoltar?: () => void;
   onNav: (item: ItemNav) => void;
-  onAbrirObra: (o: AbrirObra) => void;
 }) {
   const { linhas, itens, eventosPorItem, obras, carregando, erro } = useLogDados();
   const { data: perfil } = usePerfil();
@@ -96,7 +83,6 @@ export function LogScreen({
   const [obraId, setObraId] = useLembrado<string | null>('log:obra', obraInicial ?? null);
   const [tipo, setTipo] = useLembrado<TipoFiltro | null>('log:tipo', null);
   const [eu, setEu] = useLembrado<boolean>('log:eu', false);
-  const [tarefa, setTarefa] = useState<{ obraId: string; id: string } | null>(null);
 
   // Obra lembrada que saiu da carga (apagada, pausada): volta para todas.
   const obraValida = obraId && obras.some((o) => o.id === obraId) ? obraId : null;
@@ -129,13 +115,6 @@ export function LogScreen({
     }
     return lista;
   }, [tipo, filtradas, itemPorId]);
-
-  function abrir(a: Alvo) {
-    if (a.origem === 'pendencia')
-      onAbrirObra({ id: a.obraId, aba: 'pendencias', pendenciaId: a.itemId });
-    else if (a.origem === 'atividade') onAbrirObra({ id: a.obraId, atividadeId: a.itemId });
-    else setTarefa({ obraId: a.obraId, id: a.itemId });
-  }
 
   const nomeObraFiltro = obraValida ? obras.find((o) => o.id === obraValida)?.nome : null;
   const semConexao = erro && linhas.length === 0;
@@ -214,25 +193,13 @@ export function LogScreen({
                 item={it}
                 eventos={eventosPorItem.get(it.id) ?? SEM_EVENTOS}
                 comObra={!obraValida}
-                onAbrir={() => abrir({ origem: it.origem, itemId: it.id, obraId: it.obraId })}
               />
             ))
           : diasVisiveis.map((d) => (
               <section key={d.dia} className={styles.dia}>
                 <h2 className={styles.diaTitulo}>{d.rotulo}</h2>
                 {d.linhas.map((l) => (
-                  <Linha
-                    key={`${l.tipo}:${l.id}`}
-                    l={l}
-                    comObra={!obraValida}
-                    onAbrir={() =>
-                      abrir({
-                        origem: itemPorId.get(l.itemId)?.origem ?? l.origem,
-                        itemId: l.itemId,
-                        obraId: l.obraId,
-                      })
-                    }
-                  />
+                  <Linha key={`${l.tipo}:${l.id}`} l={l} comObra={!obraValida} />
                 ))}
               </section>
             ))}
@@ -248,16 +215,6 @@ export function LogScreen({
       </div>
 
       <NavInferior ativo="log" onEscolher={onNav} />
-
-      {tarefa ? (
-        <FolhaTarefa
-          key={tarefa.id}
-          obraId={tarefa.obraId}
-          id={tarefa.id}
-          obras={obras}
-          onFechar={() => setTarefa(null)}
-        />
-      ) : null}
     </div>
   );
 }
@@ -290,17 +247,13 @@ function Chip({
 }
 
 /** Uma mudança: ícone por tipo, rótulo em negrito, item e "obra · quem · detalhe". */
-function Linha({ l, comObra, onAbrir }: { l: LinhaLog; comObra: boolean; onAbrir: () => void }) {
+function Linha({ l, comObra }: { l: LinhaLog; comObra: boolean }) {
   const hora = l.tipo === 'vencida' ? null : horaDe(l.em);
   const meta = [comObra ? nomeCurtoObra(l.obraNome) : null, l.pessoa, l.detalhe]
     .filter(Boolean)
     .join(' · ');
   return (
-    <button
-      type="button"
-      className={`${styles.ev} ${styles[`cor_${l.cor}`] ?? ''}`}
-      onClick={onAbrir}
-    >
+    <div className={`${styles.ev} ${styles[`cor_${l.cor}`] ?? ''}`}>
       <span className={styles.evIcone} aria-hidden="true">
         <Icon name={iconeDo(l.tipo)} size={14} strokeWidth={2.6} />
       </span>
@@ -311,7 +264,7 @@ function Linha({ l, comObra, onAbrir }: { l: LinhaLog; comObra: boolean; onAbrir
         {meta ? <span className={styles.evMeta}>{meta}</span> : null}
       </span>
       {hora ? <span className={styles.evHora}>{hora}</span> : null}
-    </button>
+    </div>
   );
 }
 
@@ -320,12 +273,10 @@ function CardItem({
   item,
   eventos,
   comObra,
-  onAbrir,
 }: {
   item: ItemLog;
   eventos: EventoBruto[];
   comObra: boolean;
-  onAbrir: () => void;
 }) {
   const meta = [
     ORIGEM[item.origem],
@@ -336,78 +287,13 @@ function CardItem({
     .join(' · ');
   return (
     <article className={styles.ficha}>
-      <button type="button" className={styles.fichaTopo} onClick={onAbrir}>
+      <div className={styles.fichaTopo}>
         <span className={styles.fichaTexto}>
           <span className={styles.fichaTitulo}>{item.texto}</span>
           <span className={styles.evMeta}>{meta}</span>
         </span>
-        <Icon name="chevronRight" size={18} />
-      </button>
+      </div>
       <LinhaDoTempo item={item} eventos={eventos} semTitulo />
     </article>
-  );
-}
-
-/** Folha da tarefa (modo editar) aberta pelo Log, com a tarefa da obra em cache. */
-function FolhaTarefa({
-  obraId,
-  id,
-  obras,
-  onFechar,
-}: {
-  obraId: string;
-  id: string;
-  obras: { id: string; nome: string }[];
-  onFechar: () => void;
-}) {
-  const { showToast } = useToast();
-  const { query } = useObraTarefas(obraId);
-  const { data: pessoas = [] } = usePessoas();
-  const acoes = useTarefasAcoes();
-  const t = query.data?.find((x) => x.id === id) ?? null;
-  // Só conclui "excluída" com a lista carregada e em dia (não buscando nem com erro).
-  const naoAchou = query.isSuccess && !query.isFetching && !t;
-  useEffect(() => {
-    if (!naoAchou) return;
-    showToast({ message: 'Tarefa não encontrada: pode ter sido excluída' });
-    onFechar();
-  }, [naoAchou, showToast, onFechar]);
-  const alvo = { obraId, id };
-  const opcoesObra = useMemo(() => obras.filter((o) => o.id === obraId), [obras, obraId]);
-
-  function salvar(e: EntradaTarefa) {
-    acoes.salvar.mutate(
-      { obraId, entrada: e },
-      {
-        onSuccess: () => {
-          onFechar();
-          showToast({ message: 'Tarefa salva' });
-        },
-        onError: () => showToast({ message: 'Não foi possível salvar a tarefa' }),
-      },
-    );
-  }
-
-  return (
-    <TarefaSheet
-      aberto={Boolean(t)}
-      tarefa={t}
-      pessoas={pessoas}
-      obras={opcoesObra}
-      pendente={acoes.salvar.isPending}
-      onFechar={onFechar}
-      onSalvar={salvar}
-      onExcluir={() =>
-        acoes.excluir.mutate(alvo, {
-          onSuccess: () => {
-            onFechar();
-            showToast({
-              message: 'Tarefa excluída',
-              onUndo: () => acoes.restaurar.mutate(alvo),
-            });
-          },
-        })
-      }
-    />
   );
 }

@@ -136,7 +136,6 @@
   color: var(--contro-black);
   font: inherit;
   text-align: left;
-  cursor: pointer;
 }
 .evIcone {
   width: 24px;
@@ -216,7 +215,6 @@
   font: inherit;
   color: var(--contro-black);
   text-align: left;
-  cursor: pointer;
 }
 .fichaTexto {
   flex: 1;

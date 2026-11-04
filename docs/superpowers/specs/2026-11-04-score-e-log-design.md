@@ -30,7 +30,7 @@ Ambos devem ser **visíveis para todo mundo** ("é bom que as pessoas vejam a cl
 
 ## Objetivos
 
-- **Log**: uma linha do tempo de todas as obras (e a mesma, filtrada, dentro da obra), agrupada por dia, com uma linha por mudança: tipo (com ícone), item, obra, quem, detalhe. Filtros por obra, por tipo (Replanejadas, Atividades, Tarefas, Pendências) e "Eu". Tocar numa linha abre o item. Bloco **"Vida do item"** na folha da tarefa, na ficha da atividade e na pendência: criada → replanejada 1x (de → para, motivo) → … → concluída, com o resumo "N d.u. além do prazo original · N replanejamentos · N dias aberta".
+- **Log**: uma linha do tempo de todas as obras (e a mesma, filtrada, dentro da obra), agrupada por dia, com uma linha por mudança: tipo (com ícone), item, obra, quem, detalhe. Filtros por obra, por tipo (Replanejadas, Atividades, Tarefas, Pendências) e "Eu". Só leitura (decisão do usuário, 04/11/2026): nenhuma linha abre edição nem navega. Bloco **"Vida do item"** na folha da tarefa, na ficha da atividade e na pendência: criada → replanejada 1x (de → para, motivo) → … → concluída, com o resumo "N d.u. além do prazo original · N replanejamentos · N dias aberta".
 - **Score**: tela com abas **Equipe** e **Prestadores** e janela **30 / 90 dias**; lista por nome com score 0–100, faixa em texto e os dois números principais; a própria pessoa destacada com "você"; sem score abaixo de **5 itens** no período ("sem score ainda · mín. 5"). Detalhe por nome: os indicadores com barra, tendência 30 × 90 dias e "ações que mais pesaram".
 - Toda regra (classificar eventos, compor a linha do tempo, calcular indicadores e score) em `packages/core`, com teste. Telas só desenham.
 
@@ -92,7 +92,7 @@ Janela J (30 ou 90 dias corridos, terminando hoje). Só entram itens **concluíd
 - `calcularScoreEquipe(entrada, janela, hoje)` e `calcularScorePrestadores(entrada, janela, hoje)` → `{ linhas: { chave, nome, score|null, faixa, itens, indicadores: {...}, piores: LinhaLog[] }[] }` ordenado por score desc, sem score por último.
 
 ### 4. Telas
-- **Log**: cabeçalho "Log · o que mudou e quem mudou", chips (Todas as obras, uma por obra, Replanejadas, Atividades, Tarefas, Pendências, Eu), lista por dia; linha com ícone por tipo (check, seta de replanejar, triângulo de vencida, mais para criada/atribuída), card com borda âmbar/vermelha quando for o caso. Toque abre o item (tarefa → folha; pendência → Check list nela; atividade → ficha).
+- **Log**: cabeçalho "Log · o que mudou e quem mudou", chips (Todas as obras, uma por obra, Replanejadas, Atividades, Tarefas, Pendências, Eu), lista por dia; linha com ícone por tipo (check, seta de replanejar, triângulo de vencida, mais para criada/atribuída), card com borda âmbar/vermelha quando for o caso. Sem toque nas linhas (só leitura, 04/11/2026).
 - **Score**: segmentos Equipe/Prestadores e 30/90 dias; cards por nome com avatar de iniciais, nome, "você" para o próprio, dois números e o score com a faixa; "sem score ainda · mín. 5" apagado. Detalhe: seis cartões de indicador com barra, tendência e "Ações que mais pesaram".
 - **Vida do item**: bloco nas três folhas/fichas, abaixo do prazo.
 - Desempenho: Log e Score calculam no cliente a partir de consultas paginadas por obra (90 dias); abrir cada tela em < 1,5 s em 4G com até 10 obras ativas.
