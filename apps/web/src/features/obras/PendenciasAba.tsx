@@ -88,7 +88,17 @@ export function PendenciasAba({
     if (!destaque) return;
     const el = raiz.current?.querySelector(`[data-pendencia="${destaque}"]`);
     el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-  }, [destaque, aba, vista]);
+  }, [destaque]);
+  // Trocar de aba ou de vista por conta própria encerra o destaque: sem rolar
+  // de volta nem contorno preso na pendência de chegada.
+  const trocarAba = (a: Aba) => {
+    setDestaque(null);
+    setAba(a);
+  };
+  const trocarVista = (v: Vista) => {
+    setDestaque(null);
+    setVista(v);
+  };
   const cls = (base: string | undefined, id: string) =>
     destaque === id ? `${base} ${styles.destaque}` : base;
 
@@ -174,7 +184,7 @@ export function PendenciasAba({
             role="tab"
             aria-selected={aba === 'pendentes'}
             className={`${styles.modo} ${aba === 'pendentes' ? styles.modoAtivo : ''}`}
-            onClick={() => setAba('pendentes')}
+            onClick={() => trocarAba('pendentes')}
           >
             Pendências · {pendentes.length}
           </button>
@@ -183,7 +193,7 @@ export function PendenciasAba({
             role="tab"
             aria-selected={aba === 'resolvidos'}
             className={`${styles.modo} ${aba === 'resolvidos' ? styles.modoAtivo : ''}`}
-            onClick={() => setAba('resolvidos')}
+            onClick={() => trocarAba('resolvidos')}
           >
             Resolvidos · {resolvidas.length}
           </button>
@@ -251,7 +261,7 @@ export function PendenciasAba({
                 <button
                   type="button"
                   className={styles.trocaVista}
-                  onClick={() => setVista('lista')}
+                  onClick={() => trocarVista('lista')}
                 >
                   <Icon name="fases" size={18} strokeWidth={2} />
                   Ver em lista
@@ -269,7 +279,7 @@ export function PendenciasAba({
                 <button
                   type="button"
                   className={styles.trocaVista}
-                  onClick={() => setVista('fotos')}
+                  onClick={() => trocarVista('fotos')}
                 >
                   <Icon name="camera" size={18} strokeWidth={2} />
                   Ver em fotos
