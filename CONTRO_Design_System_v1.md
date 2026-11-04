@@ -38,6 +38,8 @@ As amostras abaixo foram extraídas diretamente dos pixels dominantes da imagem 
 - `progress.track`: preto com 12% de opacidade
 - `progress.fill`: turquesa
 
+**Exceção aprovada (04/11/2026):** âmbar `#B45309` só para **vence hoje** (ação com prazo no dia); fundo do card atrasado `#FBEAEA`. Não use âmbar para nada mais.
+
 ## 3. Identidade CONTRO
 - Nome sempre em maiúsculas: **CONTRO**.
 - Descritivo: **obras da contorno**.

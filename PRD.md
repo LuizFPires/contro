@@ -240,6 +240,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 
 - Design system **CONTRO**: turquesa #54B4B0, preto #181818, branco e opacidades dessas três cores; Nunito Sans.
 - **Exceção aprovada:** vermelho #C62828 **somente** para atraso (atividades, lembretes, providências vencidas, ritmo atrasado).
+- **Exceção aprovada (04/11/2026):** âmbar `#B45309` só para **vence hoje** (ação com prazo no dia); fundo do card atrasado `#FBEAEA`. Não use âmbar para nada mais.
 - Botão primário turquesa com texto preto; secundário preto com texto branco.
 - Marca "CONTRO" sempre em maiúsculas. O símbolo definitivo é o vetor aprovado que está na pasta do projeto CONTRO.
 

@@ -6,6 +6,9 @@
 
   /* Exceção aprovada: vermelho só para ATRASO */
   --contro-late: #c62828;
+  /* Exceção aprovada: âmbar só para VENCE HOJE; fundo suave do card atrasado */
+  --contro-attention: #b45309;
+  --contro-late-bg: #fbeaea;
   /* Faixa separadora de obra na ata (cinza, não vermelha) */
   --contro-ata-separator: #4a4a4a;
 

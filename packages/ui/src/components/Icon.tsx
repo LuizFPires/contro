@@ -35,6 +35,19 @@ const paths = {
       <line x1="12" y1="17" x2="12" y2="17.01" />
     </>
   ),
+  atencao: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <line x1="12" y1="8" x2="12" y2="13" />
+      <line x1="12" y1="16" x2="12" y2="16.01" />
+    </>
+  ),
+  checkCirculo: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="8 12 11 15 16 9" />
+    </>
+  ),
   home: (
     <>
       <path d="M4 11 12 4l8 7" />
