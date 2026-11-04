@@ -1,6 +1,8 @@
-// Atividades como ações: a atividade de topo aberta, fora do pré-obra e sem
-// tarefa aberta vinculada fica "sem dono" (Tarefas da equipe, Hoje e Minhas
-// ações). O prazo é o fim previsto pelo cronograma.
+// Atividades como ações: a atividade de topo aberta e sem tarefa aberta
+// vinculada fica "sem dono" (Tarefas da equipe, Hoje e Minhas ações). Inclui o
+// pré-obra (Orçamento, Mapa de coleta): é o que a tela Hoje mostra como atraso
+// antes do início da obra (pedido do usuário, 04/11/2026). O prazo é o fim
+// previsto (cronograma da obra ou do pré-obra, já juntos em `cron`).
 import type { DataISO } from './calendar';
 
 /** Atividade aberta sem tarefa aberta vinculada: aparece como ação "Sem responsável". */
@@ -37,11 +39,10 @@ interface FaseLinha {
   titulo: string;
 }
 
-/** Fase da atividade de topo, aberta e fora do pré-obra (null se não elegível). */
+/** Fase da atividade de topo e aberta (null se não elegível). Pré-obra entra. */
 function faseElegivel(a: LinhaAtividadeTopo, fasePorId: Map<string, FaseLinha>): FaseLinha | null {
   if (a.pai_id || a.concluida_em) return null;
-  const fase = fasePorId.get(a.fase_id);
-  return fase && !fase.preliminar ? fase : null;
+  return fasePorId.get(a.fase_id) ?? null;
 }
 
 export function atividadesSemDono(
@@ -79,7 +80,7 @@ export function atividadesSemDono(
 
 /**
  * Prazos a gravar em `fim_previsto_calc` (para o aviso do gestor): atividades de
- * topo abertas, fora do pré-obra, cujo fim previsto difere do gravado.
+ * topo abertas (pré-obra incluído), cujo fim previsto difere do gravado.
  */
 export function prazosParaGravarAtividades(
   atividades: LinhaAtividadeTopo[],

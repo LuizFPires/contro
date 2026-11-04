@@ -125,21 +125,21 @@ select gerar_avisos('2031-01-08 07:40-03');
 select is((select corpo from av where tipo = 'acoes_equipe'),
   '1 atrasada.', 'subitem não conta');
 
--- (f) Atividade de fase preliminar com data, e atividade de obra pausada
--- atrasada: nenhuma conta.
+-- (f) Atividade de fase preliminar (pré-obra) com data de hoje CONTA (04/11/2026:
+-- o pré-obra também vira ação); atividade de obra pausada atrasada não conta.
 update obra_atividade set fim_previsto_calc = '2031-01-08' where id = (select id from ids where k = 'pre');
 update obra_atividade set fim_previsto_calc = '2031-01-05' where id = (select id from ids where k = 'outra');
 delete from aviso_disparo where tipo in ('acoes', 'acoes_equipe');
 select gerar_avisos('2031-01-08 07:40-03');
 select is((select corpo from av where tipo = 'acoes_equipe'),
-  '1 atrasada.', 'atividade de fase preliminar e de obra pausada não contam');
+  '1 atrasada e 1 vence hoje.', 'pré-obra conta; obra pausada não conta');
 
 -- Controle: A3 de topo, fase de obra, vence hoje: conta como "vence hoje".
 update obra_atividade set fim_previsto_calc = '2031-01-08' where id = (select id from ids where k = 'a3');
 delete from aviso_disparo where tipo in ('acoes', 'acoes_equipe');
 select gerar_avisos('2031-01-08 07:40-03');
 select is((select corpo from av where tipo = 'acoes_equipe'),
-  '1 atrasada e 1 vence hoje.', 'atividade sem dono que vence hoje entra no total');
+  '1 atrasada e 2 vencem hoje.', 'atividade sem dono que vence hoje entra no total');
 
 -- (g) Obra pausada: nada conta, o gestor não recebe aviso.
 update obra set status = 'pausada' where id = (select id from ids where k = 'obra');
@@ -153,7 +153,7 @@ update obra_atividade set concluida_em = '2031-01-07 10:00-03' where id = (selec
 delete from aviso_disparo where tipo in ('acoes', 'acoes_equipe');
 select gerar_avisos('2031-01-08 07:40-03');
 select is((select corpo from av where tipo = 'acoes_equipe'),
-  '1 atrasada.', 'atividade concluída não conta');
+  '1 atrasada e 1 vence hoje.', 'atividade concluída não conta (fica a do pré-obra)');
 
 select * from finish();
 rollback;
