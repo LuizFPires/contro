@@ -75,7 +75,8 @@ pnpm lint && pnpm typecheck
   - "nova obra" é ícone "+" ao lado de "Minhas obras";
   - cabeçalho da obra sem chips, com o ícone discreto de boletim à direita;
   - tarja preta de **Inauguração** no fim da trilha de fases;
-  - botões curtos ("WhatsApp", "Baixar PDF").
+  - botões curtos ("WhatsApp", "Baixar PDF");
+  - menu inferior da tela inicial com quatro itens: Hoje · Obras · Score · Log, ícones lineares, ativo com fundo preto e ícone branco; Score e Log são de todos os perfis.
 
 ## Cadastros e marca
 - Não há cadastro prévio obrigatório de equipe nem de prestadores. Os nomes fictícios ficam só no seed de homologação.
