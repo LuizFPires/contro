@@ -113,6 +113,7 @@ export function MinhasObras({
         abrirPendenciaId={obraAberta.pendenciaId}
         abrirAtividadeId={obraAberta.atividadeId}
         onAtalhoUsado={atalhoUsado}
+        rotuloVoltar={obraAberta.voltar === 'log' ? 'Voltar para o Log' : undefined}
         onAbrirLog={
           onAbrirLog
             ? () => {

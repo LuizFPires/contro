@@ -33,13 +33,21 @@ export function useLembrado<T>(chave: string, inicial: T) {
   }, [chave, valor]);
   // Grava também na hora: se a tela sai junto com a mudança (ex.: fechar a
   // obra e ir ao Log), o efeito acima não chega a rodar e o valor velho ficaria.
+  // Valor direto: grava antes de mudar o estado (efeito colateral fora do
+  // updater). Só a forma funcional precisa do valor anterior, dentro do updater.
   const guardar = useCallback(
-    (v: SetStateAction<T>) =>
+    (v: SetStateAction<T>) => {
+      if (!(v instanceof Function)) {
+        lembrar(chave, v);
+        setValor(v);
+        return;
+      }
       setValor((antes) => {
-        const novo = v instanceof Function ? v(antes) : v;
+        const novo = v(antes);
         lembrar(chave, novo);
         return novo;
-      }),
+      });
+    },
     [chave],
   );
   return [valor, guardar] as const;

@@ -55,9 +55,12 @@ export function ObraDetalhe({
   abrirAtividadeId,
   onAtalhoUsado,
   onAbrirLog,
+  rotuloVoltar = 'Voltar para obras',
 }: {
   id: string;
   onVoltar: () => void;
+  /** Rótulo acessível do Voltar (ex.: "Voltar para o Log" quando veio do Log). */
+  rotuloVoltar?: string;
   abrirBoletim?: boolean;
   /** Abre direto no plano de recuperação (atalho da aba Hoje). */
   abrirPlano?: boolean;
@@ -165,7 +168,7 @@ export function ObraDetalhe({
             <button
               type="button"
               className={styles.voltar}
-              aria-label="Voltar para obras"
+              aria-label={rotuloVoltar}
               onClick={onVoltar}
             >
               <Icon name="chevronLeft" size={22} />
@@ -205,7 +208,7 @@ export function ObraDetalhe({
           <button
             type="button"
             className={styles.voltar}
-            aria-label="Voltar para obras"
+            aria-label={rotuloVoltar}
             onClick={onVoltar}
           >
             <Icon name="chevronLeft" size={22} />

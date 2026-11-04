@@ -54,16 +54,22 @@ export function App() {
   // Log aberto pelo relógio do cabeçalho da obra: começa filtrado por ela e o
   // Voltar devolve à obra.
   const [logObra, setLogObra] = useLembrado<string | null>('app:logObra', null);
+  // Cada entrada no Log (relógio, menu, aviso) remonta a tela para reler o filtro lembrado.
+  const [logEntrada, setLogEntrada] = useState(0);
   const abrirLog = (obraId: string) => {
     setLogObra(obraId);
     lembrar('log:obra', obraId); // o Log começa filtrado por ela (uma vez)
+    setLogEntrada((n) => n + 1);
     setTela('log');
   };
   // Menu inferior no Score e no Log: Hoje/Obras voltam ao início naquela aba.
   const irNav = (item: ItemNav) => {
     setLogObra(null);
     // Log pelo menu: todas as obras (o filtro da obra é do relógio da obra).
-    if (item === 'log') lembrar('log:obra', null);
+    if (item === 'log') {
+      lembrar('log:obra', null);
+      setLogEntrada((n) => n + 1);
+    }
     if (item === 'score' || item === 'log') {
       setTela(item);
       return;
@@ -78,7 +84,10 @@ export function App() {
     if (!ir) return;
     // Aviso não vem de uma obra: o Log abre em todas as obras.
     setLogObra(null);
-    if (ir === 'log') lembrar('log:obra', null);
+    if (ir === 'log') {
+      lembrar('log:obra', null);
+      setLogEntrada((n) => n + 1);
+    }
     if (ir === 'reuniao' || ir === 'tarefas' || ir === 'minhas' || ir === 'score' || ir === 'log')
       setTela(ir);
     else if (ir === 'hoje') setTela('inicio');
@@ -174,6 +183,7 @@ export function App() {
           <ScoreScreen onNav={irNav} />
         ) : tela === 'log' ? (
           <LogScreen
+            key={`${logObra ?? 'todas'}:${logEntrada}`}
             obraInicial={logObra}
             onNav={irNav}
             onVoltar={
@@ -186,6 +196,8 @@ export function App() {
                 : undefined
             }
             onAbrirObra={(o) => {
+              // A ficha lembrada nessa obra não pode ficar por cima do item tocado.
+              lembrar(`obra:${o.id}:ficha`, null);
               setAbrirObra({ ...o, voltar: 'log' });
               setTela('inicio');
             }}
