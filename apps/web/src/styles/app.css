@@ -1,3 +1,12 @@
+/* Nenhuma tela rola para o lado, em hipótese alguma (pedido do usuário, 04/11/2026):
+   texto longo quebra dentro do card em vez de alargar a página. */
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 #root {
   min-height: 100dvh;
 }
@@ -12,6 +21,8 @@
 .app-main {
   flex: 1;
   min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   /* Segura o overscroll nativo para o "puxar pra atualizar" não brigar com o
      bounce do sistema (ver components/PullToRefresh). */
