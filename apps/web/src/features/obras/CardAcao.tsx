@@ -4,6 +4,7 @@ import { Icon, type IconName } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { dataLocal } from './api';
 import type { AcaoObra, SecaoAcoes } from './acoesObra';
+import type { ProvidenciaSemDono } from './providenciasSemDono';
 import styles from './CardAcao.module.css';
 
 const CRIT: Record<string, string> = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
@@ -40,7 +41,12 @@ function linhaMeta(a: AcaoObra, obra: string | null, comResponsavel: boolean): s
     a.origem === 'tarefa'
       ? [obra, resp, a.tarefa.origem_texto]
       : a.origem === 'providencia'
-        ? [obra, resp, a.providencia.atividadeNome]
+        ? // Sem dono por definição: no lugar do responsável, até quando providenciar.
+          [
+            obra,
+            a.providencia.atividadeNome,
+            `providenciar até ${formatarDataCurta(a.providencia.prazo)}`,
+          ]
         : [
             obra,
             resp,
@@ -59,9 +65,11 @@ const CLASSE_CARD: Record<EstadoAcao, string> = {
 };
 
 /**
- * Card de ação (tarefa ou pendência), igual nas Tarefas da equipe e em Minhas
- * ações, sem rótulo de origem. `esquerda` é o marcador (check ou anel); com
- * `cardInteiro`, o card todo é o botão (o marcador vai dentro, sem ação própria).
+ * Card de ação (tarefa, pendência ou providência sem dono), igual nas Tarefas
+ * da equipe e em Minhas ações, sem rótulo de origem. `esquerda` é o marcador
+ * (check ou anel); com `cardInteiro`, o card todo é o botão (o marcador vai
+ * dentro, sem ação própria). Providência: card inteiro, marcador sem check e
+ * toque em `onAtribuir`.
  */
 export function CardAcao({
   acao: a,
@@ -73,6 +81,7 @@ export function CardAcao({
   cardInteiro = false,
   rotulo,
   onToque,
+  onAtribuir,
 }: {
   acao: AcaoObra;
   hoje: string;
@@ -82,9 +91,18 @@ export function CardAcao({
   esquerda?: ReactNode;
   direita?: ReactNode;
   cardInteiro?: boolean;
-  rotulo: string;
-  onToque: () => void;
+  /** Nome acessível (a providência já tem o seu: "…: atribuir responsável"). */
+  rotulo?: string;
+  onToque?: () => void;
+  /** Providência sem dono: toque abre a atribuição de responsável. */
+  onAtribuir?: (p: ProvidenciaSemDono) => void;
 }) {
+  // Providência sem dono: card inteiro, marcador sem check, toque atribui.
+  const prov = a.origem === 'providencia' ? a.providencia : null;
+  const inteiro = cardInteiro || prov !== null;
+  const marcador = esquerda ?? (prov ? <MarcadorAcao feita={false} /> : null);
+  const nome = rotulo ?? (prov ? `${a.texto}: atribuir responsável` : a.texto);
+  const toque = onToque ?? (() => (prov ? onAtribuir?.(prov) : undefined));
   const e = estadoAcao(a, hoje);
   const t = a.origem === 'tarefa' ? a.tarefa : null;
   const repl =
@@ -105,7 +123,7 @@ export function CardAcao({
       : null;
   const prazo = linhaPrazo(a, e);
   // O aria-label substitui o conteúdo: leva junto o estado do prazo.
-  const nomeAcessivel = `${rotulo}. ${prazo}`;
+  const nomeAcessivel = `${nome}. ${prazo}`;
   const iconePrazo: IconName | null = e === 'atrasada' ? 'alert' : e === 'hoje' ? 'atencao' : null;
 
   const corpo = (
@@ -122,15 +140,15 @@ export function CardAcao({
   );
   const classe = `${styles.item} ${CLASSE_CARD[e]}`;
 
-  if (cardInteiro) {
+  if (inteiro) {
     return (
       <button
         type="button"
         className={`${classe} ${styles.inteiro}`}
         aria-label={nomeAcessivel}
-        onClick={onToque}
+        onClick={toque}
       >
-        {esquerda}
+        {marcador}
         <span className={styles.corpo}>{corpo}</span>
         {direita}
       </button>
@@ -138,8 +156,8 @@ export function CardAcao({
   }
   return (
     <div className={classe}>
-      {esquerda}
-      <button type="button" className={styles.corpo} aria-label={nomeAcessivel} onClick={onToque}>
+      {marcador}
+      <button type="button" className={styles.corpo} aria-label={nomeAcessivel} onClick={toque}>
         {corpo}
       </button>
       {direita}
