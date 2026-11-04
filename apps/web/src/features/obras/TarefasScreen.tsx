@@ -12,14 +12,14 @@ import { Icon, useToast } from '@contro/ui';
 import { usePessoas } from '../perfil/usePessoas';
 import { acoesVisiveis, secoesAcoes, type AcaoObra } from './acoesObra';
 import { hojeISO } from './api';
-import { Camera } from './Camera';
+import { CameraAtividade } from './CameraAtividade';
 import { CardAcao, MarcadorAcao, TituloSecao } from './CardAcao';
 import { TarefaSheet } from './TarefaSheet';
 import { entradaAtribuicao, entradaAtribuicaoAtividade } from './entradaTarefa';
 import type { EntradaTarefa } from './campo';
 import type { TarefaObra } from './tarefasObra';
-import { useObraCampo } from './useObraCampo';
 import { useObras } from './useObras';
+import { useReabrirAtividade } from './useObraCampo';
 import { useAcoesDasObras } from './useAcoesDasObras';
 import { useTarefasAcoes } from './useObraTarefas';
 import styles from './TarefasScreen.module.css';
@@ -52,6 +52,7 @@ export function TarefasScreen({
   const { data: pessoas = [] } = usePessoas();
   const { acoes: todas, carregando } = useAcoesDasObras(obras.map((o) => o.id));
   const acoes = useTarefasAcoes();
+  const reabrirAtv = useReabrirAtividade();
   const [filtro, setFiltro] = useState<string>('todos');
   const [editando, setEditando] = useState<TarefaObra | null>(null);
   const [nova, setNova] = useState(false);
@@ -328,45 +329,18 @@ export function TarefasScreen({
               onSuccess: () =>
                 showToast({
                   message: 'Atividade e tarefa concluídas',
-                  onUndo: () => acoes.reabrir.mutate(alvo(t)),
+                  // Desfazer reabre as duas: a atividade e depois a tarefa.
+                  onUndo: () =>
+                    reabrirAtv.mutate(
+                      { obraId: t.obra_id, atividadeId: t.vinculo_id as string },
+                      { onSettled: () => acoes.reabrir.mutate(alvo(t)) },
+                    ),
                 }),
             });
           }}
         />
       ) : null}
     </div>
-  );
-}
-
-/** Câmera para concluir a atividade vinculada à tarefa (na obra da tarefa). */
-function CameraAtividade({
-  tarefa,
-  onFechar,
-  onConcluida,
-}: {
-  tarefa: TarefaObra;
-  onFechar: () => void;
-  onConcluida: () => void;
-}) {
-  const { showToast } = useToast();
-  const campo = useObraCampo(tarefa.obra_id);
-  return (
-    <Camera
-      kicker="Foto de conclusão"
-      titulo="Concluir atividade com foto"
-      dica="Uma foto por ambiente. Ela vira o registro da etapa e libera as próximas atividades."
-      pendente={campo.concluir.isPending}
-      onCancelar={onFechar}
-      onCapturar={(file) =>
-        campo.concluir.mutate(
-          { atividadeId: tarefa.vinculo_id as string, file },
-          {
-            onSuccess: onConcluida,
-            onError: () => showToast({ message: 'Não foi possível concluir a atividade' }),
-          },
-        )
-      }
-    />
   );
 }
 
