@@ -15,7 +15,10 @@ alter table public.config_avisos
   add column pend_alta_du smallint not null default 2 check (pend_alta_du between 1 and 30),
   add column pend_media_du smallint not null default 4 check (pend_media_du between 1 and 30),
   add column pend_baixa_du smallint not null default 6 check (pend_baixa_du between 1 and 30);
-update public.config_avisos set acoes_ativo = resumo_ativo or tarefas_ativo, acoes_hora = resumo_hora;
+update public.config_avisos set
+  acoes_ativo = resumo_ativo or tarefas_ativo,
+  -- Só o aviso de tarefas estava ligado: vale o horário dele.
+  acoes_hora = case when resumo_ativo then resumo_hora else tarefas_hora end;
 alter table public.config_avisos
   drop column resumo_ativo,
   drop column resumo_hora,

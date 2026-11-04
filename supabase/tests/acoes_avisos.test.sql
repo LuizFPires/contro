@@ -4,7 +4,7 @@
 -- Requer o seed de homologação (Modelo 1 + unidades Contorno).
 
 begin;
-select plan(27);
+select plan(29);
 
 -- Dias úteis (seg–sex, sem feriados).
 select is(contro_add_du('2026-10-31', 2), '2026-11-04'::date, 'sábado vai para segunda antes de contar');
@@ -109,6 +109,20 @@ select is((select count(*)::int from av where dia = '2031-01-09'), 0, 'fora da j
 update config_avisos set acoes_ativo = false where id;
 select gerar_avisos('2031-01-10 07:40-03');
 select is((select count(*)::int from av where dia = '2031-01-10'), 0, 'desligado não cria');
+
+-- Segunda 13/01, religado: uma pendência "Sem responsável" atrasada há muito
+-- (apontada em 01/12/2030) entra nos totais, mas não ocupa vaga de nome nem
+-- conta no "e mais N". Tudo o que estava aberto já venceu: Joana 3 (duas
+-- tarefas + rodapé), Pedro 1, sem responsável 2 (tomada + esta).
+update config_avisos set acoes_ativo = true where id;
+insert into pendencia (obra_id, titulo, criticidade, apontada_em, responsavel_id) values
+  ((select id from obra where nome = 'Obra Ações'), 'Porta sem batente', 'media', '2030-12-01 12:00-03', null);
+select gerar_avisos('2031-01-13 07:40-03');
+select is((select corpo from av where tipo = 'acoes_equipe' and dia = '2031-01-13'),
+  '6 atrasadas · Joana S 3+0, Pedro S 1+0.', 'sem responsável atrasada conta nos totais do gestor');
+select ok((select corpo not like '%Sem responsável%' and corpo not like '%e mais%'
+           from av where tipo = 'acoes_equipe' and dia = '2031-01-13'),
+  'sem responsável não ocupa vaga de nome nem entra no "e mais N"');
 
 -- Tipos antigos saíram.
 select throws_ok(
