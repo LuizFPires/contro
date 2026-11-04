@@ -1,11 +1,8 @@
 import { useMemo, useState } from 'react';
 import {
   classificarSemana,
-  compilarPorPessoa,
-  derivarAtribuicoes,
   providenciaAtrasada,
   ritmoTexto,
-  estadoAcao,
   textoBoletimWhatsapp,
   type AtividadeSemana,
   type BoletimDados,
@@ -16,6 +13,7 @@ import { pdfServiceConfigurado } from '../../lib/env';
 import { baixarPdf } from '../../lib/pdf';
 import { hojeISO } from './api';
 import type { ObraCompleta } from './detalhe';
+import { quemFazOQueBoletim } from './boletimAcoes';
 import { useAcoesDasObras } from './useAcoesDasObras';
 import styles from './BoletimView.module.css';
 
@@ -90,37 +88,7 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
       }
     }
 
-    const tabAcoes = acoes.map((a) => ({
-      texto: a.texto,
-      pessoa: a.responsavelNome ?? 'Sem responsável',
-      prazo: a.prazo,
-      atrasado: estadoAcao(a, hoje) === 'atrasada',
-      concluido: !a.aberta,
-    }));
-    const grupos = compilarPorPessoa(
-      derivarAtribuicoes(
-        {
-          tarefas: tabAcoes,
-          engenheiroNome: null,
-          comprasNome: null,
-          atividadesAtrasadas: [],
-          concluirSemana: [],
-          comecarSemana: [],
-          providenciasAtrasadas: [],
-          providenciarSemana: [],
-        },
-        hoje,
-      ),
-    );
-    const quemFazOQue = grupos.map((g) => ({
-      pessoa: g.pessoa,
-      itens: g.itens.map((it) => ({
-        dataFmt: it.prazo ? formatarDataCurta(it.prazo) : null,
-        texto: it.texto,
-        data: it.prazo,
-        atrasado: it.atrasado,
-      })),
-    }));
+    const quemFazOQue = quemFazOQueBoletim(acoes, hoje);
 
     const ritmo = ritmoTexto(obra.ritmoDias);
     return {
