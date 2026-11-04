@@ -73,13 +73,7 @@ export function App() {
   useEffect(() => {
     const ir = new URLSearchParams(window.location.search).get('ir');
     if (!ir) return;
-    if (
-      ir === 'reuniao' ||
-      ir === 'tarefas' ||
-      ir === 'minhas' ||
-      ir === 'score' ||
-      ir === 'log'
-    )
+    if (ir === 'reuniao' || ir === 'tarefas' || ir === 'minhas' || ir === 'score' || ir === 'log')
       setTela(ir);
     else if (ir === 'hoje') setTela('inicio');
     window.history.replaceState(null, '', window.location.pathname);

@@ -60,7 +60,20 @@ export interface LinhaScore<I> {
   score: number | null;
   faixa: Faixa;
   indicadores: I;
+  /** Os números por trás das notas, para a tela (d.u. e médias). */
+  numeros: NumerosScore;
   piores: { id: string; texto: string; obraNome: string; detalhe: string }[];
+}
+
+export interface NumerosScore {
+  /** Média de d.u. de atraso de todos os itens (0 para os no prazo). */
+  atrasoMedioDU: number | null;
+  /** Equipe: mediana de d.u. entre vencer e concluir, só dos que atrasaram. */
+  respostaMedianaDU: number | null;
+  /** Equipe: replanejamentos por tarefa. */
+  replanejamentosMedia: number | null;
+  /** Obras distintas com itens na janela. */
+  obras: number;
 }
 
 export const PESOS_EQUIPE = {
@@ -251,6 +264,8 @@ export function calcularScoreEquipe(
     );
     const pendencias = atrasos.filter((a) => a.item.origem === 'pendencia');
     const tarefas = grupo.filter((i) => i.origem === 'tarefa');
+    const respostaMedianaDU = mediana(atrasos.filter((a) => a.du > 0).map((a) => a.du));
+    const replanejamentosMedia = media(tarefas.map((t) => t.replanejamentos));
 
     const indicadores: IndicadoresEquipe = {
       pontualidade: proporcao(atrasos.filter(pontual).length, atrasos.length),
@@ -258,8 +273,8 @@ export function calcularScoreEquipe(
         doDia.filter((i) => i.concluidaEm != null && diaLocal(i.concluidaEm) <= i.prazo).length,
         doDia.length,
       ),
-      respostaAtraso: notaPorTeto(mediana(atrasos.filter((a) => a.du > 0).map((a) => a.du)), 5),
-      replanejamentos: notaPorTeto(media(tarefas.map((t) => t.replanejamentos)), 2),
+      respostaAtraso: notaPorTeto(respostaMedianaDU, 5),
+      replanejamentos: notaPorTeto(replanejamentosMedia, 2),
       pendencias: proporcao(pendencias.filter(pontual).length, pendencias.length),
     };
     const score = grupo.length >= MINIMO_ITENS ? pontuar(indicadores, PESOS_EQUIPE) : null;
@@ -270,6 +285,12 @@ export function calcularScoreEquipe(
       score,
       faixa: faixaDo(score, 'resolutivo'),
       indicadores,
+      numeros: {
+        atrasoMedioDU: media(atrasos.map((a) => a.du)),
+        respostaMedianaDU,
+        replanejamentosMedia,
+        obras: new Set(grupo.map((i) => i.obraId)).size,
+      },
       piores: piores(atrasos, (i) =>
         i.origem === 'tarefa' && i.replanejamentos > 0
           ? plural(i.replanejamentos, 'replanejamento', 'replanejamentos')
@@ -298,13 +319,14 @@ export function calcularScorePrestadores(
       du: atrasoDU(item.fimPrevisto, diaFim(item, hoje)),
     }));
     const concluidas = grupo.filter((i) => i.concluidaEm != null);
+    const atrasoMedioDU = media(atrasos.map((a) => a.du));
 
     const indicadores: IndicadoresPrestador = {
       noFimPrevisto: proporcao(
         atrasos.filter((a) => a.item.concluidaEm != null && a.du === 0).length,
         atrasos.length,
       ),
-      atrasoMedio: notaPorTeto(media(atrasos.map((a) => a.du)), 5),
+      atrasoMedio: notaPorTeto(atrasoMedioDU, 5),
       comFoto: proporcao(concluidas.filter((i) => i.comFoto).length, concluidas.length),
     };
     const score = grupo.length >= MINIMO_ITENS ? pontuar(indicadores, PESOS_PRESTADOR) : null;
@@ -315,6 +337,12 @@ export function calcularScorePrestadores(
       score,
       faixa: faixaDo(score, 'em_dia'),
       indicadores,
+      numeros: {
+        atrasoMedioDU,
+        respostaMedianaDU: null,
+        replanejamentosMedia: null,
+        obras: new Set(grupo.map((i) => i.obraId)).size,
+      },
       piores: piores(atrasos, () => null),
     });
   }

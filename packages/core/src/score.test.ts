@@ -274,6 +274,7 @@ describe('calcularScoreEquipe', () => {
         tarefa({
           prazoOriginal: '2026-10-22',
           concluidaEm: '2026-10-28T10:00:00',
+          obraId: 'o2',
           obraNome: 'Lourdes',
         }), // 4
         tarefa({ prazoOriginal: '2026-10-21', concluidaEm: '2026-10-28T10:00:00' }), // 5
@@ -283,6 +284,10 @@ describe('calcularScoreEquipe', () => {
       HOJE,
     );
     expect(linha.indicadores.respostaAtraso).toBeCloseTo(1 - 3 / 5); // mediana de 1,2,4,5 = 3
+    expect(linha.numeros.respostaMedianaDU).toBe(3);
+    expect(linha.numeros.atrasoMedioDU).toBeCloseTo(12 / 5); // (1 + 2 + 4 + 5 + 0) / 5
+    expect(linha.numeros.replanejamentosMedia).toBe(0);
+    expect(linha.numeros.obras).toBe(2);
     expect(linha.piores.map((p) => p.detalhe)).toEqual([
       '5 d.u. de atraso',
       '4 d.u. de atraso',
@@ -369,6 +374,9 @@ describe('calcularScorePrestadores', () => {
     expect(linha.indicadores.noFimPrevisto).toBeCloseTo(0.25);
     // média (0 + 2 + 5 + 1) / 4 = 2 → nota 1 − 2/5
     expect(linha.indicadores.atrasoMedio).toBeCloseTo(0.6);
+    expect(linha.numeros.atrasoMedioDU).toBe(2);
+    expect(linha.numeros.respostaMedianaDU).toBeNull();
+    expect(linha.numeros.obras).toBe(1);
     expect(linha.indicadores.comFoto).toBeCloseTo(2 / 3);
     expect(linha.score).toBeNull();
     expect(linha.faixa).toBe('sem_score');

@@ -1,0 +1,212 @@
+import {
+  rotuloFaixa,
+  tendencia,
+  type IndicadoresEquipe,
+  type IndicadoresPrestador,
+  type Janela,
+} from '@contro/core';
+import { Icon } from '@contro/ui';
+import { NavInferior, type ItemNav } from '../../screens/NavInferior';
+import { decimal, du, pct } from './formato';
+import { contagem, corFaixa, nomeExibido, type AbaScore, type LinhaQualquer } from './scoreTela';
+import styles from './ScoreScreen.module.css';
+
+const TENDENCIA = { melhorando: 'melhorando', estavel: 'estável', piorando: 'piorando' } as const;
+
+interface Kpi {
+  rotulo: string;
+  valor: string;
+  descricao: string;
+  /** Nota de 0 a 1 (barra); nula sem base no período. */
+  nota: number | null;
+}
+
+function kpisEquipe(l: LinhaQualquer): Kpi[] {
+  const i = l.indicadores as IndicadoresEquipe;
+  const n = l.numeros;
+  return [
+    {
+      rotulo: 'Pontualidade',
+      valor: pct(i.pontualidade),
+      descricao: 'concluídas até o prazo original',
+      nota: i.pontualidade,
+    },
+    {
+      rotulo: 'Conclusão do dia',
+      valor: pct(i.conclusaoDoDia),
+      descricao: 'do que vencia no dia, feito até o dia',
+      nota: i.conclusaoDoDia,
+    },
+    {
+      rotulo: 'Resposta ao atraso',
+      valor: n.respostaMedianaDU == null ? 'sem atraso' : du(n.respostaMedianaDU),
+      descricao: 'entre vencer e concluir (mediana)',
+      nota: i.respostaAtraso,
+    },
+    {
+      rotulo: 'Replanejamentos',
+      valor: decimal(n.replanejamentosMedia),
+      descricao: 'por tarefa',
+      nota: i.replanejamentos,
+    },
+    {
+      rotulo: 'Pendências',
+      valor: pct(i.pendencias),
+      descricao: 'resolvidas no prazo da criticidade',
+      nota: i.pendencias,
+    },
+  ];
+}
+
+function kpisPrestador(l: LinhaQualquer): Kpi[] {
+  const i = l.indicadores as IndicadoresPrestador;
+  return [
+    {
+      rotulo: 'No fim previsto',
+      valor: pct(i.noFimPrevisto),
+      descricao: 'concluídas até o fim previsto',
+      nota: i.noFimPrevisto,
+    },
+    {
+      rotulo: 'Atraso médio',
+      valor: du(l.numeros.atrasoMedioDU),
+      descricao: 'por atividade (0 para as no prazo)',
+      nota: i.atrasoMedio,
+    },
+    {
+      rotulo: 'Com foto',
+      valor: pct(i.comFoto),
+      descricao: 'concluídas com foto',
+      nota: i.comFoto,
+    },
+  ];
+}
+
+/** Cor da barra pela mesma régua das faixas (≥ 75 ok, 50–74 regular, < 50 atenção). */
+function corNota(nota: number): 'ok' | 'regular' | 'atencao' {
+  if (nota >= 0.75) return 'ok';
+  if (nota >= 0.5) return 'regular';
+  return 'atencao';
+}
+
+/** Detalhe de um nome: score e faixa, tendência 30 × 90, indicadores e as ações que mais pesaram. */
+export function ScoreDetalhe({
+  linha: l,
+  aba,
+  janela,
+  score30,
+  score90,
+  voce,
+  onVoltar,
+  onNav,
+}: {
+  linha: LinhaQualquer;
+  aba: AbaScore;
+  janela: Janela;
+  score30: number | null;
+  score90: number | null;
+  voce: boolean;
+  onVoltar: () => void;
+  onNav: (item: ItemNav) => void;
+}) {
+  const cor = corFaixa(l.faixa);
+  const t = tendencia(score30, score90);
+  const kpis = aba === 'equipe' ? kpisEquipe(l) : kpisPrestador(l);
+  const unidade = aba === 'equipe' ? 'ações' : 'atividades';
+  const obras = l.numeros.obras === 1 ? '1 obra' : `${l.numeros.obras} obras`;
+
+  return (
+    <div className={styles.screen}>
+      <header className={`${styles.cabecalho} ${styles.cabecalhoVoltar}`}>
+        <button
+          type="button"
+          className={styles.voltar}
+          aria-label="Voltar para o Score"
+          onClick={onVoltar}
+        >
+          <Icon name="chevronLeft" size={22} />
+        </button>
+        <div>
+          <h1 className={styles.titulo}>
+            {nomeExibido(l, aba)}
+            {voce ? ' · você' : ''}
+          </h1>
+          <div className={styles.sub}>
+            {janela} dias · {contagem(l.itens, aba)} em {obras}
+          </div>
+        </div>
+      </header>
+
+      <div className={styles.corpo}>
+        <div className={styles.resumoCard}>
+          <div className={styles.cardTexto}>
+            <span className={styles.nome}>
+              {l.score == null
+                ? `Sem score ainda · mínimo de 5 ${unidade}`
+                : `Score ${l.score} · ${rotuloFaixa(l.faixa)}`}
+            </span>
+            <span className={styles.numeros}>
+              30 dias: <b>{score30 ?? '—'}</b> · 90 dias: <b>{score90 ?? '—'}</b> ·{' '}
+              {t ? `tendência ${TENDENCIA[t]}` : 'sem tendência ainda'}
+            </span>
+          </div>
+          <span className={`${styles.score} ${styles[`faixa_${cor}`]}`}>
+            <span className={styles.scoreValor}>{l.score ?? '—'}</span>
+            <span className={styles.scoreFaixa}>/100</span>
+          </span>
+        </div>
+
+        <div className={styles.kpis}>
+          {kpis.map((k) => (
+            <div key={k.rotulo} className={styles.kpi}>
+              <span
+                className={`${styles.kpiValor} ${k.nota == null ? '' : styles[`nota_${corNota(k.nota)}`]}`}
+              >
+                {k.valor}
+              </span>
+              <span className={styles.kpiRotulo}>{k.rotulo}</span>
+              <span className={styles.kpiDesc}>
+                {k.nota == null ? 'sem base no período' : k.descricao}
+              </span>
+              {k.nota == null ? null : (
+                <span
+                  className={styles.barra}
+                  role="img"
+                  aria-label={`${k.rotulo}: nota ${Math.round(k.nota * 100)} de 100`}
+                >
+                  <i
+                    className={styles[`nota_${corNota(k.nota)}`]}
+                    style={{ width: `${Math.round(k.nota * 100)}%` }}
+                  />
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <h2 className={styles.secao}>Ações que mais pesaram</h2>
+        {l.piores.length === 0 ? (
+          <p className={styles.nota}>
+            Nenhuma {aba === 'equipe' ? 'ação' : 'atividade'} atrasada no período.
+          </p>
+        ) : (
+          l.piores.map((p) => (
+            <div key={p.id} className={styles.pior}>
+              <span className={styles.piorIcone} aria-hidden="true">
+                <Icon name="alert" size={14} strokeWidth={2.6} />
+              </span>
+              <span className={styles.cardTexto}>
+                <span className={styles.piorTexto}>{p.texto}</span>
+                <span className={styles.numeros}>
+                  {p.obraNome} · {p.detalhe}
+                </span>
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+
+      <NavInferior ativo="score" onEscolher={onNav} />
+    </div>
+  );
+}
