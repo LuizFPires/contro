@@ -218,3 +218,20 @@
   font-size: 13px;
   color: #464646;
 }
+.prazoTitulo {
+  margin: 14px 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.prazoPend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 6px;
+}
+.prazoRotulo {
+  min-width: 44px;
+  font-size: 13px;
+  font-weight: 600;
+}

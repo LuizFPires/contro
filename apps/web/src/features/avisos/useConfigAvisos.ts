@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { DiaReuniao } from '@contro/core';
+import type { DiaReuniao, PrazosPendencia } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 const KEY = ['config-avisos'];
@@ -14,11 +14,11 @@ export interface ConfigAvisos {
   manhaHora: string;
   antesAtivo: boolean;
   antesMin: number;
-  resumoAtivo: boolean;
-  resumoHora: string;
-  resumoPara: Para;
-  tarefasAtivo: boolean;
-  tarefasHora: string;
+  acoesAtivo: boolean;
+  acoesHora: string;
+  pendAltaDu: number;
+  pendMediaDu: number;
+  pendBaixaDu: number;
   providAtivo: boolean;
   providHora: string;
   providPara: Para;
@@ -32,19 +32,19 @@ export const PADRAO_AVISOS: ConfigAvisos = {
   manhaHora: '08:00',
   antesAtivo: true,
   antesMin: 60,
-  resumoAtivo: true,
-  resumoHora: '07:30',
-  resumoPara: 'todos',
-  tarefasAtivo: true,
-  tarefasHora: '08:00',
+  acoesAtivo: true,
+  acoesHora: '07:30',
+  pendAltaDu: 2,
+  pendMediaDu: 4,
+  pendBaixaDu: 6,
   providAtivo: false,
   providHora: '08:00',
   providPara: 'gestores',
 };
 
 const COLUNAS =
-  'reuniao_dia, reuniao_hora, manha_ativo, manha_hora, antes_ativo, antes_min, resumo_ativo, ' +
-  'resumo_hora, resumo_para, tarefas_ativo, tarefas_hora, provid_ativo, provid_hora, provid_para';
+  'reuniao_dia, reuniao_hora, manha_ativo, manha_hora, antes_ativo, antes_min, acoes_ativo, ' +
+  'acoes_hora, pend_alta_du, pend_media_du, pend_baixa_du, provid_ativo, provid_hora, provid_para';
 
 interface Row {
   reuniao_dia: number;
@@ -53,11 +53,11 @@ interface Row {
   manha_hora: string;
   antes_ativo: boolean;
   antes_min: number;
-  resumo_ativo: boolean;
-  resumo_hora: string;
-  resumo_para: Para;
-  tarefas_ativo: boolean;
-  tarefas_hora: string;
+  acoes_ativo: boolean;
+  acoes_hora: string;
+  pend_alta_du: number;
+  pend_media_du: number;
+  pend_baixa_du: number;
   provid_ativo: boolean;
   provid_hora: string;
   provid_para: Para;
@@ -73,11 +73,11 @@ function fromDb(r: Row): ConfigAvisos {
     manhaHora: hhmm(r.manha_hora),
     antesAtivo: r.antes_ativo,
     antesMin: r.antes_min,
-    resumoAtivo: r.resumo_ativo,
-    resumoHora: hhmm(r.resumo_hora),
-    resumoPara: r.resumo_para,
-    tarefasAtivo: r.tarefas_ativo,
-    tarefasHora: hhmm(r.tarefas_hora),
+    acoesAtivo: r.acoes_ativo,
+    acoesHora: hhmm(r.acoes_hora),
+    pendAltaDu: r.pend_alta_du,
+    pendMediaDu: r.pend_media_du,
+    pendBaixaDu: r.pend_baixa_du,
     providAtivo: r.provid_ativo,
     providHora: hhmm(r.provid_hora),
     providPara: r.provid_para,
@@ -92,15 +92,20 @@ function toDb(c: ConfigAvisos): Row {
     manha_hora: c.manhaHora,
     antes_ativo: c.antesAtivo,
     antes_min: c.antesMin,
-    resumo_ativo: c.resumoAtivo,
-    resumo_hora: c.resumoHora,
-    resumo_para: c.resumoPara,
-    tarefas_ativo: c.tarefasAtivo,
-    tarefas_hora: c.tarefasHora,
+    acoes_ativo: c.acoesAtivo,
+    acoes_hora: c.acoesHora,
+    pend_alta_du: c.pendAltaDu,
+    pend_media_du: c.pendMediaDu,
+    pend_baixa_du: c.pendBaixaDu,
     provid_ativo: c.providAtivo,
     provid_hora: c.providHora,
     provid_para: c.providPara,
   };
+}
+
+/** Prazos da pendência (dias úteis por criticidade) no formato do core. */
+export function prazosDaConfig(cfg: ConfigAvisos): PrazosPendencia {
+  return { alta: cfg.pendAltaDu, media: cfg.pendMediaDu, baixa: cfg.pendBaixaDu };
 }
 
 /** Lê (todos) e grava (gestor, pela RLS) a configuração da reunião e dos avisos. */
