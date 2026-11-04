@@ -244,7 +244,8 @@ export function calcularScoreEquipe(
     }));
     const pontual = (a: Atraso<ItemEquipe>) => a.item.concluidaEm != null && a.du === 0;
 
-    // Conclusão do dia: itens cujo prazo vigente caiu na janela e já passou (ou foi concluído).
+    // Conclusão do dia: itens cujo prazo vigente caiu na janela e já passou (ou foi concluído);
+    // acerto = concluído até o prazo vigente (antes conta); aberto com prazo de hoje fica fora.
     const doDia = grupo.filter(
       (i) => i.prazo >= inicio && i.prazo <= hoje && (i.concluidaEm != null || i.prazo < hoje),
     );
@@ -254,7 +255,7 @@ export function calcularScoreEquipe(
     const indicadores: IndicadoresEquipe = {
       pontualidade: proporcao(atrasos.filter(pontual).length, atrasos.length),
       conclusaoDoDia: proporcao(
-        doDia.filter((i) => i.concluidaEm != null && diaLocal(i.concluidaEm) === i.prazo).length,
+        doDia.filter((i) => i.concluidaEm != null && diaLocal(i.concluidaEm) <= i.prazo).length,
         doDia.length,
       ),
       respostaAtraso: notaPorTeto(mediana(atrasos.filter((a) => a.du > 0).map((a) => a.du)), 5),

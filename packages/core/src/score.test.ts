@@ -104,6 +104,45 @@ describe('calcularScoreEquipe', () => {
     expect(linha.piores[0].detalhe).toBe('1 d.u. de atraso');
   });
 
+  it('prazo no sábado e concluída no domingo também conta 1 d.u. (piso de 1 para quem passou do prazo)', () => {
+    const [linha] = calcularScoreEquipe(
+      [
+        tarefa({
+          prazoOriginal: '2026-10-31',
+          prazo: '2026-10-31',
+          concluidaEm: '2026-11-01T10:00:00',
+        }),
+      ],
+      30,
+      HOJE,
+    );
+    expect(linha.indicadores.pontualidade).toBe(0);
+    expect(linha.piores[0].detalhe).toBe('1 d.u. de atraso');
+  });
+
+  it('conclusão do dia: antes do prazo vigente acerta; 1 d.u. depois erra, mesmo replanejada', () => {
+    const [linha] = calcularScoreEquipe(
+      [
+        // prazo sex 30/10, concluída antes, na qua 28/10: acerto
+        tarefa({
+          prazoOriginal: '2026-10-30',
+          prazo: '2026-10-30',
+          concluidaEm: '2026-10-28T10:00:00',
+        }),
+        // replanejada de 26/10 para qui 29/10, concluída na sex 30/10: erro
+        tarefa({
+          prazoOriginal: '2026-10-26',
+          prazo: '2026-10-29',
+          concluidaEm: '2026-10-30T10:00:00',
+          replanejamentos: 1,
+        }),
+      ],
+      30,
+      HOJE,
+    );
+    expect(linha.indicadores.conclusaoDoDia).toBeCloseTo(0.5);
+  });
+
   it('pessoa com 4 itens fica sem score e depois das pontuadas (Review Focus 3)', () => {
     const linhas = calcularScoreEquipe(
       [
