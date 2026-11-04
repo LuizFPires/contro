@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { nomeCurto, temNomeESobrenome } from './nomes';
+import { nomeCurto, normalizarNome, temNomeESobrenome } from './nomes';
+
+describe('normalizarNome', () => {
+  it('tira espaços sobrando, acentos e maiúsculas', () => {
+    expect(normalizarNome(' Pinturas Sílva ')).toBe('pinturas silva');
+    expect(normalizarNome('JOÃO   da  Conceição')).toBe('joao da conceicao');
+    expect(normalizarNome('   ')).toBe('');
+  });
+});
 
 describe('nomeCurto', () => {
   it('primeiro nome + inicial do sobrenome', () => {

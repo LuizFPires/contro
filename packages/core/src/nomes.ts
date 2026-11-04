@@ -23,3 +23,11 @@ export function nomeCurto(nome: string | null | undefined): string {
   if (resto.length === 0) return partes[0];
   return `${partes[0]} ${resto[0].charAt(0).toUpperCase()}`;
 }
+
+/**
+ * Chave de comparação de nomes digitados (prestador): sem espaços sobrando,
+ * minúsculas e sem acento ("  Pinturas Sílva " → "pinturas silva").
+ */
+export function normalizarNome(nome: string): string {
+  return nome.normalize('NFD').replace(/\p{M}/gu, '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
