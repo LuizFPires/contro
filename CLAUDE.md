@@ -65,6 +65,7 @@ pnpm lint && pnpm typecheck
 - Cores: **somente** turquesa `#54B4B0`, preto `#181818` e branco, com opacidades. Fundo do app `#F6F6F6`.
 - **Exceção aprovada:** vermelho `#C62828` só para **atraso** (atividade, lembrete, providência vencida e ritmo atrasado). Não use vermelho para nada mais. A faixa separadora de obra na ata é cinza `#4A4A4A`, não vermelha.
 - **Exceção aprovada (04/11/2026):** âmbar `#B45309` só para **vence hoje** (ação com prazo no dia); fundo do card atrasado `#FBEAEA`. Não use âmbar para nada mais.
+- **Exceção aprovada (04/11/2026, Score e Log):** vermelho também na faixa **Atenção** do Score e nas linhas **vencidas** do Log; âmbar também em **replanejada**, **início ajustado** e na faixa **Regular**.
 - Tipografia Nunito Sans (títulos 700–800, corpo 400–600, números 800). Mínimo de 12 px.
 - Botão primário: fundo turquesa e **texto preto**. Secundário: preto com texto branco. Terciário: contorno.
 - Alvos de toque ≥ 44 px. Estados sempre com **texto e ícone**, nunca só cor. Contraste AA.
