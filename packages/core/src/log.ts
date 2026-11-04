@@ -3,7 +3,8 @@
 // e monta a "Vida do item". Puro: recebe itens e eventos já carregados.
 // "Vencida" não é evento: é derivada (item ainda aberto no primeiro dia útil
 // depois do prazo). Dias úteis de segunda a sexta, sem feriados.
-import { addDU, duEntre, type DataISO } from './calendar';
+import { addDU, type DataISO } from './calendar';
+import { atrasoDU, diaLocal } from './datas';
 import { nomeCurto } from './nomes';
 
 export type TipoLinhaLog =
@@ -115,16 +116,6 @@ export function rotuloLinhaLog(tipo: TipoLinhaLog): string {
 
 const RE_DATA = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Dia local de um timestamp ISO (ou a própria data, se já for data). */
-function diaLocal(em: string): DataISO {
-  if (RE_DATA.test(em)) return em;
-  const d = new Date(em);
-  if (Number.isNaN(d.getTime())) return em.slice(0, 10);
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${mm}-${dd}`;
-}
-
 function instante(em: string): number {
   const t = Date.parse(em);
   return Number.isNaN(t) ? 0 : t;
@@ -160,7 +151,7 @@ function diaVencida(item: ItemLog, hoje: DataISO): DataISO | null {
 /** "no prazo" ou "<n> d.u. depois do <referência>". */
 function atrasoTexto(referencia: DataISO | null, dia: DataISO, nome: string): string | null {
   if (!referencia) return null;
-  const n = duEntre(referencia, dia);
+  const n = atrasoDU(referencia, dia);
   return n > 0 ? `${n} d.u. depois do ${nome}` : 'no prazo';
 }
 
@@ -434,7 +425,7 @@ export function vidaDoItem(
 
   const fim = item.concluidaEm ? diaLocal(item.concluidaEm) : hoje;
   const prazoOriginal = item.prazoOriginal ?? item.prazo;
-  const alem = prazoOriginal ? Math.max(0, duEntre(prazoOriginal, fim)) : 0;
+  const alem = prazoOriginal ? atrasoDU(prazoOriginal, fim) : 0;
   const replanejamentos = doItem.filter(
     (ev) => ev.tipo === 'replanejada' || ev.tipo === 'inicio_ajustado',
   ).length;

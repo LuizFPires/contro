@@ -147,6 +147,25 @@ describe('montarLog', () => {
     expect(l.dia).toBe('2026-11-02');
   });
 
+  it('prazo num sábado concluído na segunda conta 1 d.u. de atraso (igual ao Score)', () => {
+    const t = item({
+      id: 't5',
+      prazo: '2026-10-31',
+      prazoOriginal: '2026-10-31',
+      aberta: false,
+      concluidaEm: '2026-11-02T10:00:00',
+    });
+    const evs = [ev({ itemId: 't5', tipo: 'concluida', em: '2026-11-02T10:00:00' })];
+    const [l] = montarLog(
+      entrada(
+        [t],
+        evs.map((evento) => ({ origem: 'tarefa' as const, evento })),
+      ),
+    );
+    expect(l.detalhe).toBe('1 d.u. depois do prazo');
+    expect(vidaDoItem(t, evs, HOJE, fmt).resumo).toMatch(/^1 d\.u\. além do prazo original/);
+  });
+
   it('não deriva "vencida" se concluiu até o dia útil seguinte ao prazo, nem antes de chegar esse dia', () => {
     const noDia = item({
       id: 'a',

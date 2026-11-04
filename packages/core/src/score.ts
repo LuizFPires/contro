@@ -3,7 +3,8 @@
 // Só contam itens concluídos ou vencidos dentro da janela; abertos no prazo e
 // excluídos ficam fora. Atraso medido em dias úteis (segunda a sexta, sem
 // feriados). Puro: recebe os itens já carregados e o "hoje".
-import { duEntre, type DataISO } from './calendar';
+import { type DataISO } from './calendar';
+import { atrasoDU, diaLocal } from './datas';
 import { normalizarNome } from './nomes';
 
 export type Janela = 30 | 90;
@@ -89,31 +90,10 @@ export const PESOS_PRESTADOR = { noFimPrevisto: 45, atrasoMedio: 30, comFoto: 25
 /** Mínimo de itens na janela para ter score. */
 export const MINIMO_ITENS = 5;
 
-const RE_DATA = /^\d{4}-\d{2}-\d{2}$/;
-
-/** Dia local de um timestamp ISO (ou a própria data, se já for data). Igual ao de log.ts. */
-function diaLocal(em: string): DataISO {
-  if (RE_DATA.test(em)) return em;
-  const d = new Date(em);
-  if (Number.isNaN(d.getTime())) return em.slice(0, 10);
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${mm}-${dd}`;
-}
-
 /** Primeiro dia da janela: hoje − (janela − 1) dias corridos. */
 function inicioJanela(hoje: DataISO, janela: Janela): DataISO {
   const t = Date.parse(`${hoje}T00:00:00Z`) - (janela - 1) * 86_400_000;
   return new Date(t).toISOString().slice(0, 10);
-}
-
-/**
- * Dias úteis de atraso de quem tinha `prazo` e fechou (ou segue aberto) em `dia`.
- * Passou do prazo conta pelo menos 1 d.u. (prazo no sábado, concluído na segunda = 1).
- */
-function atrasoDU(prazo: DataISO, dia: DataISO): number {
-  if (dia <= prazo) return 0;
-  return Math.max(1, duEntre(prazo, dia));
 }
 
 interface Base {
