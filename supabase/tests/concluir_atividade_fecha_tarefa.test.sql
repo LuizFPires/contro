@@ -3,7 +3,7 @@
 -- mudam. Requer o seed de homologação (Modelo 1 + unidades Contorno).
 
 begin;
-select plan(6);
+select plan(8);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000c7', 'gestor@fechatarefa.contro');
@@ -71,6 +71,21 @@ select is(
   (select count(*)::int from tarefa_evento where tarefa_id = '00000000-0000-0000-0000-00000000c702'),
   0,
   'tarefa já feita não ganha evento'
+);
+
+-- A câmera da tarefa conclui a atividade e depois a tarefa: sem evento duplicado.
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c7","role":"authenticated"}';
+select lives_ok(
+  $$ select concluir_tarefa('00000000-0000-0000-0000-00000000c701') $$,
+  'concluir a tarefa já fechada pela atividade não falha'
+);
+reset role;
+select is(
+  (select count(*)::int from tarefa_evento
+   where tarefa_id = '00000000-0000-0000-0000-00000000c701' and tipo = 'concluida'),
+  1,
+  'e não grava segundo evento concluida'
 );
 
 select * from finish();

@@ -4,6 +4,9 @@
 -- O resto de concluir_atividade segue igual a 20261027120000_mapa_check.sql.
 -- desfazer_conclusao NÃO reabre as tarefas: o Desfazer da tela reabre a
 -- atividade e a tarefa, cada uma pela sua op.
+-- concluir_tarefa (de 20261024330000_subitem_tarefa_idempotente.sql) passa a
+-- ignorar tarefa já feita: a câmera da tarefa conclui a atividade (que já fecha
+-- a tarefa) e depois a tarefa, e o evento não pode sair duplicado.
 create or replace function concluir_atividade(
   p_atividade_id uuid,
   p_foto_id uuid,
@@ -85,5 +88,40 @@ begin
   update public.obra set xp = xp + v_xp where id = v_obra;
 
   return jsonb_build_object('xp', v_xp, 'fase_fechada', v_fase_fechada);
+end;
+$$;
+
+create or replace function concluir_tarefa(p_id uuid, p_client_op_id uuid default null)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare v_pessoa uuid; v_t public.tarefa;
+begin
+  if not public.contro_e_membro() then
+    raise exception 'Apenas membros' using errcode = '42501';
+  end if;
+  if not public.contro_op_nova(p_client_op_id) then return; end if;
+  select * into v_t from public.tarefa where id = p_id and deleted_at is null;
+  if v_t.id is null then
+    raise exception 'Tarefa inválida' using errcode = '23503';
+  end if;
+  -- Já feita (ex.: fechada junto com a atividade pela câmera): nada a fazer,
+  -- sem segundo evento 'concluida'.
+  if v_t.status = 'feita' then return; end if;
+  v_pessoa := public.contro_pessoa_atual();
+
+  if v_t.vinculo_tipo = 'providencia' and v_t.vinculo_id is not null then
+    update public.obra_providencia
+    set status = 'feito', feito_em = now(), feito_por = v_pessoa
+    where id = v_t.vinculo_id and obra_id = v_t.obra_id and status = 'pendente';
+    if found then
+      update public.tarefa set efeito_providencia_id = v_t.vinculo_id where id = p_id;
+    end if;
+  end if;
+
+  update public.tarefa set status = 'feita', feita_em = now(), feita_por = v_pessoa where id = p_id;
+  insert into public.tarefa_evento (tarefa_id, tipo, por) values (p_id, 'concluida', v_pessoa);
 end;
 $$;
