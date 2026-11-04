@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   classificarAcoes,
   estadoAcao,
+  nomeCurto,
   providenciaParaAcaoBase,
   textoResumoSecoes,
 } from '@contro/core';
@@ -128,9 +129,11 @@ export function TarefasScreen({
   function atribuir(e: EntradaTarefa) {
     const p = atribuindo;
     if (!p) return;
-    const nome = e.responsavelId
-      ? (pessoas.find((x) => x.id === e.responsavelId)?.nome ?? null)
-      : (e.responsavelNome ?? null);
+    // Nome curto, como fica depois de recarregar (chip e card não mudam de rótulo).
+    const nome =
+      nomeCurto(
+        e.responsavelId ? pessoas.find((x) => x.id === e.responsavelId)?.nome : e.responsavelNome,
+      ) || null;
     acoes.salvar.mutate(
       {
         obraId: p.obraId,

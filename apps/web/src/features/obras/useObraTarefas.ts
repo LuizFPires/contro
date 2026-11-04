@@ -81,6 +81,12 @@ export function useTarefasAcoes() {
     onMutate: ({ obraId, entrada: t }) => {
       const id = t.id ?? crypto.randomUUID();
       t.id = id;
+      // Pessoa do app sem nome na entrada: rotula pelo cache de pessoas (já curto).
+      const nomePessoa = t.responsavelId
+        ? qc
+            .getQueryData<{ id: string; nome: string }[]>(['pessoas'])
+            ?.find((p) => p.id === t.responsavelId)?.nome
+        : undefined;
       return trocar(obraId, (prev) =>
         prev.some((x) => x.id === id)
           ? prev.map((x) =>
@@ -95,7 +101,7 @@ export function useTarefasAcoes() {
                 obra_id: obraId,
                 texto: t.texto,
                 responsavel_id: t.responsavelId,
-                responsavelNome: t.responsavelNome ?? null,
+                responsavelNome: t.responsavelNome ?? nomePessoa ?? null,
                 observacao: t.observacao ?? null,
                 prazo: t.prazo,
                 prazo_original: null,

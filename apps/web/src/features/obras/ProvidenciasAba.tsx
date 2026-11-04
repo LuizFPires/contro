@@ -184,13 +184,7 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
                       ? `ATRASADO · era para providenciar até ${formatarDataCurta(it.providenciarAte)}`
                       : `Providenciar até ${formatarDataCurta(it.providenciarAte)} (${it.antecedenciaDu} dias úteis antes)${it.duracaoDu ? ` · leva ${it.duracaoDu} d, começar ${formatarDataCurta(it.comecar)}` : ''}`}
                   </div>
-                  {quemCuida.get(it.id) ? (
-                    <span className={styles.quem}>
-                      <Icon name="pessoa" size={14} strokeWidth={2.2} />
-                      Quem cuida: {quemCuida.get(it.id)?.responsavelNome ?? 'Sem nome'} · até{' '}
-                      {formatarDataCurta(quemCuida.get(it.id)?.prazo ?? '')}
-                    </span>
-                  ) : null}
+                  <QuemCuida tarefa={quemCuida.get(it.id)} />
                   <button type="button" className={styles.marcar} onClick={() => marcar(it)}>
                     Marcar como providenciado
                   </button>
@@ -283,6 +277,17 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
         }
       />
     </div>
+  );
+}
+
+/** "Quem cuida" da providência: a tarefa aberta vinculada, se houver. */
+function QuemCuida({ tarefa: t }: { tarefa: TarefaObra | undefined }) {
+  if (!t) return null;
+  return (
+    <span className={styles.quem}>
+      <Icon name="pessoa" size={14} strokeWidth={2.2} />
+      Quem cuida: {t.responsavelNome ?? 'Sem nome'} · até {formatarDataCurta(t.prazo)}
+    </span>
   );
 }
 
