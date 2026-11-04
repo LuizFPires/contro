@@ -162,6 +162,8 @@ export function itensDoLog(d: DadosLogScore): ItemLog[] {
   for (const a of d.atividades) {
     const o = obras.get(a.obra_id);
     if (!o || a.pai_id) continue;
+    // Pré-obra (Orçamento, Mapa de coleta) entra no Log como item real, mas fica
+    // fora do cronograma: sem fim previsto, prazo null e nunca gera "vencida".
     itens.push({
       origem: 'atividade',
       id: a.id,
