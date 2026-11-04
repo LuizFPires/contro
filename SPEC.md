@@ -375,12 +375,14 @@ A faixa lateral de cada obra é **cinza escuro #4A4A4A**.
 --contro-text:#181818; --contro-muted:#696969; --contro-bg:#F6F6F6; --contro-surface:#FFFFFF;
 --contro-border:rgb(24 24 24 / 10%); --contro-selected:rgb(84 180 176 / 22%);
 --contro-late:#C62828;            /* exceção: só atraso */
---contro-attention:#b45309;       /* exceção: só "vence hoje" */
---contro-late-bg:#fbeaea;          /* fundo do card atrasado */
+--contro-attention:#B45309;       /* exceção: só "vence hoje" */
+--contro-late-bg:#FBEAEA;         /* fundo do card atrasado */
 --contro-separator:#4A4A4A;       /* faixa lateral das obras na ata */
 --radius-field:12px; --radius-card:16px; --radius-modal:20px;
 font-family:'Nunito Sans',sans-serif;
 ```
+**Exceção aprovada (04/11/2026):** âmbar `#B45309` só para **vence hoje** (ação com prazo no dia); fundo do card atrasado `#FBEAEA`. Não use âmbar para nada mais.
+
 Alvos de toque ≥ 44 px. Nunca branco sobre turquesa em texto pequeno; usar preto.
 
 ## 11. Rotinas agendadas
