@@ -24,7 +24,13 @@ export function NavInferior({
   onEscolher: (item: ItemNav) => void;
 }) {
   const { data: obras } = useObras();
+  // Badge do Hoje: tudo o que a lista do dia mostra (atrasados + para hoje), como a
+  // soma dos cards das obras (pedido do usuário, 04/11/2026). Vermelho só se há atraso.
   const nAtrasos = (obras ?? []).reduce((s, o) => s + o.agenda.atrasados.length, 0);
+  const nHoje = (obras ?? []).reduce(
+    (s, o) => s + o.agenda.atrasados.length + o.agenda.hoje.length,
+    0,
+  );
   return (
     <nav className={styles.nav} aria-label="Menu principal">
       {ITENS.map((it) => (
@@ -37,10 +43,12 @@ export function NavInferior({
         >
           <Icon name={it.icone} size={22} />
           {it.rotulo}
-          {it.id === 'hoje' && nAtrasos ? (
-            <span className={styles.navBadge}>
-              <span className="sr-only">atrasos: </span>
-              {nAtrasos}
+          {it.id === 'hoje' && nHoje ? (
+            <span className={`${styles.navBadge} ${nAtrasos ? styles.navBadgeAtraso : ''}`}>
+              <span className="sr-only">
+                {nAtrasos ? `itens do dia, ${nAtrasos} atrasados: ` : 'itens do dia: '}
+              </span>
+              {nHoje}
             </span>
           ) : null}
         </button>
