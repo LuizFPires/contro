@@ -29,7 +29,9 @@ function linhaPrazo(a: AcaoObra, e: EstadoAcao): string {
   if (e === 'atrasada') return `ATRASADA · prazo era ${formatarDataCurta(a.prazo)}`;
   if (e === 'hoje') return `VENCE HOJE · ${formatarDataCurta(a.prazo)}`;
   if (e === 'proxima') return `Prazo ${formatarDataCurta(a.prazo)}`;
-  return a.concluidaEm ? `Feita ${formatarDataCurta(dataLocal(a.concluidaEm))}` : 'Feita';
+  // Pendência se resolve (foto do depois); tarefa se faz.
+  const feita = a.origem === 'pendencia' ? 'Resolvida' : 'Feita';
+  return a.concluidaEm ? `${feita} ${formatarDataCurta(dataLocal(a.concluidaEm))}` : feita;
 }
 
 function linhaMeta(a: AcaoObra, obra: string | null, comResponsavel: boolean): string {
@@ -99,6 +101,9 @@ export function CardAcao({
           .filter(Boolean)
           .join(' · ')
       : null;
+  const prazo = linhaPrazo(a, e);
+  // O aria-label substitui o conteúdo: leva junto o estado do prazo.
+  const nomeAcessivel = `${rotulo}. ${prazo}`;
   const iconePrazo: IconName | null = e === 'atrasada' ? 'alert' : e === 'hoje' ? 'atencao' : null;
 
   const corpo = (
@@ -107,7 +112,7 @@ export function CardAcao({
       <span className={styles.meta}>{linhaMeta(a, obra, comResponsavel)}</span>
       <span className={styles.prazo}>
         {iconePrazo ? <Icon name={iconePrazo} size={14} strokeWidth={2.4} /> : null}
-        {linhaPrazo(a, e)}
+        {prazo}
       </span>
       {repl ? <span className={styles.repl}>{repl}</span> : null}
       {avanco ? <span className={styles.repl}>{avanco}</span> : null}
@@ -120,7 +125,7 @@ export function CardAcao({
       <button
         type="button"
         className={`${classe} ${styles.inteiro}`}
-        aria-label={rotulo}
+        aria-label={nomeAcessivel}
         onClick={onToque}
       >
         {esquerda}
@@ -132,7 +137,7 @@ export function CardAcao({
   return (
     <div className={classe}>
       {esquerda}
-      <button type="button" className={styles.corpo} aria-label={rotulo} onClick={onToque}>
+      <button type="button" className={styles.corpo} aria-label={nomeAcessivel} onClick={onToque}>
         {corpo}
       </button>
       {direita}
