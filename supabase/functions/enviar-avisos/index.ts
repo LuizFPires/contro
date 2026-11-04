@@ -1,7 +1,7 @@
-// Edge Function: envia os avisos por Web Push (reunião, resumo da manhã,
-// tarefas do dia, providências). Chamada pelo pg_cron (ver README). Lê os
-// aviso_disparo ainda não enviados (gerados por gerar_avisos), manda o push para
-// os aparelhos de cada pessoa e marca como enviado. Segredos vêm do ambiente.
+// Edge Function: envia os avisos por Web Push (reunião, ações de hoje da pessoa,
+// equipe hoje para o gestor, providências, atribuição). Chamada pelo pg_cron (ver
+// README). Lê os aviso_disparo ainda não enviados (gerados por gerar_avisos), manda
+// o push para os aparelhos de cada pessoa e marca como enviado. Segredos vêm do ambiente.
 // deno-lint-ignore-file no-explicit-any
 /* eslint-disable @typescript-eslint/no-explicit-any -- código Deno; respostas do Supabase são soltas aqui */
 import { createClient } from 'npm:@supabase/supabase-js@2';
