@@ -38,6 +38,7 @@ export function TarefaSheet({
   obras,
   modo,
   inicial,
+  tituloAtribuir = 'Atribuir providência',
 }: {
   aberto: boolean;
   tarefa: TarefaObra | null; // null = nova
@@ -50,11 +51,13 @@ export function TarefaSheet({
   /** Tela geral de Tarefas: a nova tarefa pede a obra. */
   obras?: { id: string; nome: string }[];
   /**
-   * Atribuir providência: obra fixa, texto e prazo vindos de `inicial`,
-   * responsável obrigatório e sem rascunho.
+   * Atribuir providência ou atividade: obra fixa, texto e prazo vindos de
+   * `inicial`, responsável obrigatório e sem rascunho.
    */
   modo?: 'atribuir';
   inicial?: { texto: string; prazo: string; obraId: string };
+  /** Título da folha no modo atribuir. */
+  tituloAtribuir?: string;
 }) {
   const atribuir = modo === 'atribuir';
   const [texto, setTexto] = useState('');
@@ -82,7 +85,7 @@ export function TarefaSheet({
   const iTexto = inicial?.texto;
   const iPrazo = inicial?.prazo;
   const iObra = inicial?.obraId;
-  // Atribuir: reinicia só ao abrir ou trocar de providência (um refetch de
+  // Atribuir: reinicia só ao abrir ou trocar de item (um refetch de
   // `obras` com a folha aberta não apaga o responsável escolhido nem o texto).
   useEffect(() => {
     if (!atribuir) return;
@@ -131,7 +134,7 @@ export function TarefaSheet({
   return (
     <BottomSheet
       open={aberto}
-      title={atribuir ? 'Atribuir providência' : tarefa ? 'Editar tarefa' : 'Nova tarefa'}
+      title={atribuir ? tituloAtribuir : tarefa ? 'Editar tarefa' : 'Nova tarefa'}
       onClose={onFechar}
     >
       {recuperado ? (

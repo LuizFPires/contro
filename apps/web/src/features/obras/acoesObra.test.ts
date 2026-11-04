@@ -4,15 +4,18 @@ import {
   classificarAcoes,
   nomeCurto,
   prazoPendencia,
+  type AtividadeSemDono,
   type ProvidenciaSemDono,
 } from '@contro/core';
 import { dataLocal } from './api';
 import {
   acoesVisiveis,
+  atividadeParaAcao,
   pendenciaParaAcao,
   providenciaParaAcao,
   secoesAcoes,
   tarefaParaAcao,
+  tarefasFechadasPelaAtividade,
 } from './acoesObra';
 import type { PendenciaObra } from './pendenciasObra';
 import type { TarefaObra } from './tarefasObra';
@@ -187,5 +190,73 @@ describe('providenciaParaAcao', () => {
     const s = secoesAcoes(classificarAcoes([providenciaParaAcao(p)], '2026-11-04'));
     expect(s.map((x) => x.estado)).toEqual(['atrasada']);
     expect(s[0].itens[0].id).toBe('pv1');
+  });
+});
+
+describe('atividadeParaAcao', () => {
+  const a: AtividadeSemDono = {
+    id: 'av1',
+    obraId: 'o1',
+    obraNome: 'Savassi',
+    nome: 'Pintura',
+    faseNome: 'Acabamento',
+    prestador: 'Paulo',
+    prazo: '2026-11-03',
+  };
+
+  it('vira ação de origem atividade, sem responsável, com a atividade anexada', () => {
+    const x = atividadeParaAcao(a);
+    expect(x).toMatchObject({
+      origem: 'atividade',
+      id: 'av1',
+      obraId: 'o1',
+      texto: 'Atividade: Pintura',
+      prazo: '2026-11-03',
+      aberta: true,
+      responsavelId: null,
+      responsavelNome: null,
+    });
+    expect(x.origem === 'atividade' && x.atividade).toBe(a);
+  });
+
+  it('atividade com fim previsto vencido cai em Atrasadas', () => {
+    const s = secoesAcoes(classificarAcoes([atividadeParaAcao(a)], '2026-11-04'));
+    expect(s.map((x) => x.estado)).toEqual(['atrasada']);
+    expect(s[0].itens[0].id).toBe('av1');
+  });
+});
+
+describe('tarefasFechadasPelaAtividade', () => {
+  const agora = new Date('2026-11-04T15:00:00Z').getTime();
+  const t = (
+    id: string,
+    o: Partial<{
+      vinculo_tipo: 'atividade' | 'providencia' | null;
+      vinculo_id: string | null;
+      status: 'aberta' | 'feita';
+      feita_em: string | null;
+    }> = {},
+  ) => ({
+    id,
+    vinculo_tipo: 'atividade' as const,
+    vinculo_id: 'atv',
+    status: 'feita' as const,
+    feita_em: '2026-11-04T14:58:00Z',
+    ...o,
+  });
+  it('pega só as feitas da atividade dentro da janela de 5 minutos', () => {
+    expect(
+      tarefasFechadasPelaAtividade(
+        [
+          t('ok'),
+          t('velha', { feita_em: '2026-11-04T14:50:00Z' }),
+          t('aberta', { status: 'aberta', feita_em: null }),
+          t('outra', { vinculo_id: 'x' }),
+          t('prov', { vinculo_tipo: 'providencia' }),
+        ],
+        'atv',
+        agora,
+      ),
+    ).toEqual(['ok']);
   });
 });

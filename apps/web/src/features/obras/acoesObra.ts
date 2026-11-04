@@ -1,9 +1,11 @@
 import {
+  atividadeParaAcaoBase,
   nomeCurto,
   prazoPendencia,
   providenciaParaAcaoBase,
   type Acao,
   type AcoesClassificadas,
+  type AtividadeSemDono,
   type EstadoAcao,
   type PrazosPendencia,
   type ProvidenciaSemDono,
@@ -13,11 +15,15 @@ import { dataLocal } from './api';
 import type { PendenciaObra } from './pendenciasObra';
 import type { TarefaObra } from './tarefasObra';
 
-/** Ação (tarefa, pendência ou providência sem dono) com o original à mão para abrir o detalhe. */
+/**
+ * Ação (tarefa, pendência, providência ou atividade sem dono) com o original à
+ * mão para abrir o detalhe.
+ */
 export type AcaoObra =
   | (Acao & { origem: 'tarefa'; tarefa: TarefaObra })
   | (Acao & { origem: 'pendencia'; pendencia: PendenciaObra })
-  | (Acao & { origem: 'providencia'; providencia: ProvidenciaSemDono });
+  | (Acao & { origem: 'providencia'; providencia: ProvidenciaSemDono })
+  | (Acao & { origem: 'atividade'; atividade: AtividadeSemDono });
 
 export function tarefaParaAcao(t: TarefaObra): AcaoObra {
   return {
@@ -62,6 +68,16 @@ export function providenciaParaAcao(p: ProvidenciaSemDono): AcaoObra {
   };
 }
 
+/** Atividade sem dono vira ação aberta, sem responsável ("Atividade: Pintura"). */
+export function atividadeParaAcao(a: AtividadeSemDono): AcaoObra {
+  const { id, obraId, nome, prazo } = a;
+  return {
+    ...atividadeParaAcaoBase({ id, obraId, nome, prazo }),
+    origem: 'atividade',
+    atividade: a,
+  };
+}
+
 /** Dias corridos que uma pendência resolvida continua em Concluídas. */
 export const DIAS_PENDENCIA_CONCLUIDA = 30;
 
@@ -96,4 +112,29 @@ export function secoesAcoes(c: AcoesClassificadas<AcaoObra>): SecaoAcoes[] {
     { estado: 'concluida', titulo: 'Concluídas', icone: 'checkCirculo', itens: c.concluidas },
   ];
   return todas.filter((s) => s.itens.length);
+}
+
+/** Janela do "Desfazer" da conclusão para reabrir as tarefas que ela fechou. */
+export const JANELA_DESFAZER_MS = 5 * 60 * 1000;
+
+/**
+ * Tarefas vinculadas à atividade que a conclusão dela fechou: feitas dentro da
+ * janela do Desfazer (concluir a atividade fecha as tarefas abertas vinculadas).
+ */
+export function tarefasFechadasPelaAtividade(
+  tarefas: Pick<TarefaObra, 'id' | 'vinculo_tipo' | 'vinculo_id' | 'status' | 'feita_em'>[],
+  atividadeId: string,
+  agora: number,
+  janelaMs: number = JANELA_DESFAZER_MS,
+): string[] {
+  return tarefas
+    .filter(
+      (t) =>
+        t.vinculo_tipo === 'atividade' &&
+        t.vinculo_id === atividadeId &&
+        t.status === 'feita' &&
+        t.feita_em !== null &&
+        agora - new Date(t.feita_em).getTime() <= janelaMs,
+    )
+    .map((t) => t.id);
 }

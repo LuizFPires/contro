@@ -5,20 +5,21 @@ import {
   nomeCurto,
   providenciaParaAcaoBase,
   textoResumoSecoes,
+  type AtividadeSemDono,
   type ProvidenciaSemDono,
 } from '@contro/core';
 import { Icon, useToast } from '@contro/ui';
 import { usePessoas } from '../perfil/usePessoas';
 import { acoesVisiveis, secoesAcoes, type AcaoObra } from './acoesObra';
 import { hojeISO } from './api';
-import { Camera } from './Camera';
+import { CameraAtividade } from './CameraAtividade';
 import { CardAcao, MarcadorAcao, TituloSecao } from './CardAcao';
 import { TarefaSheet } from './TarefaSheet';
-import { entradaAtribuicao } from './entradaTarefa';
+import { entradaAtribuicao, entradaAtribuicaoAtividade } from './entradaTarefa';
 import type { EntradaTarefa } from './campo';
 import type { TarefaObra } from './tarefasObra';
-import { useObraCampo } from './useObraCampo';
 import { useObras } from './useObras';
+import { useReabrirAtividade } from './useObraCampo';
 import { useAcoesDasObras } from './useAcoesDasObras';
 import { useTarefasAcoes } from './useObraTarefas';
 import styles from './TarefasScreen.module.css';
@@ -31,9 +32,9 @@ const chaveResp = (a: AcaoObra) =>
 
 /**
  * Tarefas da equipe (protótipo · TAREFAS): tarefas, pendências do Check list e
- * providências sem dono de todas as obras, como "ação", em quatro seções;
- * filtro por pessoa. Providência sem dono cai em "Sem responsável" e o toque
- * abre a atribuição (vira tarefa vinculada).
+ * providências e atividades sem dono de todas as obras, como "ação", em quatro
+ * seções; filtro por pessoa. Providência e atividade sem dono caem em "Sem
+ * responsável" e o toque abre a atribuição (vira tarefa vinculada).
  */
 export function TarefasScreen({
   onVoltar,
@@ -51,11 +52,13 @@ export function TarefasScreen({
   const { data: pessoas = [] } = usePessoas();
   const { acoes: todas, carregando } = useAcoesDasObras(obras.map((o) => o.id));
   const acoes = useTarefasAcoes();
+  const reabrirAtv = useReabrirAtividade();
   const [filtro, setFiltro] = useState<string>('todos');
   const [editando, setEditando] = useState<TarefaObra | null>(null);
   const [nova, setNova] = useState(false);
   const [camera, setCamera] = useState<TarefaObra | null>(null);
   const [atribuindo, setAtribuindo] = useState<ProvidenciaSemDono | null>(null);
+  const [atribuindoAtividade, setAtribuindoAtividade] = useState<AtividadeSemDono | null>(null);
   const hoje = hojeISO();
   const lista = useMemo(() => acoesVisiveis(todas, hoje), [todas, hoje]);
 
@@ -127,26 +130,47 @@ export function TarefasScreen({
     );
   }
 
+  // Nome curto só para o toast (o digitado vai completo: fica gravado e vira
+  // sugestão). O card otimista encurta o nome em useTarefasAcoes.
+  const nomeDoToast = (e: EntradaTarefa) =>
+    nomeCurto(
+      e.responsavelId ? pessoas.find((x) => x.id === e.responsavelId)?.nome : e.responsavelNome,
+    ) || 'responsável';
+
   function atribuir(e: EntradaTarefa) {
     const p = atribuindo;
     if (!p) return;
-    // O nome digitado vai completo (fica gravado e vira sugestão); o curto é só
-    // para o toast. O card otimista encurta o nome em useTarefasAcoes.
-    const nome =
-      nomeCurto(
-        e.responsavelId ? pessoas.find((x) => x.id === e.responsavelId)?.nome : e.responsavelNome,
-      ) || null;
+    const nome = nomeDoToast(e);
     acoes.salvar.mutate(
       { obraId: p.obraId, entrada: entradaAtribuicao(p, e) },
       {
         onSuccess: (id) => {
           setAtribuindo(null);
           showToast({
-            message: `Providência atribuída a ${nome ?? 'responsável'}`,
+            message: `Providência atribuída a ${nome}`,
             onUndo: () => acoes.excluir.mutate({ obraId: p.obraId, id }),
           });
         },
         onError: () => showToast({ message: 'Não foi possível atribuir a providência' }),
+      },
+    );
+  }
+
+  function atribuirAtividade(e: EntradaTarefa) {
+    const a = atribuindoAtividade;
+    if (!a) return;
+    const nome = nomeDoToast(e);
+    acoes.salvar.mutate(
+      { obraId: a.obraId, entrada: entradaAtribuicaoAtividade(a, e) },
+      {
+        onSuccess: (id) => {
+          setAtribuindoAtividade(null);
+          showToast({
+            message: `Atividade atribuída a ${nome}`,
+            onUndo: () => acoes.excluir.mutate({ obraId: a.obraId, id }),
+          });
+        },
+        onError: () => showToast({ message: 'Não foi possível atribuir a atividade' }),
       },
     );
   }
@@ -225,6 +249,7 @@ export function TarefasScreen({
                 onEditar={setEditando}
                 onAbrirPendencia={onAbrirPendencia}
                 onAtribuir={setAtribuindo}
+                onAtribuirAtividade={setAtribuindoAtividade}
               />
             ))}
           </section>
@@ -272,6 +297,27 @@ export function TarefasScreen({
         onSalvar={atribuir}
       />
 
+      <TarefaSheet
+        modo="atribuir"
+        tituloAtribuir="Atribuir atividade"
+        aberto={atribuindoAtividade !== null}
+        tarefa={null}
+        inicial={
+          atribuindoAtividade
+            ? {
+                texto: `Atividade: ${atribuindoAtividade.nome}`,
+                prazo: atribuindoAtividade.prazo,
+                obraId: atribuindoAtividade.obraId,
+              }
+            : undefined
+        }
+        pessoas={pessoas}
+        obras={opcoesObra}
+        pendente={acoes.salvar.isPending}
+        onFechar={() => setAtribuindoAtividade(null)}
+        onSalvar={atribuirAtividade}
+      />
+
       {camera ? (
         <CameraAtividade
           tarefa={camera}
@@ -283,45 +329,18 @@ export function TarefasScreen({
               onSuccess: () =>
                 showToast({
                   message: 'Atividade e tarefa concluídas',
-                  onUndo: () => acoes.reabrir.mutate(alvo(t)),
+                  // Desfazer reabre as duas: a atividade e depois a tarefa.
+                  onUndo: () =>
+                    reabrirAtv.mutate(
+                      { obraId: t.obra_id, atividadeId: t.vinculo_id as string },
+                      { onSettled: () => acoes.reabrir.mutate(alvo(t)) },
+                    ),
                 }),
             });
           }}
         />
       ) : null}
     </div>
-  );
-}
-
-/** Câmera para concluir a atividade vinculada à tarefa (na obra da tarefa). */
-function CameraAtividade({
-  tarefa,
-  onFechar,
-  onConcluida,
-}: {
-  tarefa: TarefaObra;
-  onFechar: () => void;
-  onConcluida: () => void;
-}) {
-  const { showToast } = useToast();
-  const campo = useObraCampo(tarefa.obra_id);
-  return (
-    <Camera
-      kicker="Foto de conclusão"
-      titulo="Concluir atividade com foto"
-      dica="Uma foto por ambiente. Ela vira o registro da etapa e libera as próximas atividades."
-      pendente={campo.concluir.isPending}
-      onCancelar={onFechar}
-      onCapturar={(file) =>
-        campo.concluir.mutate(
-          { atividadeId: tarefa.vinculo_id as string, file },
-          {
-            onSuccess: onConcluida,
-            onError: () => showToast({ message: 'Não foi possível concluir a atividade' }),
-          },
-        )
-      }
-    />
   );
 }
 
@@ -335,6 +354,7 @@ function Linha({
   onEditar,
   onAbrirPendencia,
   onAtribuir,
+  onAtribuirAtividade,
 }: {
   a: AcaoObra;
   hoje: string;
@@ -344,6 +364,7 @@ function Linha({
   onEditar: (t: TarefaObra) => void;
   onAbrirPendencia: (obraId: string, pendenciaId: string) => void;
   onAtribuir: (p: ProvidenciaSemDono) => void;
+  onAtribuirAtividade: (a: AtividadeSemDono) => void;
 }) {
   if (a.origem === 'pendencia') {
     return (
@@ -360,6 +381,9 @@ function Linha({
   }
   if (a.origem === 'providencia') {
     return <CardAcao acao={a} hoje={hoje} obra={obra} onAtribuir={onAtribuir} />;
+  }
+  if (a.origem === 'atividade') {
+    return <CardAcao acao={a} hoje={hoje} obra={obra} onAtribuirAtividade={onAtribuirAtividade} />;
   }
   const t = a.tarefa;
   const feita = !a.aberta;

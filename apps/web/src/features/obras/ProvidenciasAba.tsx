@@ -10,7 +10,8 @@ import {
   type ItemProvidencia,
   type ItemProvidenciado,
 } from './providenciasObra';
-import type { TarefaObra } from './tarefasObra';
+import { QuemCuida } from './QuemCuida';
+import { useQuemCuida } from './useQuemCuida';
 import { useObraCampo } from './useObraCampo';
 import { useObraTarefas } from './useObraTarefas';
 import styles from './ProvidenciasAba.module.css';
@@ -50,14 +51,7 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
   const hojeLocal = diaLocal(new Date());
 
   // Tarefa aberta vinculada a cada providência: mostra quem cuida.
-  const tarefas = tarefasQ.data;
-  const quemCuida = useMemo(() => {
-    const m = new Map<string, TarefaObra>();
-    for (const t of tarefas ?? [])
-      if (t.vinculo_tipo === 'providencia' && t.vinculo_id && t.status === 'aberta')
-        m.set(t.vinculo_id, t);
-    return m;
-  }, [tarefas]);
+  const quemCuida = useQuemCuida(tarefasQ.data, 'providencia');
 
   function marcar(it: ItemProvidencia) {
     campo.providencia.mutate(
@@ -277,17 +271,6 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
         }
       />
     </div>
-  );
-}
-
-/** "Quem cuida" da providência: a tarefa aberta vinculada, se houver. */
-function QuemCuida({ tarefa: t }: { tarefa: TarefaObra | undefined }) {
-  if (!t) return null;
-  return (
-    <span className={styles.quem}>
-      <Icon name="pessoa" size={14} strokeWidth={2.2} />
-      Quem cuida: {t.responsavelNome ?? 'Sem nome'} · até {formatarDataCurta(t.prazo)}
-    </span>
   );
 }
 

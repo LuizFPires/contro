@@ -12,11 +12,13 @@ import { formatarDataCurta } from '../../lib/datas';
 import { usePerfil } from '../perfil/usePerfil';
 import { acoesVisiveis, secoesAcoes, type AcaoObra } from './acoesObra';
 import { hojeISO } from './api';
+import { CameraAtividade } from './CameraAtividade';
 import { CardAcao, MarcadorAcao, TituloSecao } from './CardAcao';
 import { MOTIVO_MAX, motivoReplanejamento, prazoMudou } from './entradaTarefa';
 import type { TarefaObra } from './tarefasObra';
 import { useAcoesDasObras } from './useAcoesDasObras';
 import { useObras } from './useObras';
+import { useReabrirAtividade } from './useObraCampo';
 import { useTarefasAcoes } from './useObraTarefas';
 import styles from './MinhasAcoesScreen.module.css';
 
@@ -42,8 +44,10 @@ export function MinhasAcoesScreen({
   const { data: obras = [] } = useObras();
   const { acoes: todas, carregando } = useAcoesDasObras(obras.map((o) => o.id));
   const acoes = useTarefasAcoes();
+  const reabrirAtv = useReabrirAtividade();
   const { showToast } = useToast();
   const [sel, setSel] = useState<TarefaObra | null>(null);
+  const [camera, setCamera] = useState<TarefaObra | null>(null);
   const hoje = hojeISO();
 
   const minhas = useMemo(
@@ -90,7 +94,9 @@ export function MinhasAcoesScreen({
       acoes.avancar.mutate({ ...alvo, pct: v.pct, comentario });
     }
     setSel(null);
-    if (v.pct === 'feita') {
+    if (v.pct === 'feita' && t.vinculo_tipo === 'atividade' && t.vinculo_id) {
+      setCamera(t); // atividade → câmera (conclui a atividade e a tarefa)
+    } else if (v.pct === 'feita') {
       acoes.concluir.mutate(alvo, {
         onSuccess: () =>
           showToast({ message: 'Ação concluída', onUndo: () => acoes.reabrir.mutate(alvo) }),
@@ -126,8 +132,8 @@ export function MinhasAcoesScreen({
         />
       );
     }
-    // Providência sem dono não tem responsável: não entra em Minhas ações.
-    if (a.origem === 'providencia') return null;
+    // Providência e atividade sem dono não têm responsável: não entram em Minhas ações.
+    if (a.origem === 'providencia' || a.origem === 'atividade') return null;
     const t = a.tarefa;
     return (
       <CardAcao
@@ -186,6 +192,30 @@ export function MinhasAcoesScreen({
         onFechar={() => setSel(null)}
         onSalvar={(v) => sel && salvar(sel, v)}
       />
+
+      {camera ? (
+        <CameraAtividade
+          tarefa={camera}
+          onFechar={() => setCamera(null)}
+          onConcluida={() => {
+            const t = camera;
+            const alvo = { obraId: t.obra_id, id: t.id };
+            setCamera(null);
+            acoes.concluir.mutate(alvo, {
+              onSuccess: () =>
+                showToast({
+                  message: 'Atividade e ação concluídas',
+                  // Desfazer reabre as duas: a atividade e depois a tarefa.
+                  onUndo: () =>
+                    reabrirAtv.mutate(
+                      { obraId: t.obra_id, atividadeId: t.vinculo_id as string },
+                      { onSettled: () => acoes.reabrir.mutate(alvo) },
+                    ),
+                }),
+            });
+          }}
+        />
+      ) : null}
     </div>
   );
 }
