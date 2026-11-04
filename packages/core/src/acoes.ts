@@ -6,7 +6,7 @@ import type { Criticidade } from './pendencias';
 import { nomeCurto } from './nomes';
 import { ROTULO_TIPO_PROVIDENCIA, type TipoProvidencia } from './trilha';
 
-export type OrigemAcao = 'tarefa' | 'pendencia' | 'providencia';
+export type OrigemAcao = 'tarefa' | 'pendencia' | 'providencia' | 'atividade';
 export type EstadoAcao = 'atrasada' | 'hoje' | 'proxima' | 'concluida';
 
 export interface Acao {
@@ -244,4 +244,26 @@ export function textoResumoSecoes(c: {
     c.proximas === 1 ? '1 nos próximos 5 dias' : `${c.proximas} nos próximos 5 dias`,
     c.concluidas === 1 ? '1 concluída' : `${c.concluidas} concluídas`,
   ].join(' · ');
+}
+
+export interface AtividadeBase {
+  id: string;
+  obraId: string;
+  nome: string;
+  /** Fim previsto (cronograma). */
+  prazo: DataISO;
+}
+
+/** Atividade aberta sem dono vira ação sem responsável ("Atividade: Demolição"). */
+export function atividadeParaAcaoBase(a: AtividadeBase): Acao {
+  return {
+    origem: 'atividade',
+    id: a.id,
+    obraId: a.obraId,
+    texto: `Atividade: ${a.nome}`,
+    prazo: a.prazo,
+    aberta: true,
+    responsavelId: null,
+    responsavelNome: null,
+  };
 }
