@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type SetStateAction } from 'react';
 
 const PREFIXO = 'contro:tela:';
 
@@ -31,7 +31,18 @@ export function useLembrado<T>(chave: string, inicial: T) {
       // Sem armazenamento (modo privado): só não lembra.
     }
   }, [chave, valor]);
-  return [valor, setValor] as const;
+  // Grava também na hora: se a tela sai junto com a mudança (ex.: fechar a
+  // obra e ir ao Log), o efeito acima não chega a rodar e o valor velho ficaria.
+  const guardar = useCallback(
+    (v: SetStateAction<T>) =>
+      setValor((antes) => {
+        const novo = v instanceof Function ? v(antes) : v;
+        lembrar(chave, novo);
+        return novo;
+      }),
+    [chave],
+  );
+  return [valor, guardar] as const;
 }
 
 /** Grava um valor lembrado fora do componente (ex.: a aba do início pelo menu). */

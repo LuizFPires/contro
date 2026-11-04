@@ -88,13 +88,12 @@ export function LogScreen({
 }) {
   const { linhas, itens, eventosPorItem, obras, carregando } = useLogDados();
   const { data: perfil } = usePerfil();
+  // O filtro da obra vem lembrado: o relógio da obra grava a obra uma vez ao
+  // abrir (App), então "Todas as obras" escolhido depois não volta sozinho.
   const [obraId, setObraId] = useLembrado<string | null>('log:obra', obraInicial ?? null);
   const [tipo, setTipo] = useLembrado<TipoFiltro | null>('log:tipo', null);
   const [eu, setEu] = useLembrado<boolean>('log:eu', false);
   const [tarefa, setTarefa] = useState<{ obraId: string; id: string } | null>(null);
-  useEffect(() => {
-    if (obraInicial) setObraId(obraInicial);
-  }, [obraInicial, setObraId]);
 
   // Obra lembrada que saiu da carga (apagada, pausada): volta para todas.
   const obraValida = obraId && obras.some((o) => o.id === obraId) ? obraId : null;
@@ -343,7 +342,8 @@ function FolhaTarefa({
   const { data: pessoas = [] } = usePessoas();
   const acoes = useTarefasAcoes();
   const t = query.data?.find((x) => x.id === id) ?? null;
-  const naoAchou = !query.isLoading && !t;
+  // Só conclui "excluída" com a lista carregada e em dia (não buscando nem com erro).
+  const naoAchou = query.isSuccess && !query.isFetching && !t;
   useEffect(() => {
     if (!naoAchou) return;
     showToast({ message: 'Tarefa não encontrada: pode ter sido excluída' });

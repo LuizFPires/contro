@@ -56,7 +56,10 @@ export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
         score90={s(90)}
         voce={linhaSel.chave === eu}
         onVoltar={() => setSel(null)}
-        onNav={onNav}
+        onNav={(item) => {
+          setSel(null);
+          onNav(item);
+        }}
       />
     );
   }

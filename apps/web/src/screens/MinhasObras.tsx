@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { lembrar, useLembrado } from '../lib/useLembrado';
+import { useLembrado } from '../lib/useLembrado';
 import { horaCurta, reuniaoQueVem, rotuloPerfil } from '@contro/core';
 import { BottomSheet, Icon, Logo, Simbolo, useToast, type IconName } from '@contro/ui';
 import { ObraCard } from '../features/obras/ObraCard';
@@ -48,6 +48,7 @@ export function MinhasObras({
   abrirObra,
   onAbrirObraConsumida,
   onIr,
+  onNav,
   onAbrirLog,
   onSair,
 }: {
@@ -55,6 +56,8 @@ export function MinhasObras({
   abrirObra?: AbrirObra | null;
   onAbrirObraConsumida?: () => void;
   onIr: (destino: DestinoInicio) => void;
+  /** Score e Log pelo menu inferior (o Log pelo menu abre em todas as obras). */
+  onNav: (item: 'score' | 'log') => void;
   /** Ícone de relógio no cabeçalho da obra: Log filtrado pela obra. */
   onAbrirLog?: (obraId: string) => void;
   onSair: () => void;
@@ -264,10 +267,8 @@ export function MinhasObras({
       <NavInferior
         ativo={aba}
         onEscolher={(item) => {
-          if (item === 'hoje' || item === 'obras') return setAba(item);
-          // Log pelo menu: todas as obras (o filtro da obra é do relógio da obra).
-          if (item === 'log') lembrar('log:obra', null);
-          onIr(item);
+          if (item === 'hoje' || item === 'obras') setAba(item);
+          else onNav(item);
         }}
       />
 

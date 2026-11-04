@@ -56,6 +56,7 @@ export function App() {
   const [logObra, setLogObra] = useLembrado<string | null>('app:logObra', null);
   const abrirLog = (obraId: string) => {
     setLogObra(obraId);
+    lembrar('log:obra', obraId); // o Log começa filtrado por ela (uma vez)
     setTela('log');
   };
   // Menu inferior no Score e no Log: Hoje/Obras voltam ao início naquela aba.
@@ -75,11 +76,14 @@ export function App() {
   useEffect(() => {
     const ir = new URLSearchParams(window.location.search).get('ir');
     if (!ir) return;
+    // Aviso não vem de uma obra: o Log abre em todas as obras.
+    setLogObra(null);
+    if (ir === 'log') lembrar('log:obra', null);
     if (ir === 'reuniao' || ir === 'tarefas' || ir === 'minhas' || ir === 'score' || ir === 'log')
       setTela(ir);
     else if (ir === 'hoje') setTela('inicio');
     window.history.replaceState(null, '', window.location.pathname);
-  }, [setTela]);
+  }, [setTela, setLogObra]);
 
   // Recarrega o perfil quando a sessão muda (login/logout/recuperação), para o
   // roteamento de membro/pendente usar sempre o perfil do usuário atual.
@@ -197,6 +201,7 @@ export function App() {
             abrirObra={abrirObra}
             onAbrirObraConsumida={() => setAbrirObra(null)}
             onIr={setTela}
+            onNav={irNav}
             onAbrirLog={abrirLog}
             onSair={() => {
               esquecerTelas();
