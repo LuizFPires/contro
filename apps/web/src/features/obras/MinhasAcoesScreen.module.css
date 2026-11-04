@@ -39,30 +39,20 @@
   font-size: 13px;
   color: rgb(255 255 255 / 72%);
 }
-.abas {
-  display: flex;
-  gap: 6px;
-  padding: 12px 16px 4px;
-}
-.aba {
-  min-height: var(--contro-touch);
-  padding: 0 14px;
-  border-radius: var(--contro-radius-pill);
-  border: 1.5px solid rgb(24 24 24 / 25%);
-  background: var(--contro-white);
-  color: var(--contro-black);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.abaOn {
-  background: var(--contro-black);
-  border-color: var(--contro-black);
-  color: var(--contro-white);
+.resumo {
+  padding: 10px 16px 0;
+  font-size: 13px;
+  color: #464646;
+  font-weight: 700;
 }
 .lista {
-  padding: 4px 16px 32px;
+  padding: 8px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.secao,
+.grupo {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -73,65 +63,17 @@
   padding: 12px 2px;
 }
 .obra {
-  margin: 10px 2px 6px;
+  margin: 4px 2px 0;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #696969;
 }
-.cartao {
-  background: var(--contro-white);
-  border: 1px solid var(--contro-border);
-  border-radius: 16px;
-  padding: 0 14px;
-}
-.item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border: 0;
-  border-bottom: 1px solid var(--contro-border);
-  background: none;
-  color: var(--contro-black);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.item:last-child {
-  border-bottom: 0;
-}
-.itemTexto {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.itemTitulo {
-  font-weight: 800;
-  font-size: 15px;
-}
 .meta {
   font-size: 13px;
   color: #464646;
   margin: 0;
-}
-.comentario {
-  font-size: 13px;
-  color: #464646;
-  font-style: italic;
-}
-/* Atraso: única exceção aprovada do vermelho. */
-.atraso {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--contro-late);
 }
 .anel {
   position: relative;
@@ -142,7 +84,8 @@
   align-items: center;
   justify-content: center;
 }
-.anel svg {
+/* Só o anel: o check do concluído (também svg) fica centralizado. */
+.anelSvg {
   position: absolute;
   inset: 0;
 }

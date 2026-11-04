@@ -1,4 +1,12 @@
-import { prazoPendencia, type Acao, type PrazosPendencia } from '@contro/core';
+import {
+  nomeCurto,
+  prazoPendencia,
+  type Acao,
+  type AcoesClassificadas,
+  type EstadoAcao,
+  type PrazosPendencia,
+} from '@contro/core';
+import type { IconName } from '@contro/ui';
 import { dataLocal } from './api';
 import type { PendenciaObra } from './pendenciasObra';
 import type { TarefaObra } from './tarefasObra';
@@ -34,8 +42,45 @@ export function pendenciaParaAcao(p: PendenciaObra, prazos: PrazosPendencia): Ac
     prazo: prazoPendencia(p.criticidade, dataLocal(p.apontada_em), prazos),
     aberta,
     responsavelId: p.responsavel_id ?? null,
-    responsavelNome: p.responsavelNome ?? null,
+    // Nome curto, como nas tarefas: o chip e o card mostram o mesmo nome.
+    responsavelNome: nomeCurto(p.responsavelNome) || null,
     concluidaEm: aberta ? undefined : p.resolvida_em,
     pendencia: p,
   };
+}
+
+/** Dias corridos que uma pendência resolvida continua em Concluídas. */
+export const DIAS_PENDENCIA_CONCLUIDA = 30;
+
+/**
+ * Lista das telas de ações: pendências resolvidas só dos últimos 30 dias
+ * corridos (a do Check list que acabou de ser resolvida, ainda sem data, fica).
+ * Tarefas feitas continuam todas.
+ */
+export function acoesVisiveis(acoes: AcaoObra[], hoje: string): AcaoObra[] {
+  const d = new Date(`${hoje}T12:00:00`);
+  d.setDate(d.getDate() - DIAS_PENDENCIA_CONCLUIDA);
+  const limite = dataLocal(d);
+  return acoes.filter(
+    (a) =>
+      a.origem === 'tarefa' || a.aberta || !a.concluidaEm || dataLocal(a.concluidaEm) >= limite,
+  );
+}
+
+export interface SecaoAcoes {
+  estado: EstadoAcao;
+  titulo: string;
+  icone: IconName;
+  itens: AcaoObra[];
+}
+
+/** As quatro seções na ordem fixa; some a seção vazia. */
+export function secoesAcoes(c: AcoesClassificadas<AcaoObra>): SecaoAcoes[] {
+  const todas: SecaoAcoes[] = [
+    { estado: 'atrasada', titulo: 'Atrasadas', icone: 'alert', itens: c.atrasadas },
+    { estado: 'hoje', titulo: 'Vencem hoje', icone: 'atencao', itens: c.hoje },
+    { estado: 'proxima', titulo: 'Próximos dias', icone: 'calendario', itens: c.proximas },
+    { estado: 'concluida', titulo: 'Concluídas', icone: 'checkCirculo', itens: c.concluidas },
+  ];
+  return todas.filter((s) => s.itens.length);
 }

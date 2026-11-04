@@ -130,30 +130,6 @@
   flex-direction: column;
   gap: 6px;
 }
-.grupoTitulo {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--contro-black);
-}
-.gAtraso {
-  color: var(--contro-late);
-}
-.gFeita {
-  color: #696969;
-}
-.item {
-  background: var(--contro-white);
-  border: 1.5px solid rgb(24 24 24 / 10%);
-  border-left: 6px solid var(--contro-black);
-  border-radius: 12px;
-  padding: 8px 10px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
 .check,
 .checkFeito {
   width: var(--contro-touch);
@@ -175,37 +151,6 @@
   background: var(--contro-turquoise);
   color: var(--contro-black);
 }
-.corpo {
-  min-width: 0;
-  flex-grow: 1;
-  text-align: left;
-  border: 0;
-  background: transparent;
-  padding: 2px 0;
-  cursor: pointer;
-  color: var(--contro-black);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  font: inherit;
-}
-.texto {
-  font-weight: 800;
-  font-size: 15px;
-}
-.meta {
-  font-size: 12px;
-  color: #696969;
-}
-.prazo {
-  font-size: 12px;
-  font-weight: 800;
-}
-.repl {
-  font-size: 12px;
-  font-weight: 700;
-  color: #464646;
-}
 .reabrir {
   min-height: var(--contro-touch);
   padding: 0 12px;
@@ -217,23 +162,6 @@
   font-size: 13px;
   cursor: pointer;
   flex-shrink: 0;
-}
-.atrasada {
-  border-color: var(--contro-late);
-}
-.atrasada .texto,
-.atrasada .prazo {
-  color: var(--contro-late);
-}
-.feita {
-  border-left-color: var(--contro-turquoise);
-}
-.feita .texto {
-  color: #696969;
-  text-decoration: line-through;
-}
-.feita .prazo {
-  color: #696969;
 }
 .vazio {
   border: 2px dashed rgb(24 24 24 / 25%);

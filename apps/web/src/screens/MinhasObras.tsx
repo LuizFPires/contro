@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLembrado } from '../lib/useLembrado';
 import { horaCurta, reuniaoQueVem, rotuloPerfil } from '@contro/core';
 import { BottomSheet, Icon, Logo, Simbolo, useToast, type IconName } from '@contro/ui';
 import { ObraCard } from '../features/obras/ObraCard';
 import { HojeObras } from '../features/obras/HojeObras';
-import { ObraDetalhe } from '../features/obras/ObraDetalhe';
+import { ObraDetalhe, type AbaObra } from '../features/obras/ObraDetalhe';
 import { NovaObraScreen } from '../features/obras/NovaObraScreen';
 import { useObras } from '../features/obras/useObras';
 import { usePerfil } from '../features/perfil/usePerfil';
@@ -29,10 +29,21 @@ export type DestinoInicio =
   | 'membros'
   | 'avisos';
 
+/** Pedido para abrir uma obra numa aba (ex.: pendência tocada em Tarefas). */
+export interface AbrirObra {
+  id: string;
+  aba?: AbaObra;
+}
+
 export function MinhasObras({
+  abrirObra,
+  onAbrirObraConsumida,
   onIr,
   onSair,
 }: {
+  /** Abre a obra uma vez; depois de usado, o App limpa (o Voltar funciona). */
+  abrirObra?: AbrirObra | null;
+  onAbrirObraConsumida?: () => void;
   onIr: (destino: DestinoInicio) => void;
   onSair: () => void;
 }) {
@@ -53,7 +64,13 @@ export function MinhasObras({
     id: string;
     boletim?: boolean;
     plano?: boolean;
+    aba?: AbaObra;
   } | null>('inicio:obra', null);
+  useEffect(() => {
+    if (!abrirObra) return;
+    setObraAberta({ id: abrirObra.id, aba: abrirObra.aba });
+    onAbrirObraConsumida?.();
+  }, [abrirObra, onAbrirObraConsumida, setObraAberta]);
   // Menu inferior da tela inicial: "Hoje" abre por padrão.
   const [aba, setAba] = useLembrado<'hoje' | 'obras'>('inicio:aba', 'hoje');
 
@@ -63,6 +80,7 @@ export function MinhasObras({
         id={obraAberta.id}
         abrirBoletim={obraAberta.boletim}
         abrirPlano={obraAberta.plano}
+        abrirAba={obraAberta.aba}
         onVoltar={() => setObraAberta(null)}
       />
     );

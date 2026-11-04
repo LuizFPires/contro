@@ -35,7 +35,7 @@ import { montarTrilha } from './trilhaObra';
 import styles from './ObraDetalhe.module.css';
 import { useLembrado } from '../../lib/useLembrado';
 
-type AbaObra = 'fases' | 'pendencias' | 'providencias' | 'cronograma' | 'boletim';
+export type AbaObra = 'fases' | 'pendencias' | 'providencias' | 'cronograma' | 'boletim';
 
 const ABAS: { key: Exclude<AbaObra, 'boletim'>; label: string; icon: IconName }[] = [
   { key: 'fases', label: 'Fases', icon: 'fases' },
@@ -50,12 +50,15 @@ export function ObraDetalhe({
   onVoltar,
   abrirBoletim,
   abrirPlano,
+  abrirAba,
 }: {
   id: string;
   onVoltar: () => void;
   abrirBoletim?: boolean;
   /** Abre direto no plano de recuperação (atalho da aba Hoje). */
   abrirPlano?: boolean;
+  /** Abre direto numa aba (pendência tocada em Tarefas ou Minhas ações). */
+  abrirAba?: AbaObra;
 }) {
   const { data: obra, isLoading } = useObraDetalhe(id);
   const pendencias = useObraPendencias(id);
@@ -70,6 +73,9 @@ export function ObraDetalhe({
   useEffect(() => {
     if (abrirBoletim) setAba('boletim');
   }, [abrirBoletim, setAba]);
+  useEffect(() => {
+    if (abrirAba) setAba(abrirAba);
+  }, [abrirAba, setAba]);
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
   const [planoAberto, setPlanoAberto] = useState(Boolean(abrirPlano));
   // Mapa de coleta: "+ Quem foi contratado" abre o campo (opcional, depois do check).

@@ -1,70 +1,81 @@
 import { useMemo, useState } from 'react';
-import { classificarTarefas, tarefaAtrasada, textoReplanejamento } from '@contro/core';
+import { classificarAcoes, estadoAcao, textoResumoSecoes } from '@contro/core';
 import { Icon, useToast } from '@contro/ui';
 import { usePessoas } from '../perfil/usePessoas';
-import { formatarDataCurta } from '../../lib/datas';
+import { acoesVisiveis, secoesAcoes, type AcaoObra } from './acoesObra';
 import { hojeISO } from './api';
 import { Camera } from './Camera';
+import { CardAcao, MarcadorAcao, TituloSecao } from './CardAcao';
 import { TarefaSheet } from './TarefaSheet';
 import type { EntradaTarefa } from './campo';
 import type { TarefaObra } from './tarefasObra';
 import { useObraCampo } from './useObraCampo';
 import { useObras } from './useObras';
-import { useTarefasAcoes, useTarefasDasObras } from './useObraTarefas';
+import { useAcoesDasObras } from './useAcoesDasObras';
+import { useTarefasAcoes } from './useObraTarefas';
 import styles from './TarefasScreen.module.css';
 
 const SEM = 'sem';
 
-/** Tarefas da equipe (protótipo · TAREFAS): todas as obras, filtro por pessoa. */
 /** Chave do chip: pessoa do app, nome digitado ou sem responsável. */
-const chaveResp = (t: TarefaObra) =>
-  t.responsavel_id ?? (t.responsavelNome ? `nome:${t.responsavelNome}` : SEM);
+const chaveResp = (a: AcaoObra) =>
+  a.responsavelId ?? (a.responsavelNome ? `nome:${a.responsavelNome}` : SEM);
 
+/**
+ * Tarefas da equipe (protótipo · TAREFAS): tarefas e pendências do Check list
+ * de todas as obras, como "ação", em quatro seções; filtro por pessoa.
+ */
 export function TarefasScreen({
   onVoltar,
   onMinhas,
+  onAbrirPendencia,
 }: {
   onVoltar: () => void;
   /** Abre Minhas ações (o que está com quem está logado). */
   onMinhas: () => void;
+  /** Abre o Check list da obra da pendência. */
+  onAbrirPendencia: (obraId: string, pendenciaId: string) => void;
 }) {
   const { showToast } = useToast();
   const { data: obras = [] } = useObras();
   const { data: pessoas = [] } = usePessoas();
-  const { tarefas: lista, carregando } = useTarefasDasObras(obras.map((o) => o.id));
+  const { acoes: todas, carregando } = useAcoesDasObras(obras.map((o) => o.id));
   const acoes = useTarefasAcoes();
   const [filtro, setFiltro] = useState<string>('todos');
   const [editando, setEditando] = useState<TarefaObra | null>(null);
   const [nova, setNova] = useState(false);
   const [camera, setCamera] = useState<TarefaObra | null>(null);
   const hoje = hojeISO();
+  const lista = useMemo(() => acoesVisiveis(todas, hoje), [todas, hoje]);
 
   const nomeObra = useMemo(() => new Map(obras.map((o) => [o.id, o.nome])), [obras]);
 
-  // Chips: uma pessoa por responsável com tarefa, com o nº de atrasadas.
+  // Chips: uma pessoa por responsável com ação; o selo conta só as atrasadas.
   const chips = useMemo(() => {
     const m = new Map<string, { nome: string; atrasadas: number }>();
-    for (const t of lista) {
-      const k = chaveResp(t);
-      const c = m.get(k) ?? { nome: t.responsavelNome ?? 'Sem responsável', atrasadas: 0 };
-      if (tarefaAtrasada(t, hoje)) c.atrasadas += 1;
+    for (const a of lista) {
+      const k = chaveResp(a);
+      const c = m.get(k) ?? { nome: a.responsavelNome ?? 'Sem responsável', atrasadas: 0 };
+      if (estadoAcao(a, hoje) === 'atrasada') c.atrasadas += 1;
       m.set(k, c);
     }
     return [...m.entries()].map(([id, c]) => ({ id, ...c }));
   }, [lista, hoje]);
 
   const filtrada = useMemo(
-    () => (filtro === 'todos' ? lista : lista.filter((t) => chaveResp(t) === filtro)),
+    () => (filtro === 'todos' ? lista : lista.filter((a) => chaveResp(a) === filtro)),
     [lista, filtro],
   );
-  const { atrasadas, abertas, concluidas } = useMemo(
-    () => classificarTarefas(filtrada, hoje),
-    [filtrada, hoje],
-  );
+  const classificadas = useMemo(() => classificarAcoes(filtrada, hoje), [filtrada, hoje]);
+  const secoes = secoesAcoes(classificadas);
 
   const quem = filtro === 'todos' ? 'Equipe' : (chips.find((c) => c.id === filtro)?.nome ?? '');
-  const nAbertas = atrasadas.length + abertas.length;
-  const resumo = `${quem}: ${nAbertas} ${nAbertas === 1 ? 'aberta' : 'abertas'} · ${atrasadas.length} ${atrasadas.length === 1 ? 'atrasada' : 'atrasadas'} · ${concluidas.length} ${concluidas.length === 1 ? 'concluída' : 'concluídas'}`;
+  const resumo = `${quem}: ${textoResumoSecoes({
+    atrasadas: classificadas.atrasadas.length,
+    hoje: classificadas.hoje.length,
+    proximas: classificadas.proximas.length,
+    concluidas: classificadas.concluidas.length,
+  })}`;
 
   const alvo = (t: TarefaObra) => ({ obraId: t.obra_id, id: t.id });
 
@@ -111,12 +122,6 @@ export function TarefasScreen({
       },
     });
   }
-
-  const grupos = [
-    { titulo: 'Atrasadas', classe: styles.gAtraso, itens: atrasadas },
-    { titulo: 'Abertas', classe: '', itens: abertas },
-    { titulo: 'Concluídas', classe: styles.gFeita, itens: concluidas },
-  ].filter((g) => g.itens.length);
 
   return (
     <div className={styles.screen}>
@@ -169,20 +174,19 @@ export function TarefasScreen({
       <div className={styles.resumo}>{carregando ? 'Carregando…' : resumo}</div>
 
       <div className={styles.lista}>
-        {grupos.map((g) => (
-          <section key={g.titulo} className={styles.grupo}>
-            <h2 className={`${styles.grupoTitulo} ${g.classe}`}>
-              {g.titulo} · {g.itens.length}
-            </h2>
-            {g.itens.map((t) => (
+        {secoes.map((sec) => (
+          <section key={sec.estado} className={styles.grupo}>
+            <TituloSecao secao={sec} />
+            {sec.itens.map((a) => (
               <Linha
-                key={t.id}
-                t={t}
-                obra={nomeObra.get(t.obra_id) ?? ''}
-                atrasada={tarefaAtrasada(t, hoje)}
-                onConcluir={() => concluir(t)}
-                onReabrir={() => reabrir(t)}
-                onEditar={() => setEditando(t)}
+                key={`${a.origem}:${a.id}`}
+                a={a}
+                hoje={hoje}
+                obra={nomeObra.get(a.obraId) ?? ''}
+                onConcluir={concluir}
+                onReabrir={reabrir}
+                onEditar={setEditando}
+                onAbrirPendencia={onAbrirPendencia}
               />
             ))}
           </section>
@@ -190,8 +194,8 @@ export function TarefasScreen({
         {!carregando && filtrada.length === 0 ? (
           <div className={styles.vazio}>
             {filtro === 'todos'
-              ? 'Nenhuma tarefa ainda. Toque no + para criar uma.'
-              : 'Nenhuma tarefa para esta pessoa.'}
+              ? 'Nenhuma ação ainda. Toque no + para criar uma tarefa.'
+              : 'Nenhuma ação para esta pessoa.'}
           </div>
         ) : null}
       </div>
@@ -263,82 +267,75 @@ function CameraAtividade({
   );
 }
 
+/** Uma ação na lista: tarefa com check/reabrir/editar; pendência abre o Check list. */
 function Linha({
-  t,
+  a,
+  hoje,
   obra,
-  atrasada,
   onConcluir,
   onReabrir,
   onEditar,
+  onAbrirPendencia,
 }: {
-  t: TarefaObra;
+  a: AcaoObra;
+  hoje: string;
   obra: string;
-  atrasada: boolean;
-  onConcluir: () => void;
-  onReabrir: () => void;
-  onEditar: () => void;
+  onConcluir: (t: TarefaObra) => void;
+  onReabrir: (t: TarefaObra) => void;
+  onEditar: (t: TarefaObra) => void;
+  onAbrirPendencia: (obraId: string, pendenciaId: string) => void;
 }) {
-  const feita = t.status === 'feita';
-  const repl = feita
-    ? null
-    : textoReplanejamento(
-        t.replanejamentos,
-        t.prazo_original ? formatarDataCurta(t.prazo_original) : null,
-      );
-  const prazo = feita
-    ? 'Concluída'
-    : atrasada
-      ? `ATRASADA · prazo era ${formatarDataCurta(t.prazo)}`
-      : `Prazo ${formatarDataCurta(t.prazo)}`;
-  const estado = feita ? styles.feita : atrasada ? styles.atrasada : '';
-
+  if (a.origem === 'pendencia') {
+    return (
+      <CardAcao
+        acao={a}
+        hoje={hoje}
+        obra={obra}
+        cardInteiro
+        esquerda={<MarcadorAcao feita={!a.aberta} />}
+        rotulo={`${a.texto}: abrir no Check list`}
+        onToque={() => onAbrirPendencia(a.obraId, a.id)}
+      />
+    );
+  }
+  const t = a.tarefa;
+  const feita = !a.aberta;
   return (
-    <div className={`${styles.item} ${estado}`}>
-      {feita ? (
-        <button
-          type="button"
-          className={styles.checkFeito}
-          aria-label="Reabrir tarefa"
-          title="Reabrir tarefa"
-          onClick={onReabrir}
-        >
-          <Icon name="checkGrosso" size={20} strokeWidth={2.6} />
-        </button>
-      ) : (
-        <button
-          type="button"
-          className={styles.check}
-          aria-label="Concluir tarefa"
-          onClick={onConcluir}
-        >
-          <Icon name="checkGrosso" size={20} strokeWidth={2.4} />
-        </button>
-      )}
-      <button type="button" className={styles.corpo} aria-label="Editar tarefa" onClick={onEditar}>
-        <span className={styles.texto}>{t.texto}</span>
-        <span className={styles.meta}>
-          {[obra, t.responsavelNome ?? 'Sem responsável', t.origem_texto]
-            .filter(Boolean)
-            .join(' · ')}
-        </span>
-        <span className={styles.prazo}>{prazo}</span>
-        {repl ? <span className={styles.repl}>{repl}</span> : null}
-        {!feita && (t.avanco_pct > 0 || t.comentario) ? (
-          <span className={styles.repl}>
-            {[
-              t.avanco_pct > 0 ? `${t.avanco_pct}% feito` : null,
-              t.comentario ? `“${t.comentario}”` : null,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </span>
-        ) : null}
-      </button>
-      {feita ? (
-        <button type="button" className={styles.reabrir} onClick={onReabrir}>
-          Reabrir
-        </button>
-      ) : null}
-    </div>
+    <CardAcao
+      acao={a}
+      hoje={hoje}
+      obra={obra}
+      rotulo={`${a.texto}: editar tarefa`}
+      onToque={() => onEditar(t)}
+      esquerda={
+        feita ? (
+          <button
+            type="button"
+            className={styles.checkFeito}
+            aria-label="Reabrir tarefa"
+            title="Reabrir tarefa"
+            onClick={() => onReabrir(t)}
+          >
+            <Icon name="checkGrosso" size={20} strokeWidth={2.6} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={styles.check}
+            aria-label="Concluir tarefa"
+            onClick={() => onConcluir(t)}
+          >
+            <Icon name="checkGrosso" size={20} strokeWidth={2.4} />
+          </button>
+        )
+      }
+      direita={
+        feita ? (
+          <button type="button" className={styles.reabrir} onClick={() => onReabrir(t)}>
+            Reabrir
+          </button>
+        ) : null
+      }
+    />
   );
 }

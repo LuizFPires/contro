@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { PRAZOS_PENDENCIA_PADRAO, prazoPendencia } from '@contro/core';
+import { PRAZOS_PENDENCIA_PADRAO, nomeCurto, prazoPendencia } from '@contro/core';
 import { dataLocal } from './api';
-import { pendenciaParaAcao, tarefaParaAcao } from './acoesObra';
+import { acoesVisiveis, pendenciaParaAcao, tarefaParaAcao } from './acoesObra';
 import type { PendenciaObra } from './pendenciasObra';
 import type { TarefaObra } from './tarefasObra';
 
@@ -104,5 +104,42 @@ describe('pendenciaParaAcao', () => {
     );
     expect(a.responsavelId).toBe('u1');
     expect(a.responsavelNome).toBe('Ana');
+  });
+
+  it('nome do responsável fica curto, como nas tarefas', () => {
+    const a = pendenciaParaAcao(
+      pendencia({ responsavel_id: 'u1', responsavelNome: 'Ana Paula Souza' }),
+      PRAZOS_PENDENCIA_PADRAO,
+    );
+    expect(a.responsavelNome).toBe(nomeCurto('Ana Paula Souza'));
+  });
+});
+
+describe('acoesVisiveis', () => {
+  const hoje = '2026-11-04';
+  const fechada = (resolvida_em: string | null, id = 'p') =>
+    pendenciaParaAcao(pendencia({ id, status: 'fechada', resolvida_em }), PRAZOS_PENDENCIA_PADRAO);
+
+  it('mantém pendência resolvida nos últimos 30 dias e tira a mais antiga', () => {
+    const r = acoesVisiveis(
+      [
+        fechada('2026-10-05T15:00:00-03:00', 'limite'),
+        fechada('2026-10-04T15:00:00-03:00', 'velha'),
+      ],
+      hoje,
+    );
+    expect(r.map((a) => a.id)).toEqual(['limite']);
+  });
+
+  it('mantém pendência aberta, resolvida sem data e tarefa feita antiga', () => {
+    const r = acoesVisiveis(
+      [
+        pendenciaParaAcao(pendencia({ id: 'aberta' }), PRAZOS_PENDENCIA_PADRAO),
+        fechada(null, 'sem-data'),
+        tarefaParaAcao(tarefa({ id: 'feita', status: 'feita', feita_em: '2026-01-01T12:00:00Z' })),
+      ],
+      hoje,
+    );
+    expect(r.map((a) => a.id)).toEqual(['aberta', 'sem-data', 'feita']);
   });
 });
