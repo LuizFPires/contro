@@ -326,6 +326,15 @@ Botão "Adicionar item do mapa" na fase Mapa de coleta da obra. Spec: `docs/supe
 - [x] 2. Web: `NovoMapaSheet`, `novoMapa` no hook, botão só no Mapa de coleta, Desfazer.
 - [x] 3. Documentação, verificação final e PR.
 
+## Atividades como ações (04/11/2026)
+Atividade sem tarefa vinculada aberta vira ação "Sem responsável"; o gestor atribui quem cuida. Spec: `docs/superpowers/specs/2026-11-04-atividades-como-acoes-design.md`.
+- [x] 1. Core: `atividadesAcoes.ts`, `OrigemAcao` com `'atividade'`, `atividadeParaAcaoBase` e `comTarefa` na agenda.
+- [x] 2. Migration `20261104500000_atividade_prazo.sql` (`fim_previsto_calc`, RPC, `gerar_avisos`) e pgTAP.
+- [x] 3. Web: `listarObras`, contadores, `useAcoesDasObras` e `CardAcao` da atividade.
+- [x] 4. Tarefas da equipe: folha "Atribuir atividade" e "Quem cuida" na ficha.
+- [x] 5. Documentação: PRD, SPEC e PLAN.
+- [ ] 6. Verificação final e PR.
+
 ---
 
 ## Melhorias (fora do plano principal)
@@ -360,6 +369,7 @@ Botão "Adicionar item do mapa" na fase Mapa de coleta da obra. Spec: `docs/supe
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-11-04 · **Atividades como ações.** Atividade de topo sem tarefa vinculada aberta entra em Tarefas da equipe ("Sem responsável") nas três seções e nos contadores; atribuir cria a tarefa vinculada à atividade (concluir pela câmera conclui a atividade). fim_previsto_calc derivado para o push do gestor. Hoje esconde a atividade que já tem tarefa. · pedido do usuário · usuário
 - 2026-11-04 · **Log só leitura.** As linhas do Log não abrem folha de edição nem navegam para o item: o Log é a foto do que aconteceu; editar fica nas telas de cada item. Removidos a folha da tarefa pelo Log e o toque nas linhas e nos cards por item. · pedido do usuário · usuário
 - 2026-11-04 · **Item do mapa pela obra.** Botão "Adicionar item do mapa" na fase Mapa de coleta; folha com nome, duração, antecedência e atividades liberadas; RPC adicionar_mapa_obra; não altera o modelo. Salva direto, sem fila offline, como o adicionar de atividade. · pedido do usuário · usuário Adicionar um item renumera os #N da obra, como ao adicionar atividade.
 - 2026-11-04 · **Próximos 5 dias.** As listas de ações mostram só o que vence de amanhã até 4 d.u. depois; o resto não aparece (sem "Mais adiante"). · pedido do usuário · usuário
