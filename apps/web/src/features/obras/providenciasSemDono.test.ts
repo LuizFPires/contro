@@ -3,6 +3,7 @@ import { providenciarAte } from '@contro/core';
 import {
   prazosParaGravar,
   providenciasSemDono,
+  semTarefaAberta,
   type LinhaProvidencia,
 } from './providenciasSemDono';
 
@@ -91,5 +92,29 @@ describe('prazosParaGravar', () => {
       { id: 'nulo', ate },
       { id: 'velho', ate },
     ]);
+  });
+});
+
+describe('semTarefaAberta', () => {
+  const p = (id: string) => ({
+    id,
+    obraId: 'o1',
+    obraNome: 'Savassi',
+    tipo: 'compra' as const,
+    descricao: 'Cabos',
+    prazo: '2026-11-11',
+    atividadeNome: 'Elétrica',
+  });
+
+  it('tira só a que tem tarefa aberta vinculada à providência no cache', () => {
+    const r = semTarefaAberta(
+      [p('p1'), p('p2'), p('p3'), p('p4')],
+      [
+        { status: 'aberta', vinculo_tipo: 'providencia', vinculo_id: 'p1' },
+        { status: 'feita', vinculo_tipo: 'providencia', vinculo_id: 'p2' },
+        { status: 'aberta', vinculo_tipo: 'pendencia', vinculo_id: 'p3' },
+      ],
+    );
+    expect(r.map((x) => x.id)).toEqual(['p2', 'p3', 'p4']);
   });
 });

@@ -65,7 +65,7 @@ export function useTarefasAcoes() {
   const reverter = (ctx: { obraId: string; prev?: TarefaObra[] } | undefined) => {
     if (ctx?.prev) qc.setQueryData(chave(ctx.obraId), ctx.prev);
   };
-  // Tarefa vinculada a providência tira/devolve a providência de "Sem responsável".
+  // Criar/excluir/restaurar tarefa vinculada tira/devolve a providência de "Sem responsável".
   const refazerObras = () => void qc.invalidateQueries({ queryKey: ['obras'] });
 
   // Salvar (criar/editar). Para nova tarefa o id é gerado no cliente — o MESMO
@@ -125,14 +125,12 @@ export function useTarefasAcoes() {
     mutationFn: (v: Alvo) => enfileirar('concluir_tarefa', { obraId: v.obraId, id: v.id }),
     onMutate: status('feita'),
     onError: (_e, _v, ctx) => reverter(ctx),
-    onSettled: refazerObras,
   });
   const reabrir = useMutation({
     networkMode: 'always',
     mutationFn: (v: Alvo) => enfileirar('reabrir_tarefa', { obraId: v.obraId, id: v.id }),
     onMutate: status('aberta'),
     onError: (_e, _v, ctx) => reverter(ctx),
-    onSettled: refazerObras,
   });
   // Avanço e comentário da ação (Minhas ações): também é ação de campo.
   const avancar = useMutation({

@@ -89,3 +89,19 @@ export function prazosParaGravar(
   }
   return out;
 }
+
+/**
+ * Tira as providências que já têm tarefa aberta vinculada no cache otimista de
+ * tarefas (ex.: acabou de atribuir, ainda sem sync): evita mostrar as duas.
+ */
+export function semTarefaAberta(
+  providencias: ProvidenciaSemDono[],
+  tarefas: { status: string; vinculo_tipo: string | null; vinculo_id: string | null }[],
+): ProvidenciaSemDono[] {
+  const vinculadas = new Set(
+    tarefas
+      .filter((t) => t.status === 'aberta' && t.vinculo_tipo === 'providencia' && t.vinculo_id)
+      .map((t) => t.vinculo_id),
+  );
+  return vinculadas.size ? providencias.filter((p) => !vinculadas.has(p.id)) : providencias;
+}

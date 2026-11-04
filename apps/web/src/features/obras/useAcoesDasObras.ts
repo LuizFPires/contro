@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { PRAZOS_PENDENCIA_PADRAO } from '@contro/core';
 import { prazosDaConfig, useConfigAvisos } from '../avisos/useConfigAvisos';
 import { pendenciaParaAcao, providenciaParaAcao, tarefaParaAcao, type AcaoObra } from './acoesObra';
+import { semTarefaAberta } from './providenciasSemDono';
 import { useObras } from './useObras';
 import { usePendenciasDasObras } from './useObraPendencias';
 import { useTarefasDasObras } from './useObraTarefas';
@@ -21,8 +22,12 @@ export function useAcoesDasObras(obraIds: string[]): { acoes: AcaoObra[]; carreg
   const chaveIds = obraIds.join(',');
   const providencias = useMemo(() => {
     const ids = new Set(chaveIds ? chaveIds.split(',') : []);
-    return (obras ?? []).filter((o) => ids.has(o.id)).flatMap((o) => o.providenciasSemDono);
-  }, [obras, chaveIds]);
+    const doServidor = (obras ?? [])
+      .filter((o) => ids.has(o.id))
+      .flatMap((o) => o.providenciasSemDono);
+    // A tarefa otimista (recém-atribuída) já representa a providência.
+    return semTarefaAberta(doServidor, tarefas);
+  }, [obras, chaveIds, tarefas]);
   const acoes = useMemo(
     () => [
       ...tarefas.map(tarefaParaAcao),
