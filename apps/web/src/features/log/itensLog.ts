@@ -20,6 +20,8 @@ export interface ObraLog {
   id: string;
   nome: string;
   status: StatusObraLog;
+  /** Início da obra: nascimento das atividades na "Vida do item". */
+  inicio?: string | null;
 }
 
 export interface LinhaAtividadeLog {
@@ -137,6 +139,8 @@ export function itensDoLog(d: DadosLogScore): ItemLog[] {
       aberta: t.status === 'aberta',
       concluidaEm: t.status === 'aberta' ? null : t.feita_em,
       responsavelNome: nomeResponsavelTarefa(t),
+      responsavelId: t.responsavel_id,
+      criadaEm: t.created_at,
       excluida: false,
       ...(t.vinculo_tipo === 'providencia' ? { vinculoProvidencia: true } : {}),
     });
@@ -156,6 +160,8 @@ export function itensDoLog(d: DadosLogScore): ItemLog[] {
       aberta: pendenciaAberta(p),
       concluidaEm: pendenciaAberta(p) ? null : p.resolvida_em,
       responsavelNome: p.responsavel?.nome ?? null,
+      responsavelId: p.responsavel_id,
+      criadaEm: p.apontada_em,
       excluida: false,
     });
   }
@@ -175,6 +181,7 @@ export function itensDoLog(d: DadosLogScore): ItemLog[] {
       aberta: a.concluida_em == null,
       concluidaEm: a.concluida_em,
       responsavelNome: null,
+      criadaEm: o.inicio ?? null,
       excluida: false,
     });
   }
@@ -192,22 +199,40 @@ const evento = (e: EventoBase, itemId: string, antes: Json, depois: Json): Event
   depois,
 });
 
+/** Sem repetidos pelo id (a paginação por offset pode trazer o mesmo evento duas vezes). */
+function semRepetidos<T extends { id: string }>(linhas: T[]): T[] {
+  const vistos = new Set<string>();
+  return linhas.filter((l) => (vistos.has(l.id) ? false : (vistos.add(l.id), true)));
+}
+
 /** Eventos das três tabelas no formato do core, com a origem de cada um. */
 export function eventosDoLog(d: DadosLogScore): { origem: OrigemLog; evento: EventoBruto }[] {
   return [
-    ...d.eventosTarefa.map((e) => ({
+    ...semRepetidos(d.eventosTarefa).map((e) => ({
       origem: 'tarefa' as const,
       evento: evento(e, e.tarefa_id, e.antes, e.depois),
     })),
-    ...d.eventosPendencia.map((e) => ({
+    ...semRepetidos(d.eventosPendencia).map((e) => ({
       origem: 'pendencia' as const,
       evento: evento(e, e.pendencia_id, null, e.dados),
     })),
-    ...d.eventosAtividade.map((e) => ({
+    ...semRepetidos(d.eventosAtividade).map((e) => ({
       origem: 'atividade' as const,
       evento: evento(e, e.atividade_id, e.antes, e.depois),
     })),
   ];
+}
+
+/**
+ * Obras que entram na carga: as ativas e as concluídas com algum item na janela
+ * (tarefa, pendência ou atividade aberta ou concluída desde o início da janela;
+ * as listas recebidas já vêm filtradas assim). Concluída sem nada na janela fica fora.
+ */
+export function obrasNaJanela<O extends ObraLog>(obras: O[], comItem: { obra_id: string }[]): O[] {
+  const comAlgo = new Set(comItem.map((i) => i.obra_id));
+  return obras.filter(
+    (o) => o.status === 'ativa' || (o.status === 'concluida' && comAlgo.has(o.id)),
+  );
 }
 
 /** Eventos agrupados pelo id do item (para a "Vida do item"). */

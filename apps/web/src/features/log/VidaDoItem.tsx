@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { vidaDoItem, type EventoBruto, type ItemLog } from '@contro/core';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from '../obras/api';
-import { useLogDados } from './dadosLogScore';
+import { useVidaDoItem } from './dadosLogScore';
 import { diaDe } from './formatos';
 import styles from './VidaDoItem.module.css';
 
@@ -41,6 +41,7 @@ export function LinhaDoTempo({
           >
             <span className={styles.rotulo}>
               {p.rotulo} · {formatarDataCurta(diaDe(p.em))}
+              {p.pessoa ? ` · ${p.pessoa}` : ''}
             </span>
             {p.detalhe ? <span className={styles.detalhe}>{p.detalhe}</span> : null}
           </li>
@@ -57,11 +58,7 @@ export function LinhaDoTempo({
  * eventos dos últimos 90 dias (consulta do Log, em cache).
  */
 export function VidaDoItem({ itemId }: { itemId: string }) {
-  const { itens, eventosPorItem } = useLogDados();
-  const item = useMemo(() => itens.find((i) => i.id === itemId), [itens, itemId]);
-  const eventos = eventosPorItem.get(itemId);
+  const { item, eventos } = useVidaDoItem(itemId);
   if (!item) return null;
-  return <LinhaDoTempo item={item} eventos={eventos ?? SEM_EVENTOS} />;
+  return <LinhaDoTempo item={item} eventos={eventos} />;
 }
-
-const SEM_EVENTOS: EventoBruto[] = [];

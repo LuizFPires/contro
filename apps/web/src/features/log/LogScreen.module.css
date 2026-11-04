@@ -91,6 +91,23 @@
   font-size: 14px;
   color: #5f5f5f;
 }
+.vazio svg {
+  vertical-align: -3px;
+}
+.maisDias {
+  align-self: center;
+  min-height: var(--contro-touch);
+  margin-top: 8px;
+  padding: 0 16px;
+  border-radius: 99px;
+  border: 1.5px solid var(--contro-black);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+}
 .dia {
   display: flex;
   flex-direction: column;

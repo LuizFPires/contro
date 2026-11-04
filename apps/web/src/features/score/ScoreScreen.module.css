@@ -54,6 +54,9 @@
   font-size: 14px;
   color: #5f5f5f;
 }
+.vazio svg {
+  vertical-align: -3px;
+}
 .nota {
   margin: 4px 0 0;
   font-size: 12px;

@@ -7,6 +7,7 @@ import {
   itensDoLog,
   itensEquipe,
   itensPrestador,
+  obrasNaJanela,
   type DadosLogScore,
   type LinhaAtividadeLog,
   type LinhaPendenciaLog,
@@ -58,7 +59,7 @@ const atividade = (o: Partial<LinhaAtividadeLog> = {}): LinhaAtividadeLog => ({
 
 const dados = (o: Partial<DadosLogScore> = {}): DadosLogScore => ({
   obras: [
-    { id: 'o1', nome: 'Savassi', status: 'ativa' },
+    { id: 'o1', nome: 'Savassi', status: 'ativa', inicio: '2026-10-05' },
     { id: 'o2', nome: 'Pampulha', status: 'concluida' },
     { id: 'o3', nome: 'Centro', status: 'pausada' },
   ],
@@ -261,6 +262,8 @@ describe('itensDoLog', () => {
       aberta: false,
       concluidaEm: '2026-11-09T15:00:00Z',
       responsavelNome: 'Ana Souza',
+      responsavelId: 'p1',
+      criadaEm: '2026-11-02T12:00:00Z',
       obraNome: 'Savassi',
     });
     expect(itens.find((i) => i.id === 'a1')).toMatchObject({
@@ -268,11 +271,14 @@ describe('itensDoLog', () => {
       prazo: '2026-11-05',
       aberta: true,
       excluida: false,
+      criadaEm: '2026-10-05',
     });
     expect(itens.find((i) => i.id === 'pd1')).toMatchObject({
       texto: 'Rejunte manchado',
       aberta: true,
       responsavelNome: 'Bruno Lima',
+      responsavelId: 'p2',
+      criadaEm: '2026-11-02T13:00:00Z',
     });
   });
 });
@@ -361,6 +367,35 @@ describe('eventos', () => {
     const mapa = eventosPorItem(evs);
     expect(mapa.get('t1')?.map((e) => e.id)).toEqual(['e1']);
     expect(mapa.get('a1')?.map((e) => e.id)).toEqual(['e3']);
+  });
+});
+
+describe('eventos repetidos', () => {
+  it('a paginação pode repetir um evento: entra uma vez só', () => {
+    const e = {
+      id: 'e1',
+      tarefa_id: 't1',
+      tipo: 'criada',
+      por: null,
+      em: '2026-11-03T12:00:00Z',
+      antes: null,
+      depois: null,
+      por_pessoa: null,
+    };
+    const evs = eventosDoLog(dados({ eventosTarefa: [e, { ...e }, { ...e, id: 'e2' }] }));
+    expect(evs.map((x) => x.evento.id)).toEqual(['e1', 'e2']);
+  });
+});
+
+describe('obrasNaJanela', () => {
+  it('mantém as ativas e as concluídas com algum item na janela', () => {
+    const obras = [
+      { id: 'o1', nome: 'Savassi', status: 'ativa' as const },
+      { id: 'o2', nome: 'Pampulha', status: 'concluida' as const },
+      { id: 'o3', nome: 'Centro', status: 'concluida' as const },
+    ];
+    expect(obrasNaJanela(obras, [{ obra_id: 'o3' }]).map((o) => o.id)).toEqual(['o1', 'o3']);
+    expect(obrasNaJanela(obras, []).map((o) => o.id)).toEqual(['o1']);
   });
 });
 

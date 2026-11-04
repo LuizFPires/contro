@@ -35,6 +35,9 @@ const TIPOS: { id: TipoFiltro; rotulo: string }[] = [
   { id: 'pendencias', rotulo: 'Pendências' },
 ];
 
+/** Dias do Log por vez: os 7 mais recentes e "Ver dias anteriores" traz mais 7. */
+const DIAS_POR_VEZ = 7;
+
 const ORIGEM: Record<ItemLog['origem'], string> = {
   tarefa: 'Tarefa',
   providencia: 'Providência',
@@ -86,7 +89,7 @@ export function LogScreen({
   onNav: (item: ItemNav) => void;
   onAbrirObra: (o: AbrirObra) => void;
 }) {
-  const { linhas, itens, eventosPorItem, obras, carregando } = useLogDados();
+  const { linhas, itens, eventosPorItem, obras, carregando, erro } = useLogDados();
   const { data: perfil } = usePerfil();
   // O filtro da obra vem lembrado: o relógio da obra grava a obra uma vez ao
   // abrir (App), então "Todas as obras" escolhido depois não volta sozinho.
@@ -102,11 +105,16 @@ export function LogScreen({
       filtrarLog(linhas, {
         obraId: obraValida ?? undefined,
         tipo: tipo ?? undefined,
-        pessoaNome: eu && perfil ? perfil.nome : undefined,
+        pessoaId: eu && perfil ? perfil.id : undefined,
       }),
     [linhas, obraValida, tipo, eu, perfil],
   );
   const dias = useMemo(() => agruparPorDia(filtradas, formatarDiaSemana), [filtradas]);
+  // Os dias vão aparecendo aos blocos; mudar o filtro volta ao primeiro bloco.
+  const chaveFiltro = `${obraValida ?? ''}|${tipo ?? ''}|${eu}`;
+  const [blocos, setBlocos] = useState({ chave: chaveFiltro, qtd: DIAS_POR_VEZ });
+  const qtdDias = blocos.chave === chaveFiltro ? blocos.qtd : DIAS_POR_VEZ;
+  const diasVisiveis = useMemo(() => dias.slice(0, qtdDias), [dias, qtdDias]);
   const itemPorId = useMemo(() => new Map(itens.map((i) => [i.id, i])), [itens]);
   // Replanejadas: um card por item, na ordem da mudança mais recente.
   const porItem = useMemo(() => {
@@ -130,7 +138,8 @@ export function LogScreen({
   }
 
   const nomeObraFiltro = obraValida ? obras.find((o) => o.id === obraValida)?.nome : null;
-  const vazio = !carregando && filtradas.length === 0;
+  const semConexao = erro && linhas.length === 0;
+  const vazio = !carregando && !semConexao && filtradas.length === 0;
 
   return (
     <div className={styles.screen}>
@@ -185,6 +194,11 @@ export function LogScreen({
 
       <div className={styles.lista}>
         {carregando ? <p className={styles.vazio}>Carregando…</p> : null}
+        {semConexao ? (
+          <p className={styles.vazio} role="alert">
+            <Icon name="alert" size={16} /> Sem conexão: não foi possível carregar o Log.
+          </p>
+        ) : null}
         {vazio ? (
           <p className={styles.vazio}>
             {linhas.length === 0
@@ -203,7 +217,7 @@ export function LogScreen({
                 onAbrir={() => abrir({ origem: it.origem, itemId: it.id, obraId: it.obraId })}
               />
             ))
-          : dias.map((d) => (
+          : diasVisiveis.map((d) => (
               <section key={d.dia} className={styles.dia}>
                 <h2 className={styles.diaTitulo}>{d.rotulo}</h2>
                 {d.linhas.map((l) => (
@@ -222,6 +236,15 @@ export function LogScreen({
                 ))}
               </section>
             ))}
+        {tipo !== 'replanejadas' && dias.length > qtdDias ? (
+          <button
+            type="button"
+            className={styles.maisDias}
+            onClick={() => setBlocos({ chave: chaveFiltro, qtd: qtdDias + DIAS_POR_VEZ })}
+          >
+            Ver dias anteriores
+          </button>
+        ) : null}
       </div>
 
       <NavInferior ativo="log" onEscolher={onNav} />

@@ -26,7 +26,7 @@ import styles from './ScoreScreen.module.css';
  * sem score. Tocar abre o detalhe.
  */
 export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
-  const { equipe, prestadores, carregando } = useScoreDados();
+  const { equipe, prestadores, carregando, erro } = useScoreDados();
   const { data: perfil } = usePerfil();
   const [aba, setAba] = useLembrado<AbaScore>('score:aba', 'equipe');
   const [janela, setJanela] = useLembrado<Janela>('score:janela', 90);
@@ -92,7 +92,12 @@ export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
         />
 
         {carregando ? <p className={styles.vazio}>Carregando…</p> : null}
-        {!carregando && linhas.length === 0 ? (
+        {erro && linhas.length === 0 ? (
+          <p className={styles.vazio} role="alert">
+            <Icon name="alert" size={16} /> Sem conexão: não foi possível carregar o Score.
+          </p>
+        ) : null}
+        {!carregando && !erro && linhas.length === 0 ? (
           <p className={styles.vazio}>Sem itens no período.</p>
         ) : null}
 
