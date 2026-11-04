@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { textoReplanejamento } from '@contro/core';
 import { BottomSheet, Button, Input } from '@contro/ui';
 import { AvisoRascunho } from '../../components/AvisoRascunho';
@@ -6,13 +6,12 @@ import { EscolherData } from '../../components/EscolherData';
 import { formatarDataCurta } from '../../lib/datas';
 import { useRascunho } from '../../lib/useRascunho';
 import type { PessoaResumo } from '../perfil/usePessoas';
+import { useNomesSugeridos } from '../reuniao/useNomesSugeridos';
 import { dataLocal } from './api';
 import type { EntradaTarefa } from './campo';
+import { entradaDaFolha, OUTRO, responsavelDaTarefa } from './entradaTarefa';
 import type { TarefaObra } from './tarefasObra';
 import styles from './AdiarSheet.module.css';
-
-/** Valor do select para digitar o nome de quem não tem login. */
-const OUTRO = '__outro';
 
 function emDias(n: number): string {
   const d = new Date();
@@ -55,6 +54,8 @@ export function TarefaSheet({
   const [nomeDigitado, setNomeDigitado] = useState('');
   const [prazo, setPrazo] = useState(emDias(1));
   const [obraId, setObraId] = useState('');
+  const { data: nomesSugeridos = [] } = useNomesSugeridos();
+  const idNomes = useId();
   const pedeObra = !tarefa && !atribuir && Boolean(obras?.length);
   // Rascunho da nova tarefa (a edição de uma tarefa existente não usa).
   const contexto = obras?.length === 1 ? obras[0].id : 'geral';
@@ -71,23 +72,30 @@ export function TarefaSheet({
   const iTexto = inicial?.texto;
   const iPrazo = inicial?.prazo;
   const iObra = inicial?.obraId;
+  // Atribuir: reinicia só ao abrir ou trocar de providência (um refetch de
+  // `obras` com a folha aberta não apaga o responsável escolhido nem o texto).
   useEffect(() => {
+    if (!atribuir) return;
     setNomeDigitado('');
-    if (atribuir) {
-      setTexto(iTexto ?? '');
-      setResponsavelId('');
-      setPrazo(iPrazo ?? emDias(1));
-      setObraId(iObra ?? '');
-      setRecuperado(false);
-      return;
-    }
+    setTexto(iTexto ?? '');
+    setResponsavelId('');
+    setPrazo(iPrazo ?? emDias(1));
+    setObraId(iObra ?? '');
+    setRecuperado(false);
+  }, [aberto, atribuir, iTexto, iPrazo, iObra]);
+  useEffect(() => {
+    if (atribuir) return;
     const r = tarefa ? null : lido;
+    const resp = tarefa
+      ? responsavelDaTarefa(tarefa)
+      : { responsavelId: r?.responsavelId ?? '', nomeDigitado: '' };
     setTexto(tarefa?.texto ?? r?.texto ?? '');
-    setResponsavelId(tarefa?.responsavel_id ?? r?.responsavelId ?? '');
+    setResponsavelId(resp.responsavelId);
+    setNomeDigitado(resp.nomeDigitado);
     setPrazo(tarefa?.prazo ?? r?.prazo ?? emDias(1));
     setObraId(r?.obraId || (obras?.length === 1 ? obras[0].id : ''));
     setRecuperado(Boolean(r));
-  }, [tarefa, aberto, obras, lido, atribuir, iTexto, iPrazo, iObra]);
+  }, [tarefa, aberto, obras, lido, atribuir]);
   const guardarRascunho = rascunho.guardar;
   useEffect(() => {
     if (aberto && !tarefa && !atribuir)
@@ -164,6 +172,8 @@ export function TarefaSheet({
         value={responsavelId}
         onChange={(e) => setResponsavelId(e.target.value)}
         aria-label="Responsável"
+        required={atribuir}
+        aria-required={atribuir || undefined}
       >
         <option value="">{atribuir ? 'Escolha quem cuida' : '—'}</option>
         {pessoas.map((p) => (
@@ -172,15 +182,22 @@ export function TarefaSheet({
             {p.papel_texto ? ` · ${p.papel_texto}` : ''}
           </option>
         ))}
-        {atribuir ? <option value={OUTRO}>Outro nome (digitar)</option> : null}
+        <option value={OUTRO}>Outro nome (digitar)</option>
       </select>
       {outro ? (
         <div style={{ marginTop: 8 }}>
           <Input
             label="Nome do responsável"
+            placeholder="Nome (fica de sugestão nas próximas)"
+            list={idNomes}
             value={nomeDigitado}
             onChange={(e) => setNomeDigitado(e.target.value)}
           />
+          <datalist id={idNomes}>
+            {nomesSugeridos.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
         </div>
       ) : null}
 
@@ -212,13 +229,7 @@ export function TarefaSheet({
           onClick={() => {
             if (!atribuir) rascunho.limpar();
             onSalvar(
-              {
-                id: tarefa?.id ?? null,
-                texto: texto.trim(),
-                responsavelId: outro ? null : responsavelId || null,
-                ...(outro ? { responsavelNome: nomeDigitado.trim() } : {}),
-                prazo,
-              },
+              entradaDaFolha({ texto, responsavelId, nomeDigitado, prazo }, tarefa),
               pedeObra ? obraId : atribuir ? obraId || undefined : undefined,
             );
           }}

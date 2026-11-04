@@ -6,6 +6,7 @@ import {
   useQueryClient,
   type UseQueryResult,
 } from '@tanstack/react-query';
+import { nomeCurto } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
 import { type EntradaTarefa } from './campo';
@@ -67,6 +68,8 @@ export function useTarefasAcoes() {
   };
   // Criar/excluir/restaurar tarefa vinculada tira/devolve a providência de "Sem responsável".
   const refazerObras = () => void qc.invalidateQueries({ queryKey: ['obras'] });
+  // Contexto do salvar: a troca otimista e se a tarefa é nova (o id é posto no onMutate).
+  type CtxSalvar = Awaited<ReturnType<typeof trocar>> & { nova: boolean };
 
   // Salvar (criar/editar). Para nova tarefa o id é gerado no cliente — o MESMO
   // no card otimista e na op (onMutate roda antes do mutationFn, com o mesmo
@@ -78,20 +81,32 @@ export function useTarefasAcoes() {
       await enfileirar('salvar_tarefa', { obraId: v.obraId, entrada: { ...v.entrada, id } });
       return id;
     },
-    onMutate: ({ obraId, entrada: t }) => {
+    onMutate: async ({ obraId, entrada: t }): Promise<CtxSalvar> => {
+      const nova = !t.id;
       const id = t.id ?? crypto.randomUUID();
       t.id = id;
-      // Pessoa do app sem nome na entrada: rotula pelo cache de pessoas (já curto).
+      // Pessoa do app sem nome na entrada: rotula pelo cache de pessoas. A entrada
+      // leva o nome digitado completo; o card mostra o curto, como ao recarregar.
       const nomePessoa = t.responsavelId
         ? qc
             .getQueryData<{ id: string; nome: string }[]>(['pessoas'])
             ?.find((p) => p.id === t.responsavelId)?.nome
         : undefined;
-      return trocar(obraId, (prev) =>
+      const responsavelNome = nomeCurto(t.responsavelNome ?? nomePessoa) || null;
+      const responsavelNomeBruto = t.responsavelId ? null : (t.responsavelNome ?? null);
+      const ctx = await trocar(obraId, (prev) =>
         prev.some((x) => x.id === id)
           ? prev.map((x) =>
               x.id === id
-                ? { ...x, texto: t.texto, responsavel_id: t.responsavelId, prazo: t.prazo }
+                ? {
+                    ...x,
+                    texto: t.texto,
+                    responsavel_id: t.responsavelId,
+                    responsavelNome,
+                    responsavelNomeBruto,
+                    observacao: t.observacao === undefined ? x.observacao : t.observacao,
+                    prazo: t.prazo,
+                  }
                 : x,
             )
           : [
@@ -101,7 +116,8 @@ export function useTarefasAcoes() {
                 obra_id: obraId,
                 texto: t.texto,
                 responsavel_id: t.responsavelId,
-                responsavelNome: t.responsavelNome ?? nomePessoa ?? null,
+                responsavelNome,
+                responsavelNomeBruto,
                 observacao: t.observacao ?? null,
                 prazo: t.prazo,
                 prazo_original: null,
@@ -117,9 +133,13 @@ export function useTarefasAcoes() {
               },
             ],
       );
+      return { ...ctx, nova };
     },
     onError: (_e, _v, ctx) => reverter(ctx),
-    onSettled: refazerObras,
+    // Só criar tarefa (ou mexer em uma vinculada a providência) muda "Sem responsável".
+    onSettled: (_d, _e, v, ctx) => {
+      if (ctx?.nova || v.entrada.vinculoTipo === 'providencia') refazerObras();
+    },
   });
 
   const status = (s: 'aberta' | 'feita') => (v: Alvo) =>

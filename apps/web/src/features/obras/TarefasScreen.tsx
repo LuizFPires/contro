@@ -14,6 +14,7 @@ import { hojeISO } from './api';
 import { Camera } from './Camera';
 import { CardAcao, MarcadorAcao, TituloSecao } from './CardAcao';
 import { TarefaSheet } from './TarefaSheet';
+import { entradaAtribuicao } from './entradaTarefa';
 import type { EntradaTarefa } from './campo';
 import type { TarefaObra } from './tarefasObra';
 import { useObraCampo } from './useObraCampo';
@@ -129,26 +130,14 @@ export function TarefasScreen({
   function atribuir(e: EntradaTarefa) {
     const p = atribuindo;
     if (!p) return;
-    // Nome curto, como fica depois de recarregar (chip e card não mudam de rótulo).
+    // O nome digitado vai completo (fica gravado e vira sugestão); o curto é só
+    // para o toast. O card otimista encurta o nome em useTarefasAcoes.
     const nome =
       nomeCurto(
         e.responsavelId ? pessoas.find((x) => x.id === e.responsavelId)?.nome : e.responsavelNome,
       ) || null;
     acoes.salvar.mutate(
-      {
-        obraId: p.obraId,
-        entrada: {
-          texto: e.texto,
-          responsavelId: e.responsavelId,
-          // Com pessoa do app o servidor ignora o nome; aqui ele só rotula o
-          // card e o chip otimistas até a obra recarregar.
-          responsavelNome: nome,
-          prazo: e.prazo,
-          vinculoTipo: 'providencia',
-          vinculoId: p.id,
-          origemTexto: 'Providência da obra',
-        },
-      },
+      { obraId: p.obraId, entrada: entradaAtribuicao(p, e) },
       {
         onSuccess: (id) => {
           setAtribuindo(null);

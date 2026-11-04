@@ -7,7 +7,10 @@ export interface TarefaObra {
   obra_id: string;
   texto: string;
   responsavel_id: string | null;
+  /** Nome curto para exibir (pessoa do app ou nome digitado). */
   responsavelNome: string | null;
+  /** Nome digitado como foi gravado (`responsavel_nome`), para editar sem truncar. */
+  responsavelNomeBruto: string | null;
   observacao: string | null;
   prazo: string;
   prazo_original: string | null;
@@ -23,7 +26,7 @@ export interface TarefaObra {
   feita_em: string | null;
 }
 
-interface LinhaTarefa {
+export interface LinhaTarefa {
   id: string;
   obra_id: string;
   texto: string;
@@ -57,12 +60,18 @@ export async function loadTarefas(obraId: string): Promise<TarefaObra[]> {
     .is('deleted_at', null);
 
   const linhas = (data ?? []) as unknown as LinhaTarefa[];
-  return linhas.map((l) => ({
+  return linhas.map(tarefaDaLinha);
+}
+
+/** Linha de `tarefa` → TarefaObra (nome curto para exibir, bruto para editar). */
+export function tarefaDaLinha(l: LinhaTarefa): TarefaObra {
+  return {
     id: l.id,
     obra_id: l.obra_id,
     texto: l.texto,
     responsavel_id: l.responsavel_id,
     responsavelNome: nomeCurto(l.responsavel?.nome ?? l.responsavel_nome) || null,
+    responsavelNomeBruto: l.responsavel_nome,
     observacao: l.observacao,
     prazo: l.prazo,
     prazo_original: l.prazo_original,
@@ -75,5 +84,5 @@ export async function loadTarefas(obraId: string): Promise<TarefaObra[]> {
     comentario: l.comentario,
     avanco_em: l.avanco_em,
     feita_em: l.feita_em,
-  }));
+  };
 }

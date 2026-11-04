@@ -23,6 +23,7 @@ const tarefa = (o: Partial<TarefaObra> = {}): TarefaObra => ({
   texto: 'Ligar para o eletricista',
   responsavel_id: null,
   responsavelNome: 'Marcos',
+  responsavelNomeBruto: 'Marcos',
   observacao: null,
   prazo: '2026-11-05',
   prazo_original: null,

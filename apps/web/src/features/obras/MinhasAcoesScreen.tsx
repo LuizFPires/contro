@@ -75,7 +75,7 @@ export function MinhasAcoesScreen({
           id: t.id,
           texto: t.texto,
           responsavelId: t.responsavel_id,
-          responsavelNome: t.responsavel_id ? null : t.responsavelNome,
+          responsavelNome: t.responsavel_id ? null : t.responsavelNomeBruto,
           observacao: t.observacao,
           prazo: v.prazo,
         },
