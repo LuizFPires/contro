@@ -195,12 +195,6 @@ export function App() {
                   }
                 : undefined
             }
-            onAbrirObra={(o) => {
-              // A ficha lembrada nessa obra não pode ficar por cima do item tocado.
-              lembrar(`obra:${o.id}:ficha`, null);
-              setAbrirObra({ ...o, voltar: 'log' });
-              setTela('inicio');
-            }}
           />
         ) : tela === 'avisos' && ehGestor ? (
           <ConfigAvisosScreen onVoltar={voltar} />
