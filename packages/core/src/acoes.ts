@@ -134,6 +134,19 @@ export function resumoAcoesDia(
   return { atrasadas, hoje: venceHoje };
 }
 
+/**
+ * Ações abertas que a lista de Tarefas mostra: atrasadas, de hoje e dos
+ * próximos `proximosDU` dias úteis (o que vence depois não conta).
+ */
+export function contarAcoesNaJanela(
+  acoes: Pick<Acao, 'aberta' | 'prazo'>[],
+  hoje: DataISO,
+  proximosDU: number = PROXIMOS_DU,
+): number {
+  const limite = addDU(hoje, proximosDU);
+  return acoes.filter((a) => a.aberta && a.prazo <= limite).length;
+}
+
 export interface LinhaEquipe extends ResumoAcoes {
   /** responsavelId | `nome:${nome}` | 'sem' */
   chave: string;

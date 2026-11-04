@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   classificarAcoes,
+  contarAcoesNaJanela,
   estadoAcao,
   prazoPendencia,
   PROXIMOS_DU,
@@ -90,6 +91,24 @@ describe('classificarAcoes · próximos 5 dias', () => {
     expect(r.proximas.map((a) => a.id)).toEqual(['seg', 'lim']);
     expect(r.depois.map((a) => a.id)).toEqual(['x', 'd2']);
     expect(r.concluidas.map((a) => a.id)).toEqual(['c']);
+  });
+});
+
+describe('contarAcoesNaJanela', () => {
+  it('conta atrasadas, hoje e até 5 dias úteis; ignora concluídas e as de depois', () => {
+    const sexta = '2026-11-06';
+    expect(
+      contarAcoesNaJanela(
+        [
+          acao({ id: 'a', prazo: '2026-10-30' }),
+          acao({ id: 'h', prazo: sexta }),
+          acao({ id: 'lim', prazo: '2026-11-13' }),
+          acao({ id: 'x', prazo: '2026-11-16' }),
+          acao({ id: 'c', aberta: false, prazo: '2026-11-09' }),
+        ],
+        sexta,
+      ),
+    ).toBe(3);
   });
 });
 

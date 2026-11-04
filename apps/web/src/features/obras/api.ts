@@ -6,6 +6,7 @@ import {
   estadoObra,
   previsaoEntrega,
   estadoAcao,
+  contarAcoesNaJanela,
   prazoPendencia,
   PRAZOS_PENDENCIA_PADRAO,
   type PrazosPendencia,
@@ -422,7 +423,14 @@ export async function listarObras(): Promise<ObraResumo[]> {
       entrega: est.indicadores.entrega,
       atrasada: est.indicadores.ritmoDias <= -2,
       fasesEstado,
-      acoesAbertas: acoesObra.length + semDono.length + atvSemDono.length,
+      // Mesma janela da lista de Tarefas: atrasadas, hoje e próximos 5 d.u.
+      acoesAbertas: contarAcoesNaJanela(
+        [
+          ...acoesObra,
+          ...[...semDono, ...atvSemDono].map((p) => ({ aberta: true, prazo: p.prazo })),
+        ],
+        hoje,
+      ),
       acoesAtrasadas: contaEstado('atrasada'),
       acoesHoje: contaEstado('hoje'),
       providenciasSemDono: semDono,
