@@ -1,0 +1,49 @@
+/* Log — protótipo aprovado (Score e Log, 04/11/2026). */
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+.cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 10px 12px;
+  padding-top: calc(10px + env(safe-area-inset-top, 0));
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.topo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--contro-touch);
+}
+.voltar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.topoTexto {
+  flex-grow: 1;
+  min-width: 0;
+  padding-left: 4px;
+}
+.titulo {
+  margin: 0;
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.3;
+}
+.sub {
+  font-size: 13px;
+  color: rgb(255 255 255 / 72%);
+}

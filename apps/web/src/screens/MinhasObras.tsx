@@ -11,6 +11,7 @@ import { usePerfil } from '../features/perfil/usePerfil';
 import { useMembrosPendentes } from '../features/membros/useMembros';
 import { ProntosParaEnviar } from '../features/boletim-auto/ProntosParaEnviar';
 import { EditarNome } from './EditarNome';
+import { NavInferior } from './NavInferior';
 import { TrocarSenha } from './TrocarSenha';
 import { AvisosCelularSheet } from '../features/avisos/AvisosCelularSheet';
 import { useConfigAvisos } from '../features/avisos/useConfigAvisos';
@@ -27,7 +28,9 @@ export type DestinoInicio =
   | 'minhas'
   | 'config'
   | 'membros'
-  | 'avisos';
+  | 'avisos'
+  | 'score'
+  | 'log';
 
 /** Pedido para abrir uma obra numa aba (ex.: pendência tocada em Tarefas). */
 export interface AbrirObra {
@@ -35,6 +38,8 @@ export interface AbrirObra {
   aba?: AbaObra;
   /** Pendência para destacar no Check list. */
   pendenciaId?: string;
+  /** Atividade cuja ficha abre (toque no Log). */
+  atividadeId?: string;
   /** Tela para onde o Voltar da obra retorna (em vez da lista). */
   voltar?: DestinoInicio;
 }
@@ -43,12 +48,15 @@ export function MinhasObras({
   abrirObra,
   onAbrirObraConsumida,
   onIr,
+  onAbrirLog,
   onSair,
 }: {
   /** Abre a obra uma vez; depois de usado, o App limpa (o Voltar funciona). */
   abrirObra?: AbrirObra | null;
   onAbrirObraConsumida?: () => void;
   onIr: (destino: DestinoInicio) => void;
+  /** Ícone de relógio no cabeçalho da obra: Log filtrado pela obra. */
+  onAbrirLog?: (obraId: string) => void;
   onSair: () => void;
 }) {
   const { data: obras, isLoading } = useObras();
@@ -70,6 +78,7 @@ export function MinhasObras({
     plano?: boolean;
     aba?: AbaObra;
     pendenciaId?: string;
+    atividadeId?: string;
     voltar?: DestinoInicio;
   } | null>('inicio:obra', null);
   useEffect(() => {
@@ -82,7 +91,9 @@ export function MinhasObras({
   const atalhoUsado = useCallback(
     () =>
       setObraAberta((o) =>
-        o && (o.aba || o.pendenciaId) ? { ...o, aba: undefined, pendenciaId: undefined } : o,
+        o && (o.aba || o.pendenciaId || o.atividadeId)
+          ? { ...o, aba: undefined, pendenciaId: undefined, atividadeId: undefined }
+          : o,
       ),
     [setObraAberta],
   );
@@ -97,7 +108,17 @@ export function MinhasObras({
         abrirPlano={obraAberta.plano}
         abrirAba={obraAberta.aba}
         abrirPendenciaId={obraAberta.pendenciaId}
+        abrirAtividadeId={obraAberta.atividadeId}
         onAtalhoUsado={atalhoUsado}
+        onAbrirLog={
+          onAbrirLog
+            ? () => {
+                const id = obraAberta.id;
+                setObraAberta(null);
+                onAbrirLog(id);
+              }
+            : undefined
+        }
         onVoltar={() => {
           const de = obraAberta.voltar;
           setObraAberta(null);
@@ -126,7 +147,6 @@ export function MinhasObras({
   const acAtrasadas = lista.reduce((s, o) => s + o.acoesAtrasadas, 0);
   const acHoje = lista.reduce((s, o) => s + o.acoesHoje, 0);
   const nMembros = ehGestor ? (membros.query.data?.length ?? 0) : 0;
-  const nAtrasos = lista.reduce((s, o) => s + o.agenda.atrasados.length, 0);
 
   return (
     <div className={styles.screen}>
@@ -241,32 +261,10 @@ export function MinhasObras({
         </>
       )}
 
-      <nav className={styles.nav} aria-label="Início">
-        <button
-          type="button"
-          className={`${styles.navBtn} ${aba === 'hoje' ? styles.navAtivo : ''}`}
-          aria-current={aba === 'hoje' ? 'page' : undefined}
-          onClick={() => setAba('hoje')}
-        >
-          <Icon name="calendario" size={22} />
-          Hoje
-          {nAtrasos ? (
-            <span className={styles.navBadge}>
-              <span className="sr-only">atrasos: </span>
-              {nAtrasos}
-            </span>
-          ) : null}
-        </button>
-        <button
-          type="button"
-          className={`${styles.navBtn} ${aba === 'obras' ? styles.navAtivo : ''}`}
-          aria-current={aba === 'obras' ? 'page' : undefined}
-          onClick={() => setAba('obras')}
-        >
-          <Icon name="obras" size={22} />
-          Minhas obras
-        </button>
-      </nav>
+      <NavInferior
+        ativo={aba}
+        onEscolher={(item) => (item === 'hoje' || item === 'obras' ? setAba(item) : onIr(item))}
+      />
 
       <BottomSheet open={perfilAberto} onClose={() => setPerfilAberto(false)}>
         <div className={styles.painel}>

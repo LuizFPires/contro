@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { esquecerTelas, useLembrado } from './lib/useLembrado';
+import { esquecerTelas, lembrar, useLembrado } from './lib/useLembrado';
 import { useQueryClient } from '@tanstack/react-query';
 import { PullToRefresh } from './components/PullToRefresh';
 import { usePush } from './lib/usePush';
@@ -21,6 +21,9 @@ import { AguardandoAprovacao } from './screens/AguardandoAprovacao';
 import { MinhasObras, type AbrirObra, type DestinoInicio } from './screens/MinhasObras';
 import { TarefasScreen } from './features/obras/TarefasScreen';
 import { MinhasAcoesScreen } from './features/obras/MinhasAcoesScreen';
+import { LogScreen } from './features/log/LogScreen';
+import { ScoreScreen } from './features/score/ScoreScreen';
+import type { ItemNav } from './screens/NavInferior';
 
 export function App() {
   const { carregando, session, recovery, fecharRecovery } = useSession();
@@ -48,11 +51,36 @@ export function App() {
     setTela('inicio');
   };
 
-  // Toque num aviso por push abre a tela certa (/?ir=reuniao | tarefas | minhas | hoje).
+  // Log aberto pelo relógio do cabeçalho da obra: começa filtrado por ela e o
+  // Voltar devolve à obra.
+  const [logObra, setLogObra] = useLembrado<string | null>('app:logObra', null);
+  const abrirLog = (obraId: string) => {
+    setLogObra(obraId);
+    setTela('log');
+  };
+  // Menu inferior no Score e no Log: Hoje/Obras voltam ao início naquela aba.
+  const irNav = (item: ItemNav) => {
+    setLogObra(null);
+    if (item === 'score' || item === 'log') {
+      setTela(item);
+      return;
+    }
+    lembrar('inicio:aba', item);
+    setTela('inicio');
+  };
+
+  // Toque num aviso por push abre a tela certa (/?ir=reuniao | tarefas | minhas | hoje | score | log).
   useEffect(() => {
     const ir = new URLSearchParams(window.location.search).get('ir');
     if (!ir) return;
-    if (ir === 'reuniao' || ir === 'tarefas' || ir === 'minhas') setTela(ir);
+    if (
+      ir === 'reuniao' ||
+      ir === 'tarefas' ||
+      ir === 'minhas' ||
+      ir === 'score' ||
+      ir === 'log'
+    )
+      setTela(ir);
     else if (ir === 'hoje') setTela('inicio');
     window.history.replaceState(null, '', window.location.pathname);
   }, [setTela]);
@@ -142,6 +170,26 @@ export function App() {
             onVoltar={() => setTela(voltarMinhas)}
             onAbrirPendencia={abrirPendencia('minhas')}
           />
+        ) : tela === 'score' ? (
+          <ScoreScreen onNav={irNav} />
+        ) : tela === 'log' ? (
+          <LogScreen
+            obraInicial={logObra}
+            onNav={irNav}
+            onVoltar={
+              logObra
+                ? () => {
+                    setAbrirObra({ id: logObra });
+                    setLogObra(null);
+                    setTela('inicio');
+                  }
+                : undefined
+            }
+            onAbrirObra={(o) => {
+              setAbrirObra({ ...o, voltar: 'log' });
+              setTela('inicio');
+            }}
+          />
         ) : tela === 'avisos' && ehGestor ? (
           <ConfigAvisosScreen onVoltar={voltar} />
         ) : tela === 'config' && ehGestor ? (
@@ -153,6 +201,7 @@ export function App() {
             abrirObra={abrirObra}
             onAbrirObraConsumida={() => setAbrirObra(null)}
             onIr={setTela}
+            onAbrirLog={abrirLog}
             onSair={() => {
               esquecerTelas();
               void supabase?.auth.signOut();

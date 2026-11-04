@@ -34,6 +34,15 @@ export function useLembrado<T>(chave: string, inicial: T) {
   return [valor, setValor] as const;
 }
 
+/** Grava um valor lembrado fora do componente (ex.: a aba do início pelo menu). */
+export function lembrar<T>(chave: string, valor: T) {
+  try {
+    localStorage.setItem(PREFIXO + chave, JSON.stringify(valor));
+  } catch {
+    // Sem armazenamento: só não lembra.
+  }
+}
+
 /** Ao sair da conta: a próxima pessoa no aparelho começa do início. */
 export function esquecerTelas() {
   try {
