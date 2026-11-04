@@ -155,6 +155,10 @@ export function ConfigAvisosScreen({ onVoltar }: { onVoltar: () => void }) {
               onLigar={(v) => set('acoesAtivo', v)}
             >
               <HoraEPara hora={cfg.acoesHora} onHora={(v) => set('acoesHora', v)} />
+            </Aviso>
+            {/* Fora do aviso: o prazo vale para as listas, a tela inicial e o boletim,
+                mesmo com o push desligado. */}
+            <div className={styles.prazoBloco}>
               <div className={styles.prazoTitulo}>Prazo da pendência (dias úteis)</div>
               <PrazoPendencia
                 rotulo="Alta"
@@ -171,7 +175,7 @@ export function ConfigAvisosScreen({ onVoltar }: { onVoltar: () => void }) {
                 valor={cfg.pendBaixaDu}
                 onEscolher={(v) => set('pendBaixaDu', v)}
               />
-            </Aviso>
+            </div>
             <Aviso
               titulo="Providências para começar"
               desc="Lembra de conferir o que contratar, alugar ou comprar"
