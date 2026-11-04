@@ -4,8 +4,9 @@
 import { addDU, diaUtilAPartir, type DataISO } from './calendar';
 import type { Criticidade } from './pendencias';
 import { nomeCurto } from './nomes';
+import { ROTULO_TIPO_PROVIDENCIA, type TipoProvidencia } from './trilha';
 
-export type OrigemAcao = 'tarefa' | 'pendencia';
+export type OrigemAcao = 'tarefa' | 'pendencia' | 'providencia';
 export type EstadoAcao = 'atrasada' | 'hoje' | 'proxima' | 'concluida';
 
 export interface Acao {
@@ -19,6 +20,29 @@ export interface Acao {
   /** Nome digitado (tarefa sem pessoa do app) ou nome da pessoa. */
   responsavelNome: string | null;
   concluidaEm?: string | null; // ISO timestamp
+}
+
+export interface ProvidenciaBase {
+  id: string;
+  obraId: string;
+  tipo: TipoProvidencia;
+  descricao: string;
+  /** Data limite para providenciar. */
+  prazo: DataISO;
+}
+
+/** Providência aberta vira ação sem responsável; o texto leva o tipo ("Compra: Tinta"). */
+export function providenciaParaAcaoBase(p: ProvidenciaBase): Acao {
+  return {
+    origem: 'providencia',
+    id: p.id,
+    obraId: p.obraId,
+    texto: `${ROTULO_TIPO_PROVIDENCIA[p.tipo]}: ${p.descricao}`,
+    prazo: p.prazo,
+    aberta: true,
+    responsavelId: null,
+    responsavelNome: null,
+  };
 }
 
 /** Dias úteis para resolver a pendência, por criticidade. */

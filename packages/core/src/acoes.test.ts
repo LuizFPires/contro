@@ -3,6 +3,7 @@ import {
   classificarAcoes,
   estadoAcao,
   prazoPendencia,
+  providenciaParaAcaoBase,
   resumoAcoesDia,
   resumoEquipeDia,
   textoAvisoAcoes,
@@ -194,4 +195,32 @@ describe('textoResumoSecoes', () => {
     expect(textoResumoSecoes({ atrasadas: 0, hoje: 1, proximas: 1, concluidas: 1 })).toBe(
       '0 atrasadas · 1 vence hoje · 1 próxima · 1 concluída',
     ));
+});
+
+describe('providenciaParaAcaoBase', () => {
+  const base = { id: 'p1', obraId: 'o1', descricao: 'Pinturas', prazo: '2026-10-26' };
+
+  it('vira ação aberta, sem responsável, com o rótulo do tipo no texto', () =>
+    expect(providenciaParaAcaoBase({ ...base, tipo: 'contratacao' })).toEqual({
+      origem: 'providencia',
+      id: 'p1',
+      obraId: 'o1',
+      texto: 'Contratação: Pinturas',
+      prazo: '2026-10-26',
+      aberta: true,
+      responsavelId: null,
+      responsavelNome: null,
+    }));
+
+  it('rótulos de locação e compra', () => {
+    expect(providenciaParaAcaoBase({ ...base, tipo: 'locacao' }).texto).toBe('Locação: Pinturas');
+    expect(providenciaParaAcaoBase({ ...base, tipo: 'compra' }).texto).toBe('Compra: Pinturas');
+  });
+
+  it('atrasada cai em "Sem responsável" no resumo, sem citar isso no aviso', () => {
+    const r = resumoEquipeDia([providenciaParaAcaoBase({ ...base, tipo: 'contratacao' })], HOJE);
+    expect(r.atrasadas).toBe(1);
+    expect(r.pessoas).toEqual([{ chave: 'sem', nome: 'Sem responsável', atrasadas: 1, hoje: 0 }]);
+    expect(textoAvisoEquipe(r)?.corpo).not.toContain('Sem responsável');
+  });
 });
