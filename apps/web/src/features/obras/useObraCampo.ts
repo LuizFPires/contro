@@ -13,9 +13,16 @@ import {
   removerProvidencia,
   restaurarAtividade,
 } from './campo';
+import { JANELA_DESFAZER_MS, tarefasFechadasPelaAtividade } from './acoesObra';
 import { guardarFotoLocal } from './foto';
 import type { ObraCompleta } from './detalhe';
 import type { TarefaObra } from './tarefasObra';
+
+/**
+ * Tarefas que a conclusão de cada atividade fechou (no cache otimista), para o
+ * "Desfazer" reabri-las mesmo vindo de outra instância do hook (ficha, trilha).
+ */
+const fechadasPorAtividade = new Map<string, { ids: string[]; em: number }>();
 
 export function useObraCampo(obraId: string) {
   const qc = useQueryClient();
@@ -191,6 +198,17 @@ export function useObraCampo(obraId: string) {
       // (O sync refaz ['tarefas'] e ['obras'] quando o servidor confirma.)
       await qc.cancelQueries({ queryKey: ['tarefas', obraId] });
       const prevTarefas = qc.getQueryData<TarefaObra[]>(['tarefas', obraId]);
+      const fechadas = (prevTarefas ?? [])
+        .filter(
+          (t) =>
+            t.vinculo_tipo === 'atividade' &&
+            t.vinculo_id === v.atividadeId &&
+            t.status === 'aberta',
+        )
+        .map((t) => t.id);
+      // Sem a lista em cache não dá para saber quais fecharam: o Desfazer usa o fallback.
+      if (prevTarefas) fechadasPorAtividade.set(v.atividadeId, { ids: fechadas, em: Date.now() });
+      else fechadasPorAtividade.delete(v.atividadeId);
       if (prevTarefas)
         qc.setQueryData<TarefaObra[]>(
           ['tarefas', obraId],
@@ -202,7 +220,7 @@ export function useObraCampo(obraId: string) {
               : t,
           ),
         );
-      return { ...ctx, prevTarefas };
+      return { ...ctx, prevTarefas, fechadas };
     },
     onError: (_e, _v, ctx) => {
       reverter(ctx);
@@ -225,18 +243,45 @@ export function useObraCampo(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
 
-  // "Desfazer" da conclusão (regra 10): reabre na hora e devolve o XP.
+  // "Desfazer" da conclusão (regra 10): reabre na hora e devolve o XP. Reabre
+  // também as tarefas vinculadas que a conclusão fechou (desfazer_conclusao no
+  // servidor não mexe em tarefas): as guardadas no concluir ou, sem elas, as
+  // feitas da atividade nos últimos 5 minutos.
   const desfazer = useMutation({
     networkMode: 'always',
-    mutationFn: (v: { atividadeId: string; xp: number }) =>
-      enfileirar('desfazer_conclusao', { obraId, atividadeId: v.atividadeId }),
-    onMutate: (v) =>
-      patchAtv(
+    mutationFn: async (v: { atividadeId: string; xp: number; tarefas?: string[] }) => {
+      await enfileirar('desfazer_conclusao', { obraId, atividadeId: v.atividadeId });
+      for (const id of v.tarefas ?? []) await enfileirar('reabrir_tarefa', { obraId, id });
+    },
+    onMutate: async (v) => {
+      const ctx = await patchAtv(
         v.atividadeId,
         (a) => ({ ...a, concluida_em: null, foto_conclusao_id: null }),
         -v.xp,
-      ),
-    onError: (_e, _v, ctx) => reverter(ctx),
+      );
+      await qc.cancelQueries({ queryKey: ['tarefas', obraId] });
+      const prevTarefas = qc.getQueryData<TarefaObra[]>(['tarefas', obraId]);
+      const guardadas = fechadasPorAtividade.get(v.atividadeId);
+      fechadasPorAtividade.delete(v.atividadeId);
+      const ids =
+        guardadas && Date.now() - guardadas.em <= JANELA_DESFAZER_MS
+          ? guardadas.ids
+          : tarefasFechadasPelaAtividade(prevTarefas ?? [], v.atividadeId, Date.now());
+      // O mutationFn roda depois do onMutate e lê a lista daqui.
+      v.tarefas = ids;
+      if (prevTarefas && ids.length)
+        qc.setQueryData<TarefaObra[]>(
+          ['tarefas', obraId],
+          prevTarefas.map((t) =>
+            ids.includes(t.id) ? { ...t, status: 'aberta', feita_em: null } : t,
+          ),
+        );
+      return { ...ctx, prevTarefas };
+    },
+    onError: (_e, _v, ctx) => {
+      reverter(ctx);
+      if (ctx?.prevTarefas) qc.setQueryData(['tarefas', obraId], ctx.prevTarefas);
+    },
   });
 
   // Avanço parcial (anel da trilha e cards da ficha): otimista e offline.
@@ -360,6 +405,7 @@ export function useReabrirAtividade() {
     mutationFn: (v: { obraId: string; atividadeId: string }) =>
       enfileirar('desfazer_conclusao', { obraId: v.obraId, atividadeId: v.atividadeId }),
     onMutate: async (v) => {
+      fechadasPorAtividade.delete(v.atividadeId); // a tela reabre a tarefa ela mesma
       await qc.cancelQueries({ queryKey: ['obra', v.obraId] });
       const prev = qc.getQueryData<ObraCompleta>(['obra', v.obraId]);
       if (prev)
