@@ -8,7 +8,7 @@ import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
 import { useAmbiente } from './features/perfil/useAmbiente';
 import { ObrasGeraisInicio } from './features/obras-gerais/ObrasGeraisInicio';
-import { PessoasGeraisPlaceholder } from './features/obras-gerais/PessoasGeraisPlaceholder';
+import { PessoasAcessos } from './features/obras-gerais/PessoasAcessos';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
 import { NovaVersao } from './features/offline/NovaVersao';
@@ -169,7 +169,7 @@ export function App() {
         <NovaVersao />
         <PullToRefresh onRefresh={aoAtualizar}>
           {tela === 'pessoas-gerais' && pessoa.administrador ? (
-            <PessoasGeraisPlaceholder onVoltar={voltar} />
+            <PessoasAcessos onVoltar={voltar} />
           ) : (
             <ObrasGeraisInicio
               pessoa={pessoa}
