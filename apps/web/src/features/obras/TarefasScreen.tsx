@@ -78,14 +78,26 @@ export function TarefasScreen({
     return [...m.entries()].map(([id, c]) => ({ id, ...c }));
   }, [lista, hoje]);
 
+  // "Sem responsável" vem antes de "Todos" (é o que precisa de dono) e some quando
+  // não há nenhuma ação sem responsável; aí "Todos" é o primeiro.
+  const semResp = chips.find((c) => c.id === SEM);
+  const ordemChips = [
+    ...(semResp ? [semResp] : []),
+    { id: 'todos', nome: 'Todos', atrasadas: 0 },
+    ...chips.filter((c) => c.id !== SEM),
+  ];
+  // Filtro de quem saiu da lista (ex.: a última sem responsável foi atribuída) volta a "Todos".
+  const filtroAtivo = chips.some((c) => c.id === filtro) ? filtro : 'todos';
+
   const filtrada = useMemo(
-    () => (filtro === 'todos' ? lista : lista.filter((a) => chaveResp(a) === filtro)),
-    [lista, filtro],
+    () => (filtroAtivo === 'todos' ? lista : lista.filter((a) => chaveResp(a) === filtroAtivo)),
+    [lista, filtroAtivo],
   );
   const classificadas = useMemo(() => classificarAcoes(filtrada, hoje), [filtrada, hoje]);
   const secoes = secoesAcoes(classificadas);
 
-  const quem = filtro === 'todos' ? 'Equipe' : (chips.find((c) => c.id === filtro)?.nome ?? '');
+  const quem =
+    filtroAtivo === 'todos' ? 'Equipe' : (chips.find((c) => c.id === filtroAtivo)?.nome ?? '');
   const resumo = `${quem}: ${textoResumoSecoes({
     atrasadas: classificadas.atrasadas.length,
     hoje: classificadas.hoje.length,
@@ -212,12 +224,12 @@ export function TarefasScreen({
           </button>
         </div>
         <div className={styles.chips}>
-          {[{ id: 'todos', nome: 'Todos', atrasadas: 0 }, ...chips].map((c) => (
+          {ordemChips.map((c) => (
             <button
               key={c.id}
               type="button"
-              className={`${styles.chip} ${filtro === c.id ? styles.chipAtivo : ''}`}
-              aria-pressed={filtro === c.id}
+              className={`${styles.chip} ${filtroAtivo === c.id ? styles.chipAtivo : ''}`}
+              aria-pressed={filtroAtivo === c.id}
               onClick={() => setFiltro(c.id)}
             >
               {c.nome}
@@ -256,7 +268,7 @@ export function TarefasScreen({
         ))}
         {!carregando && filtrada.length === 0 ? (
           <div className={styles.vazio}>
-            {filtro === 'todos'
+            {filtroAtivo === 'todos'
               ? 'Nenhuma ação ainda. Toque no + para criar uma tarefa.'
               : 'Nenhuma ação para esta pessoa.'}
           </div>
