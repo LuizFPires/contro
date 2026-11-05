@@ -78,11 +78,10 @@ export function usePessoasGerais() {
 /** Funções que gravam o acesso e atualizam as listas (pessoas e contagens nas obras). */
 export function useAcessoGeral() {
   const qc = useQueryClient();
-  const atualizar = () =>
-    Promise.all([
-      qc.invalidateQueries({ queryKey: ['pessoas-gerais'] }),
-      qc.invalidateQueries({ queryKey: ['obras-gerais'] }),
-    ]);
+  const atualizar = () => {
+    void qc.invalidateQueries({ queryKey: ['pessoas-gerais'] });
+    void qc.invalidateQueries({ queryKey: ['obras-gerais'] });
+  };
 
   async function salvar(email: string, nome: string, papel: PapelGeral, obraIds: string[]) {
     if (!supabase) throw new Error('Supabase não configurado');
@@ -92,7 +91,7 @@ export function useAcessoGeral() {
       p_papel: papel,
       p_obra_ids: obraIds,
     });
-    await atualizar();
+    atualizar();
     if (error) throw error;
   }
 
@@ -103,7 +102,7 @@ export function useAcessoGeral() {
       p_papel: papel,
       p_obra_ids: obraIds,
     });
-    await atualizar();
+    atualizar();
     if (error) throw error;
   }
 

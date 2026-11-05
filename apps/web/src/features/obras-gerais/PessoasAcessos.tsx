@@ -81,8 +81,20 @@ export function PessoasAcessos({ onVoltar }: { onVoltar: () => void }) {
         </ul>
       )}
 
-      <FichaPessoaGeral pessoa={ficha} obras={obras} onFechar={() => setFicha(null)} />
-      <NovaPessoaGeral aberto={nova} obras={obras} onFechar={() => setNova(false)} />
+      <FichaPessoaGeral
+        pessoa={ficha}
+        obras={obras}
+        carregando={obrasQuery.isLoading}
+        erro={obrasQuery.isError}
+        onFechar={() => setFicha(null)}
+      />
+      <NovaPessoaGeral
+        aberto={nova}
+        obras={obras}
+        carregando={obrasQuery.isLoading}
+        erro={obrasQuery.isError}
+        onFechar={() => setNova(false)}
+      />
     </div>
   );
 }

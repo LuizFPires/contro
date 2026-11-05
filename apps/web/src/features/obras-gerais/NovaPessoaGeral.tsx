@@ -3,6 +3,7 @@ import { BottomSheet, Button, Input, Segmented, useToast } from '@contro/ui';
 import type { PapelGeral } from '@contro/core';
 import type { ObraGeral } from './api';
 import { ChavesObras } from './ChavesObras';
+import { mensagemErroAcesso } from './mensagemErroAcesso';
 import { useAcessoGeral } from './usePessoasGerais';
 import styles from './PessoasAcessos.module.css';
 
@@ -15,10 +16,14 @@ const PAPEIS: { value: PapelGeral; label: string }[] = [
 export function NovaPessoaGeral({
   aberto,
   obras,
+  carregando,
+  erro: erroObras,
   onFechar,
 }: {
   aberto: boolean;
   obras: ObraGeral[];
+  carregando: boolean;
+  erro: boolean;
   onFechar: () => void;
 }) {
   const { showToast } = useToast();
@@ -52,9 +57,9 @@ export function NovaPessoaGeral({
     setErro('');
     try {
       await salvar(e, n, papel, obraIds);
-    } catch {
+    } catch (err) {
       setSalvando(false);
-      setErro('Não foi possível dar o acesso. Confira a conexão e tente de novo.');
+      setErro(mensagemErroAcesso(err));
       return;
     }
     onFechar();
@@ -84,6 +89,8 @@ export function NovaPessoaGeral({
           <ChavesObras
             obras={obras}
             marcadas={obraIds}
+            carregando={carregando}
+            erro={erroObras}
             onAlternar={(id) =>
               setObraIds((a) => (a.includes(id) ? a.filter((x) => x !== id) : [...a, id]))
             }

@@ -6,11 +6,22 @@ export function ChavesObras({
   obras,
   marcadas,
   onAlternar,
+  carregando = false,
+  erro = false,
 }: {
   obras: ObraGeral[];
   marcadas: string[];
   onAlternar: (obraId: string) => void;
+  carregando?: boolean;
+  erro?: boolean;
 }) {
+  if (carregando) return <p className={styles.nota}>Carregando obras…</p>;
+  if (erro)
+    return (
+      <p role="alert" className={styles.nota}>
+        Não foi possível carregar as obras.
+      </p>
+    );
   if (obras.length === 0) return <p className={styles.nota}>Ainda não há obras gerais.</p>;
   return (
     <div>
