@@ -107,11 +107,12 @@ export function App() {
   // Aviso aberto estando em Obras gerais: vai para a Contorno sem perder o destino.
   // Sem acesso à Contorno, ignora o link e fica em Obras gerais.
   useEffect(() => {
-    if (!avisoPendente || disponiveis.length === 0) return;
+    if (!avisoPendente || perfilCarregando || !pessoa) return;
+    if (disponiveis.length === 0) return;
     setAvisoPendente(false);
     if (disponiveis.includes('contorno')) irPara('contorno');
     else setTela('inicio');
-  }, [avisoPendente, disponiveis, irPara, setTela]);
+  }, [avisoPendente, perfilCarregando, pessoa, disponiveis, irPara, setTela]);
 
   // Recarrega o perfil quando a sessão muda (login/logout/recuperação), para o
   // roteamento de membro/pendente usar sempre o perfil do usuário atual.

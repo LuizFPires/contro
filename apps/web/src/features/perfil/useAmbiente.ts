@@ -38,11 +38,11 @@ export function useAmbiente(
   const irPara = useCallback(
     (destino: Ambiente) => {
       const alvo = ambienteParaDestino(destino, disponiveis, ambiente);
-      if (alvo === ambiente) return;
+      if (alvo === ultimo) return;
       setUltimo(alvo);
       void qc.invalidateQueries({ queryKey: ['obras'] });
     },
-    [disponiveis, ambiente, setUltimo, qc],
+    [disponiveis, ambiente, ultimo, setUltimo, qc],
   );
   return { ambiente, disponiveis, trocar, irPara };
 }
