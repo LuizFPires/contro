@@ -87,9 +87,11 @@ export function TarefasScreen({
   // "Sem responsável" vem antes de "Todos" (é o que precisa de dono) e some quando
   // não há nenhuma ação sem responsável; aí "Todos" é o primeiro.
   const semResp = chips.find((c) => c.id === SEM);
+  // "Todos": atrasadas + vencem hoje de toda a lista (com e sem responsável).
+  const seloTodos = useMemo(() => seloChipResponsavel(lista, hoje, false), [lista, hoje]);
   const ordemChips = [
     ...(semResp ? [semResp] : []),
-    { id: 'todos', nome: 'Todos', total: 0, atrasadas: 0 },
+    { id: 'todos', nome: 'Todos', ...seloTodos },
     ...chips.filter((c) => c.id !== SEM),
   ];
   // Filtro de quem saiu da lista (ex.: a última sem responsável foi atribuída) volta a "Todos".
