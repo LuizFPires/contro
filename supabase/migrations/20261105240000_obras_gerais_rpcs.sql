@@ -59,7 +59,12 @@ begin
     raise exception 'id da obra obrigatório' using errcode = '22023';
   end if;
   if exists (select 1 from public.obra where id = p_id) then
-    return p_id; -- idempotente (fila offline reenviando)
+    -- Idempotente (fila offline reenviando), mas só para a própria obra geral viva.
+    if exists (select 1 from public.obra
+               where id = p_id and ambiente = 'geral' and deleted_at is null) then
+      return p_id;
+    end if;
+    raise exception 'já existe outra obra com esse id' using errcode = '23505';
   end if;
   if char_length(v_nome) < 1 or char_length(v_nome) > 80 then
     raise exception 'nome da obra deve ter de 1 a 80 caracteres' using errcode = '22023';
@@ -108,6 +113,7 @@ begin
       papel_geral = p_papel,
       nome = case when v_pessoa.papel_geral is null then v_nome else nome end,
       ativo = true,
+      desativado_em = null,
       -- Quem não estava ativo (pendente, desativado ou recusado) entra só nas
       -- Obras gerais: dar acesso geral não devolve a Contorno.
       acesso_contorno = case when not v_pessoa.ativo or v_pessoa.deleted_at is not null
@@ -187,6 +193,13 @@ grant execute on function criar_obra_geral(text, text, uuid) to authenticated;
 grant execute on function salvar_acesso_geral(text, text, text, uuid[]) to authenticated;
 grant execute on function definir_acesso_geral(uuid, text, uuid[]) to authenticated;
 grant execute on function listar_pessoas_gerais() to authenticated;
+
+-- Quem está só nas Obras gerais (acesso_contorno=false) não aparece para a
+-- Contorno. Pendentes da Contorno continuam visíveis (aprovação do gestor).
+-- pessoa_self_sel e pessoa_geral_sel seguem como estão.
+drop policy pessoa_sel on pessoa;
+create policy pessoa_sel on pessoa for select to authenticated
+  using (deleted_at is null and public.contro_e_membro() and acesso_contorno);
 
 -- Cadastro: igual a 20261025050000_auth_cadastro.sql, mais o convite das obras
 -- gerais. Com convite em aberto para o e-mail, a pessoa nasce ativa, só nas
