@@ -71,7 +71,9 @@ describe('obrasDoAmbiente', () => {
 describe('podeGerirObrasGerais', () => {
   it('só administrador', () => {
     expect(podeGerirObrasGerais(acesso({ administrador: true }))).toBe(true);
-    expect(podeGerirObrasGerais(acesso({ acessoContorno: true, papelGeral: 'coordenador' }))).toBe(false);
+    expect(podeGerirObrasGerais(acesso({ acessoContorno: true, papelGeral: 'coordenador' }))).toBe(
+      false,
+    );
   });
 });
 

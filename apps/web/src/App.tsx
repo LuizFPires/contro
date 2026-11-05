@@ -37,7 +37,12 @@ export function App() {
   const [tela, setTela] = useLembrado<'inicio' | 'pessoas-gerais' | DestinoInicio>('app', 'inicio');
   // Contorno ou Obras gerais (o último escolhido fica lembrado); trocar volta ao início.
   const voltarAoInicio = useCallback(() => setTela('inicio'), [setTela]);
-  const { ambiente, disponiveis, trocar: trocarAmbiente, irPara } = useAmbiente(pessoa, voltarAoInicio);
+  const {
+    ambiente,
+    disponiveis,
+    trocar: trocarAmbiente,
+    irPara,
+  } = useAmbiente(pessoa, voltarAoInicio);
 
   const [avisoPendente, setAvisoPendente] = useState(false);
 

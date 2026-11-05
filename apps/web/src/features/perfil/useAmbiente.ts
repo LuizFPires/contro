@@ -1,6 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ambienteInicial, ambienteParaDestino, ambientesDaPessoa, type Ambiente } from '@contro/core';
+import {
+  ambienteInicial,
+  ambienteParaDestino,
+  ambientesDaPessoa,
+  type Ambiente,
+} from '@contro/core';
 import { useLembrado } from '../../lib/useLembrado';
 import type { PessoaAtual } from './usePerfil';
 
@@ -12,7 +17,10 @@ import type { PessoaAtual } from './usePerfil';
 export function useAmbiente(
   pessoa: PessoaAtual | null | undefined,
   aoTrocar?: () => void,
-): { ambiente: Ambiente; disponiveis: Ambiente[]; trocar: (a: Ambiente) => void;
+): {
+  ambiente: Ambiente;
+  disponiveis: Ambiente[];
+  trocar: (a: Ambiente) => void;
   /** Abre o ambiente do destino de um aviso, sem voltar a tela ao início. */
   irPara: (destino: Ambiente) => void;
 } {
