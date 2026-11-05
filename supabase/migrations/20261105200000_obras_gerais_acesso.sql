@@ -127,3 +127,47 @@ create policy convite_geral_sel on convite_geral for select to authenticated
 update pessoa set administrador = true
 where perfil = 'gestor' and deleted_at is null
   and split_part(lower(btrim(nome)), ' ', 1) in ('luiz','rafael','rodrigo');
+
+-- contro_perfil(): quem não tem acesso à Contorno não passa nas políticas de gestor/equipe.
+create or replace function contro_perfil()
+returns perfil
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.perfil
+  from public.pessoa p
+  where p.user_id = auth.uid() and p.deleted_at is null and p.ativo and p.acesso_contorno
+  limit 1;
+$$;
+
+-- Defesa em profundidade: só RPC (security definer) escreve nas tabelas novas.
+revoke insert, update, delete on obra_participante, convite_geral from anon, authenticated;
+
+-- Campos de papel e acesso não podem ser escritos direto pelo cliente (PostgREST),
+-- nem por gestor. RPCs security definer rodam como dono e passam.
+create or replace function pessoa_protege_papeis()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user = 'authenticated' then
+    if tg_op = 'INSERT' then
+      if new.administrador is distinct from false
+         or new.acesso_contorno is distinct from true
+         or new.papel_geral is not null then
+        raise exception 'campos de papel e acesso só mudam por função' using errcode = '42501';
+      end if;
+    elsif new.administrador is distinct from old.administrador
+       or new.acesso_contorno is distinct from old.acesso_contorno
+       or new.papel_geral is distinct from old.papel_geral then
+      raise exception 'campos de papel e acesso só mudam por função' using errcode = '42501';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+create trigger pessoa_protege_papeis_trg before insert or update on pessoa
+  for each row execute function pessoa_protege_papeis();
