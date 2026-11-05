@@ -10,7 +10,9 @@ import { useQuery } from '@tanstack/react-query';
 import {
   JANELA_LOG_DIAS,
   montarLog,
+  obrasDoAmbiente,
   PRAZOS_PENDENCIA_PADRAO,
+  type Ambiente,
   type DataISO,
   type EventoBruto,
   type ItemEquipe,
@@ -116,16 +118,20 @@ export async function loadDadosLogScore(desde: DataISO): Promise<DadosLogScore> 
   const sb = supabase;
 
   // 1ª rodada: as obras (o resto é filtrado pelos ids delas).
-  const todas = await todasAsPaginas<ObraLog & { inicio: string }>((de, ate) =>
+  // Log e Score são da Contorno nesta etapa: as obras gerais ficam de fora.
+  type LinhaObra = ObraLog & { inicio: string; ambiente: Ambiente };
+  const lidas = await todasAsPaginas<LinhaObra>((de, ate) =>
     sb
       .from('obra')
-      .select('id,nome,inicio,status,entrega_original')
+      .select('id,nome,inicio,status,entrega_original,ambiente')
       .in('status', ['ativa', 'concluida'])
+      .eq('ambiente', 'contorno')
       .is('deleted_at', null)
       .order('id')
       .range(de, ate)
-      .returns<(ObraLog & { inicio: string })[]>(),
+      .returns<LinhaObra[]>(),
   );
+  const todas = obrasDoAmbiente(lidas, 'contorno');
   if (todas.length === 0) return vazio;
   const ids = todas.map((o) => o.id);
   const ativas = todas.filter((o) => o.status === 'ativa').map((o) => o.id);

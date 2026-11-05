@@ -25,6 +25,7 @@ export function ChecklistResponsavel({
         .from('pessoa')
         .select('id,nome')
         .eq('ativo', true)
+        .eq('acesso_contorno', true)
         .is('deleted_at', null)
         .order('nome');
       if (error) throw error;

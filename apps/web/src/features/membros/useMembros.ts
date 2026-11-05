@@ -28,6 +28,7 @@ export function useMembrosPendentes(ativo = true) {
         .from('pessoa')
         .select('id, nome, created_at')
         .eq('ativo', false)
+        .eq('acesso_contorno', true)
         .is('desativado_em', null)
         .is('deleted_at', null)
         .order('created_at');
@@ -76,6 +77,8 @@ export function useTodosMembros() {
       const { data, error } = await supabase
         .from('pessoa')
         .select('id,nome,perfil,ativo,desativado_em')
+        // Pessoas e acessos da Contorno: sem quem só está nas obras gerais.
+        .eq('acesso_contorno', true)
         .is('deleted_at', null)
         .order('nome');
       if (error) throw error;

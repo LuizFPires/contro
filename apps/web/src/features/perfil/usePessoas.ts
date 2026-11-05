@@ -19,6 +19,8 @@ export function usePessoas() {
         .from('pessoa')
         .select('id,nome,papel_texto')
         .eq('ativo', true)
+        // Só quem é da Contorno (o administrador também lê pessoas das obras gerais).
+        .eq('acesso_contorno', true)
         .is('deleted_at', null)
         .order('nome');
       // Etiquetas usam o nome curto (Luiz F, Rodrigo M).

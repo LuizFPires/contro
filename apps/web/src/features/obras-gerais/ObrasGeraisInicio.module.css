@@ -1,0 +1,57 @@
+/* Início das obras gerais: mesmo cabeçalho do início da Contorno. */
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+.cabecalho {
+  padding: 20px 20px 12px;
+  padding-top: calc(20px + env(safe-area-inset-top, 0));
+  background: var(--contro-black);
+  color: var(--contro-white);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.ambiente {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgb(255 255 255 / 55%);
+  white-space: nowrap;
+}
+.perfil {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  border: 0;
+  background: rgb(255 255 255 / 14%);
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vazio {
+  margin-top: var(--contro-space-8);
+  padding: 0 20px;
+  text-align: center;
+  color: var(--contro-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--contro-space-3);
+}
+.vazio h2 {
+  font-size: var(--contro-fs-h3);
+  font-weight: 700;
+  color: var(--contro-text);
+  margin: 0;
+}

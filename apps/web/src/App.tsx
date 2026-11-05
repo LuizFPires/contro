@@ -6,6 +6,8 @@ import { usePush } from './lib/usePush';
 import { verificarAtualizacao } from './lib/pwa';
 import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
+import { useAmbiente } from './features/perfil/useAmbiente';
+import { ObrasGeraisInicio } from './features/obras-gerais/ObrasGeraisInicio';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
 import { NovaVersao } from './features/offline/NovaVersao';
@@ -32,6 +34,9 @@ export function App() {
   usePush(Boolean(session && pessoa?.ativo), session?.user.id);
   // Lembrada: ao voltar ao app (ou à guia), continua na mesma tela.
   const [tela, setTela] = useLembrado<'inicio' | DestinoInicio>('app', 'inicio');
+  // Contorno ou Obras gerais (o último escolhido fica lembrado); trocar volta ao início.
+  const voltarAoInicio = useCallback(() => setTela('inicio'), [setTela]);
+  const { ambiente, disponiveis, trocar: trocarAmbiente } = useAmbiente(pessoa, voltarAoInicio);
 
   // Reunião escolhida na central (null = a que vem).
   const [reuniaoData, setReuniaoData] = useState<string | null>(null);
@@ -146,6 +151,30 @@ export function App() {
 
   const ehGestor = pessoa.perfil === 'gestor';
   const voltar = () => setTela('inicio');
+  const sair = () => {
+    esquecerTelas();
+    void supabase?.auth.signOut();
+  };
+
+  // Obras gerais: tela própria. As telas da Contorno só para quem tem a Contorno.
+  if (ambiente === 'geral' || !disponiveis.includes('contorno')) {
+    return (
+      <div className="app-shell">
+        <NovaVersao />
+        <PullToRefresh onRefresh={aoAtualizar}>
+          <ObrasGeraisInicio
+            pessoa={pessoa}
+            ambiente="geral"
+            disponiveis={disponiveis}
+            onTrocarAmbiente={trocarAmbiente}
+            onSair={sair}
+            onPessoas={() => {}}
+          />
+        </PullToRefresh>
+        <SyncIndicator />
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell">
@@ -209,10 +238,10 @@ export function App() {
             onIr={setTela}
             onNav={irNav}
             onAbrirLog={abrirLog}
-            onSair={() => {
-              esquecerTelas();
-              void supabase?.auth.signOut();
-            }}
+            onSair={sair}
+            ambiente={ambiente}
+            disponiveis={disponiveis}
+            onTrocarAmbiente={trocarAmbiente}
           />
         )}
       </PullToRefresh>

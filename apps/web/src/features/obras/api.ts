@@ -21,6 +21,8 @@ import {
   type AtividadeSemDono,
   type LinhaProvidencia,
   type ProvidenciaSemDono,
+  obrasDoAmbiente,
+  type Ambiente,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
@@ -182,63 +184,80 @@ export async function listarUnidades(): Promise<Unidade[]> {
   return (data ?? []) as Unidade[];
 }
 
-export async function listarObras(): Promise<ObraResumo[]> {
+export async function listarObras(ambiente: Ambiente): Promise<ObraResumo[]> {
   if (!supabase) return [];
+  const sb = supabase;
   const hoje = hojeISO();
-  const [obrasRes, fasesRes, atvsRes, depsRes, provsRes, tarefasRes, pendRes, cfgRes, liberaRes] =
+  // 1ª consulta: as obras do ambiente; as tabelas filhas ficam restritas a elas.
+  const obrasRes = await sb
+    .from('obra')
+    .select('id,nome,modelo_rotulo,inicio,entrega_original,ambiente')
+    .eq('status', 'ativa')
+    .eq('ambiente', ambiente)
+    .is('deleted_at', null);
+  const obras = obrasDoAmbiente(
+    (obrasRes.data ?? []) as {
+      id: string;
+      nome: string;
+      modelo_rotulo: string;
+      inicio: string;
+      entrega_original: string | null;
+      ambiente: Ambiente;
+    }[],
+    ambiente,
+  );
+  if (obras.length === 0) return [];
+  const ids = obras.map((o) => o.id);
+  const [fasesRes, atvsRes, depsRes, provsRes, tarefasRes, pendRes, cfgRes, liberaRes] =
     await Promise.all([
-      supabase
-        .from('obra')
-        .select('id,nome,modelo_rotulo,inicio,entrega_original')
-        .eq('status', 'ativa')
-        .is('deleted_at', null),
-      supabase.from('obra_fase').select('id,obra_id,ordem,titulo,preliminar').order('ordem'),
-      supabase
+      sb
+        .from('obra_fase')
+        .select('id,obra_id,ordem,titulo,preliminar')
+        .in('obra_id', ids)
+        .order('ordem'),
+      sb
         .from('obra_atividade')
         .select(
           'id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,' +
             'mapa_antecedencia_du,avanco_pct,prestador,fim_previsto_calc',
         )
+        .in('obra_id', ids)
         .is('deleted_at', null),
-      supabase.from('obra_dependencia').select('obra_id,atividade_id,predecessora_id,defasagem_du'),
-      supabase
+      sb
+        .from('obra_dependencia')
+        .select('obra_id,atividade_id,predecessora_id,defasagem_du')
+        .in('obra_id', ids),
+      sb
         .from('obra_providencia')
         .select(
           'id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du,providenciar_ate',
         )
+        .in('obra_id', ids)
         .is('deleted_at', null),
-      supabase
+      sb
         .from('tarefa')
         .select(
           'id,obra_id,texto,prazo,status,responsavel_nome,vinculo_tipo,vinculo_id,' +
             'responsavel:pessoa!responsavel_id(nome)',
         )
+        .in('obra_id', ids)
         .eq('status', 'aberta')
         .is('deleted_at', null),
-      supabase
+      sb
         .from('pendencia')
         .select(
           'id,obra_id,titulo,criticidade,apontada_em,responsavel_id,responsavel:pessoa!responsavel_id(nome)',
         )
+        .in('obra_id', ids)
         .eq('status', 'aberta')
         .is('deleted_at', null),
-      supabase
-        .from('config_avisos')
-        .select('pend_alta_du,pend_media_du,pend_baixa_du')
-        .maybeSingle(),
-      supabase.from('obra_mapa_libera').select('mapa_id,atividade_id'),
+      sb.from('config_avisos').select('pend_alta_du,pend_media_du,pend_baixa_du').maybeSingle(),
+      sb.from('obra_mapa_libera').select('mapa_id,atividade_id').in('obra_id', ids),
     ]);
   const liberaPorMapa = new Map<string, string[]>();
   for (const l of (liberaRes.data ?? []) as { mapa_id: string; atividade_id: string }[])
     liberaPorMapa.set(l.mapa_id, [...(liberaPorMapa.get(l.mapa_id) ?? []), l.atividade_id]);
 
-  const obras = (obrasRes.data ?? []) as {
-    id: string;
-    nome: string;
-    modelo_rotulo: string;
-    inicio: string;
-    entrega_original: string | null;
-  }[];
   const fases = (fasesRes.data ?? []) as {
     id: string;
     obra_id: string;
