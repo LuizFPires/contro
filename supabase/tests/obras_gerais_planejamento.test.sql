@@ -3,7 +3,7 @@
 -- Administrador e o Coordenador participante; Membro não planeja. A Contorno
 -- não muda (membro escreve direto e exclui atividade como hoje).
 begin;
-select plan(71);
+select plan(89);
 
 -- Elenco: M equipe Contorno, A administrador (fora de G), C coordenador de G,
 -- J membro de G, C2 coordenador de G2 (não participa de G).
@@ -43,6 +43,9 @@ insert into obra_atividade (id, obra_id, fase_id, ordem, nome) values
   ('00000000-0000-0000-0000-00000002f201', '00000000-0000-0000-0000-00000002f001', '00000000-0000-0000-0000-00000002f101', 1, 'Atividade K'),
   ('00000000-0000-0000-0000-00000002f202', '00000000-0000-0000-0000-00000002f001', '00000000-0000-0000-0000-00000002f101', 2, 'Atividade K 2'),
   ('00000000-0000-0000-0000-00000002f203', '00000000-0000-0000-0000-00000002f003', '00000000-0000-0000-0000-00000002f103', 1, 'Atividade G2');
+insert into obra_atividade (id, obra_id, fase_id, pai_id, ordem, nome) values
+  ('00000000-0000-0000-0000-00000002f204', '00000000-0000-0000-0000-00000002f001', '00000000-0000-0000-0000-00000002f101',
+   '00000000-0000-0000-0000-00000002f201', 1, 'Subitem K');
 
 -- ids das pessoas (nem todo mundo vê toda pessoa pela RLS)
 create temp table ids as
@@ -66,8 +69,8 @@ select is(
   (select array_agg(row(titulo, ordem, preliminar)::text order by ordem) from obra_fase where obra_id = '00000000-0000-0000-0000-00000002f002'),
   array[row('Estrutura', 1, false)::text, row('Acabamento', 2, false)::text],
   'fases com nome aparado, ordem 1 e 2, nao preliminares');
-select is(adicionar_fase_geral('00000000-0000-0000-0000-00000002f002', 'Estrutura', '00000000-0000-0000-0000-00000002f111'),
-  '00000000-0000-0000-0000-00000002f111'::uuid, 'p_id repetido devolve a fase');
+select is(adicionar_fase_geral('00000000-0000-0000-0000-00000002f002', '  ', '00000000-0000-0000-0000-00000002f111'),
+  '00000000-0000-0000-0000-00000002f111'::uuid, 'p_id repetido devolve a fase antes de validar o nome');
 select is((select count(*)::int from obra_fase where obra_id = '00000000-0000-0000-0000-00000002f002'), 2, 'fase repetida nao duplica');
 select throws_ok($$ select adicionar_fase_geral('00000000-0000-0000-0000-00000002f002', '   ') $$,
   '22023', null, 'fase sem nome e recusada');
@@ -95,9 +98,14 @@ select is(
   jsonb_build_object('nome', 'Laje', 'data_prevista', '2026-11-20', 'responsavel_id', (select id from ids where quem = 'J')),
   'evento criada com nome, data e responsavel');
 select is(
-  adicionar_atividade_geral('00000000-0000-0000-0000-00000002f002', '00000000-0000-0000-0000-00000002f111',
-    'Laje', null, null, '[]', '00000000-0000-0000-0000-00000002f211'),
-  '00000000-0000-0000-0000-00000002f211'::uuid, 'p_id repetido devolve a atividade');
+  (select array_agg(depois order by depois ->> 'nome') from obra_atividade_evento
+   where tipo = 'criada' and atividade_id in ('00000000-0000-0000-0000-00000002f221', '00000000-0000-0000-0000-00000002f222')),
+  array['{"nome": "Concretagem", "data_prevista": null}'::jsonb, '{"nome": "Forma", "data_prevista": "2026-11-12"}'::jsonb],
+  'subitens criados com a atividade tambem gravam criada');
+select is(
+  adicionar_atividade_geral('00000000-0000-0000-0000-00000002f002', '00000000-0000-0000-0000-00000002f103',
+    '  ', (select id from ids where quem = 'C2'), null, '[]', '00000000-0000-0000-0000-00000002f211'),
+  '00000000-0000-0000-0000-00000002f211'::uuid, 'p_id repetido devolve a atividade antes de validar nome, fase e responsavel');
 select is((select count(*)::int from obra_atividade where obra_id = '00000000-0000-0000-0000-00000002f002'), 3,
   'atividade repetida nao duplica (1 + 2 subitens)');
 select throws_ok($$ select adicionar_atividade_geral('00000000-0000-0000-0000-00000002f002',
@@ -142,8 +150,6 @@ select is(
   (select row(replanejamentos, (select count(*) from obra_atividade_evento e where e.atividade_id = a.id))::text
    from obra_atividade a where id = '00000000-0000-0000-0000-00000002f212'),
   row(2, 4::bigint)::text, 'mesma data: nada muda e nenhum evento novo');
-select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f212', null) $$,
-  '22023', null, 'data nula e recusada');
 select throws_ok($$ select definir_data_prevista(gen_random_uuid(), '2026-11-23') $$,
   '23503', null, 'item inexistente e recusado');
 
@@ -182,14 +188,53 @@ select is(
   'editar subitem muda nome e data e replaneja');
 select is(
   (select array_agg(tipo order by tipo) from obra_atividade_evento where atividade_id = '00000000-0000-0000-0000-00000002f221'),
-  array['editada', 'replanejada'], 'editar subitem grava editada e replanejada');
+  array['criada', 'editada', 'replanejada'], 'editar subitem grava editada e replanejada');
 select lives_ok($$ select editar_subitem_geral('00000000-0000-0000-0000-00000002f222', 'Concretagem', '2026-11-17') $$,
   'subitem sem data ganha a primeira');
 select is(
-  (select row(data_prevista, replanejamentos, (select array_agg(tipo) from obra_atividade_evento e where e.atividade_id = a.id))::text
+  (select row(data_prevista, replanejamentos, (select array_agg(tipo order by tipo) from obra_atividade_evento e where e.atividade_id = a.id))::text
    from obra_atividade a where id = '00000000-0000-0000-0000-00000002f222'),
-  row('2026-11-17'::date, 0, array['data_definida'])::text,
+  row('2026-11-17'::date, 0, array['criada', 'data_definida'])::text,
   'nome igual nao grava editada; primeira data nao replaneja');
+
+-- Data nula: volta a "sem data", grava data_definida e nunca replaneja
+select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f222', null) $$, 'definir data nula');
+select is(
+  (select row(data_prevista, data_prevista_original, replanejamentos)::text from obra_atividade where id = '00000000-0000-0000-0000-00000002f222'),
+  row(null::date, null::date, 0)::text, 'data nula limpa a data sem replanejar');
+select is(
+  (select row(antes, depois)::text from obra_atividade_evento
+   where atividade_id = '00000000-0000-0000-0000-00000002f222' and tipo = 'data_definida' and depois -> 'data' = 'null'::jsonb),
+  row('{"data": "2026-11-17"}'::jsonb, '{"data": null}'::jsonb)::text, 'data nula grava data_definida com depois {data: null}');
+select lives_ok($$ select editar_subitem_geral('00000000-0000-0000-0000-00000002f221', 'Forma e escora', null) $$,
+  'editar subitem com data nula');
+select is(
+  (select row(data_prevista, replanejamentos)::text from obra_atividade where id = '00000000-0000-0000-0000-00000002f221'),
+  row(null::date, 1)::text, 'editar com data nula limpa sem somar replanejamento');
+
+-- Escrita direta não mexe no planejamento (o rastro fica nas RPCs)
+select throws_ok($$ update obra_atividade set replanejamentos = 0 where id = '00000000-0000-0000-0000-00000002f212' $$,
+  '42501', null, 'C nao zera replanejamentos direto');
+select throws_ok($$ update obra_atividade set responsavel_id = (select id from ids where quem = 'C2')
+    where id = '00000000-0000-0000-0000-00000002f211' $$,
+  '42501', null, 'C nao troca responsavel direto');
+select throws_ok($$ update obra_atividade set data_prevista = '2026-12-01' where id = '00000000-0000-0000-0000-00000002f211' $$,
+  '42501', null, 'C nao muda data direto');
+select throws_ok($$ insert into obra_atividade (obra_id, fase_id, ordem, nome, data_prevista) values
+    ('00000000-0000-0000-0000-00000002f002', '00000000-0000-0000-0000-00000002f111', 9, 'X', '2026-12-01') $$,
+  '42501', null, 'C nao insere atividade com data direto');
+
+-- Excluir e restaurar subitem
+select lives_ok($$ select excluir_subitem_geral('00000000-0000-0000-0000-00000002f223') $$, 'C exclui subitem');
+select isnt((select deleted_at from obra_atividade where id = '00000000-0000-0000-0000-00000002f223'), null, 'subitem excluido (logico)');
+select lives_ok($$ select restaurar_subitem_geral('00000000-0000-0000-0000-00000002f223') $$, 'C restaura subitem');
+select is(
+  (select row(s.deleted_at is null, (select array_agg(tipo order by tipo) from obra_atividade_evento e
+     where e.atividade_id = s.id and tipo in ('excluida', 'restaurada')))::text
+   from obra_atividade s where id = '00000000-0000-0000-0000-00000002f223'),
+  row(true, array['excluida', 'restaurada'])::text, 'subitem de volta, com eventos excluida e restaurada');
+select throws_ok($$ select excluir_subitem_geral('00000000-0000-0000-0000-00000002f211') $$,
+  '23503', null, 'atividade de topo nao e subitem');
 
 -- Responsável
 select lives_ok($$ select definir_responsavel_atividade('00000000-0000-0000-0000-00000002f211', (select id from ids where quem = 'A')) $$,
@@ -225,6 +270,8 @@ select throws_ok($$ select editar_subitem_geral('00000000-0000-0000-0000-0000000
 select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f211', '2026-11-30') $$, '42501', null, 'J nao muda data');
 select throws_ok($$ select definir_responsavel_atividade('00000000-0000-0000-0000-00000002f211', null) $$, '42501', null, 'J nao troca responsavel');
 select throws_ok($$ select excluir_atividade_obra('00000000-0000-0000-0000-00000002f211') $$, '42501', null, 'J nao exclui atividade');
+select throws_ok($$ select excluir_subitem_geral('00000000-0000-0000-0000-00000002f223') $$, '42501', null, 'J nao exclui subitem');
+select throws_ok($$ select restaurar_subitem_geral('00000000-0000-0000-0000-00000002f223') $$, '42501', null, 'J nao restaura subitem');
 select is_empty($$ update obra_atividade set data_prevista = '2026-12-01' where id = '00000000-0000-0000-0000-00000002f211' returning id $$,
   'J nao muda data direto (RLS)');
 select throws_ok($$ insert into obra_fase (obra_id, ordem, titulo) values ('00000000-0000-0000-0000-00000002f002', 9, 'X') $$,
@@ -239,7 +286,10 @@ select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-000000
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000002d2","role":"authenticated"}';
 select throws_ok($$ select adicionar_fase_geral('00000000-0000-0000-0000-00000002f001', 'X') $$, '23505', null, 'obra Contorno: 23505');
 select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f201', '2026-11-30') $$, '23505', null, 'atividade Contorno: 23505');
+select throws_ok($$ select excluir_subitem_geral('00000000-0000-0000-0000-00000002f204') $$, '23505', null, 'subitem Contorno: 23505');
 select lives_ok($$ select excluir_atividade_obra('00000000-0000-0000-0000-00000002f211') $$, 'A exclui atividade de G');
+select throws_ok($$ select restaurar_subitem_geral('00000000-0000-0000-0000-00000002f223') $$,
+  '23503', null, 'subitem com atividade excluida: ja esta excluido junto, mas nao volta sozinho');
 select lives_ok($$ select restaurar_atividade_obra('00000000-0000-0000-0000-00000002f211') $$, 'A restaura atividade de G');
 
 -- M (Contorno): sem mudança
