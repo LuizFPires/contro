@@ -1,10 +1,10 @@
 import { supabase } from '../../lib/supabase';
-import { mensagemErroAcesso } from './mensagemErroAcesso';
+import { mensagemErroPlanejamento } from './mensagemErroPlanejamento';
 
 async function chamar(nome: string, args: Record<string, unknown>): Promise<unknown> {
   if (!supabase) throw new Error('Supabase não configurado');
   const { data, error } = await supabase.rpc(nome, args);
-  if (error) throw new Error(mensagemErroAcesso(error));
+  if (error) throw new Error(mensagemErroPlanejamento(error));
   return data;
 }
 

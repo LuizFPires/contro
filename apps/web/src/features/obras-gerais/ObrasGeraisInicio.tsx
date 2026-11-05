@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { podeGerirObrasGerais, rotuloAmbiente, type Ambiente } from '@contro/core';
 import { Icon, Logo, Simbolo } from '@contro/ui';
+import { useLembrado } from '../../lib/useLembrado';
 import { ItemMenu, PerfilSheet } from '../perfil/PerfilSheet';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { NovaObraGeralSheet } from './NovaObraGeralSheet';
+import { ObraGeralDetalhe } from './ObraGeralDetalhe';
 import { useObrasGerais } from './useObrasGerais';
 import styles from './ObrasGeraisInicio.module.css';
 
@@ -28,12 +30,25 @@ export function ObrasGeraisInicio({
 }) {
   const [perfilAberto, setPerfilAberto] = useState(false);
   const [nova, setNova] = useState(false);
+  // A obra aberta fica lembrada: ao voltar ao app, reabre nela.
+  const [obraAberta, setObraAberta] = useLembrado<string | null>('obrasgerais:obra', null);
   const { data: obras, isLoading, isError, refetch } = useObrasGerais();
   const admin = podeGerirObrasGerais({
     administrador: pessoa.administrador,
     acessoContorno: pessoa.acessoContorno,
     papelGeral: pessoa.papelGeral,
   });
+  if (obraAberta) {
+    return (
+      <ObraGeralDetalhe
+        id={obraAberta}
+        pessoa={pessoa}
+        onVoltar={() => setObraAberta(null)}
+        onTrocarObra={setObraAberta}
+        onAbrirPessoas={onPessoas}
+      />
+    );
+  }
   return (
     <div className={styles.screen}>
       <header className={styles.cabecalho}>
@@ -80,12 +95,17 @@ export function ObrasGeraisInicio({
       ) : obras && obras.length > 0 ? (
         <ul className={styles.lista}>
           {obras.map((o) => (
-            <li key={o.id} className={styles.card}>
-              <span className={styles.nome}>{o.nome}</span>
-              <span className={styles.meta}>
-                {o.cidade ? `${o.cidade} · ` : ''}
-                {o.pessoas === 1 ? '1 pessoa' : `${o.pessoas} pessoas`}
-              </span>
+            <li key={o.id}>
+              <button type="button" className={styles.card} onClick={() => setObraAberta(o.id)}>
+                <span className={styles.cardTexto}>
+                  <span className={styles.nome}>{o.nome}</span>
+                  <span className={styles.meta}>
+                    {o.cidade ? `${o.cidade} · ` : ''}
+                    {o.pessoas === 1 ? '1 pessoa' : `${o.pessoas} pessoas`}
+                  </span>
+                </span>
+                <Icon name="seta" size={20} />
+              </button>
             </li>
           ))}
         </ul>

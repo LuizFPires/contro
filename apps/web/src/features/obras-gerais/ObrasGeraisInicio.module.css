@@ -94,9 +94,21 @@
   border-radius: 16px;
   padding: 14px 16px;
   display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--contro-touch);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--contro-black);
+}
+.cardTexto {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
   gap: 2px;
-  color: var(--contro-black);
 }
 .nome {
   font-weight: 800;
