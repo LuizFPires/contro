@@ -220,7 +220,10 @@ function ordenar<I>(linhas: LinhaScore<I>[]): LinhaScore<I>[] {
   });
 }
 
-/** Score da equipe por pessoa (tarefas e pendências com responsável). */
+/**
+ * Score da equipe por pessoa (tarefas e pendências com responsável). Toda pessoa
+ * com alguma ação atribuída (não excluída) tem linha, mesmo sem itens no período.
+ */
 export function calcularScoreEquipe(
   itens: ItemEquipe[],
   janela: Janela,
@@ -276,6 +279,37 @@ export function calcularScoreEquipe(
           ? plural(i.replanejamentos, 'replanejamento', 'replanejamentos')
           : null,
       ),
+    });
+  }
+
+  // Quem tem ação atribuída mas nada concluído ou vencido no período (só abertas
+  // no prazo, ou itens fora da janela) também aparece: 0 itens, sem score ainda.
+  const comLinha = new Set(linhas.map((l) => l.chave));
+  for (const [chave, grupo] of agrupar(
+    itens.filter((i) => !i.excluida),
+    (i) => i.chavePessoa,
+  )) {
+    if (comLinha.has(chave)) continue;
+    linhas.push({
+      chave,
+      nome: maisFrequente(grupo.map((i) => i.nomePessoa)),
+      itens: 0,
+      score: null,
+      faixa: 'sem_score',
+      indicadores: {
+        pontualidade: null,
+        conclusaoDoDia: null,
+        respostaAtraso: null,
+        replanejamentos: null,
+        pendencias: null,
+      },
+      numeros: {
+        atrasoMedioDU: null,
+        respostaMedianaDU: null,
+        replanejamentosMedia: null,
+        obras: 0,
+      },
+      piores: [],
     });
   }
   return ordenar(linhas);

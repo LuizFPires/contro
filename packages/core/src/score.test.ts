@@ -208,7 +208,7 @@ describe('calcularScoreEquipe', () => {
     expect(linha.piores[0].detalhe).toBe('7 d.u. de atraso');
   });
 
-  it('ignora abertos no prazo, excluídos e itens fora da janela', () => {
+  it('pessoa só com abertos no prazo ou itens fora da janela aparece com 0 itens e sem score', () => {
     const linhas = calcularScoreEquipe(
       [
         tarefa({ prazoOriginal: '2026-11-06', prazo: '2026-11-06', concluidaEm: null }),
@@ -224,7 +224,47 @@ describe('calcularScoreEquipe', () => {
       30,
       HOJE,
     );
-    expect(linhas).toEqual([]);
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0]).toMatchObject({
+      chave: 'p1',
+      nome: 'Matheus Teófilo',
+      itens: 0,
+      score: null,
+      faixa: 'sem_score',
+      piores: [],
+    });
+    expect(linhas[0].numeros.obras).toBe(0);
+    expect(linhas[0].indicadores.pontualidade).toBeNull();
+  });
+
+  it('pessoa só com itens excluídos não aparece', () => {
+    expect(calcularScoreEquipe([tarefa({ excluida: true })], 30, HOJE)).toEqual([]);
+  });
+
+  it('todos com ação atribuída aparecem: pontuados primeiro, os sem score por nome', () => {
+    const linhas = calcularScoreEquipe(
+      [
+        ...cinco(() => tarefa({ chavePessoa: 'p1', nomePessoa: 'Tainá Rocha' })),
+        tarefa({
+          chavePessoa: 'p2',
+          nomePessoa: 'Rafael S',
+          prazo: '2026-11-10',
+          prazoOriginal: '2026-11-10',
+          concluidaEm: null,
+        }),
+        tarefa({
+          chavePessoa: 'nome:marina',
+          nomePessoa: 'Marina',
+          prazo: '2026-11-09',
+          prazoOriginal: '2026-11-09',
+          concluidaEm: null,
+        }),
+      ],
+      30,
+      HOJE,
+    );
+    expect(linhas.map((l) => l.nome)).toEqual(['Tainá Rocha', 'Marina', 'Rafael S']);
+    expect(linhas[1].itens).toBe(0);
   });
 
   it('janela de 90 dias inclui o que a de 30 deixa de fora', () => {
@@ -235,7 +275,7 @@ describe('calcularScoreEquipe', () => {
         concluidaEm: '2026-09-01T10:00:00',
       }),
     ];
-    expect(calcularScoreEquipe(itens, 30, HOJE)).toEqual([]);
+    expect(calcularScoreEquipe(itens, 30, HOJE)[0].itens).toBe(0);
     expect(calcularScoreEquipe(itens, 90, HOJE)[0].itens).toBe(1);
   });
 
