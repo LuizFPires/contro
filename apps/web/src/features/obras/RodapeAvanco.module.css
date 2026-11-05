@@ -1,0 +1,60 @@
+/* Rodapé fixo da ficha: avanço (25 · 50 · 75 · Pronta) + Foto numa linha (protótipo, opção D). */
+.rodapeConcluir {
+  position: sticky;
+  bottom: calc(-1 * (var(--contro-space-6) + env(safe-area-inset-bottom, 0)));
+  /* Encosta no fim da folha: a margem de baixo anula o respiro da folha
+     (inclusive a área da barra de início do iPhone), que entra uma vez só no
+     padding daqui. Mais área de tela para a ficha. */
+  margin: 12px calc(-1 * var(--contro-space-4))
+    calc(-1 * (var(--contro-space-6) + env(safe-area-inset-bottom, 0)));
+  /* Respiro embaixo para os botões não ficarem no limite da tela (pedido do usuário). */
+  padding: 10px var(--contro-space-4) calc(18px + env(safe-area-inset-bottom, 0));
+  background: var(--contro-white);
+  border-top: 1px solid var(--contro-border);
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+.rodapeAvanco {
+  gap: 6px;
+}
+.passo,
+.passoFoto {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  cursor: pointer;
+}
+.passo {
+  border: 2px solid rgb(24 24 24 / 22%);
+  background: var(--contro-white);
+  color: #464646;
+  font-size: 14px;
+}
+.passoOn {
+  background: var(--contro-turquoise);
+  border-color: transparent;
+  color: var(--contro-black);
+}
+.passoAtual {
+  border-color: var(--contro-black);
+}
+/* Foto: botão secundário do design system (preto, texto branco). */
+.passoFoto {
+  border: 0;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  font-size: 12px;
+}
+.passo:disabled,
+.passoFoto:disabled {
+  opacity: 0.6;
+}

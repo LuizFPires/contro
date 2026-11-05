@@ -15,6 +15,9 @@ describe('mensagemErroAcesso', () => {
       'Confira os dados: nome, e-mail, papel e obras.',
     );
   });
+  it('23503 avisa que o item não existe mais', () => {
+    expect(mensagemErroAcesso({ code: '23503' })).toBe('Esse item não existe mais.');
+  });
   it('outros erros (rede) viram a mensagem de conexão', () => {
     expect(mensagemErroAcesso(new TypeError('Failed to fetch'))).toBe(
       'Não foi possível salvar. Confira a conexão e tente de novo.',

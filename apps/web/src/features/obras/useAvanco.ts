@@ -1,8 +1,7 @@
 import { avancoAoTocarCard, normalizarAvanco, proximoAvancoAnel } from '@contro/core';
 import { useToast } from '@contro/ui';
-import type { ObraCompleta } from './detalhe';
 import { numeracaoObra } from './numeracaoObra';
-import { useConcluirAtividade, type AoConcluir } from './useConcluirAtividade';
+import { useConcluirAtividade, type AoConcluir, type ObraConclusao } from './useConcluirAtividade';
 import { useObraCampo } from './useObraCampo';
 
 /**
@@ -10,11 +9,16 @@ import { useObraCampo } from './useObraCampo';
  * e os cards da ficha marcam 25 · 50 · 75 · Pronta. 100% conclui sem foto, pelo
  * caminho de sempre (celebração, liberou, Desfazer). Toda mudança tem Desfazer.
  */
-export function useAvanco(obra: ObraCompleta | null, aoConcluir: AoConcluir) {
+export function useAvanco(
+  obra: ObraConclusao | null,
+  aoConcluir: AoConcluir,
+  /** Obra geral não numera (#N): passe `false`. */
+  numerar = true,
+) {
   const campo = useObraCampo(obra?.id ?? '');
   const conclusao = useConcluirAtividade(obra);
   const { showToast } = useToast();
-  const num = obra ? numeracaoObra(obra) : new Map<string, number>();
+  const num = obra && numerar ? numeracaoObra(obra) : new Map<string, number>();
 
   function rotulo(id: string, nome: string) {
     const n = num.get(id);
