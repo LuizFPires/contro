@@ -7,6 +7,8 @@
 -- Nada disso toca a Contorno: as RPCs exigem obra geral (23505).
 
 -- 1) Adicionar quem já está em Obras gerais. Não muda o papel de ninguém.
+-- Coordenador adiciona sempre como Membro: só o Administrador põe um
+-- Coordenador numa obra (daria a ele o planejamento dela).
 create or replace function adicionar_membro_obra(p_obra_id uuid, p_pessoa_id uuid)
 returns void
 language plpgsql
@@ -21,6 +23,11 @@ begin
   ) then
     raise exception 'Pessoa precisa estar ativa em Obras gerais' using errcode = '22023';
   end if;
+  if not public.contro_e_admin() and exists (
+    select 1 from public.pessoa p where p.id = p_pessoa_id and p.papel_geral = 'coordenador'
+  ) then
+    raise exception 'Só administradores colocam coordenadores numa obra' using errcode = '42501';
+  end if;
   insert into public.obra_participante (obra_id, pessoa_id, created_by)
   values (p_obra_id, p_pessoa_id, auth.uid())
   on conflict do nothing;
@@ -32,6 +39,7 @@ $$;
 -- aprovado (pendente) entra só nas Obras gerais, como em salvar_acesso_geral;
 -- desativado ou recusado só volta pelo Administrador. Sem conta: convite como
 -- Membro somando a obra (convite de Coordenador continua de Coordenador).
+-- Coordenador (conta ou convite em aberto) só entra pelo Administrador.
 -- Nunca dá acesso à Contorno nem administrador.
 create or replace function convidar_membro_obra(p_obra_id uuid, p_nome text, p_email text)
 returns uuid
@@ -60,6 +68,9 @@ begin
   for update of p;
 
   if found then
+    if v_pessoa.papel_geral = 'coordenador' and not public.contro_e_admin() then
+      raise exception 'Só administradores colocam coordenadores numa obra' using errcode = '42501';
+    end if;
     if v_pessoa.deleted_at is not null or v_pessoa.desativado_em is not null then
       raise exception 'Pessoa desativada: só o administrador devolve o acesso' using errcode = '22023';
     end if;
@@ -75,6 +86,12 @@ begin
     return v_pessoa.id;
   end if;
 
+  if not public.contro_e_admin() and exists (
+    select 1 from public.convite_geral c
+    where c.email = v_email and c.usado_em is null and c.papel = 'coordenador'
+  ) then
+    raise exception 'Só administradores colocam coordenadores numa obra' using errcode = '42501';
+  end if;
   insert into public.convite_geral as c (email, nome, papel, obra_ids, created_by)
   values (v_email, v_nome, 'membro', array[p_obra_id], auth.uid())
   on conflict (email) do update set
