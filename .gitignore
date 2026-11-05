@@ -56,3 +56,4 @@ apps/pdf-service/out/
 # versionada do app vive em packages/ui/src/brand)
 /*.zip
 /*.png
+.superpowers/
