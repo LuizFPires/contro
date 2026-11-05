@@ -37,7 +37,9 @@ export function App() {
   const [tela, setTela] = useLembrado<'inicio' | 'pessoas-gerais' | DestinoInicio>('app', 'inicio');
   // Contorno ou Obras gerais (o último escolhido fica lembrado); trocar volta ao início.
   const voltarAoInicio = useCallback(() => setTela('inicio'), [setTela]);
-  const { ambiente, disponiveis, trocar: trocarAmbiente } = useAmbiente(pessoa, voltarAoInicio);
+  const { ambiente, disponiveis, trocar: trocarAmbiente, irPara } = useAmbiente(pessoa, voltarAoInicio);
+
+  const [avisoPendente, setAvisoPendente] = useState(false);
 
   // Reunião escolhida na central (null = a que vem).
   const [reuniaoData, setReuniaoData] = useState<string | null>(null);
@@ -97,8 +99,19 @@ export function App() {
     if (ir === 'reuniao' || ir === 'tarefas' || ir === 'minhas' || ir === 'score' || ir === 'log')
       setTela(ir);
     else if (ir === 'hoje') setTela('inicio');
+    // Os avisos são da Contorno: o ambiente é ajustado quando o perfil carregar.
+    setAvisoPendente(true);
     window.history.replaceState(null, '', window.location.pathname);
   }, [setTela, setLogObra]);
+
+  // Aviso aberto estando em Obras gerais: vai para a Contorno sem perder o destino.
+  // Sem acesso à Contorno, ignora o link e fica em Obras gerais.
+  useEffect(() => {
+    if (!avisoPendente || disponiveis.length === 0) return;
+    setAvisoPendente(false);
+    if (disponiveis.includes('contorno')) irPara('contorno');
+    else setTela('inicio');
+  }, [avisoPendente, disponiveis, irPara, setTela]);
 
   // Recarrega o perfil quando a sessão muda (login/logout/recuperação), para o
   // roteamento de membro/pendente usar sempre o perfil do usuário atual.

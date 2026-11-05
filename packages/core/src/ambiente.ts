@@ -20,6 +20,15 @@ export function ambienteInicial(disponiveis: Ambiente[], ultimo: Ambiente | null
   return disponiveis.includes('contorno') ? 'contorno' : 'geral';
 }
 
+/** Ambiente que abre o destino de um aviso (push): o do destino, se a pessoa o tem; senão fica onde está. */
+export function ambienteParaDestino(
+  destino: Ambiente,
+  disponiveis: Ambiente[],
+  atual: Ambiente,
+): Ambiente {
+  return disponiveis.includes(destino) ? destino : atual;
+}
+
 export function rotuloAmbiente(a: Ambiente): string {
   return a === 'contorno' ? 'Contorno' : 'Obras gerais';
 }

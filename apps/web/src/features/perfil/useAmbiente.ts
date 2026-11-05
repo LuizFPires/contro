@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ambienteInicial, ambientesDaPessoa, type Ambiente } from '@contro/core';
+import { ambienteInicial, ambienteParaDestino, ambientesDaPessoa, type Ambiente } from '@contro/core';
 import { useLembrado } from '../../lib/useLembrado';
 import type { PessoaAtual } from './usePerfil';
 
@@ -12,7 +12,10 @@ import type { PessoaAtual } from './usePerfil';
 export function useAmbiente(
   pessoa: PessoaAtual | null | undefined,
   aoTrocar?: () => void,
-): { ambiente: Ambiente; disponiveis: Ambiente[]; trocar: (a: Ambiente) => void } {
+): { ambiente: Ambiente; disponiveis: Ambiente[]; trocar: (a: Ambiente) => void;
+  /** Abre o ambiente do destino de um aviso, sem voltar a tela ao início. */
+  irPara: (destino: Ambiente) => void;
+} {
   const qc = useQueryClient();
   const [ultimo, setUltimo] = useLembrado<Ambiente | null>('app:ambiente', null);
   const administrador = pessoa?.administrador ?? false;
@@ -32,5 +35,14 @@ export function useAmbiente(
     },
     [disponiveis, setUltimo, aoTrocar, qc],
   );
-  return { ambiente, disponiveis, trocar };
+  const irPara = useCallback(
+    (destino: Ambiente) => {
+      const alvo = ambienteParaDestino(destino, disponiveis, ambiente);
+      if (alvo === ambiente) return;
+      setUltimo(alvo);
+      void qc.invalidateQueries({ queryKey: ['obras'] });
+    },
+    [disponiveis, ambiente, setUltimo, qc],
+  );
+  return { ambiente, disponiveis, trocar, irPara };
 }

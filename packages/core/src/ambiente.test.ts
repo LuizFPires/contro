@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ambienteInicial,
+  ambienteParaDestino,
   ambientesDaPessoa,
   obrasDoAmbiente,
   podeGerirObrasGerais,
@@ -80,5 +81,17 @@ describe('rótulos', () => {
     expect(rotuloAmbiente('geral')).toBe('Obras gerais');
     expect(rotuloPapelGeral('coordenador')).toBe('Coordenador');
     expect(rotuloPapelGeral('membro')).toBe('Membro');
+  });
+});
+
+describe('ambienteParaDestino', () => {
+  it('abre a Contorno para quem tem os dois, mesmo estando em Obras gerais', () => {
+    expect(ambienteParaDestino('contorno', ['contorno', 'geral'], 'geral')).toBe('contorno');
+  });
+  it('quem não tem Contorno continua em Obras gerais', () => {
+    expect(ambienteParaDestino('contorno', ['geral'], 'geral')).toBe('geral');
+  });
+  it('destino geral sem acesso mantém o atual', () => {
+    expect(ambienteParaDestino('geral', ['contorno'], 'contorno')).toBe('contorno');
   });
 });
