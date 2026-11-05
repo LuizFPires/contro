@@ -4,6 +4,48 @@
 -- igual ao de hoje), geral para o administrador e os participantes da obra.
 -- Os outros predicados de cada política ficam como estavam.
 
+-- 0) Uma regra só de quem vê a obra. contro_ve_obra_mesmo_apagada ignora a
+-- exclusão lógica (restaurar_obra mexe em obra apagada); contro_ve_obra é ela
+-- mais a obra não apagada.
+create or replace function contro_ve_obra_mesmo_apagada(p_obra_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.obra o
+    where o.id = p_obra_id
+      and (
+        (o.ambiente = 'contorno' and public.contro_e_membro())
+        or (o.ambiente = 'geral' and (
+          public.contro_e_admin()
+          or exists (
+            select 1 from public.obra_participante op
+            join public.pessoa p on p.id = op.pessoa_id
+            where op.obra_id = o.id and p.user_id = auth.uid()
+              and p.deleted_at is null and p.ativo
+          )
+        ))
+      )
+  );
+$$;
+
+create or replace function contro_ve_obra(p_obra_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.obra o where o.id = p_obra_id and o.deleted_at is null
+  ) and public.contro_ve_obra_mesmo_apagada(p_obra_id);
+$$;
+
+grant execute on function contro_ve_obra_mesmo_apagada(uuid) to authenticated;
+
 -- 1) Leitura e escrita direta (RLS) nas tabelas que pendem de obra.
 
 -- obra: obra geral só nasce por RPC (criar_obra_geral, Task 5).
@@ -65,24 +107,22 @@ begin
   end loop;
 end $$;
 
--- Eventos: a obra é a do item pai (o pai já filtra pela própria política).
+-- Eventos: a obra é a do item pai. O exists passa pela RLS do pai
+-- (contro_ve_obra(obra_id)), então a obra é avaliada uma vez só.
 drop policy obra_atividade_evento_sel on obra_atividade_evento;
 create policy obra_atividade_evento_sel on obra_atividade_evento for select to authenticated
   using (exists (
-    select 1 from public.obra_atividade a
-    where a.id = obra_atividade_evento.atividade_id and public.contro_ve_obra(a.obra_id)
+    select 1 from public.obra_atividade a where a.id = obra_atividade_evento.atividade_id
   ));
 drop policy pendencia_evento_sel on pendencia_evento;
 create policy pendencia_evento_sel on pendencia_evento for select to authenticated
   using (exists (
-    select 1 from public.pendencia p
-    where p.id = pendencia_evento.pendencia_id and public.contro_ve_obra(p.obra_id)
+    select 1 from public.pendencia p where p.id = pendencia_evento.pendencia_id
   ));
 drop policy tarefa_evento_sel on tarefa_evento;
 create policy tarefa_evento_sel on tarefa_evento for select to authenticated
   using (exists (
-    select 1 from public.tarefa t
-    where t.id = tarefa_evento.tarefa_id and public.contro_ve_obra(t.obra_id)
+    select 1 from public.tarefa t where t.id = tarefa_evento.tarefa_id
   ));
 
 -- 2) pessoa: participante de obra geral vê quem participa de obra em comum.
@@ -118,14 +158,23 @@ create policy fotos_ins on storage.objects for insert to authenticated
   );
 
 -- 4) Guarda: as RPCs security definer ficam obra a obra sem reescrever cada uma.
--- Com auth.uid() (cliente ou RPC chamada pelo cliente), só escreve em obra que vê.
+-- Com auth.uid() (cliente ou RPC chamada pelo cliente), só escreve em obra que vê
+-- e só aponta para itens (fase, atividade, foto, providência, tarefa) da mesma obra.
 -- Cron e rotinas internas (auth.uid() nulo) e o dono/service_role passam.
+-- anon também passa (uid nulo): depende do controle de cada RPC, e anon não tem
+-- política de escrita nessas tabelas.
 create or replace function contro_guarda_obra()
 returns trigger
 language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  v_new jsonb;
+  v_old jsonb;
+  v_refs text[];
+  v_par text[];
+  v_ruim boolean;
 begin
   -- Passa: sem usuário (cron, rotinas internas) ou sessão que não age como
   -- cliente (dono/service_role, que já ignoram a RLS). O GUC role é o do
@@ -137,19 +186,8 @@ begin
 
   if tg_table_name = 'obra' then
     -- Só update (Ruling 1: insert da obra é governado pela RLS e pelas RPCs).
-    -- Não usa contro_ve_obra: restaurar_obra mexe em obra apagada.
-    if not (
-      (old.ambiente = 'contorno' and public.contro_e_membro())
-      or (old.ambiente = 'geral' and (
-        public.contro_e_admin()
-        or exists (
-          select 1 from public.obra_participante op
-          join public.pessoa p on p.id = op.pessoa_id
-          where op.obra_id = old.id and p.user_id = auth.uid()
-            and p.deleted_at is null and p.ativo
-        )
-      ))
-    ) then
+    -- Mesmo apagada: restaurar_obra mexe em obra apagada.
+    if not public.contro_ve_obra_mesmo_apagada(old.id) then
       raise exception 'sem acesso a esta obra' using errcode = '42501';
     end if;
     return new;
@@ -159,24 +197,61 @@ begin
     if not public.contro_ve_obra(new.obra_id) then
       raise exception 'sem acesso a esta obra' using errcode = '42501';
     end if;
-    return new;
+  else
+    -- UPDATE ou DELETE: a linha de hoje tem de ser de obra que vejo.
+    if not public.contro_ve_obra(old.obra_id) then
+      raise exception 'sem acesso a esta obra' using errcode = '42501';
+    end if;
+    if tg_op = 'DELETE' then
+      return old;
+    end if;
+    -- UPDATE que muda de obra: a de destino também.
+    if new.obra_id is distinct from old.obra_id and not public.contro_ve_obra(new.obra_id) then
+      raise exception 'sem acesso a esta obra' using errcode = '42501';
+    end if;
   end if;
-  -- UPDATE ou DELETE: a linha de hoje tem de ser de obra que vejo.
-  if not public.contro_ve_obra(old.obra_id) then
-    raise exception 'sem acesso a esta obra' using errcode = '42501';
-  end if;
-  if tg_op = 'DELETE' then
-    return old;
-  end if;
-  -- UPDATE que muda de obra: a de destino também.
-  if new.obra_id is distinct from old.obra_id and not public.contro_ve_obra(new.obra_id) then
-    raise exception 'sem acesso a esta obra' using errcode = '42501';
+
+  -- Referências a outros itens: têm de ser da mesma obra. Lidas por jsonb
+  -- (cada tabela tem colunas próprias). Item inexistente fica para a FK.
+  v_new := to_jsonb(new);
+  v_old := case when tg_op = 'UPDATE' then to_jsonb(old) else '{}'::jsonb end;
+  v_refs := case tg_table_name
+    when 'obra_atividade' then array[['fase_id','obra_fase'],['pai_id','obra_atividade'],['foto_conclusao_id','foto']]
+    when 'obra_dependencia' then array[['atividade_id','obra_atividade'],['predecessora_id','obra_atividade']]
+    when 'obra_providencia' then array[['atividade_id','obra_atividade']]
+    when 'pendencia' then array[['atividade_id','obra_atividade'],['foto_antes_id','foto'],['foto_depois_id','foto']]
+    when 'mapa_proposta' then array[['atividade_id','obra_atividade']]
+    when 'obra_mapa_libera' then array[['mapa_id','obra_atividade'],['atividade_id','obra_atividade']]
+    when 'tarefa' then array[
+      ['efeito_providencia_id','obra_providencia'],
+      ['vinculo_id', case v_new->>'vinculo_tipo'
+                       when 'atividade' then 'obra_atividade'
+                       when 'providencia' then 'obra_providencia' end]]
+    when 'reuniao_resposta' then array[['tarefa_id','tarefa']]
+  end;
+  if v_refs is not null then
+    foreach v_par slice 1 in array v_refs loop
+      continue when v_par[2] is null or v_new->>v_par[1] is null;
+      -- UPDATE sem mudar a referência nem a obra: nada a checar.
+      continue when tg_op = 'UPDATE'
+        and v_new->>'obra_id' is not distinct from v_old->>'obra_id'
+        and v_new->>v_par[1] is not distinct from v_old->>v_par[1]
+        and v_new->>'vinculo_tipo' is not distinct from v_old->>'vinculo_tipo';
+      execute format(
+        'select exists (select 1 from public.%I where id = $1 and obra_id is distinct from $2)', v_par[2])
+        into v_ruim using (v_new->>v_par[1])::uuid, new.obra_id;
+      if v_ruim then
+        raise exception 'item de outra obra (%)', v_par[1] using errcode = '42501';
+      end if;
+    end loop;
   end if;
   return new;
 end;
 $$;
 
-create trigger obra_guarda before update on obra
+-- Nome a_guarda_obra: os triggers BEFORE rodam em ordem alfabética, e a guarda
+-- (acesso) vem antes das validações de negócio de cada tabela.
+create trigger a_guarda_obra before update on obra
   for each row execute function contro_guarda_obra();
 
 -- O ambiente não muda por escrita direta do cliente (mudar K para geral a
@@ -207,8 +282,8 @@ begin
     'reuniao_obra','reuniao_resposta','boletim_disparo'
   ] loop
     execute format(
-      'create trigger %I before insert or update or delete on %I for each row execute function contro_guarda_obra()',
-      t || '_guarda', t);
+      'create trigger a_guarda_obra before insert or update or delete on %I for each row execute function contro_guarda_obra()',
+      t);
   end loop;
 end $$;
 
