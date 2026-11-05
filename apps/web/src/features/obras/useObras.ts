@@ -1,12 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Ambiente } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { gerarObra, listarObras, listarUnidades } from './api';
 
-export function useObras() {
+/**
+ * Obras ativas do ambiente. As telas da Contorno só existem no ambiente
+ * Contorno (o App manda as obras gerais para outra tela), daí o padrão.
+ */
+export function useObras(ambiente: Ambiente = 'contorno') {
   return useQuery({
-    queryKey: ['obras'],
+    queryKey: ['obras', ambiente],
     enabled: Boolean(supabase),
-    queryFn: listarObras,
+    queryFn: () => listarObras(ambiente),
   });
 }
 

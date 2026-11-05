@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type { Perfil } from '@contro/core';
+import type { PapelGeral, Perfil } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 export interface PessoaAtual {
@@ -8,6 +8,22 @@ export interface PessoaAtual {
   nome: string;
   /** false = cadastro pendente de aprovação do gestor. */
   ativo: boolean;
+  /** Vê os dois ambientes e gere as obras gerais. */
+  administrador: boolean;
+  /** Participa da Contorno. */
+  acessoContorno: boolean;
+  /** Papel nas obras gerais (null = não participa). */
+  papelGeral: PapelGeral | null;
+}
+
+interface LinhaPessoa {
+  id: string;
+  perfil: Perfil;
+  nome: string;
+  ativo: boolean;
+  administrador: boolean | null;
+  acesso_contorno: boolean | null;
+  papel_geral: PapelGeral | null;
 }
 
 /** Perfil/nome da pessoa logada. ativo=false → aguardando aprovação do gestor. */
@@ -22,10 +38,20 @@ export function usePerfil() {
       if (!user) return null;
       const { data } = await supabase
         .from('pessoa')
-        .select('id, perfil, nome, ativo')
+        .select('id, perfil, nome, ativo, administrador, acesso_contorno, papel_geral')
         .eq('user_id', user.id)
         .maybeSingle();
-      return (data as PessoaAtual | null) ?? null;
+      const p = data as LinhaPessoa | null;
+      if (!p) return null;
+      return {
+        id: p.id,
+        perfil: p.perfil,
+        nome: p.nome,
+        ativo: p.ativo,
+        administrador: p.administrador === true,
+        acessoContorno: p.acesso_contorno !== false,
+        papelGeral: p.papel_geral ?? null,
+      };
     },
   });
 }

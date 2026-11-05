@@ -37,10 +37,17 @@ Convenções: `uuid` como PK, `created_at`/`updated_at`/`created_by` em tudo, `d
 
 ### 3.1 Cadastro
 ```
-pessoa(id, nome, papel_texto, perfil: 'gestor'|'equipe', user_id → auth.users, ativo)   -- papel_texto (engenheiro, mestre, compras…) é só rótulo
+pessoa(id, nome, papel_texto, perfil: 'gestor'|'equipe', user_id → auth.users, ativo,   -- papel_texto (engenheiro, mestre, compras…) é só rótulo
+       administrador bool default false,                    -- Obras gerais: vê todas as obras gerais e dá acesso
+       acesso_contorno bool default true,                   -- false = pessoa só de Obras gerais
+       papel_geral: 'coordenador'|'membro' null)            -- papel em Obras gerais; null = sem acesso
+obra_participante(obra_id, pessoa_id)                       -- quem participa de cada obra geral (PK composta)
+convite_geral(email, nome, papel, obra_ids uuid[], usado_em)   -- convite por e-mail; usado no cadastro, entra direto sem aprovação
 unidade(id, nome, cidade text)                     -- unidade Contorno do Corpo
 sugestao(id, tipo: 'pessoa'|'prestador'|'local', texto, usos int, ultimo_uso)   -- autocompletar alimentado pelo uso
 -- Sem cadastro de feriados (decisão do produto). Uma pessoa pode ser criada na hora a partir de um nome digitado.
+-- administrador, acesso_contorno, papel_geral e user_id só mudam por RPC (gatilho bloqueia update direto, inclusive de gestor).
+-- Pessoa só de Obras gerais fica fora das listas da Contorno (pessoa_sel exige acesso_contorno).
 ```
 
 ### 3.2 Modelos de obra (vários, sem versões)
@@ -59,6 +66,7 @@ Sem rascunho nem publicação: cada edição grava direto no modelo. `gerar_obra
 ### 3.3 Obra (cópia independente)
 ```
 obra(id, unidade_id, nome, inicio date, modelo_id, modelo_rotulo text,   -- rótulo = nome · subtítulo no momento da criação
+      ambiente: 'contorno'|'geral' default 'contorno', cidade text null,   -- obra geral é criada pelo Administrador, sem modelo da Contorno
       engenheiro_id → pessoa, status: 'ativa'|'concluida'|'pausada', xp int default 0)
 obra_fase(id, obra_id, ordem, titulo)
 obra_atividade(id, obra_id, fase_id, ordem, nome, duracao_du, origem_modelo_atividade_id null,
@@ -288,11 +296,18 @@ Todas são idempotentes por `client_op_id` (uuid gerado no aparelho), para a fil
 
 ## 7. Permissões (RLS)
 
-Dois perfis:
+**Contorno: dois perfis** (inalterados):
 - **Gestor:** tudo, inclusive escrita em `modelo*`.
 - **Equipe de obra:** leitura e escrita em todas as tabelas de obra, pendência, providência, tarefa, reunião e boletim; **somente leitura** em `modelo*` (para escolher o modelo na nova obra). A UI esconde "Modelos" e "Editar modelos" para esse perfil, e a RLS bloqueia a escrita.
 - Sem vistoria (28/10/2026): resolver com a foto do depois fecha a pendência, para qualquer perfil.
 - **Fotos:** bucket privado, com acesso por URL assinada de curta duração e caminho `obra_id/…`.
+
+**Obras gerais (05/11/2026, etapa 1):**
+- **Administrador** (Luiz Felipe, Rafael, Rodrigo): vê todas as obras gerais, cria obra geral e define papel e obras de cada pessoa. Marcado por migration de dados; só muda por RPC.
+- **Coordenador** e **Membro** (`papel_geral`): veem só as obras em que estão em `obra_participante`. Nesta etapa só o Administrador dá acesso; as regras Coordenador x Membro nas ações e o Coordenador adicionando Membro vêm na etapa 2.
+- **Isolamento por RLS:** `contro_ve_obra(obra)` decide a leitura e a escrita de cada tabela de obra, incluindo Storage; obra da Contorno exige `contro_e_membro()` (que exige `acesso_contorno`). O gatilho `a_guarda_obra` impede que um item aponte para item de outra obra.
+- **Rotinas** (avisos, boletim, abrir/reabrir reunião) só olham a Contorno nesta etapa.
+- Dar acesso a quem estava pendente, desativado ou recusado na Contorno vale só para Obras gerais.
 
 ## 8. Boletim e ata
 
@@ -375,6 +390,7 @@ A faixa lateral de cada obra é **cinza escuro #4A4A4A**.
 /modelos/:id              modelo: fases, atividades e assistente de 5 passos (só gestor)
 /modelos/:id/tabela       visão desktop complementar (tabela + Gantt)
 ```
+Ambientes (etapa 1 de Obras gerais): sem rota nova; o `App` guarda a tela e o ambiente atual (`useAmbiente`: último usado, primeiro acesso na Contorno). No ambiente Obras gerais a tela inicial é `ObrasGeraisInicio` (cards das obras, "+" só para Administrador) e a tela `pessoas-gerais` é "Pessoas e acessos" (só Administrador). Abrir a obra geral por dentro é da etapa 2.
 
 ### 10.2 Componentes-chave
 `FaseTrilha`, `AtividadeItem`, `FichaAtividade` (bottom sheet, com subitens e "Ajustar início"), `AutocompleteNome` (sugestões de pessoa e prestador), `LembreteItem`, `PendenciaDeck` (swipe com limiar de 100 px, rotação dx/22 e botões equivalentes), `ListaPendencias`, `AdiarSheet`, `CameraGhost` (overlay do antes com 40% de opacidade), `Gantt`, `Inauguracao`, `BoletimView`, `ReuniaoObraCard`, `TarefaItem`, `TarefaSheet`, `Toast` com ação "Desfazer" (5 s).

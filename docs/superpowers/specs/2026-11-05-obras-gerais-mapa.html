@@ -1,0 +1,3744 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CONTRO · mapa de fluxos</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --tq: #54b4b0;
+        --pt: #181818;
+        --bg: #f6f6f6;
+        --red: #c62828;
+        --amb: #b45309;
+        --redbg: #fbeaea;
+        --l: rgba(24, 24, 24, 0.1);
+        --m: rgba(24, 24, 24, 0.58);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #e4e8e8;
+        font-family: 'Nunito Sans', system-ui, sans-serif;
+        color: var(--pt);
+      }
+      .wrap {
+        padding: 22px 20px 80px;
+      }
+      h1 {
+        font-weight: 800;
+        font-size: 26px;
+        margin: 0 0 4px;
+      }
+      .lead {
+        color: var(--m);
+        font-size: 15px;
+        margin: 0 0 14px;
+        max-width: 1000px;
+        line-height: 1.5;
+      }
+      .lead b {
+        color: var(--pt);
+      }
+      .jump {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: var(--pt);
+        margin: 0 -20px 16px;
+        padding: 10px 20px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .jump a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        border: 1.5px solid var(--tq);
+        border-radius: 999px;
+        padding: 9px 14px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+      }
+      .jump a:hover {
+        background: var(--tq);
+        color: var(--pt);
+      }
+      .legend {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        font-size: 13.5px;
+        margin: 0 0 14px;
+        align-items: center;
+      }
+      .legend span {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .lg-hs {
+        width: 26px;
+        height: 18px;
+        border-radius: 6px;
+        outline: 2.5px solid var(--tq);
+        outline-offset: 1px;
+        background: rgba(84, 180, 176, 0.12);
+      }
+      /* matriz */
+      table.mx {
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        font-size: 13.5px;
+        margin-bottom: 26px;
+        max-width: 1150px;
+        width: 100%;
+      }
+      .mx th,
+      .mx td {
+        padding: 9px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--l);
+        vertical-align: top;
+      }
+      .mx th {
+        background: var(--pt);
+        color: #fff;
+        font-weight: 800;
+        font-size: 13px;
+      }
+      .mx td:not(:first-child) {
+        text-align: center;
+        font-weight: 700;
+      }
+      .mx tr.grp td {
+        background: rgba(84, 180, 176, 0.16);
+        font-weight: 800;
+        text-align: left !important;
+        font-size: 12.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .y {
+        color: var(--pt);
+      }
+      .n {
+        color: var(--m);
+        font-weight: 600 !important;
+      }
+      /* faixas */
+      .lane {
+        background: #fff;
+        border-radius: 20px;
+        margin-bottom: 28px;
+        padding: 16px 18px 6px;
+      }
+      .lh {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+      }
+      .lh h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .badge {
+        font-size: 12.5px;
+        font-weight: 800;
+        border-radius: 999px;
+        padding: 4px 10px;
+        background: var(--pt);
+        color: #fff;
+      }
+      .badge.t {
+        background: var(--tq);
+        color: var(--pt);
+      }
+      .ld {
+        font-size: 14px;
+        color: var(--m);
+        margin: 0 0 6px;
+        max-width: 1100px;
+        line-height: 1.45;
+      }
+      .ld b {
+        color: var(--pt);
+      }
+      .canvas {
+        position: relative;
+        overflow-x: auto;
+        padding: 10px 4px 26px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(var(--cols), 280px);
+        column-gap: 110px;
+        row-gap: 96px;
+        position: relative;
+        z-index: 1;
+        width: max-content;
+      }
+      svg.arrows {
+        position: absolute;
+        left: 0;
+        top: 0;
+        pointer-events: none;
+        z-index: 3;
+        overflow: visible;
+      }
+      svg.arrows path {
+        fill: none;
+        stroke: var(--pt);
+        stroke-width: 2;
+        opacity: 0.55;
+        transition:
+          opacity 0.15s,
+          stroke-width 0.15s;
+      }
+      svg.arrows path.back {
+        stroke-dasharray: 6 5;
+      }
+      svg.arrows path.hi {
+        opacity: 1;
+        stroke-width: 3;
+        stroke: var(--tq);
+      }
+      svg.arrows circle {
+        fill: var(--tq);
+        stroke: var(--pt);
+        stroke-width: 1.5;
+      }
+      svg.arrows text {
+        font: 800 11px 'Nunito Sans';
+        fill: var(--pt);
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+      .scr {
+        width: 280px;
+      }
+      .cap {
+        font-size: 12.5px;
+        line-height: 1.35;
+        margin: 0 0 6px;
+        min-height: 34px;
+      }
+      .cap b {
+        font-weight: 800;
+      }
+      .tg {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        background: var(--pt);
+        color: #fff;
+        border-radius: 6px;
+        padding: 1px 6px;
+        margin-right: 4px;
+      }
+      /* telefone */
+      .ph {
+        width: 280px;
+        height: 680px;
+        background: var(--bg);
+        border-radius: 28px;
+        border: 7px solid var(--pt);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+      .ph.lock {
+        background: linear-gradient(160deg, #2b3b3a, #181818);
+        color: #fff;
+      }
+      .sb {
+        height: 20px;
+        font-size: 10.5px;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 15px 0;
+        flex: 0 0 20px;
+      }
+      .sc {
+        flex: 1;
+        overflow: hidden;
+        padding: 4px 12px 0;
+        position: relative;
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 4px 0 9px;
+        gap: 8px;
+        min-height: 36px;
+      }
+      .brand {
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        font-size: 17px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .brand i {
+        width: 19px;
+        height: 19px;
+        border-radius: 6px;
+        background: var(--tq);
+        display: inline-block;
+        flex: 0 0 19px;
+      }
+      .al {
+        font-size: 11.5px;
+        font-weight: 800;
+        letter-spacing: 0;
+        color: var(--m);
+        border-left: 1.5px solid var(--l);
+        padding-left: 7px;
+      }
+      .back {
+        font-weight: 800;
+        font-size: 14.5px;
+      }
+      .obsel {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 800;
+        font-size: 16px;
+      }
+      .obsel i {
+        width: 19px;
+        height: 19px;
+        border-radius: 6px;
+        background: var(--tq);
+        flex: 0 0 19px;
+      }
+      .av.tap {
+        border-radius: 50%;
+      }
+      .av {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--pt);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 32px;
+      }
+      .av.t {
+        background: var(--tq);
+        color: var(--pt);
+      }
+      .av.g {
+        background: var(--l);
+        color: var(--pt);
+      }
+      .h {
+        font-weight: 800;
+        font-size: 18.5px;
+        margin: 4px 0 2px;
+      }
+      .hs {
+        font-size: 12px;
+        color: var(--m);
+        margin: 0 0 9px;
+      }
+      .card {
+        background: #fff;
+        border-radius: 13px;
+        padding: 10px 11px;
+        margin-bottom: 7px;
+      }
+      .ct {
+        font-weight: 800;
+        font-size: 14px;
+      }
+      .cs {
+        font-size: 11.5px;
+        color: var(--m);
+      }
+      .bar {
+        height: 5px;
+        background: var(--l);
+        border-radius: 4px;
+        margin: 7px 0 3px;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        background: var(--tq);
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 3px 7px;
+        border-radius: 999px;
+        background: rgba(84, 180, 176, 0.18);
+        white-space: nowrap;
+      }
+      .tag.r {
+        background: var(--redbg);
+        color: var(--red);
+      }
+      .tag.a {
+        background: rgba(180, 83, 9, 0.12);
+        color: var(--amb);
+      }
+      .tag.k {
+        background: var(--pt);
+        color: #fff;
+      }
+      .secl {
+        font-size: 11.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--m);
+        margin: 10px 0 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .plus {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--tq);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 18px;
+        color: var(--pt);
+      }
+      .fab {
+        position: absolute;
+        right: 14px;
+        bottom: 12px;
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+      }
+      .it {
+        background: #fff;
+        border-radius: 11px;
+        padding: 8px 9px;
+        margin-bottom: 5px;
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .it.late {
+        background: var(--redbg);
+      }
+      .ck {
+        flex: 0 0 21px;
+        height: 21px;
+        border-radius: 50%;
+        border: 2px solid var(--pt);
+        margin-top: 1px;
+      }
+      .ck.ok {
+        background: var(--tq);
+        border-color: var(--tq);
+        position: relative;
+      }
+      .ck.ok:after {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 2px;
+        width: 5px;
+        height: 10px;
+        border: solid var(--pt);
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+      .itb {
+        flex: 1;
+        min-width: 0;
+      }
+      .itt {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+      .itt.done {
+        text-decoration: line-through;
+        color: var(--m);
+      }
+      .itm {
+        font-size: 11.5px;
+        color: var(--m);
+        margin-top: 2px;
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .tp {
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 1px 5px;
+        border-radius: 5px;
+        border: 1.5px solid var(--pt);
+      }
+      .red {
+        color: var(--red);
+        font-weight: 800;
+      }
+      .ambc {
+        color: var(--amb);
+        font-weight: 800;
+      }
+      .chips {
+        display: flex;
+        gap: 5px;
+        overflow: hidden;
+        margin-bottom: 9px;
+        flex-wrap: nowrap;
+      }
+      .chip {
+        flex: 0 0 auto;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #fff;
+        border: 1.5px solid var(--l);
+      }
+      .chip.on {
+        background: var(--pt);
+        color: #fff;
+        border-color: var(--pt);
+      }
+      .chip.d {
+        border-style: dashed;
+        border-color: var(--pt);
+      }
+      .seg {
+        display: flex;
+        background: #fff;
+        border-radius: 11px;
+        padding: 3px;
+        margin-bottom: 9px;
+      }
+      .seg span {
+        flex: 1;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 7px 2px;
+        border-radius: 8px;
+      }
+      .seg span.on {
+        background: var(--pt);
+        color: #fff;
+      }
+      .nav {
+        height: 54px;
+        flex: 0 0 54px;
+        background: #fff;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border-top: 1px solid var(--l);
+      }
+      .nav span {
+        font-size: 10.5px;
+        font-weight: 700;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 4px 9px;
+        border-radius: 10px;
+      }
+      .nav span.on {
+        background: var(--pt);
+        color: #fff;
+      }
+      .nav svg {
+        width: 17px;
+        height: 17px;
+      }
+      .dim {
+        position: absolute;
+        inset: 0;
+        background: rgba(24, 24, 24, 0.45);
+      }
+      .sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #fff;
+        border-radius: 18px 18px 0 0;
+        padding: 11px 12px 14px;
+        box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.18);
+      }
+      .sheet.tops {
+        top: 0;
+        bottom: auto;
+        border-radius: 0 0 18px 18px;
+        padding-top: 26px;
+      }
+      .grab {
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--l);
+        margin: 0 auto 10px;
+      }
+      .env {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        border: 1.5px solid var(--l);
+        border-radius: 13px;
+        padding: 9px;
+        margin-bottom: 7px;
+      }
+      .env.on {
+        border-color: var(--pt);
+        box-shadow: inset 0 0 0 1px var(--pt);
+      }
+      .env .eb {
+        flex: 1;
+      }
+      .radio {
+        flex: 0 0 19px;
+        height: 19px;
+        border-radius: 50%;
+        border: 2px solid var(--pt);
+        position: relative;
+      }
+      .env.on .radio:after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 50%;
+        background: var(--pt);
+      }
+      .menu {
+        font-size: 13.5px;
+        font-weight: 700;
+        padding: 11px 2px;
+        border-top: 1px solid var(--l);
+      }
+      .big {
+        background: #fff;
+        border-radius: 16px;
+        padding: 14px;
+        margin-bottom: 10px;
+        min-height: 128px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .big .bt {
+        font-weight: 800;
+        font-size: 17.5px;
+        margin: 7px 0 2px;
+      }
+      .big .ico {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: var(--tq);
+      }
+      .foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+      }
+      .prow {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        background: #fff;
+        border-radius: 11px;
+        padding: 8px 9px;
+        margin-bottom: 5px;
+        min-height: 48px;
+      }
+      .prow .pb {
+        flex: 1;
+        min-width: 0;
+      }
+      .pn {
+        font-weight: 800;
+        font-size: 13px;
+      }
+      .oc {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        margin-top: 3px;
+      }
+      .oc span {
+        font-size: 11px;
+        font-weight: 700;
+        background: var(--l);
+        border-radius: 6px;
+        padding: 1px 6px;
+      }
+      .oc span.k {
+        background: var(--pt);
+        color: #fff;
+      }
+      .orow {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        border-bottom: 1px solid var(--l);
+        padding: 9px 0;
+        min-height: 50px;
+      }
+      .orow:last-child {
+        border-bottom: 0;
+      }
+      .orow .ob {
+        flex: 1;
+      }
+      .sw {
+        flex: 0 0 40px;
+        height: 23px;
+        border-radius: 12px;
+        background: var(--l);
+        position: relative;
+      }
+      .sw:after {
+        content: '';
+        position: absolute;
+        left: 3px;
+        top: 3px;
+        width: 17px;
+        height: 17px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+      }
+      .sw.on {
+        background: var(--tq);
+      }
+      .sw.on:after {
+        left: 20px;
+      }
+      .rp {
+        display: flex;
+        gap: 4px;
+        margin-top: 4px;
+      }
+      .rp span {
+        font-size: 11px;
+        font-weight: 800;
+        border: 1.5px solid var(--l);
+        border-radius: 999px;
+        padding: 2px 8px;
+      }
+      .rp span.on {
+        border-color: var(--pt);
+        background: var(--pt);
+        color: #fff;
+      }
+      .inp {
+        background: #fff;
+        border: 1.5px solid var(--l);
+        border-radius: 10px;
+        padding: 9px;
+        font-size: 13px;
+        margin-bottom: 7px;
+      }
+      .inp small {
+        display: block;
+        font-size: 11px;
+        color: var(--m);
+        font-weight: 700;
+        margin-bottom: 1px;
+      }
+      .btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        font-weight: 800;
+        font-size: 13.5px;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--tq);
+        color: var(--pt);
+        margin-top: 7px;
+      }
+      .btn.s {
+        background: var(--pt);
+        color: #fff;
+      }
+      .btn.o {
+        background: transparent;
+        border: 1.5px solid var(--pt);
+      }
+      .osel {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1.5px solid var(--l);
+        margin-bottom: 6px;
+      }
+      .osel.on {
+        border-color: var(--pt);
+        box-shadow: inset 0 0 0 1px var(--pt);
+      }
+      .osel .ob {
+        flex: 1;
+      }
+      .toast {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 64px;
+        background: var(--pt);
+        color: #fff;
+        border-radius: 12px;
+        padding: 10px 11px;
+        font-size: 12.5px;
+        display: flex;
+        justify-content: space-between;
+        font-weight: 600;
+      }
+      .toast b {
+        color: var(--tq);
+      }
+      .clock {
+        text-align: center;
+        font-size: 50px;
+        font-weight: 300;
+        margin: 16px 0 0;
+      }
+      .date {
+        text-align: center;
+        font-size: 13px;
+        opacity: 0.8;
+        margin-bottom: 20px;
+      }
+      .noti {
+        background: rgba(255, 255, 255, 0.93);
+        color: var(--pt);
+        border-radius: 15px;
+        padding: 9px 11px;
+        margin-bottom: 7px;
+        font-size: 12px;
+      }
+      .noti .nh {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10.5px;
+        color: var(--m);
+        margin-bottom: 2px;
+        font-weight: 700;
+      }
+      .trilha {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .fase {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        background: #fff;
+        border-radius: 11px;
+        padding: 8px 9px;
+      }
+      .fase .n {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid var(--pt);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 12px;
+        color: var(--pt);
+      }
+      .fase.ok .n {
+        background: var(--tq);
+        border-color: var(--tq);
+      }
+      .fase.cur {
+        box-shadow: inset 0 0 0 2px var(--pt);
+      }
+      .inaug {
+        background: var(--pt);
+        color: #fff;
+        border-radius: 11px;
+        padding: 9px;
+        text-align: center;
+        font-weight: 800;
+        font-size: 13px;
+      }
+      .req {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: rgba(84, 180, 176, 0.14);
+        border-radius: 11px;
+        padding: 8px 9px;
+        margin-bottom: 6px;
+      }
+      .mini {
+        font-size: 11.5px;
+        font-weight: 800;
+        border-radius: 999px;
+        padding: 5px 10px;
+        background: var(--tq);
+      }
+      .mini.o {
+        background: transparent;
+        border: 1.5px solid var(--pt);
+      }
+      .gl {
+        margin: 9px 0 3px;
+      }
+      .mi {
+        font-size: 13px;
+        font-weight: 700;
+        padding: 8px 2px;
+        border-top: 1px solid var(--l);
+      }
+      .gbox {
+        background: rgba(84, 180, 176, 0.12);
+        border-radius: 10px;
+        padding: 0 8px;
+      }
+      .gbox .mi:first-child {
+        border-top: 0;
+      }
+      .trl {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .grpt {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--m);
+        margin: 6px 0 1px;
+      }
+      .fz {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        background: #fff;
+        border-radius: 11px;
+        padding: 7px 9px;
+        min-height: 44px;
+      }
+      .fz .n {
+        flex: 0 0 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid var(--pt);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 12px;
+      }
+      .fz.ok .n {
+        background: var(--tq);
+        border-color: var(--tq);
+      }
+      .fz.cur {
+        box-shadow: inset 0 0 0 2px var(--pt);
+      }
+      .fz .fb {
+        flex: 1;
+        min-width: 0;
+      }
+      .fz.add {
+        background: transparent;
+        border: 1.5px dashed var(--pt);
+        justify-content: center;
+        font-weight: 800;
+        font-size: 13px;
+      }
+      .entrega {
+        background: var(--pt);
+        color: #fff;
+        border-radius: 11px;
+        padding: 9px;
+        text-align: center;
+        font-weight: 800;
+        font-size: 13px;
+      }
+      .hj-t {
+        font-weight: 800;
+        font-size: 18px;
+        margin: 4px 0 1px;
+      }
+      .hj-r {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--m);
+        margin: 0 0 9px;
+      }
+      .hj-r.at {
+        color: var(--red);
+      }
+      .hc {
+        background: #fff;
+        border-radius: 13px;
+        margin-bottom: 7px;
+        overflow: hidden;
+      }
+      .hc.at {
+        box-shadow: inset 3px 0 0 var(--red);
+      }
+      .hc-h {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 10px 11px;
+        min-height: 52px;
+      }
+      .hc-h .hb {
+        flex: 1;
+        min-width: 0;
+      }
+      .hc-n {
+        font-weight: 800;
+        font-size: 14px;
+      }
+      .hc-c {
+        font-size: 11.5px;
+        color: var(--m);
+        margin-top: 2px;
+      }
+      .chev {
+        font-weight: 800;
+        font-size: 15px;
+        color: var(--pt);
+      }
+      .fx {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 5px 11px;
+        background: rgba(24, 24, 24, 0.05);
+      }
+      .fx.at {
+        background: var(--redbg);
+        color: var(--red);
+      }
+      .ln {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 11px;
+        border-top: 1px solid var(--l);
+      }
+      .ln .lb {
+        flex: 1;
+        min-width: 0;
+      }
+      .ln .tpo {
+        display: block;
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--m);
+      }
+      .ln .tpo.at {
+        color: var(--red);
+      }
+      .ln b {
+        display: block;
+        font-size: 13px;
+        line-height: 1.25;
+      }
+      .ln b.at {
+        color: var(--red);
+      }
+      .ln .dt {
+        display: block;
+        font-size: 11.5px;
+        color: var(--m);
+        margin-top: 1px;
+      }
+      .ln .dt.at {
+        color: var(--red);
+        font-weight: 700;
+      }
+      .anel {
+        flex: 0 0 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2.5px solid var(--l);
+        position: relative;
+        margin-top: 1px;
+      }
+      .anel.p25 {
+        border-color: var(--tq) var(--l) var(--l) var(--l);
+      }
+      .anel.at {
+        border-color: var(--red) var(--l) var(--l) var(--l);
+      }
+      .anel.ok {
+        background: var(--tq);
+        border-color: var(--tq);
+      }
+      .atv {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+        padding: 8px 9px;
+        background: #fff;
+        border-radius: 11px;
+        margin-bottom: 5px;
+      }
+      .atv.at {
+        background: var(--redbg);
+      }
+      .atv .an {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+      .atv .as {
+        font-size: 11.5px;
+        color: var(--m);
+        margin-top: 2px;
+      }
+      .subs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px 8px;
+        margin-top: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--m);
+      }
+      .subs .f {
+        color: var(--pt);
+      }
+      .addatv {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1.5px dashed var(--pt);
+        border-radius: 11px;
+        padding: 10px;
+        font-weight: 800;
+        font-size: 13px;
+        min-height: 44px;
+      }
+      .fzx {
+        background: #fff;
+        border-radius: 12px;
+        padding: 8px 9px;
+        box-shadow: inset 0 0 0 2px var(--pt);
+        margin-bottom: 6px;
+      }
+      .cal {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 3px;
+        text-align: center;
+        margin: 6px 0;
+      }
+      .cal b {
+        font-size: 10.5px;
+        color: var(--m);
+        font-weight: 800;
+        padding: 3px 0;
+      }
+      .cal span {
+        font-size: 12.5px;
+        font-weight: 700;
+        padding: 7px 0;
+        border-radius: 9px;
+        min-height: 32px;
+      }
+      .cal span.we {
+        color: var(--m);
+      }
+      .cal span.hj {
+        box-shadow: inset 0 0 0 1.5px var(--pt);
+      }
+      .cal span.sel {
+        background: var(--tq);
+        color: var(--pt);
+        font-weight: 800;
+      }
+      .cal span.ps {
+        color: rgba(24, 24, 24, 0.25);
+      }
+      .chave {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+        border-top: 1px solid var(--l);
+        font-size: 13px;
+        font-weight: 800;
+        min-height: 44px;
+      }
+      .chave span:first-child {
+        flex: 1;
+      }
+      .srow {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        background: var(--bg);
+        border-radius: 9px;
+        padding: 6px 7px;
+        margin-bottom: 4px;
+        font-size: 12.5px;
+        font-weight: 700;
+      }
+      .srow .sn {
+        flex: 1;
+        min-width: 0;
+      }
+      .srow .sd {
+        font-size: 11.5px;
+        font-weight: 800;
+        border: 1.5px solid var(--l);
+        border-radius: 999px;
+        padding: 3px 8px;
+        background: #fff;
+      }
+      .srow .x {
+        color: var(--m);
+        font-weight: 800;
+        padding: 0 3px;
+      }
+      .fl {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border-radius: 11px;
+        padding: 8px 10px;
+        margin-bottom: 6px;
+        min-height: 44px;
+      }
+      .fl .fk {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--m);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .fl .fv {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .fl .fb {
+        flex: 1;
+        min-width: 0;
+      }
+      .fl .acao {
+        font-size: 12px;
+        font-weight: 800;
+        border: 1.5px solid var(--pt);
+        border-radius: 999px;
+        padding: 4px 10px;
+      }
+      .rod {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #fff;
+        border-top: 1px solid var(--l);
+        padding: 8px 8px 10px;
+        display: flex;
+        gap: 5px;
+      }
+      .rod span {
+        flex: 1;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 800;
+        border: 1.5px solid var(--l);
+        border-radius: 10px;
+        padding: 10px 0;
+        min-height: 44px;
+      }
+      .rod span.on {
+        background: var(--tq);
+        border-color: var(--tq);
+      }
+      .rod span.pr {
+        border-color: var(--pt);
+      }
+      .rod span.ft {
+        flex: 1.3;
+        background: var(--pt);
+        color: #fff;
+        border-color: var(--pt);
+      }
+      .sbk {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+        font-size: 12.5px;
+        font-weight: 700;
+        padding: 5px 0;
+      }
+      .sbk .bx {
+        flex: 0 0 18px;
+        height: 18px;
+        border-radius: 5px;
+        border: 2px solid var(--pt);
+      }
+      .sbk .bx.ok {
+        background: var(--tq);
+        border-color: var(--tq);
+      }
+      .sbk.ok span:last-child {
+        text-decoration: line-through;
+        color: var(--m);
+      }
+      .blks {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+      .blk {
+        flex: 1;
+        border-radius: 12px;
+        padding: 8px 9px;
+        min-height: 64px;
+      }
+      .blk.r {
+        background: var(--pt);
+        color: #fff;
+      }
+      .blk.a {
+        background: #fff;
+      }
+      .blk .bt {
+        font-weight: 800;
+        font-size: 12.5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .blk .bs {
+        font-size: 11px;
+        margin-top: 2px;
+        opacity: 0.8;
+      }
+      .blk .bk {
+        font-size: 11px;
+        font-weight: 800;
+        margin-top: 3px;
+      }
+      .blk.r .bk {
+        color: var(--tq);
+      }
+      .cfg {
+        background: #fff;
+        border-radius: 12px;
+        padding: 4px 10px;
+        margin-bottom: 6px;
+      }
+      .cfg .cl {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 0;
+        border-top: 1px solid var(--l);
+        min-height: 40px;
+      }
+      .cfg .cl:first-child {
+        border-top: 0;
+      }
+      .cfg .cb {
+        flex: 1;
+        min-width: 0;
+      }
+      .cfg .ctt {
+        font-size: 12.5px;
+        font-weight: 800;
+      }
+      .cfg .cd {
+        font-size: 11px;
+        color: var(--m);
+      }
+      .dsel {
+        display: flex;
+        gap: 3px;
+      }
+      .dsel span {
+        font-size: 11px;
+        font-weight: 800;
+        border: 1.5px solid var(--l);
+        border-radius: 8px;
+        padding: 4px 6px;
+      }
+      .dsel span.on {
+        background: var(--pt);
+        color: #fff;
+        border-color: var(--pt);
+      }
+      .hr {
+        font-size: 12px;
+        font-weight: 800;
+        border: 1.5px solid var(--l);
+        border-radius: 8px;
+        padding: 4px 8px;
+      }
+      .lg {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--pt);
+      }
+      .lg::before {
+        content: '';
+        display: inline-block;
+        width: 26px;
+        height: 15px;
+        border-radius: 8px;
+        background: var(--tq);
+        vertical-align: -3px;
+        margin-right: 4px;
+      }
+      .sx {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--m);
+        margin: 8px 0 4px;
+      }
+      /* hotspots */
+      .tap {
+        position: relative;
+        outline: 2.5px solid var(--tq);
+        outline-offset: 1px;
+        border-radius: 10px;
+        cursor: pointer;
+        z-index: 2;
+      }
+      .tap::after {
+        content: attr(data-n);
+        position: absolute;
+        top: -9px;
+        right: -9px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--tq);
+        border: 1.5px solid var(--pt);
+        color: var(--pt);
+        font: 800 11px/17px 'Nunito Sans';
+        text-align: center;
+        z-index: 4;
+      }
+      .tap.hi {
+        outline-color: var(--pt);
+        outline-width: 3px;
+      }
+      .notes {
+        background: #fff;
+        border-radius: 16px;
+        padding: 14px 18px;
+        font-size: 14px;
+        line-height: 1.5;
+        max-width: 1150px;
+      }
+      .notes ul {
+        margin: 6px 0 0;
+        padding-left: 18px;
+      }
+      .pend {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        border: 1.5px dashed var(--pt);
+        border-radius: 6px;
+        padding: 1px 6px;
+        margin-left: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="jump">
+        <a href="#mx">Quem pode o quê</a><a href="#perf">Perfil por ambiente</a
+        ><a href="#adm">Luiz · Rafael · Rodrigo</a
+        ><a href="#car">Carlos · Coordenador Obras gerais</a
+        ><a href="#jul">Júlia · Membro Obras gerais</a>
+      </div>
+      <h1>Mapa de fluxos do CONTRO com dois ambientes</h1>
+      <p class="lead">
+        Todas as telas num lugar só, uma faixa por perfil. Dois ambientes:
+        <b>Obras da Contorno</b> (segue exatamente como está) e <b>Obras gerais</b> (novo).
+        <b>A Contorno não muda e não aparece aqui</b>: as telas dela continuam exatamente como hoje.
+        Este mapa mostra só o que é novo: Luiz Felipe, Rafael e Rodrigo enxergam também Obras gerais
+        e trocam de ambiente pelo perfil. Em Obras gerais existem dois papéis,
+        <b>Coordenador</b> (Carlos) e <b>Membro</b> (Júlia), cada pessoa ligada a uma ou mais obras
+        gerais. Os nomes de equipe das obras gerais são fictícios.
+      </p>
+      <div class="legend">
+        <span><i class="lg-hs"></i> onde a pessoa toca (número)</span
+        ><span
+          ><svg width="60" height="14">
+            <path d="M2 7H50" stroke="#181818" stroke-width="2" />
+            <path d="M50 3l8 4-8 4z" fill="#181818" />
+          </svg>
+          vai para</span
+        ><span
+          ><svg width="60" height="14">
+            <path d="M2 7H50" stroke="#181818" stroke-width="2" stroke-dasharray="6 5" />
+            <path d="M50 3l8 4-8 4z" fill="#181818" />
+          </svg>
+          volta / atalho</span
+        ><span>Passe o mouse num número para destacar a seta.</span>
+      </div>
+
+      <!-- ================= MATRIZ ================= -->
+      <table class="mx" id="mx">
+        <tr>
+          <th style="width: 38%">Ação</th>
+          <th>Administrador<br /><span style="font-weight: 600">Luiz, Rafael, Rodrigo</span></th>
+          <th>Coordenador Obras gerais<br /><span style="font-weight: 600">Carlos</span></th>
+          <th>Membro Obras gerais<br /><span style="font-weight: 600">Júlia</span></th>
+        </tr>
+        <tr class="grp">
+          <td colspan="4">Geral</td>
+        </tr>
+        <tr>
+          <td>Ver os dois ambientes e trocar pelo perfil</td>
+          <td class="y">Sim</td>
+          <td class="n">Não</td>
+          <td class="n">Não</td>
+        </tr>
+        <tr>
+          <td>Criar obra geral</td>
+          <td class="y">Sim</td>
+          <td class="n">Não</td>
+          <td class="n">Não</td>
+        </tr>
+        <tr>
+          <td>Ligar pessoas às obras gerais e definir o papel (Pessoas e acessos)</td>
+          <td class="y">Sim</td>
+          <td class="n">Não</td>
+          <td class="n">Não</td>
+        </tr>
+        <tr>
+          <td>Quais obras enxerga</td>
+          <td class="y">Todas</td>
+          <td>As dele (1 ou N) de Obras gerais</td>
+          <td>As dele (1 ou N) de Obras gerais</td>
+        </tr>
+        <tr class="grp">
+          <td colspan="4">Dentro de uma obra geral</td>
+        </tr>
+        <tr>
+          <td>Adicionar membros à obra (ninguém pede para entrar: só entra por convite)</td>
+          <td class="y">Sim</td>
+          <td class="y">Sim</td>
+          <td class="n">Não</td>
+        </tr>
+        <tr>
+          <td>Criar fase e atividade, definir data, atribuir responsável</td>
+          <td class="y">Sim</td>
+          <td class="y">Sim</td>
+          <td class="n">Não</td>
+        </tr>
+        <tr>
+          <td>
+            Concluir qualquer atividade e subitem da obra, com ou sem foto (o Log registra quem
+            concluiu)
+          </td>
+          <td class="y">Sim</td>
+          <td class="y">Sim</td>
+          <td class="y">Sim</td>
+        </tr>
+        <tr>
+          <td>Mudar a data de uma atividade</td>
+          <td class="y">Sim</td>
+          <td class="y">Sim</td>
+          <td class="n">Não. Conversa com o coordenador</td>
+        </tr>
+        <tr>
+          <td>
+            Reunião semanal com ata, pendências (antes e depois) e boletim, no mesmo fluxo da
+            Contorno
+          </td>
+          <td class="y">Sim</td>
+          <td class="y">Sim</td>
+          <td class="y">Participa e resolve pendências</td>
+        </tr>
+        <tr>
+          <td>Reunião e Ações da equipe por obra (mesmos blocos da aba Obras da Contorno)</td>
+          <td class="y">Todas as obras</td>
+          <td class="y">Obra dele: ajusta dia, hora e avisos</td>
+          <td class="y">Obra dele, vê e participa</td>
+        </tr>
+        <tr>
+          <td>Score</td>
+          <td class="y">Todas as obras gerais</td>
+          <td class="y">Só as obras em que participa</td>
+          <td class="y">Só as obras em que participa</td>
+        </tr>
+        <tr>
+          <td>Log</td>
+          <td class="y">Todas as obras gerais</td>
+          <td class="y">Só as obras em que participa</td>
+          <td class="y">Só as obras em que participa</td>
+        </tr>
+      </table>
+
+      <section class="lane" id="perf">
+        <div class="lh">
+          <h2>Perfil em cada ambiente</h2>
+          <span class="badge t">menu do avatar</span>
+        </div>
+        <p class="ld">
+          O perfil tem três blocos. <b>Ambiente</b>: só para vocês três, para ir e voltar da
+          Contorno. <b>Bloco do ambiente</b> (fundo turquesa): os <b>mesmos três itens</b> nos dois
+          ambientes. O que muda é o conteúdo de cada tela. <b>Sua conta</b>: igual para todo mundo,
+          em qualquer ambiente. <b>Pessoas e acessos</b> substitui o nome "Aprovar membros": na
+          Contorno, dentro dele fica exatamente o aprovar membros de hoje; em Obras gerais, além de
+          aprovar, ali se ligam as pessoas às obras e se escolhe o papel. Reunião e avisos e Boletim
+          automático abrem a configuração do ambiente em que você está. A única coisa nova que
+          aparece na Contorno é a troca de ambiente, e só para vocês três.
+        </p>
+        <div class="canvas">
+          <div class="grid" style="--cols: 3">
+            <div class="scr" id="p2" style="grid-column: 1; grid-row: 1">
+              <p class="cap">
+                <span class="tg">P2</span><b>Luiz, Rafael, Rodrigo em Obras gerais</b>. Tocar em
+                "Contorno" volta para o CONTRO de hoje, sem mudança. O menu é o mesmo de lá; as
+                telas abrem com o conteúdo das obras gerais.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="brand"><i></i>CONTRO</span>
+                    </div>
+                    <div class="card"><div class="ct">Galpão SMS</div></div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet" style="padding-bottom: 10px">
+                    <div class="grab"></div>
+                    <div style="display: flex; gap: 9px; align-items: center; margin-bottom: 8px">
+                      <span class="av">LF</span>
+                      <div>
+                        <div class="ct">Luiz Felipe</div>
+                        <div class="cs">Administrador · você está em Obras gerais</div>
+                      </div>
+                    </div>
+                    <div class="secl gl" style="margin-top: 0">Ambiente</div>
+                    <div class="seg" style="margin-bottom: 4px">
+                      <span>Contorno</span><span class="on">Obras gerais</span>
+                    </div>
+                    <div class="secl gl">Obras gerais</div>
+                    <div class="gbox">
+                      <div class="mi">Reunião e avisos</div>
+                      <div class="mi">Boletim automático</div>
+                      <div class="mi">Pessoas e acessos</div>
+                    </div>
+                    <div class="secl gl">Sua conta · igual em todo lugar</div>
+                    <div class="mi">Editar meu nome</div>
+                    <div class="mi">Avisos neste celular</div>
+                    <div class="mi">Trocar senha</div>
+                    <div class="mi">Atualizar o app · versão</div>
+                    <div class="mi">Sair</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="p4" style="grid-column: 2; grid-row: 1">
+              <p class="cap">
+                <span class="tg">P4</span><b>Carlos</b>: Reunião e avisos da obra dele (dia, hora e
+                push) e Pessoas da obra.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="brand"><i></i>CONTRO</span>
+                    </div>
+                    <div class="card"><div class="ct">Galpão SMS</div></div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet" style="padding-bottom: 10px">
+                    <div class="grab"></div>
+                    <div style="display: flex; gap: 9px; align-items: center; margin-bottom: 8px">
+                      <span class="av t">CA</span>
+                      <div>
+                        <div class="ct">Carlos</div>
+                        <div class="cs">Coordenador · Obras gerais</div>
+                      </div>
+                    </div>
+                    <div class="secl gl">Suas obras</div>
+                    <div class="gbox">
+                      <div class="mi">Reunião e avisos</div>
+                      <div class="mi">Pessoas da obra</div>
+                    </div>
+                    <div class="secl gl">Sua conta · igual em todo lugar</div>
+                    <div class="mi">Editar meu nome</div>
+                    <div class="mi">Avisos neste celular</div>
+                    <div class="mi">Trocar senha</div>
+                    <div class="mi">Atualizar o app · versão</div>
+                    <div class="mi">Sair</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="scr" id="p5" style="grid-column: 3; grid-row: 1">
+              <p class="cap"><span class="tg">P5</span><b>Júlia</b>: só a conta dela.</p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="brand"><i></i>CONTRO</span>
+                    </div>
+                    <div class="card"><div class="ct">Galpão SMS</div></div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet" style="padding-bottom: 10px">
+                    <div class="grab"></div>
+                    <div style="display: flex; gap: 9px; align-items: center; margin-bottom: 8px">
+                      <span class="av t">JU</span>
+                      <div>
+                        <div class="ct">Júlia</div>
+                        <div class="cs">Membro · Obras gerais</div>
+                      </div>
+                    </div>
+                    <div class="secl gl">Sua conta · igual em todo lugar</div>
+                    <div class="mi">Editar meu nome</div>
+                    <div class="mi">Avisos neste celular</div>
+                    <div class="mi">Trocar senha</div>
+                    <div class="mi">Atualizar o app · versão</div>
+                    <div class="mi">Sair</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ADMIN ================= -->
+      <section class="lane" id="adm">
+        <div class="lh">
+          <h2>Luiz Felipe · Rafael · Rodrigo</h2>
+          <span class="badge">Administrador</span>
+        </div>
+        <p class="ld">
+          Sem tela de pouso: o app abre no <b>último ambiente usado</b> (no primeiro acesso,
+          Contorno) e a troca é feita <b>pelo perfil</b>. Só aqui existem o "+" de nova obra, a
+          troca de ambiente e <b>Pessoas e acessos</b>.
+        </p>
+        <div class="canvas">
+          <div class="grid" style="--cols: 4">
+            <div class="scr" id="a3" style="grid-column: 1; grid-row: 1">
+              <p class="cap">
+                <span class="tg">A3</span><b>Hoje</b> em Obras gerais: igual ao Hoje da Contorno. Um
+                card por obra, recolhido, com o resumo do atraso.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="brand"><i></i>CONTRO <span class="al">Obras gerais</span></span
+                    ><span class="av tap" data-go="a5">LF</span>
+                  </div>
+                  <div class="hj-t">Hoje · quinta, 05/11</div>
+                  <div class="hj-r at">1 atrasado · 5 para hoje</div>
+                  <div class="hc at tap" data-go="a14">
+                    <div class="hc-h">
+                      <div class="hb">
+                        <div class="hc-n">Galpão SMS</div>
+                        <div class="hc-c">
+                          Fase 2 · Contenção · <span class="red">1 atrasado</span> · 4 para hoje
+                        </div>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                  </div>
+                  <div class="hc">
+                    <div class="hc-h">
+                      <div class="hb">
+                        <div class="hc-n">Escritório Savassi</div>
+                        <div class="hc-c">Fase 3 · Demolição · 1 para hoje</div>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="nav" data-nav="4" data-on="0" data-navgo="1:a13"></div>
+              </div>
+            </div>
+
+            <div class="scr" id="a5" style="grid-column: 2; grid-row: 1">
+              <p class="cap">
+                <span class="tg">A5</span><b>Perfil</b>: troca de ambiente e Pessoas e acessos.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="brand"><i></i>CONTRO</span>
+                    </div>
+                    <div class="card"><div class="ct">Galpão SMS</div></div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet" style="padding-bottom: 10px">
+                    <div class="grab"></div>
+                    <div style="display: flex; gap: 9px; align-items: center; margin-bottom: 8px">
+                      <span class="av">LF</span>
+                      <div>
+                        <div class="ct">Luiz Felipe</div>
+                        <div class="cs">Administrador · Obras gerais</div>
+                      </div>
+                    </div>
+                    <div class="secl gl" style="margin-top: 0">Ambiente</div>
+                    <div class="seg" style="margin-bottom: 4px">
+                      <span>Contorno</span><span class="on">Obras gerais</span>
+                    </div>
+                    <div class="secl gl">Obras gerais</div>
+                    <div class="gbox">
+                      <div class="mi">Reunião e avisos</div>
+                      <div class="mi">Boletim automático</div>
+                      <div class="mi tap" data-go="a7">Pessoas e acessos</div>
+                    </div>
+                    <div class="secl gl">Sua conta · igual em todo lugar</div>
+                    <div class="mi">Editar meu nome</div>
+                    <div class="mi">Avisos neste celular</div>
+                    <div class="mi">Trocar senha</div>
+                    <div class="mi">Atualizar o app · versão</div>
+                    <div class="mi">Sair</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="a7" style="grid-column: 3; grid-row: 1">
+              <p class="cap">
+                <span class="tg">A7</span><b>Pessoas e acessos</b> das Obras gerais: aprovar, ligar
+                às obras e escolher o papel. Na Contorno, o mesmo item abre o aprovar membros de
+                hoje.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="back">‹ Pessoas e acessos</span
+                    ><span class="plus tap" data-go="a9">+</span>
+                  </div>
+                  <div class="hs" style="margin-top: -4px">Obras gerais</div>
+                  <div class="prow tap" data-go="a8">
+                    <span class="av t">CA</span>
+                    <div class="pb">
+                      <div class="pn">Carlos</div>
+                      <div class="cs"><b>Coordenador</b> · carlos@…</div>
+                      <div class="oc"><span>Galpão SMS</span><span>Galpão Betim</span></div>
+                    </div>
+                  </div>
+                  <div class="prow">
+                    <span class="av t">PE</span>
+                    <div class="pb">
+                      <div class="pn">Pedro</div>
+                      <div class="cs"><b>Coordenador</b> · pedro@…</div>
+                      <div class="oc"><span>Escritório Savassi</span></div>
+                    </div>
+                  </div>
+                  <div class="prow">
+                    <span class="av t">JU</span>
+                    <div class="pb">
+                      <div class="pn">Júlia</div>
+                      <div class="cs">Membro · julia@…</div>
+                      <div class="oc"><span>Galpão SMS</span></div>
+                    </div>
+                  </div>
+                  <div class="prow">
+                    <span class="av t">AN</span>
+                    <div class="pb">
+                      <div class="pn">Ana</div>
+                      <div class="cs">Membro · ana@…</div>
+                      <div class="oc"><span>Galpão SMS</span></div>
+                    </div>
+                  </div>
+                  <div class="prow">
+                    <span class="av g">GU</span>
+                    <div class="pb">
+                      <div class="pn">Gustavo</div>
+                      <div class="cs">Membro · gustavo@…</div>
+                      <div class="oc">
+                        <span style="background: transparent; border: 1.5px dashed var(--m)"
+                          >sem obra</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="a8" style="grid-column: 4; grid-row: 1">
+              <p class="cap">
+                <span class="tg">A8</span><b>Ficha da pessoa</b>: <b>um papel só</b> (Coordenador ou
+                Membro) e uma chave por obra (1 ou N).
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top"><span class="back">‹ Pessoas e acessos</span></div>
+                  <div style="display: flex; gap: 9px; align-items: center; margin-bottom: 8px">
+                    <span class="av t" style="width: 42px; height: 42px; flex-basis: 42px">CA</span>
+                    <div>
+                      <div class="ct" style="font-size: 16px">Carlos</div>
+                      <div class="cs">carlos@… · Obras gerais</div>
+                    </div>
+                  </div>
+                  <div class="secl" style="margin-top: 4px">Papel</div>
+                  <div class="seg"><span class="on">Coordenador</span><span>Membro</span></div>
+                  <div class="secl" style="margin-top: 4px">Obras</div>
+                  <div class="card" style="padding: 2px 11px">
+                    <div class="orow">
+                      <div class="ob">
+                        <div class="ct" style="font-size: 13.5px">Galpão SMS</div>
+                      </div>
+                      <span class="sw on"></span>
+                    </div>
+                    <div class="orow">
+                      <div class="ob">
+                        <div class="ct" style="font-size: 13.5px">Galpão Betim</div>
+                      </div>
+                      <span class="sw on"></span>
+                    </div>
+                    <div class="orow">
+                      <div class="ob">
+                        <div class="ct" style="font-size: 13.5px">Escritório Savassi</div>
+                        <div class="cs">sem acesso</div>
+                      </div>
+                      <span class="sw"></span>
+                    </div>
+                  </div>
+                  <div class="cs">
+                    Desligar tira o acesso na hora. As atividades abertas dele ficam sem dono e o
+                    coordenador da obra é avisado.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="a4" style="grid-column: 2; grid-row: 2">
+              <p class="cap">
+                <span class="tg">A4</span><b>Obra geral aberta</b>: a mesma trilha de fases da
+                Contorno (ver C1), com tudo liberado.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="back">‹ Galpão SMS</span><span class="cs">Pessoas · 5</span>
+                  </div>
+                  <div class="hs" style="margin-top: -4px">Fase 2 de 4 · 1 atividade atrasada</div>
+                  <div class="trl">
+                    <div class="fz ok">
+                      <span class="n">✓</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Orçamento</div>
+                        <div class="cs">concluída</div>
+                      </div>
+                    </div>
+                    <div class="fz ok">
+                      <span class="n">✓</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Mapa de coleta</div>
+                        <div class="cs">concluída</div>
+                      </div>
+                    </div>
+
+                    <div class="fz ok">
+                      <span class="n">1</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Mobilização</div>
+                        <div class="cs">concluída</div>
+                      </div>
+                    </div>
+                    <div class="fz cur">
+                      <span class="n">2</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Contenção</div>
+                        <div class="cs">
+                          3 de 14 · <span class="red">1 atrasada</span> ·
+                          <span class="ambc">1 vence hoje</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="fz">
+                      <span class="n">3</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Fundação</div>
+                        <div class="cs">0 de 6</div>
+                      </div>
+                    </div>
+                    <div class="fz">
+                      <span class="n">4</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Estrutura</div>
+                        <div class="cs">sem atividades</div>
+                      </div>
+                    </div>
+                    <div class="fz add">+ fase</div>
+                    <div class="entrega">Entrega da obra</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="a6" style="grid-column: 3; grid-row: 2">
+              <p class="cap">
+                <span class="tg">A6</span><b>Nova obra geral</b> em gaveta de baixo para cima: só
+                nome e cidade.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="brand"><i></i>CONTRO</span>
+                    </div>
+                    <div class="secl">Minhas obras</div>
+                    <div class="card">
+                      <div class="ct">Galpão SMS</div>
+                      <div class="cs">Contenção</div>
+                    </div>
+                    <div class="card">
+                      <div class="ct">Escritório Savassi</div>
+                      <div class="cs">Demolição</div>
+                    </div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet">
+                    <div class="grab"></div>
+                    <div class="ct" style="font-size: 16px; margin-bottom: 9px">Nova obra</div>
+                    <div class="inp" style="border-color: var(--pt)">
+                      <small>Nome da obra</small>Galpão Betim
+                    </div>
+                    <div class="inp"><small>Cidade</small>Betim</div>
+                    <div class="btn tap" data-go="a4" data-back="1">Criar obra</div>
+                    <div class="cs" style="margin-top: 8px">
+                      A obra abre vazia. Fases, atividades e pessoas entram depois, dentro dela.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="a9" style="grid-column: 4; grid-row: 2">
+              <p class="cap">
+                <span class="tg">A9</span><b>Nova pessoa</b>: só nome, e-mail de login, papel e
+                obras.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top"><span class="back">‹ Nova pessoa</span></div>
+                  <div class="inp" style="border-color: var(--pt)"><small>Nome</small>Bruno</div>
+                  <div class="inp"><small>E-mail (login)</small>bruno@…</div>
+                  <div class="cs" style="margin: -3px 0 4px">O nome é o que aparece no app.</div>
+                  <div class="secl">Papel</div>
+                  <div class="seg"><span>Coordenador</span><span class="on">Membro</span></div>
+                  <div class="secl" style="margin-top: 2px">Em quais obras</div>
+                  <div class="card" style="padding: 2px 11px">
+                    <div class="orow">
+                      <div class="ob">
+                        <div class="ct" style="font-size: 13.5px">Galpão SMS</div>
+                      </div>
+                      <span class="sw on"></span>
+                    </div>
+                    <div class="orow">
+                      <div class="ob">
+                        <div class="ct" style="font-size: 13.5px">Escritório Savassi</div>
+                      </div>
+                      <span class="sw"></span>
+                    </div>
+                  </div>
+                  <div class="btn">Dar acesso</div>
+                  <div class="cs" style="margin-top: 6px">
+                    Se ainda não tem conta, ao se cadastrar com esse e-mail já entra nas obras
+                    marcadas.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="a14" style="grid-column: 2; grid-row: 3">
+              <p class="cap">
+                <span class="tg">A14</span><b>Tocou na obra</b>: o card abre com <b>Atrasado</b> no
+                topo, em vermelho, e <b>Para hoje</b> embaixo. Cada linha leva à obra.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="brand"><i></i>CONTRO <span class="al">Obras gerais</span></span
+                    ><span class="av">LF</span>
+                  </div>
+                  <div class="hj-t">Hoje · quinta, 05/11</div>
+                  <div class="hj-r at">1 atrasado · 5 para hoje</div>
+                  <div class="hc at">
+                    <div class="hc-h">
+                      <div class="hb">
+                        <div class="hc-n">Galpão SMS</div>
+                        <div class="hc-c">
+                          Fase 2 · Contenção · <span class="red">1 atrasado</span> · 4 para hoje
+                        </div>
+                      </div>
+                      <span class="chev">⌄</span>
+                    </div>
+                    <div class="fx at">Atrasado · 1</div>
+                    <div class="ln tap" data-go="a4">
+                      <div class="lb">
+                        <span class="tpo at">Concluir</span
+                        ><b class="at">Comprar o aço geral da contenção</b
+                        ><span class="dt at">Rafael · devia terminar qua 04/11</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="fx">Para hoje · 4</div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Concluir</span><b>Contratar o empreiteiro civil</b
+                        ><span class="dt">Carlos · previsto concluir hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Locação</span><b>Alugar formas metálicas e escoramentos</b
+                        ><span class="dt">providenciar até hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Concluir</span><b>Comprar areia para o embocamento</b
+                        ><span class="dt">Júlia · previsto concluir hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Concluir</span><b>Cotar manta bidim e tubos</b
+                        ><span class="dt">Júlia · previsto concluir hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="nav" data-nav="4" data-on="0"></div>
+              </div>
+            </div>
+
+            <div class="scr" id="a13" style="grid-column: 3; grid-row: 3">
+              <p class="cap">
+                <span class="tg">A13</span><b>Obras</b>: igual à Contorno, com os blocos
+                <b>Reunião</b> e <b>Ações da equipe</b> acima da lista. Aqui eles juntam as obras
+                gerais; cada obra tem a sua reunião.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="brand"><i></i>CONTRO <span class="al">Obras gerais</span></span
+                    ><span class="av">LF</span>
+                  </div>
+                  <div class="secl">Minhas obras <span class="plus tap" data-go="a6">+</span></div>
+                  <div class="blks">
+                    <div class="blk r tap" data-go="a15">
+                      <div class="bt">
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+                          <path d="M3.5 10h17M8 3v4M16 3v4" />
+                        </svg>
+                        Reunião
+                      </div>
+                      <div class="bs">próxima: SMS · seg 09/11 16h</div>
+                      <div class="bk">Pauta, preparar e atas</div>
+                    </div>
+                    <div class="blk a">
+                      <div class="bt">
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M9 6h11M9 12h11M9 18h11" />
+                          <path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
+                        </svg>
+                        Ações da equipe
+                      </div>
+                      <div class="bs" style="color: var(--m); opacity: 1">7 abertas nas obras</div>
+                      <div class="bk"><span class="red">1 atrasada</span> · 2 hoje</div>
+                    </div>
+                  </div>
+                  <div class="card tap" data-go="a4">
+                    <div style="display: flex; justify-content: space-between; gap: 6px">
+                      <div>
+                        <div class="ct">Galpão SMS</div>
+                        <div class="cs">Fase 2 · Contenção</div>
+                      </div>
+                      <span class="tag r">1 atrasado</span>
+                    </div>
+                    <div class="cs" style="margin: 6px 0 2px">
+                      <b style="color: var(--pt)">82% no prazo</b>
+                    </div>
+                    <div class="cs">Betim · Coord.: Carlos</div>
+                  </div>
+                  <div class="card">
+                    <div style="display: flex; justify-content: space-between; gap: 6px">
+                      <div>
+                        <div class="ct">Escritório Savassi</div>
+                        <div class="cs">Fase 3 · Demolição</div>
+                      </div>
+                      <span class="tag">em dia</span>
+                    </div>
+                    <div class="cs" style="margin: 6px 0 2px">
+                      <b style="color: var(--pt)">95% no prazo</b>
+                    </div>
+                    <div class="cs">Belo Horizonte · Coord.: Pedro</div>
+                  </div>
+                </div>
+                <div class="nav" data-nav="4" data-on="1"></div>
+              </div>
+            </div>
+
+            <div class="scr" id="a15" style="grid-column: 4; grid-row: 3">
+              <p class="cap">
+                <span class="tg">A15</span><b>Reuniões</b>: uma por obra, cada uma com dia, hora,
+                pauta, preparar e atas próprios. Tocar numa obra abre o fluxo de reunião de hoje da
+                Contorno.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top"><span class="back">‹ Reuniões</span></div>
+                  <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center">
+                      <div>
+                        <div class="ct">Galpão SMS</div>
+                        <div class="cs">toda segunda · 16h · com Carlos e equipe</div>
+                      </div>
+                      <span class="tag k">seg 09/11</span>
+                    </div>
+                    <div class="cs" style="margin-top: 6px; font-weight: 800; color: var(--pt)">
+                      Pauta · Preparar · Atas (3)
+                    </div>
+                  </div>
+                  <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center">
+                      <div>
+                        <div class="ct">Escritório Savassi</div>
+                        <div class="cs">toda terça · 9h · com Pedro e equipe</div>
+                      </div>
+                      <span class="tag">ter 10/11</span>
+                    </div>
+                    <div class="cs" style="margin-top: 6px; font-weight: 800; color: var(--pt)">
+                      Pauta · Preparar · Atas (1)
+                    </div>
+                  </div>
+                  <div class="cs" style="margin-top: 6px">
+                    Dia e hora de cada obra ficam em Perfil › Reunião e avisos (Obras gerais) e
+                    também podem ser ajustados pelo coordenador da obra.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= CARLOS ================= -->
+      <section class="lane" id="car">
+        <div class="lh">
+          <h2>Carlos</h2>
+          <span class="badge">Coordenador</span
+          ><span class="badge t">Obras gerais · Galpão SMS</span>
+        </div>
+        <p class="ld">
+          Cai direto dentro da obra. O <b>nome da obra no topo</b> troca entre as obras dele (se
+          tiver mais de uma). Menu de baixo: <b>Hoje · Obra · Score · Log</b>. Abre no Hoje. Só ele
+          (e os administradores) adiciona membros, cria fase e atividade, define data e atribui
+          responsável.
+        </p>
+        <div class="canvas">
+          <div class="grid" style="--cols: 6">
+            <div class="scr" id="c0" style="grid-column: 5; grid-row: 2">
+              <p class="cap">
+                <span class="tg">C0</span><b>Hoje</b> do Carlos: igual ao da Contorno, com as obras
+                dele. É onde o app abre. "Obra" no menu leva à trilha de fases (C1).
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="brand"><i></i>CONTRO</span><span class="av t">CA</span>
+                  </div>
+                  <div class="hj-t">Hoje · quinta, 05/11</div>
+                  <div class="hj-r at">1 atrasado · 4 para hoje</div>
+                  <div class="hc at">
+                    <div class="hc-h">
+                      <div class="hb">
+                        <div class="hc-n">Galpão SMS</div>
+                        <div class="hc-c">
+                          Fase 2 · Contenção · <span class="red">1 atrasado</span> · 4 para hoje
+                        </div>
+                      </div>
+                      <span class="chev">⌄</span>
+                    </div>
+                    <div class="fx at">Atrasado · 1</div>
+                    <div class="ln tap" data-go="c4">
+                      <div class="lb">
+                        <span class="tpo at">Concluir</span
+                        ><b class="at">Comprar o aço geral da contenção</b
+                        ><span class="dt at">Rafael · devia terminar qua 04/11</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="fx">Para hoje · 4</div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Concluir</span><b>Contratar o empreiteiro civil</b
+                        ><span class="dt">Carlos · previsto concluir hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Locação</span><b>Alugar formas metálicas e escoramentos</b
+                        ><span class="dt">providenciar até hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Concluir</span><b>Comprar areia para o embocamento</b
+                        ><span class="dt">Júlia · previsto concluir hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Concluir</span><b>Cotar manta bidim e tubos</b
+                        ><span class="dt">Júlia · previsto concluir hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="nav" data-nav="g" data-on="0" data-navgo="1:c1"></div>
+              </div>
+            </div>
+
+            <div class="scr" id="c1" style="grid-column: 1; grid-row: 1">
+              <p class="cap">
+                <span class="tg">C1</span><b>Obra</b> como tela inicial: a <b>trilha de fases</b>,
+                igual à da Contorno, <b>sem % de avanço da obra</b>. No topo, <b>Reunião</b> e
+                <b>Ações da equipe</b> desta obra, como na aba Obras da Contorno. Depois, as fases e
+                a tarja de entrega.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="obsel tap" data-go="c2"><i></i>Galpão SMS ▾</span
+                    ><span class="av t tap" data-go="c5">CA</span>
+                  </div>
+                  <div class="hs" style="margin-top: -4px">Fase 2 de 4 · 1 atividade atrasada</div>
+                  <div class="blks">
+                    <div class="blk r">
+                      <div class="bt">
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+                          <path d="M3.5 10h17M8 3v4M16 3v4" />
+                        </svg>
+                        Reunião
+                      </div>
+                      <div class="bs">seg 09/11 · 16h</div>
+                      <div class="bk">Pauta, preparar e atas</div>
+                    </div>
+                    <div class="blk a">
+                      <div class="bt">
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M9 6h11M9 12h11M9 18h11" />
+                          <path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
+                        </svg>
+                        Ações da equipe
+                      </div>
+                      <div class="bs" style="color: var(--m); opacity: 1">5 abertas na obra</div>
+                      <div class="bk"><span class="red">1 atrasada</span></div>
+                    </div>
+                  </div>
+                  <div class="trl">
+                    <div class="fz ok">
+                      <span class="n">✓</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Orçamento</div>
+                        <div class="cs">concluída</div>
+                      </div>
+                    </div>
+                    <div class="fz ok">
+                      <span class="n">✓</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Mapa de coleta</div>
+                        <div class="cs">concluída</div>
+                      </div>
+                    </div>
+
+                    <div class="fz ok">
+                      <span class="n">1</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Mobilização</div>
+                        <div class="cs">concluída</div>
+                      </div>
+                    </div>
+                    <div class="fz cur tap" data-go="c9">
+                      <span class="n">2</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Contenção</div>
+                        <div class="cs">
+                          3 de 14 · <span class="red">1 atrasada</span> ·
+                          <span class="ambc">1 vence hoje</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="fz">
+                      <span class="n">3</span>
+                      <div class="fb">
+                        <div class="ct" style="font-size: 13px">Fundação</div>
+                        <div class="cs">0 de 6</div>
+                      </div>
+                    </div>
+                    <div class="fz add tap" data-go="c8">+ fase</div>
+                    <div class="entrega">Entrega da obra</div>
+                  </div>
+                </div>
+                <div class="nav" data-nav="g" data-on="1"></div>
+              </div>
+            </div>
+
+            <div class="scr" id="c9" style="grid-column: 2; grid-row: 1">
+              <p class="cap">
+                <span class="tg">C9</span><b>Tocou na fase</b>: ela abre ali mesmo na trilha, como
+                na Contorno. Atividades na ordem, com anel de avanço e subitens. Sem filtro.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="obsel"><i></i>Galpão SMS</span><span class="av t">CA</span>
+                  </div>
+                  <div class="fz ok" style="margin-bottom: 5px">
+                    <span class="n">1</span>
+                    <div class="fb">
+                      <div class="ct" style="font-size: 13px">Mobilização</div>
+                      <div class="cs">concluída</div>
+                    </div>
+                  </div>
+                  <div class="fzx">
+                    <div style="display: flex; justify-content: space-between; align-items: center">
+                      <div>
+                        <div class="cs">
+                          <b style="color: var(--pt)">Fase 2</b> ·
+                          <span class="red">1 atrasada</span>
+                        </div>
+                        <div class="ct" style="font-size: 14px">Contenção</div>
+                      </div>
+                      <b style="font-size: 13px">3/14 ⌄</b>
+                    </div>
+                  </div>
+                  <div class="atv at">
+                    <span class="anel at"></span>
+                    <div style="flex: 1">
+                      <div class="an">Comprar o aço geral da contenção</div>
+                      <div class="as"><span class="red">Rafael · era para qua 04/11</span></div>
+                    </div>
+                  </div>
+                  <div class="atv tap" data-go="c4">
+                    <span class="anel p25"></span>
+                    <div style="flex: 1">
+                      <div class="an">Contratar o empreiteiro civil</div>
+                      <div class="as"><span class="ambc">Carlos · vence hoje</span> · 25%</div>
+                      <div class="subs">
+                        <span class="f">✓ Embocamento</span><span>› Trado</span
+                        ><span>› Concreto</span><span>› Quebra das cabeças</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="atv">
+                    <span class="anel"></span>
+                    <div style="flex: 1">
+                      <div class="an">Mobilizar topógrafo</div>
+                      <div class="as">Carlos · sex 06/11</div>
+                    </div>
+                  </div>
+                  <div class="atv">
+                    <span class="anel"></span>
+                    <div style="flex: 1">
+                      <div class="an">Comprar areia (embocamento)</div>
+                      <div class="as">Júlia · sex 06/11</div>
+                    </div>
+                  </div>
+                  <div class="cs" style="text-align: center; margin: 2px 0 5px">
+                    + 10 atividades
+                  </div>
+                  <div class="addatv tap" data-go="c3">+ Adicionar atividade</div>
+                </div>
+                <div class="nav" data-nav="g" data-on="1"></div>
+              </div>
+            </div>
+
+            <div class="scr" id="c2" style="grid-column: 1; grid-row: 2">
+              <p class="cap">
+                <span class="tg">C2</span><b>Trocar de obra</b>: só as obras ligadas a ele.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="obsel"><i></i>Galpão SMS</span>
+                    </div>
+                    <div class="chips"><span class="chip on">Contenção</span></div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet tops">
+                    <div class="secl" style="margin-top: 0">Suas obras</div>
+                    <div class="osel on">
+                      <div class="ob">
+                        <div class="ct" style="font-size: 13.5px">Galpão SMS</div>
+                        <div class="cs">Coordenador · Contenção</div>
+                      </div>
+                      <span class="tag r">1 atrasado</span>
+                    </div>
+                    <div class="osel">
+                      <div class="ob">
+                        <div class="ct" style="font-size: 13.5px">Galpão Betim</div>
+                        <div class="cs">Coordenador · sem fase</div>
+                      </div>
+                    </div>
+                    <div class="cs" style="margin-top: 4px">
+                      Com uma obra só, o nome aparece sem a setinha.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="c3" style="grid-column: 3; grid-row: 1">
+              <p class="cap">
+                <span class="tg">C3</span><b>Nova atividade</b>: nome, responsável e data prevista.
+                Atalhos para os próximos dias ou <b>Calendário</b> para qualquer data. Sem cálculo
+                de cronograma.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="obsel"><i></i>Galpão SMS</span>
+                    </div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet">
+                    <div class="grab"></div>
+                    <div class="ct" style="margin-bottom: 7px">Nova atividade · Contenção</div>
+                    <div class="inp" style="border-color: var(--pt)">
+                      Contratar caminhão Munk para içar o aço
+                    </div>
+
+                    <div class="secl" style="margin-top: 2px">Quem</div>
+                    <div class="chips">
+                      <span class="chip">Eu</span><span class="chip on">Júlia</span
+                      ><span class="chip">Ana</span><span class="chip">Rafael</span>
+                    </div>
+                    <div class="secl" style="margin-top: 2px">Para quando</div>
+                    <div class="chips">
+                      <span class="chip">Hoje</span><span class="chip">Amanhã</span
+                      ><span class="chip on">Seg 09/11</span
+                      ><span class="chip d tap" data-go="c10">Calendário</span>
+                    </div>
+                    <div class="chave tap" data-go="c11">
+                      <span>Dividir em subitens</span><span class="sw"></span>
+                    </div>
+                    <div class="cs">+ lembrete de providência · + nota</div>
+                    <div class="btn tap" data-go="c9" data-back="1">Adicionar</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="c4" style="grid-column: 4; grid-row: 1">
+              <p class="cap">
+                <span class="tg">C4</span><b>Ficha da atividade</b>, como na Contorno. Nos subitens,
+                a <b>caixinha marca</b> e o <b>texto abre a edição</b>. <b>Data</b> e
+                <b>responsável</b> em linhas próprias, com "Mudar" e "Trocar". O <b>rodapé</b> é o
+                avanço: 25 · 50 · 75%, <b>Pronta</b> (conclui sem foto) ou <b>Foto</b> (conclui com
+                foto).
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="back">‹ Contenção</span
+                    ><b style="font-size: 20px; letter-spacing: 2px">⋯</b>
+                  </div>
+                  <div class="h" style="font-size: 17px; margin-top: 0">
+                    Contratar o empreiteiro civil
+                  </div>
+                  <div class="fl">
+                    <div class="fb">
+                      <div class="fk">Data prevista</div>
+                      <div class="fv"><span class="ambc">qui 05/11 · vence hoje</span></div>
+                    </div>
+                    <span class="acao tap" data-go="c10" data-back="1">Mudar</span>
+                  </div>
+                  <div class="fl">
+                    <div class="fb">
+                      <div class="fk">Responsável</div>
+                      <div class="fv">Carlos (você)</div>
+                    </div>
+                    <span class="acao">Trocar</span>
+                  </div>
+                  <div class="fl">
+                    <div class="fb">
+                      <div class="fk">Empresa ou prestador</div>
+                      <div class="fv" style="color: var(--m)">opcional</div>
+                    </div>
+                  </div>
+                  <div class="secl" style="margin-top: 6px">Subitens · 1 de 4</div>
+                  <div class="card" style="padding: 4px 10px; margin-bottom: 6px">
+                    <div class="sbk ok">
+                      <span class="bx ok"></span><span>Embocamento das estacas · sex 06/11</span>
+                    </div>
+                    <div class="sbk">
+                      <span class="bx"></span
+                      ><span class="tap" data-go="c12" style="flex: 1"
+                        >Acompanhamento do trado · seg 09/11 ›</span
+                      >
+                    </div>
+                    <div class="sbk">
+                      <span class="bx"></span><span>Acompanhamento do concreto · seg 09/11</span>
+                    </div>
+                    <div class="sbk">
+                      <span class="bx"></span><span>Quebra da cabeça das estacas</span>
+                    </div>
+                    <div class="cs" style="font-weight: 800; color: var(--pt); padding: 5px 0 3px">
+                      + Adicionar subitem
+                    </div>
+                  </div>
+                  <div class="rod">
+                    <span class="on">25%</span><span>50%</span><span>75%</span
+                    ><span class="pr">Pronta</span><span class="ft">Foto</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="c5" style="grid-column: 2; grid-row: 2">
+              <p class="cap"><span class="tg">C5</span><b>Perfil</b> do coordenador.</p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="brand"><i></i>CONTRO</span>
+                    </div>
+                    <div class="card"><div class="ct">Galpão SMS</div></div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet" style="padding-bottom: 10px">
+                    <div class="grab"></div>
+                    <div style="display: flex; gap: 9px; align-items: center; margin-bottom: 8px">
+                      <span class="av t">CA</span>
+                      <div>
+                        <div class="ct">Carlos</div>
+                        <div class="cs">Coordenador · Obras gerais</div>
+                      </div>
+                    </div>
+                    <div class="secl gl">Suas obras</div>
+                    <div class="gbox">
+                      <div class="mi tap" data-go="c13">Reunião e avisos</div>
+                      <div class="mi tap" data-go="c6">Pessoas da obra</div>
+                    </div>
+                    <div class="secl gl">Sua conta · igual em todo lugar</div>
+                    <div class="mi">Editar meu nome</div>
+                    <div class="mi">Avisos neste celular</div>
+                    <div class="mi">Trocar senha</div>
+                    <div class="mi">Atualizar o app · versão</div>
+                    <div class="mi">Sair</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="c6" style="grid-column: 3; grid-row: 2">
+              <p class="cap">
+                <span class="tg">C6</span><b>Pessoas da obra</b>: quem está na obra e o botão de
+                adicionar membro.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top"><span class="back">‹ Galpão SMS</span></div>
+                  <div class="h">Pessoas da obra</div>
+                  <div class="hs">Administradores sempre veem</div>
+                  <div class="secl">Na obra</div>
+                  <div class="prow">
+                    <span class="av t">CA</span>
+                    <div class="pb">
+                      <div class="pn">Carlos (você)</div>
+                      <div class="cs">Coordenador</div>
+                    </div>
+                  </div>
+                  <div class="prow">
+                    <span class="av t">JU</span>
+                    <div class="pb">
+                      <div class="pn">Júlia</div>
+                      <div class="cs">Membro · julia@…</div>
+                    </div>
+                  </div>
+                  <div class="prow">
+                    <span class="av t">AN</span>
+                    <div class="pb">
+                      <div class="pn">Ana</div>
+                      <div class="cs">Membro · ana@…</div>
+                    </div>
+                  </div>
+                  <div class="btn s tap" data-go="c7">Adicionar membro</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="c7" style="grid-column: 4; grid-row: 2">
+              <p class="cap">
+                <span class="tg">C7</span><b>Adicionar membro</b>: busca quem já existe ou cadastra
+                pelo nome e e-mail. Sempre como Membro.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3"><div class="h">Pessoas da obra</div></div>
+                  <div class="dim"></div>
+                  <div class="sheet">
+                    <div class="grab"></div>
+                    <div class="ct" style="margin-bottom: 7px">Adicionar ao Galpão SMS</div>
+                    <div class="inp" style="border-color: var(--pt)">Gus</div>
+                    <div class="prow" style="border: 1.5px solid var(--pt)">
+                      <span class="av g">GU</span>
+                      <div class="pb">
+                        <div class="pn">Gustavo</div>
+                        <div class="cs">gustavo@… · já está no CONTRO</div>
+                      </div>
+                    </div>
+                    <div class="prow" style="border: 1.5px dashed var(--l)">
+                      <span class="av g">+</span>
+                      <div class="pb">
+                        <div class="pn">Pessoa nova</div>
+                        <div class="cs">nome e e-mail de login</div>
+                      </div>
+                    </div>
+                    <div class="btn">Adicionar como membro</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="c8" style="grid-column: 5; grid-row: 1">
+              <p class="cap">
+                <span class="tg">C8</span><b>Nova fase</b>: só o nome. Entra no fim da trilha, antes
+                da entrega.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="obsel"><i></i>Galpão SMS</span>
+                    </div>
+                    <div class="chips"><span class="chip on">Contenção</span></div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet">
+                    <div class="grab"></div>
+                    <div class="ct" style="margin-bottom: 7px">Nova fase</div>
+                    <div class="cs" style="margin: -3px 0 6px">Nome da fase</div>
+                    <div class="inp" style="border-color: var(--pt)">Fundação</div>
+                    <div class="btn tap" data-go="c1" data-back="1">Criar fase</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="c10" style="grid-column: 6; grid-row: 1">
+              <p class="cap">
+                <span class="tg">C10</span><b>Calendário</b>: escolhe qualquer dia. Hoje com
+                contorno; a data escolhida em turquesa.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="obsel"><i></i>Galpão SMS</span>
+                    </div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet">
+                    <div class="grab"></div>
+                    <div class="ct" style="margin-bottom: 2px">Data prevista</div>
+                    <div class="cs">Contratar caminhão Munk</div>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-top: 8px;
+                      "
+                    >
+                      <b style="font-size: 20px; line-height: 1">‹</b
+                      ><b style="font-size: 14px">Novembro 2026</b
+                      ><b style="font-size: 20px; line-height: 1">›</b>
+                    </div>
+                    <div class="cal">
+                      <b>S</b><b>T</b><b>Q</b><b>Q</b><b>S</b><b>S</b><b>D</b><span></span
+                      ><span></span><span></span><span></span><span></span><span></span
+                      ><span class="we ps">1</span><span class="ps">2</span><span class="ps">3</span
+                      ><span class="ps">4</span><span class="hj">5</span><span>6</span
+                      ><span class="we">7</span><span class="we">8</span><span class="sel">9</span
+                      ><span>10</span><span>11</span><span>12</span><span>13</span
+                      ><span class="we">14</span><span class="we">15</span><span>16</span
+                      ><span>17</span><span>18</span><span>19</span><span>20</span
+                      ><span class="we">21</span><span class="we">22</span><span>23</span
+                      ><span>24</span><span>25</span><span>26</span><span>27</span
+                      ><span class="we">28</span><span class="we">29</span><span>30</span>
+                    </div>
+                    <div class="btn tap" data-go="c3" data-back="1">Usar seg 09/11</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="c11" style="grid-column: 6; grid-row: 2">
+              <p class="cap">
+                <span class="tg">C11</span><b>Com subitens</b>: ligou a chave, aparece a lista. Cada
+                subitem tem nome e data. Sem data ainda, aparece o ícone de calendário: tocou,
+                escolhe o dia. A data da atividade passa a ser a do último subitem.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top">
+                      <span class="obsel"><i></i>Galpão SMS</span>
+                    </div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet">
+                    <div class="grab"></div>
+                    <div class="ct" style="margin-bottom: 7px">Nova atividade · Contenção</div>
+                    <div class="inp" style="border-color: var(--pt)">
+                      Contratar o empreiteiro civil
+                    </div>
+                    <div class="chips">
+                      <span class="chip on">Carlos</span><span class="chip">Júlia</span
+                      ><span class="chip">Ana</span>
+                    </div>
+                    <div class="chave">
+                      <span>Dividir em subitens</span><span class="sw on"></span>
+                    </div>
+                    <div class="srow">
+                      <span class="sn">Embocamento das estacas</span
+                      ><span class="sd">sex 06/11</span><span class="x">×</span>
+                    </div>
+                    <div class="srow">
+                      <span class="sn">Acompanhamento do trado</span
+                      ><span class="sd">seg 09/11</span><span class="x">×</span>
+                    </div>
+                    <div class="srow">
+                      <span class="sn">Acompanhamento do concreto</span
+                      ><span class="sd">seg 09/11</span><span class="x">×</span>
+                    </div>
+                    <div class="srow">
+                      <span class="sn">Quebra da cabeça das estacas</span
+                      ><span
+                        class="sd tap"
+                        data-go="c10"
+                        aria-label="Escolher data"
+                        style="
+                          display: inline-flex;
+                          align-items: center;
+                          justify-content: center;
+                          min-width: 44px;
+                          min-height: 32px;
+                          padding: 3px 8px;
+                        "
+                        ><svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#181818"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+                          <path d="M3.5 10h17M8 3v4M16 3v4" /></svg></span
+                      ><span class="x">×</span>
+                    </div>
+                    <div class="cs" style="font-weight: 800; color: var(--pt); padding: 6px 2px">
+                      + subitem
+                    </div>
+                    <div class="cs">
+                      Data da atividade: <b style="color: var(--pt)">a do último subitem</b>
+                    </div>
+                    <div class="btn">Adicionar</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="c12" style="grid-column: 4; grid-row: 3">
+              <p class="cap">
+                <span class="tg">C12</span><b>Editar subitem</b>: texto, data e excluir num lugar
+                só. Salvar mostra "Desfazer" por 5 s. Só o coordenador e vocês três editam; o membro
+                só marca.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div style="opacity: 0.3">
+                    <div class="top"><span class="back">‹ Contenção</span></div>
+                    <div class="h" style="font-size: 17px">Contratar o empreiteiro civil</div>
+                  </div>
+                  <div class="dim"></div>
+                  <div class="sheet">
+                    <div class="grab"></div>
+                    <div class="ct" style="margin-bottom: 7px">Editar subitem</div>
+                    <div class="inp" style="border-color: var(--pt)">
+                      <small>Texto</small>Acompanhamento do trado mecanizado
+                    </div>
+                    <div class="secl" style="margin-top: 4px">Data prevista</div>
+                    <div class="chips">
+                      <span class="chip">Amanhã</span><span class="chip on">Seg 09/11</span
+                      ><span
+                        class="chip d tap"
+                        data-go="c10"
+                        style="display: inline-flex; align-items: center; gap: 5px"
+                        ><svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#181818"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+                          <path d="M3.5 10h17M8 3v4M16 3v4" />
+                        </svg>
+                        Calendário</span
+                      >
+                    </div>
+                    <div class="cs" style="margin: -2px 0 8px">
+                      A data da atividade acompanha a do último subitem.
+                    </div>
+                    <div class="btn">Salvar</div>
+                    <div class="btn o" style="color: var(--pt)">Excluir subitem</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="scr" id="c13" style="grid-column: 2; grid-row: 3">
+              <p class="cap">
+                <span class="tg">C13</span><b>Reunião e avisos · Galpão SMS</b>: a mesma tela da
+                Contorno, só para a obra dele. Dia e hora da reunião, lembretes e avisos do dia.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="back">‹ Reunião e avisos</span><span class="cs">Galpão SMS</span>
+                  </div>
+                  <div class="sx" style="margin-top: 0">Reunião semanal</div>
+                  <div class="cfg">
+                    <div class="cl">
+                      <div class="cb"><div class="ctt">Dia</div></div>
+                      <div class="dsel">
+                        <span class="on">Seg</span><span>Ter</span><span>Qua</span><span>Qui</span
+                        ><span>Sex</span>
+                      </div>
+                    </div>
+                    <div class="cl">
+                      <div class="cb"><div class="ctt">Horário</div></div>
+                      <span class="hr">16:00</span>
+                    </div>
+                  </div>
+                  <div class="sx">Lembretes da reunião · para todos</div>
+                  <div class="cfg">
+                    <div class="cl">
+                      <div class="cb">
+                        <div class="ctt">No dia, de manhã</div>
+                        <div class="cd">às 8:00 · "Reunião hoje às 16:00"</div>
+                      </div>
+                      <span class="lg">Ligado</span>
+                    </div>
+                    <div class="cl">
+                      <div class="cb">
+                        <div class="ctt">Antes de começar</div>
+                        <div class="cd">às 15:30 · "Começa em 30 min"</div>
+                      </div>
+                      <span class="lg">Ligado</span>
+                    </div>
+                  </div>
+                  <div class="sx">Avisos do dia · seg a sex</div>
+                  <div class="cfg">
+                    <div class="cl">
+                      <div class="cb">
+                        <div class="ctt">Ações do dia</div>
+                        <div class="cd">
+                          cada um recebe as suas; coordenador e administradores, a obra inteira ·
+                          7:30
+                        </div>
+                      </div>
+                      <span class="lg">Ligado</span>
+                    </div>
+                    <div class="cl">
+                      <div class="cb">
+                        <div class="ctt">Prazo da pendência</div>
+                        <div class="cd">Alta 2 · Média 5 · Baixa 10 dias úteis</div>
+                      </div>
+                    </div>
+                    <div class="cl">
+                      <div class="cb">
+                        <div class="ctt">Providências para começar</div>
+                        <div class="cd">o que contratar, alugar ou comprar · 7:30</div>
+                      </div>
+                      <span class="lg">Ligado</span>
+                    </div>
+                  </div>
+                  <div class="btn">Salvar</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= JÚLIA ================= -->
+      <section class="lane" id="jul">
+        <div class="lh">
+          <h2>Júlia</h2>
+          <span class="badge">Membro</span><span class="badge t">Obras gerais · Galpão SMS</span>
+        </div>
+        <p class="ld">
+          Entra pelo push ou pelo app e vê primeiro <b>as atividades dela</b>. Conclui e anexa foto.
+          Não cria atividade, não muda data e não atribui: se o prazo não vai dar, conversa com o
+          Carlos.
+        </p>
+        <div class="canvas">
+          <div class="grid" style="--cols: 5">
+            <div class="scr" id="j1" style="grid-column: 1; grid-row: 1">
+              <p class="cap"><span class="tg">J1</span><b>Push</b> da manhã.</p>
+              <div class="ph lock">
+                <div class="sc">
+                  <div class="clock">7:30</div>
+                  <div class="date">quinta, 5 de novembro</div>
+                  <div class="noti tap" data-go="j0">
+                    <div class="nh"><span>CONTRO · Galpão SMS</span><span>agora</span></div>
+                    <b>Suas atividades de hoje: 2</b><br />Comprar areia · Cotar manta bidim e tubos
+                  </div>
+                  <div class="noti">
+                    <div class="nh"><span>CONTRO · Galpão SMS</span><span>ontem</span></div>
+                    <b>Carlos te passou uma atividade</b><br />Contratar caminhão Munk · seg 09/11
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="scr" id="j0" style="grid-column: 2; grid-row: 1">
+              <p class="cap">
+                <span class="tg">J0</span><b>Hoje</b> da Júlia: o mesmo Hoje da obra, com o nome de
+                quem é cada linha. Tocou na linha dela, abre a ficha.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="brand"><i></i>CONTRO</span><span class="av t">JU</span>
+                  </div>
+                  <div class="hj-t">Hoje · quinta, 05/11</div>
+                  <div class="hj-r at">1 atrasado · 4 para hoje</div>
+                  <div class="hc at">
+                    <div class="hc-h">
+                      <div class="hb">
+                        <div class="hc-n">Galpão SMS</div>
+                        <div class="hc-c">
+                          Fase 2 · Contenção · <span class="red">1 atrasado</span> · 4 para hoje
+                        </div>
+                      </div>
+                      <span class="chev">⌄</span>
+                    </div>
+                    <div class="fx at">Atrasado · 1</div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo at">Concluir</span
+                        ><b class="at">Comprar o aço geral da contenção</b
+                        ><span class="dt at">Rafael · devia terminar qua 04/11</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="fx">Para hoje · 4</div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Concluir</span><b>Contratar o empreiteiro civil</b
+                        ><span class="dt">Carlos · previsto concluir hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Locação</span><b>Alugar formas metálicas e escoramentos</b
+                        ><span class="dt">providenciar até hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="ln">
+                      <div class="lb">
+                        <span class="tpo">Concluir</span><b>Comprar areia para o embocamento</b
+                        ><span class="dt">Júlia · previsto concluir hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                    <div class="ln tap" data-go="j4">
+                      <div class="lb">
+                        <span class="tpo">Concluir</span><b>Cotar manta bidim e tubos</b
+                        ><span class="dt">Júlia · previsto concluir hoje</span>
+                      </div>
+                      <span class="chev">›</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="nav" data-nav="g" data-on="0" data-navgo="1:j2"></div>
+              </div>
+            </div>
+
+            <div class="scr" id="j2" style="grid-column: 3; grid-row: 1">
+              <p class="cap">
+                <span class="tg">J2</span><b>Obra</b> para o membro: a mesma trilha de fases do
+                coordenador, com a obra inteira. As atividades dela aparecem como <b>"Você"</b>. Não
+                tem os botões de criar fase e atividade.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="obsel"><i></i>Galpão SMS</span><span class="av t">JU</span>
+                  </div>
+                  <div class="blks">
+                    <div class="blk r">
+                      <div class="bt">
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+                          <path d="M3.5 10h17M8 3v4M16 3v4" />
+                        </svg>
+                        Reunião
+                      </div>
+                      <div class="bs">seg 09/11 · 16h</div>
+                      <div class="bk">Pauta, preparar e atas</div>
+                    </div>
+                    <div class="blk a">
+                      <div class="bt">
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M9 6h11M9 12h11M9 18h11" />
+                          <path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
+                        </svg>
+                        Ações da equipe
+                      </div>
+                      <div class="bs" style="color: var(--m); opacity: 1">2 suas abertas</div>
+                      <div class="bk">1 vence hoje</div>
+                    </div>
+                  </div>
+                  <div class="fz ok" style="margin-bottom: 5px">
+                    <span class="n">1</span>
+                    <div class="fb">
+                      <div class="ct" style="font-size: 13px">Mobilização</div>
+                      <div class="cs">concluída</div>
+                    </div>
+                  </div>
+                  <div class="fzx">
+                    <div style="display: flex; justify-content: space-between; align-items: center">
+                      <div>
+                        <div class="cs">
+                          <b style="color: var(--pt)">Fase 2</b> ·
+                          <span class="red">1 atrasada</span>
+                        </div>
+                        <div class="ct" style="font-size: 14px">Contenção</div>
+                      </div>
+                      <b style="font-size: 13px">3/14 ⌄</b>
+                    </div>
+                  </div>
+                  <div class="atv at">
+                    <span class="anel at"></span>
+                    <div style="flex: 1">
+                      <div class="an">Comprar o aço geral da contenção</div>
+                      <div class="as"><span class="red">Rafael · era para qua 04/11</span></div>
+                    </div>
+                  </div>
+                  <div class="atv">
+                    <span class="anel p25"></span>
+                    <div style="flex: 1">
+                      <div class="an">Contratar o empreiteiro civil</div>
+                      <div class="as"><span class="ambc">Carlos · vence hoje</span></div>
+                    </div>
+                  </div>
+                  <div class="atv">
+                    <span class="anel tap" data-go="j3"></span>
+                    <div style="flex: 1">
+                      <div class="an">Comprar areia (embocamento)</div>
+                      <div class="as"><b style="color: var(--pt)">Você</b> · sex 06/11</div>
+                    </div>
+                  </div>
+                  <div class="cs" style="text-align: center; margin: 4px 0">
+                    + 10 atividades · sem "+ Adicionar atividade" e sem "+ fase"
+                  </div>
+                </div>
+                <div class="nav" data-nav="g" data-on="1"></div>
+              </div>
+            </div>
+            <div class="scr" id="j3" style="grid-column: 4; grid-row: 1">
+              <p class="cap">
+                <span class="tg">J3</span><b>Tocou no anel</b> de uma atividade (dela ou de outra
+                pessoa): avança 25% a cada toque e o quarto conclui, como na Contorno. Concluiu sem
+                foto, dá para anexar depois. Desfazer por 5 s.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="obsel"><i></i>Galpão SMS</span><span class="av t">JU</span>
+                  </div>
+                  <div class="fz ok" style="margin-bottom: 5px">
+                    <span class="n">1</span>
+                    <div class="fb">
+                      <div class="ct" style="font-size: 13px">Mobilização</div>
+                      <div class="cs">concluída</div>
+                    </div>
+                  </div>
+                  <div class="fzx">
+                    <div style="display: flex; justify-content: space-between; align-items: center">
+                      <div>
+                        <div class="cs">
+                          <b style="color: var(--pt)">Fase 2</b> ·
+                          <span class="red">1 atrasada</span>
+                        </div>
+                        <div class="ct" style="font-size: 14px">Contenção</div>
+                      </div>
+                      <b style="font-size: 13px">4/14 ⌄</b>
+                    </div>
+                  </div>
+                  <div class="atv at">
+                    <span class="anel at"></span>
+                    <div style="flex: 1">
+                      <div class="an">Comprar o aço geral da contenção</div>
+                      <div class="as"><span class="red">Rafael · era para qua 04/11</span></div>
+                    </div>
+                  </div>
+                  <div class="atv">
+                    <span class="anel p25"></span>
+                    <div style="flex: 1">
+                      <div class="an">Contratar o empreiteiro civil</div>
+                      <div class="as"><span class="ambc">Carlos · vence hoje</span></div>
+                    </div>
+                  </div>
+                  <div class="atv">
+                    <span class="anel ok"></span>
+                    <div style="flex: 1">
+                      <div class="an" style="text-decoration: line-through; color: var(--m)">
+                        Comprar areia (embocamento)
+                      </div>
+                      <div class="as">Você · concluída sem foto · <u>anexar foto</u></div>
+                    </div>
+                  </div>
+                  <div class="atv">
+                    <span class="anel"></span>
+                    <div style="flex: 1">
+                      <div class="an">Cotar manta bidim e tubos</div>
+                      <div class="as">
+                        <b style="color: var(--pt)">Você</b> · <span class="ambc">vence hoje</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cs" style="text-align: center; margin: 4px 0">
+                    + 10 atividades · sem "+ Adicionar atividade" e sem "+ fase"
+                  </div>
+                  <div class="toast"><span>Atividade concluída</span><b>Desfazer</b></div>
+                </div>
+                <div class="nav" data-nav="g" data-on="1" data-navgo="3:j5"></div>
+              </div>
+            </div>
+            <div class="scr" id="j5" style="grid-column: 4; grid-row: 2">
+              <p class="cap">
+                <span class="tg">J5</span><b>Log</b>: só das obras em que a Júlia participa. Quando
+                alguém conclui atividade de outra pessoa, o Log mostra quem concluiu e de quem era.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top">
+                    <span class="obsel"><i></i>Galpão SMS</span><span class="av t">JU</span>
+                  </div>
+                  <div class="h" style="margin-top: 0">Log</div>
+                  <div class="hs">o que mudou e quem mudou</div>
+                  <div class="secl">Hoje</div>
+                  <div class="it">
+                    <div class="itb">
+                      <div class="itt">Júlia concluiu "Mobilizar topógrafo"</div>
+                      <div class="itm">
+                        10:42 · <b style="color: var(--pt)">responsável: Carlos</b> · sem foto
+                      </div>
+                    </div>
+                  </div>
+                  <div class="it">
+                    <div class="itb">
+                      <div class="itt">Júlia concluiu "Comprar areia (embocamento)"</div>
+                      <div class="itm">09:12 · dela · sem foto</div>
+                    </div>
+                  </div>
+                  <div class="it">
+                    <div class="itb">
+                      <div class="itt">Carlos mudou a data de "Cotar manta bidim"</div>
+                      <div class="itm">
+                        <span class="ambc">replanejada</span> · qui 05/11 → seg 09/11
+                      </div>
+                    </div>
+                  </div>
+                  <div class="secl">Ontem</div>
+                  <div class="it late">
+                    <div class="itb">
+                      <div class="itt">"Comprar o aço geral" venceu</div>
+                      <div class="itm"><span class="red">vencida</span> · Rafael</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="nav" data-nav="g" data-on="3"></div>
+              </div>
+            </div>
+
+            <div class="scr" id="j4" style="grid-column: 5; grid-row: 1">
+              <p class="cap">
+                <span class="tg">J4</span><b>Ficha para o membro</b>: a mesma ficha, sem "Mudar" e
+                "Trocar". Ela marca o avanço e conclui pelo rodapé. Se o prazo não vai dar, conversa
+                com o Carlos.
+              </p>
+              <div class="ph">
+                <div class="sc">
+                  <div class="top"><span class="back">‹ Hoje</span></div>
+                  <div class="h" style="font-size: 17px; margin-top: 0">
+                    Cotar manta bidim, tubo corrugado e PVC 100 mm
+                  </div>
+                  <div class="fl">
+                    <div class="fb">
+                      <div class="fk">Data prevista</div>
+                      <div class="fv"><span class="ambc">qui 05/11 · vence hoje</span></div>
+                    </div>
+                  </div>
+                  <div class="fl">
+                    <div class="fb">
+                      <div class="fk">Responsável</div>
+                      <div class="fv">Júlia (você)</div>
+                    </div>
+                  </div>
+                  <div class="cs" style="margin: 2px 2px 8px">
+                    Data e responsável são definidos pelo Carlos. Se não vai dar no prazo, fale com
+                    ele para ajustar.
+                  </div>
+                  <div class="fl">
+                    <div class="fb">
+                      <div class="fk">Empresa ou prestador</div>
+                      <div class="fv" style="color: var(--m)">opcional</div>
+                    </div>
+                  </div>
+                  <div class="cs" style="margin: 6px 2px">
+                    Quando o Carlos muda a data, fica registrado como replanejamento e você recebe
+                    um push.
+                  </div>
+                  <div class="rod">
+                    <span>25%</span><span>50%</span><span>75%</span><span class="pr">Pronta</span
+                    ><span class="ft">Foto</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="notes">
+        <b>Decisões</b>
+        <ul>
+          <li>
+            <b>Contorno não muda (decidido):</b> nenhuma tela ou permissão da Contorno é alterada.
+            Única mudança de texto: "Aprovar membros" passa a se chamar <b>Pessoas e acessos</b>,
+            com a mesma função. O que entra é só para Luiz Felipe, Rafael e Rodrigo enxergarem e
+            trocarem para Obras gerais.
+          </li>
+          <li>
+            <b>Mesma estrutura da Contorno (decidido):</b> a obra geral é uma trilha de fases e
+            atividades dentro de cada fase, com ficha, subitens, foto e lembretes de providência. A
+            diferença é que não vem de modelo: o coordenador ou o administrador cria as fases e as
+            atividades.
+          </li>
+          <li>
+            <b>Só por convite (decidido):</b> nas Obras gerais ninguém pede para entrar, então não
+            há "aguardando" nem aprovação. Quem tem acesso dado pelo e-mail entra direto nas obras
+            marcadas ao fazer login.
+          </li>
+          <li>
+            <b>Nova pessoa (decidido):</b> nome (como aparece no app), e-mail de login, papel e
+            obras. Sem função e sem WhatsApp.
+          </li>
+          <li>
+            <b>Hoje também para coordenador e membro (decidido):</b> Carlos e Júlia têm a aba Hoje
+            com o atrasado e o que é para hoje nas obras deles. O menu deles fica Hoje · Obra ·
+            Score · Log.
+          </li>
+          <li>
+            <b>Hoje igual à Contorno (decidido):</b> em Obras gerais, a aba Hoje funciona exatamente
+            como na Contorno: um card por obra, recolhido, e ao tocar abre o que está atrasado e o
+            que é para hoje (atividades e lembretes de providência).
+          </li>
+          <li>
+            <b>Fase abre na trilha (decidido):</b> como na Contorno, tocar na fase abre as
+            atividades ali mesmo, em ordem, sem filtro. O "+ Adicionar atividade" fica no fim da
+            fase.
+          </li>
+          <li>
+            <b>Avisos da obra inteira (decidido):</b> Luiz Felipe, Rafael e Rodrigo recebem os
+            avisos de todas as obras gerais, com a obra inteira, como o coordenador recebe a dele.
+          </li>
+          <li>
+            <b>Score e Log por participação (decidido):</b> nas Obras gerais, coordenador e membro
+            veem no Score e no Log só as obras em que participam. Vocês três veem todas as obras
+            gerais.
+          </li>
+          <li>
+            <b>Coordenador configura reunião e avisos (decidido):</b> o coordenador muda dia e hora
+            da reunião da obra dele e configura os mesmos avisos da Contorno (lembretes da reunião,
+            ações do dia, prazo da pendência, providências). Vale só para a obra dele (C13). Vocês
+            três configuram qualquer obra geral.
+          </li>
+          <li>
+            <b>Reunião e Ações da equipe por obra (decidido):</b> os mesmos blocos da aba Obras da
+            Contorno. Nas Obras gerais, cada obra tem a sua reunião (dia, hora, pauta, preparar e
+            atas) e as suas ações da equipe. Para vocês três, a aba Obras junta tudo e a tela
+            Reuniões (A15) lista uma por obra; para coordenador e membro, os blocos aparecem no topo
+            da obra.
+          </li>
+          <li>
+            <b>Membro conclui atividade de outros (decidido):</b> como na Contorno, qualquer pessoa
+            da obra conclui qualquer atividade aberta. O Log registra quem concluiu e de quem era a
+            atividade (J5).
+          </li>
+          <li>
+            <b>Avanço da atividade igual à Contorno, sem % da obra (decidido):</b> o anel e o rodapé
+            25 · 50 · 75 · Pronta · Foto continuam na atividade. A obra geral
+            <b>não tem % de avanço físico</b> nem pré-obra separado, porque as atividades entram aos
+            poucos e não há o total. O indicador da obra é a <b>eficiência</b>: quanto das
+            atividades lançadas foi feito no prazo (o Score).
+          </li>
+          <li>
+            <b>Pessoa nos dois ambientes (decidido):</b> quem tiver papel na Contorno e em Obras
+            gerais ganha a troca de ambiente no perfil.
+          </li>
+          <li>
+            <b>Editar subitem (sugestão):</b> na Contorno de hoje o subitem só se marca e se exclui
+            na obra. Nas Obras gerais, tocar no texto do subitem abre "Editar subitem" (C12): texto,
+            data (atalhos ou calendário) e excluir, com Desfazer. Só coordenador e administradores
+            editam.
+          </li>
+          <li>
+            <b>Obra do membro (sugestão):</b> sem filtro Meus / Todos / Feitos. A aba Obra mostra a
+            mesma trilha de fases do coordenador, com a obra inteira, e as atividades da pessoa
+            aparecem como "Você". O que é dela no dia já está no Hoje.
+          </li>
+          <li>
+            <b>Ficha da atividade (decidido):</b> igual à da Contorno. Data prevista e responsável
+            em linhas próprias (só o coordenador muda), e o rodapé de avanço 25 · 50 · 75 · Pronta ·
+            Foto para concluir com ou sem foto.
+          </li>
+          <li>
+            <b>Subitens (sugestão):</b> a mesma chave "Dividir em subitens" do assistente de
+            modelos, agora na Nova atividade (C11), e um "+ Adicionar subitem" na ficha (C4). Cada
+            subitem tem nome e data; a data da atividade é a do último subitem. Subitem tem um nível
+            só, como na Contorno.
+          </li>
+          <li>
+            <b>Calendário (decidido):</b> ao criar ou editar uma atividade, a data vem dos atalhos
+            (hoje, amanhã, próximos dias) ou de um calendário para escolher qualquer dia.
+          </li>
+          <li>
+            <b>Datas à mão (decidido):</b> nas obras gerais não há cálculo de cronograma. O
+            coordenador digita a data prevista de cada atividade (e de cada subitem, se quiser).
+            Atraso, vence hoje, push e replanejamento funcionam em cima dessa data.
+          </li>
+          <li>
+            <b>Obras gerais com reunião, ata, pendências e boletim (decidido):</b> o mesmo fluxo da
+            Contorno, com configuração própria das obras gerais.
+          </li>
+          <li>
+            <b>Sem tela de pouso (decidido):</b> o administrador troca de ambiente só pelo perfil. O
+            app abre no último ambiente usado.
+          </li>
+          <li>
+            <b>Prazo do membro (decidido):</b> o membro não muda data nem responsável. Se não vai
+            dar, conversa com o coordenador, e ele ajusta.
+          </li>
+          <li>
+            <b>Obras gerais (decidido):</b> cada pessoa tem <b>um papel só</b>, Coordenador ou
+            Membro, que vale em todas as obras dela. O Carlos é coordenador em todas as obras em que
+            está; a Júlia é membro em todas as dela.
+          </li>
+          <li>
+            <b>Coordenador convidando:</b> o Carlos adiciona pessoas só como Membro e só nas obras
+            dele. Tornar alguém coordenador fica com vocês três (A8).
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      const ICON = {
+        hoje: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+        obras: '<path d="M4 20V9l8-5 8 5v11M9 20v-6h6v6"/>',
+        obra: '<path d="M3 20h18"/><path d="M5 20V10l7-4 7 4v10"/><path d="M9 20v-5h6v5"/>',
+        score: '<path d="M5 19V11M12 19V5M19 19v-5"/>',
+        log: '<path d="M5 6h14M5 12h14M5 18h9"/>',
+      };
+      document.querySelectorAll('.nav[data-nav]').forEach((n) => {
+        const it =
+          n.dataset.nav === 'g'
+            ? [
+                ['hoje', 'Hoje'],
+                ['obra', 'Obra'],
+                ['score', 'Score'],
+                ['log', 'Log'],
+              ]
+            : n.dataset.nav === '3'
+              ? [
+                  ['obra', 'Obra'],
+                  ['score', 'Score'],
+                  ['log', 'Log'],
+                ]
+              : [
+                  ['hoje', 'Hoje'],
+                  ['obras', 'Obras'],
+                  ['score', 'Score'],
+                  ['log', 'Log'],
+                ];
+        const ng = (n.dataset.navgo || '').split(':');
+        n.innerHTML = it
+          .map(
+            (x, i) =>
+              `<span class="${i == n.dataset.on ? 'on' : ''}${ng[0] !== '' && i == ng[0] ? ' tap' : ''}"${ng[0] !== '' && i == ng[0] ? ' data-go="' + ng[1] + '"' : ''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[x[0]]}</svg>${x[1]}</span>`,
+          )
+          .join('');
+      });
+      document.querySelectorAll('.ph').forEach((p) => {
+        const s = document.createElement('div');
+        s.className = 'sb';
+        s.innerHTML = '<span>9:41</span><span>4G</span>';
+        p.prepend(s);
+      });
+      function draw() {
+        document.querySelectorAll('.canvas').forEach((cv) => {
+          cv.querySelectorAll('svg.arrows').forEach((x) => x.remove());
+          const grid = cv.querySelector('.grid');
+          const ns = 'http://www.w3.org/2000/svg';
+          const svg = document.createElementNS(ns, 'svg');
+          svg.setAttribute('class', 'arrows');
+          svg.setAttribute('width', grid.scrollWidth + 60);
+          svg.setAttribute('height', grid.scrollHeight + 60);
+          const mid = 'ah' + Math.random().toString(36).slice(2, 7);
+          svg.innerHTML =
+            '<defs><marker id="' +
+            mid +
+            '" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#181818"/></marker></defs>';
+          const o = grid.getBoundingClientRect();
+          const R = (e) => {
+            const r = e.getBoundingClientRect();
+            return {
+              l: r.left - o.left,
+              r: r.right - o.left,
+              t: r.top - o.top,
+              b: r.bottom - o.top,
+              h: r.height,
+            };
+          };
+          let n = 0;
+          cv.querySelectorAll('.tap').forEach((h) => {
+            const t = document.getElementById(h.dataset.go);
+            if (!t) return;
+            n++;
+            h.dataset.n = n;
+            const S = R(h),
+              P = R(h.closest('.ph')),
+              T = R(t.querySelector('.ph')),
+              TS = R(t);
+            const sy = S.t + S.h / 2;
+            const off = 16 + ((n * 13) % 72),
+              off2 = 12 + ((n * 17) % 60);
+            const sameCol = Math.abs(T.l - P.l) < 20,
+              sameRow = Math.abs(T.t - P.t) < 20;
+            const goRight = T.l > P.l + 20;
+            const fromRight = goRight || sameCol;
+            const x0 = fromRight ? S.r : S.l,
+              gx = fromRight ? P.r + off : P.l - off;
+            const enterLeft = goRight;
+            const ey = T.t + 44 + ((n * 19) % 130);
+            const tedge = enterLeft ? T.l - 2 : T.r + 2;
+            let tx = enterLeft ? T.l - off2 : T.r + off2;
+            let pts = [
+              [x0, sy],
+              [gx, sy],
+            ];
+            if (Math.abs(tx - gx) < 115 && (enterLeft ? gx < T.l : gx > T.r)) {
+              tx = gx;
+              pts.push([gx, ey]);
+            } else {
+              let ry;
+              if (sameRow) ry = Math.max(P.b, T.b) + 14 + ((n * 9) % 40);
+              else if (T.t > P.t) ry = TS.t - 12 - ((n * 7) % 30);
+              else ry = T.b + 14 + ((n * 9) % 40);
+              pts.push([gx, ry], [tx, ry], [tx, ey]);
+            }
+            pts.push([tedge, ey]);
+            const d = 'M' + pts.map((p) => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L ');
+            const p = document.createElementNS(ns, 'path');
+            p.setAttribute('d', d);
+            p.setAttribute('marker-end', 'url(#' + mid + ')');
+            p.setAttribute('stroke-linejoin', 'round');
+            if (h.dataset.back) p.classList.add('back');
+            svg.appendChild(p);
+            const cx = enterLeft ? tedge - 14 : tedge + 14;
+            const g = document.createElementNS(ns, 'g');
+            g.innerHTML =
+              '<circle cx="' +
+              cx +
+              '" cy="' +
+              (ey - 13) +
+              '" r="10"/><text x="' +
+              cx +
+              '" y="' +
+              (ey - 13) +
+              '">' +
+              n +
+              '</text>';
+            svg.appendChild(g);
+            h.onmouseenter = () => {
+              p.classList.add('hi');
+              h.classList.add('hi');
+              svg.appendChild(p);
+            };
+            h.onmouseleave = () => {
+              p.classList.remove('hi');
+              h.classList.remove('hi');
+            };
+            h.onclick = () => {
+              t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+              t.querySelector('.ph').animate(
+                [
+                  { boxShadow: '0 0 0 0 #54B4B0' },
+                  { boxShadow: '0 0 0 10px #54B4B0' },
+                  { boxShadow: '0 0 0 0 #54B4B0' },
+                ],
+                { duration: 900 },
+              );
+            };
+          });
+          grid.appendChild(svg);
+        });
+      }
+      document.fonts.ready.then(draw);
+      window.addEventListener('resize', draw);
+    </script>
+  </body>
+</html>

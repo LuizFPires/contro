@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLembrado } from '../lib/useLembrado';
-import { horaCurta, reuniaoQueVem, rotuloPerfil } from '@contro/core';
-import { BottomSheet, Icon, Logo, Simbolo, useToast, type IconName } from '@contro/ui';
+import { horaCurta, reuniaoQueVem, rotuloAmbiente, type Ambiente } from '@contro/core';
+import { Icon, Logo, Simbolo, useToast } from '@contro/ui';
 import { ObraCard } from '../features/obras/ObraCard';
 import { HojeObras } from '../features/obras/HojeObras';
 import { ObraDetalhe, type AbaObra } from '../features/obras/ObraDetalhe';
@@ -10,14 +10,11 @@ import { useObras } from '../features/obras/useObras';
 import { usePerfil } from '../features/perfil/usePerfil';
 import { useMembrosPendentes } from '../features/membros/useMembros';
 import { ProntosParaEnviar } from '../features/boletim-auto/ProntosParaEnviar';
-import { EditarNome } from './EditarNome';
 import { NavInferior } from './NavInferior';
-import { TrocarSenha } from './TrocarSenha';
-import { AvisosCelularSheet } from '../features/avisos/AvisosCelularSheet';
+import { ItemMenu, PerfilSheet } from '../features/perfil/PerfilSheet';
 import { useConfigAvisos } from '../features/avisos/useConfigAvisos';
 import { hojeISO } from '../features/obras/api';
 import { formatarDataCurta } from '../lib/datas';
-import { VERSAO_APP, forcarAtualizacao } from '../lib/pwa';
 import styles from './MinhasObras.module.css';
 
 export type DestinoInicio =
@@ -51,6 +48,9 @@ export function MinhasObras({
   onNav,
   onAbrirLog,
   onSair,
+  ambiente,
+  disponiveis,
+  onTrocarAmbiente,
 }: {
   /** Abre a obra uma vez; depois de usado, o App limpa (o Voltar funciona). */
   abrirObra?: AbrirObra | null;
@@ -61,6 +61,10 @@ export function MinhasObras({
   /** Ícone de relógio no cabeçalho da obra: Log filtrado pela obra. */
   onAbrirLog?: (obraId: string) => void;
   onSair: () => void;
+  /** Ambiente atual e os da pessoa: a troca fica no perfil. */
+  ambiente: Ambiente;
+  disponiveis: Ambiente[];
+  onTrocarAmbiente: (a: Ambiente) => void;
 }) {
   const { data: obras, isLoading } = useObras();
   const { data: pessoa } = usePerfil();
@@ -70,9 +74,6 @@ export function MinhasObras({
   // Onde a pessoa estava (lista/nova obra, obra aberta, aba) fica lembrado.
   const [vista, setVista] = useLembrado<'lista' | 'nova'>('inicio:vista', 'lista');
   const [perfilAberto, setPerfilAberto] = useState(false);
-  const [editarNome, setEditarNome] = useState(false);
-  const [trocarSenha, setTrocarSenha] = useState(false);
-  const [avisos, setAvisos] = useState(false);
   // Dia e horário da reunião vêm da configuração do gestor.
   const { config: agenda } = useConfigAvisos();
   const [obraAberta, setObraAberta] = useLembrado<{
@@ -157,6 +158,9 @@ export function MinhasObras({
       <header className={styles.cabecalho}>
         <div className={styles.marca}>
           <Logo on="preto" height={30} />
+          {disponiveis.length > 1 ? (
+            <span className={styles.ambiente}>{rotuloAmbiente(ambiente)}</span>
+          ) : null}
         </div>
         <div className={styles.acoes}>
           {ehGestor ? (
@@ -273,118 +277,49 @@ export function MinhasObras({
         }}
       />
 
-      <BottomSheet open={perfilAberto} onClose={() => setPerfilAberto(false)}>
-        <div className={styles.painel}>
-          <div className={styles.quem}>
-            <span className={styles.avatar} aria-hidden="true">
-              <Icon name="pessoa" size={24} />
-            </span>
-            <span>
-              <span className={styles.quemNome}>{pessoa?.nome ?? ''}</span>
-              <span className={styles.quemPerfil}>{pessoa ? rotuloPerfil(pessoa.perfil) : ''}</span>
-            </span>
-          </div>
-          {ehGestor ? (
-            <>
-              <ItemMenu
-                icon="calendario"
-                rotulo="Reunião e avisos"
-                onClick={() => {
-                  setPerfilAberto(false);
-                  onIr('avisos');
-                }}
-              />
-              <ItemMenu
-                icon="documento"
-                rotulo="Boletim automático"
-                onClick={() => {
-                  setPerfilAberto(false);
-                  onIr('config');
-                }}
-              />
-              <ItemMenu
-                icon="membros"
-                rotulo="Aprovar membros"
-                selo={nMembros ? `${nMembros} aguardando` : undefined}
-                onClick={() => {
-                  setPerfilAberto(false);
-                  onIr('membros');
-                }}
-              />
-            </>
-          ) : null}
-          <ItemMenu
-            icon="pessoa"
-            rotulo="Editar meu nome"
-            onClick={() => {
-              setPerfilAberto(false);
-              setEditarNome(true);
-            }}
-          />
-          <ItemMenu
-            icon="sino"
-            rotulo="Avisos neste celular"
-            onClick={() => {
-              setPerfilAberto(false);
-              setAvisos(true);
-            }}
-          />
-          <ItemMenu
-            icon="cadeado"
-            rotulo="Trocar senha"
-            onClick={() => {
-              setPerfilAberto(false);
-              setTrocarSenha(true);
-            }}
-          />
-          <ItemMenu
-            icon="sync"
-            rotulo={`Atualizar o app · versão ${VERSAO_APP}`}
-            onClick={() => void forcarAtualizacao()}
-          />
-          <ItemMenu icon="sair" rotulo="Sair" separado onClick={onSair} semSeta />
-        </div>
-      </BottomSheet>
-
-      <TrocarSenha aberto={trocarSenha} onFechar={() => setTrocarSenha(false)} />
-
-      <AvisosCelularSheet aberto={avisos} onFechar={() => setAvisos(false)} />
-
-      <EditarNome
-        aberto={editarNome}
-        atual={pessoa?.nome ?? ''}
-        onFechar={() => setEditarNome(false)}
-      />
+      {pessoa ? (
+        <PerfilSheet
+          aberto={perfilAberto}
+          onFechar={() => setPerfilAberto(false)}
+          pessoa={pessoa}
+          ambiente={ambiente}
+          disponiveis={disponiveis}
+          onTrocarAmbiente={onTrocarAmbiente}
+          onSair={onSair}
+          itensDoAmbiente={
+            ehGestor ? (
+              <>
+                <ItemMenu
+                  icon="calendario"
+                  rotulo="Reunião e avisos"
+                  onClick={() => {
+                    setPerfilAberto(false);
+                    onIr('avisos');
+                  }}
+                />
+                <ItemMenu
+                  icon="documento"
+                  rotulo="Boletim automático"
+                  onClick={() => {
+                    setPerfilAberto(false);
+                    onIr('config');
+                  }}
+                />
+                <ItemMenu
+                  icon="membros"
+                  rotulo="Pessoas e acessos"
+                  selo={nMembros ? `${nMembros} aguardando` : undefined}
+                  onClick={() => {
+                    setPerfilAberto(false);
+                    onIr('membros');
+                  }}
+                />
+              </>
+            ) : null
+          }
+        />
+      ) : null}
     </div>
-  );
-}
-
-function ItemMenu({
-  icon,
-  rotulo,
-  selo,
-  separado,
-  semSeta,
-  onClick,
-}: {
-  icon: IconName;
-  rotulo: string;
-  selo?: string;
-  separado?: boolean;
-  semSeta?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={`${styles.item} ${separado ? styles.itemSeparado : ''}`}
-      onClick={onClick}
-    >
-      <Icon name={icon} size={22} />
-      <span className={styles.itemRotulo}>{rotulo}</span>
-      {selo ? <span className={styles.selo}>{selo}</span> : null}
-      {semSeta ? null : <Icon name="seta" size={18} className={styles.itemSeta} />}
-    </button>
   );
 }
 

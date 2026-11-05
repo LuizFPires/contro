@@ -6,6 +6,9 @@ import { usePush } from './lib/usePush';
 import { verificarAtualizacao } from './lib/pwa';
 import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
+import { useAmbiente } from './features/perfil/useAmbiente';
+import { ObrasGeraisInicio } from './features/obras-gerais/ObrasGeraisInicio';
+import { PessoasAcessos } from './features/obras-gerais/PessoasAcessos';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
 import { NovaVersao } from './features/offline/NovaVersao';
@@ -31,7 +34,17 @@ export function App() {
   const qc = useQueryClient();
   usePush(Boolean(session && pessoa?.ativo), session?.user.id);
   // Lembrada: ao voltar ao app (ou à guia), continua na mesma tela.
-  const [tela, setTela] = useLembrado<'inicio' | DestinoInicio>('app', 'inicio');
+  const [tela, setTela] = useLembrado<'inicio' | 'pessoas-gerais' | DestinoInicio>('app', 'inicio');
+  // Contorno ou Obras gerais (o último escolhido fica lembrado); trocar volta ao início.
+  const voltarAoInicio = useCallback(() => setTela('inicio'), [setTela]);
+  const {
+    ambiente,
+    disponiveis,
+    trocar: trocarAmbiente,
+    irPara,
+  } = useAmbiente(pessoa, voltarAoInicio);
+
+  const [avisoPendente, setAvisoPendente] = useState(false);
 
   // Reunião escolhida na central (null = a que vem).
   const [reuniaoData, setReuniaoData] = useState<string | null>(null);
@@ -91,8 +104,20 @@ export function App() {
     if (ir === 'reuniao' || ir === 'tarefas' || ir === 'minhas' || ir === 'score' || ir === 'log')
       setTela(ir);
     else if (ir === 'hoje') setTela('inicio');
+    // Os avisos são da Contorno: o ambiente é ajustado quando o perfil carregar.
+    setAvisoPendente(true);
     window.history.replaceState(null, '', window.location.pathname);
   }, [setTela, setLogObra]);
+
+  // Aviso aberto estando em Obras gerais: vai para a Contorno sem perder o destino.
+  // Sem acesso à Contorno, ignora o link e fica em Obras gerais.
+  useEffect(() => {
+    if (!avisoPendente || perfilCarregando || !pessoa) return;
+    if (disponiveis.length === 0) return;
+    setAvisoPendente(false);
+    if (disponiveis.includes('contorno')) irPara('contorno');
+    else setTela('inicio');
+  }, [avisoPendente, perfilCarregando, pessoa, disponiveis, irPara, setTela]);
 
   // Recarrega o perfil quando a sessão muda (login/logout/recuperação), para o
   // roteamento de membro/pendente usar sempre o perfil do usuário atual.
@@ -146,6 +171,39 @@ export function App() {
 
   const ehGestor = pessoa.perfil === 'gestor';
   const voltar = () => setTela('inicio');
+  const sair = () => {
+    esquecerTelas();
+    void supabase?.auth.signOut();
+  };
+
+  // Ativa, mas sem Contorno e sem papel em Obras gerais: nada a mostrar ainda.
+  if (disponiveis.length === 0) {
+    return <AguardandoAprovacao nome={pessoa.nome} />;
+  }
+
+  // Obras gerais: tela própria. As telas da Contorno só para quem tem a Contorno.
+  if (ambiente === 'geral' || !disponiveis.includes('contorno')) {
+    return (
+      <div className="app-shell">
+        <NovaVersao />
+        <PullToRefresh onRefresh={aoAtualizar}>
+          {tela === 'pessoas-gerais' && pessoa.administrador ? (
+            <PessoasAcessos onVoltar={voltar} />
+          ) : (
+            <ObrasGeraisInicio
+              pessoa={pessoa}
+              ambiente={ambiente}
+              disponiveis={disponiveis}
+              onTrocarAmbiente={trocarAmbiente}
+              onSair={sair}
+              onPessoas={() => setTela('pessoas-gerais')}
+            />
+          )}
+        </PullToRefresh>
+        <SyncIndicator />
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell">
@@ -209,10 +267,10 @@ export function App() {
             onIr={setTela}
             onNav={irNav}
             onAbrirLog={abrirLog}
-            onSair={() => {
-              esquecerTelas();
-              void supabase?.auth.signOut();
-            }}
+            onSair={sair}
+            ambiente={ambiente}
+            disponiveis={disponiveis}
+            onTrocarAmbiente={trocarAmbiente}
           />
         )}
       </PullToRefresh>

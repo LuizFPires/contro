@@ -21,7 +21,7 @@ export function AprovarMembros({ onVoltar }: { onVoltar: () => void }) {
         <button type="button" className={styles.voltar} aria-label="Voltar" onClick={onVoltar}>
           <Icon name="chevronRight" size={22} />
         </button>
-        <span className={styles.titulo}>Aprovar membros</span>
+        <span className={styles.titulo}>Pessoas e acessos</span>
       </div>
 
       <div className={styles.acoes} role="tablist" aria-label="Status dos membros">
