@@ -1,6 +1,6 @@
 -- Obras gerais: acesso por ambiente e por obra.
 begin;
-select plan(33);
+select plan(37);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000c1', 'm@geral.contro'),
@@ -75,6 +75,13 @@ select throws_ok($$ update pessoa set administrador = true where user_id = '0000
 select throws_ok($$ update pessoa set papel_geral = 'coordenador' where user_id = '00000000-0000-0000-0000-0000000000c6' $$, '42501', null, 'gestor nao altera papel_geral');
 select throws_ok($$ update pessoa set acesso_contorno = false where user_id = '00000000-0000-0000-0000-0000000000c6' $$, '42501', null, 'gestor nao altera acesso_contorno');
 select lives_ok($$ update pessoa set nome = 'Gestor Renomeado' where user_id = '00000000-0000-0000-0000-0000000000c6' $$, 'gestor ainda edita nome');
+select throws_ok($$ update pessoa set user_id = '00000000-0000-0000-0000-0000000000cf' where user_id = '00000000-0000-0000-0000-0000000000c1' $$, '42501', null, 'gestor nao troca o login de outra pessoa');
+select throws_ok($$ update pessoa set nome = 'Admin Renomeado' where user_id = '00000000-0000-0000-0000-0000000000c2' $$, '42501', null, 'gestor nao edita nome de administrador');
+select throws_ok($$ update pessoa set ativo = false where user_id = '00000000-0000-0000-0000-0000000000c2' $$, '42501', null, 'gestor nao desativa administrador');
+
+-- A (admin) altera o proprio cadastro de administrador
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c2","role":"authenticated"}';
+select lives_ok($$ update pessoa set nome = 'Pessoa A Renomeada' where user_id = '00000000-0000-0000-0000-0000000000c2' $$, 'admin edita nome de administrador');
 
 -- Gestor sem acesso a Contorno: contro_perfil nulo
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c7","role":"authenticated"}';

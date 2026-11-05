@@ -146,7 +146,8 @@ $$;
 revoke insert, update, delete on obra_participante, convite_geral from anon, authenticated;
 
 -- Campos de papel e acesso não podem ser escritos direto pelo cliente (PostgREST),
--- nem por gestor. RPCs security definer rodam como dono e passam.
+-- nem por gestor; o login (user_id) não muda e cadastro de administrador só é
+-- alterado por administrador. RPCs security definer rodam como dono e passam.
 create or replace function pessoa_protege_papeis()
 returns trigger
 language plpgsql
@@ -164,6 +165,12 @@ begin
        or new.acesso_contorno is distinct from old.acesso_contorno
        or new.papel_geral is distinct from old.papel_geral then
       raise exception 'campos de papel e acesso só mudam por função' using errcode = '42501';
+    elsif new.user_id is distinct from old.user_id then
+      -- Trocar o login de um cadastro daria a alguém o papel de outra pessoa.
+      raise exception 'o login da pessoa não muda' using errcode = '42501';
+    elsif old.administrador and not public.contro_e_admin() then
+      -- Cadastro de administrador só é alterado por administrador.
+      raise exception 'só administrador altera cadastro de administrador' using errcode = '42501';
     end if;
   end if;
   return new;
