@@ -43,6 +43,10 @@ São **dois perfis de acesso** apenas:
 | **Gestor** | Diretoria e gestão de obras | **Tudo**: vê todas as obras, conduz a reunião e aprova a ata, e é o único que **cria, edita, duplica e exclui modelos de obra** |
 | **Equipe de obra** | Engenheiro, mestre/encarregado, compras e demais da obra | O app do dia a dia, **tudo menos editar modelos**: cria obra escolhendo um modelo, conclui atividades (com ou sem foto), aponta e resolve pendências, marca lembretes, dá baixa e replaneja tarefas |
 
+**Obras gerais (05/11/2026):** além da Contorno, o app tem o ambiente **Obras gerais**, para obras que não são das unidades Contorno do Corpo. O **Administrador** (Luiz Felipe, Rafael, Rodrigo) vê todas as obras gerais, cria obra e dá acesso; o **Coordenador** e o **Membro** veem só as obras em que participam. Quem tem os dois ambientes troca pelo perfil; o app abre no último usado. A Contorno não muda e não enxerga pessoas nem obras de Obras gerais. "Aprovar membros" passa a se chamar **"Pessoas e acessos"**. O convite por e-mail faz a pessoa entrar direto no cadastro, sem aprovação.
+- **Entregue na etapa 1:** ambientes, papéis, acesso por obra (isolamento), criar obra geral, início com a lista de obras e Pessoas e acessos.
+- **Nas próximas etapas:** a obra geral por dentro (fases, atividades, ficha, conclusão), Coordenador adicionando Membro, Hoje e avisos, reunião, ata, pendências e boletim por obra, Score e Log por participação.
+
 A função de cada pessoa (engenheiro, mestre, compras) é só um rótulo (`papel_texto`) para atribuições e relatórios; não muda o acesso.
 
 Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de 28/10/2026).

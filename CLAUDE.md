@@ -12,6 +12,8 @@ Cada obra nasce de um **modelo de obra** escolhido entre os modelos salvos (ex.:
 - boletim semanal pelo WhatsApp e em PDF;
 - reunião semanal (dia e horário definidos pelo gestor; padrão segunda 16h) com ata e tarefas por responsável, e avisos por push.
 
+O app tem ainda o ambiente **Obras gerais** (obras que não são das unidades Contorno do Corpo, com acesso por obra): a etapa 1 (ambientes e acesso) está entregue e a obra geral por dentro vem nas etapas seguintes (ver PLAN.md).
+
 A **maquete 3D da obra** é uma melhoria futura (E1) em avaliação: **não implemente** nada dela sem pedido explícito do usuário.
 
 ## Documentos (fonte da verdade)
@@ -57,7 +59,7 @@ pnpm lint && pnpm typecheck
 8. **Replanejar tarefa é rastreado:** mudar o prazo de tarefa aberta preserva `prazo_original` e incrementa `replanejamentos`.
 9. **Toda ação de campo é otimista e funciona offline.** Fila com `client_op_id` idempotente. Nenhum toque espera o servidor para dar feedback (meta: < 100 ms).
 10. **Ações destrutivas ou fáceis de tocar sem querer têm "Desfazer"** (toast de 5 s): concluir tarefa, adiar pendência, excluir, salvar edição.
-11. **Dois perfis só:** Gestor (tudo) e Equipe de obra (tudo menos editar modelos). Esconda a edição de modelos na UI **e** bloqueie na RLS.
+11. **Perfis.** Na Contorno continuam dois: Gestor (tudo) e Equipe de obra (tudo menos editar modelos); esconda a edição de modelos na UI **e** bloqueie na RLS. Há também o **Administrador** (Luiz Felipe, Rafael, Rodrigo), que vê todas as obras gerais e dá acesso, e, em **Obras gerais**, o **Coordenador** e o **Membro** por obra. O isolamento entre ambientes e entre obras é por RLS (`contro_ve_obra`), nunca só na UI. A tela de aprovação se chama **"Pessoas e acessos"** (antes "Aprovar membros").
 12. **Dependências entre quaisquer fases, sem ciclo.** O core calcula por ordenação topológica e rejeita ciclo.
 13. **Modelos se editam no celular** por assistente de 5 passos (nome com sugestões, prazo, começa depois de, providências, revisão). Editar abre direto na revisão.
 

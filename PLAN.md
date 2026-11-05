@@ -337,6 +337,26 @@ Atividade sem tarefa vinculada aberta vira ação "Sem responsável"; o gestor a
 
 ---
 
+## Obras gerais · Etapa 1 · ambientes e acesso (05/11/2026)
+Primeira de 5 etapas de Obras gerais (obras que não são da Contorno, com pessoas e acesso por obra). Esta etapa entrega só ambientes e acesso; a obra geral por dentro vem depois. Spec: `docs/superpowers/specs/2026-11-05-obras-gerais-design.md` · plano: `docs/superpowers/plans/2026-11-05-obras-gerais-1-ambientes-e-acesso.md`.
+- [x] 1. Core: `ambiente.ts` (ambientes da pessoa) e testes.
+- [x] 2. Migration `20261105200000_obras_gerais_acesso.sql`: `obra.ambiente` e `cidade`, `pessoa` (administrador, acesso_contorno, papel_geral), `obra_participante`, `convite_geral` e funções de acesso.
+- [x] 3. Migration `20261105220000_obras_gerais_rls.sql`: RLS por obra, gatilho `a_guarda_obra` e Storage.
+- [x] 4. Migration `20261105230000_obras_gerais_rotinas.sql`: avisos, boletim e reunião só olham a Contorno.
+- [x] 5. Migration `20261105240000_obras_gerais_rpcs.sql`: criar obra geral, dar acesso e convite por e-mail.
+- [x] 6. Web: ambiente atual (`useAmbiente`), troca no perfil e Contorno filtrada.
+- [x] 7. Web: `ObrasGeraisInicio` e nova obra geral.
+- [x] 8. Web: "Pessoas e acessos" de Obras gerais.
+- [x] 9. Documentação: PRD, SPEC, PLAN e CLAUDE.
+
+**Próximas etapas** (cada uma com plano próprio, escrito depois que a anterior entra na `main`):
+- Etapa 2: obra geral por dentro (fases, atividades, subitens, ficha, calendário, conclusão, Log), regras Coordenador x Membro e menu com seletor de obra.
+- Etapa 3: Hoje, Ações da equipe, avisos (push) e eficiência em Obras gerais.
+- Etapa 4: reunião, ata, pendências e boletim por obra.
+- Etapa 5: Score e Log por participação; sugestões separadas por ambiente.
+
+---
+
 ## Melhorias (fora do plano principal)
 
 ### E1 · Maquete 3D gamificada (melhoria)
@@ -368,6 +388,15 @@ Atividade sem tarefa vinculada aberta vira ação "Sem responsável"; o gestor a
 
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
+
+- 2026-11-05 · **Obras gerais, etapa 1 · isolamento.** Leitura e escrita por obra via RLS com `contro_ve_obra(obra)` e gatilho `a_guarda_obra` (itens só apontam para itens da mesma obra); rotinas (avisos, boletim, abrir/reabrir reunião) só olham a Contorno nesta etapa.
+- 2026-11-05 · **Obras gerais · campos protegidos.** `pessoa.administrador`, `acesso_contorno`, `papel_geral` e `user_id` só mudam por RPC; `contro_perfil()` e `contro_e_membro()` exigem `acesso_contorno`.
+- 2026-11-05 · **Obras gerais · listas da Contorno.** Pessoas só de Obras gerais não aparecem nas listas da Contorno (`pessoa_sel` exige `acesso_contorno`; telas da Contorno filtram `acesso_contorno`).
+- 2026-11-05 · **Obras gerais · dar acesso.** Dar acesso a quem estava pendente, desativado ou recusado na Contorno entra só em Obras gerais; não devolve a Contorno.
+- 2026-11-05 · **Obras gerais · convite por e-mail.** `convite_geral` é usado no cadastro: a pessoa entra direto, sem aprovação.
+- 2026-11-05 · **Obras gerais · navegação.** Sem tela de pouso: o app abre no último ambiente e o primeiro acesso é na Contorno; seletor de ambiente de 44 px; nome do ambiente em branco 55% no cabeçalho preto.
+- 2026-11-05 · **"Aprovar membros" passa a se chamar "Pessoas e acessos"** (mesma função na Contorno).
+- 2026-11-05 · **Administradores marcados por migration de dados** (primeiro nome luiz, rafael ou rodrigo entre gestores); conferir em produção antes do merge.
 
 - 2026-11-05 · **Gráfico de evolução no detalhe do Score (opção B do protótipo).** Card com número grande, variação desde ontem e linha do score de fim de cada dia útil. Gravação feita pelo app ao calcular o Score (último cálculo do dia vence; o servidor decide o dia, então o passado não muda), em vez de um job noturno: o cálculo do score é do core (regra 1) e uma Edge Function teria de duplicar a carga de dados do Log/Score. **Limite conhecido:** dia em que ninguém abre o Score fica sem ponto, e ações feitas depois da última abertura do dia só entram no ponto do dia seguinte. **Confiança:** qualquer membro pode gravar o score de hoje de qualquer nome pela RPC (o valor vem do cliente); aceito porque todo membro já pode concluir e replanejar as ações que formam o score, e o dia é decidido pelo servidor, então o histórico passado não muda. Se virar problema, trocar por um job no servidor que calcule com o core. Pedido do usuário.
 
