@@ -16,6 +16,7 @@ import { hojeISO } from '../obras/api';
 import { usePerfil } from '../perfil/usePerfil';
 import { du, pct } from './formato';
 import { ScoreDetalhe } from './ScoreDetalhe';
+import { linhasDaAba, useGravarScoreDiario } from './scoreDiario';
 import { contagem, corFaixa, nomeExibido, type AbaScore, type LinhaQualquer } from './scoreTela';
 import styles from './ScoreScreen.module.css';
 
@@ -42,6 +43,21 @@ export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
     return { 30: calc(30), 90: calc(90) } as Record<Janela, LinhaQualquer[]>;
   }, [aba, equipe, prestadores, hoje]);
   const linhas = porJanela[janela];
+
+  // Score diário: grava o de hoje das duas abas (o último cálculo do dia vence),
+  // para o gráfico de evolução do detalhe.
+  const paraGravar = useMemo(() => {
+    if (carregando || erro) return null;
+    const ambas = (aba2: AbaScore) => {
+      const calc = (j: Janela): LinhaQualquer[] =>
+        aba2 === 'equipe'
+          ? calcularScoreEquipe(equipe, j, hoje)
+          : calcularScorePrestadores(prestadores, j, hoje);
+      return linhasDaAba(aba2, { 30: calc(30), 90: calc(90) });
+    };
+    return [...ambas('equipe'), ...ambas('prestadores')];
+  }, [carregando, erro, equipe, prestadores, hoje]);
+  useGravarScoreDiario(paraGravar, hoje);
   const eu = aba === 'equipe' ? perfil?.id : undefined;
 
   const linhaSel = sel ? linhas.find((l) => l.chave === sel) : undefined;
@@ -55,6 +71,7 @@ export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
         score30={s(30)}
         score90={s(90)}
         voce={linhaSel.chave === eu}
+        onJanela={setJanela}
         onVoltar={() => setSel(null)}
         onNav={(item) => {
           setSel(null);

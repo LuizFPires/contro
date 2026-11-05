@@ -200,6 +200,10 @@ const paths = {
     </>
   ),
   seta: <path d="M8 5l8 7-8 7" />,
+  // Variação do score: sobe, desce, igual.
+  sobe: <path d="M12 19V5M6 11l6-6 6 6" />,
+  desce: <path d="M12 5v14M6 13l6 6 6-6" />,
+  igual: <path d="M6 12h12" />,
   // Score: três barras verticais sobre a base.
   score: (
     <>

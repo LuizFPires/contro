@@ -31,6 +31,7 @@ export * from './agendaReuniao';
 export * from './acoes';
 export * from './log';
 export * from './score';
+export * from './scoreEvolucao';
 
 export type Perfil = 'gestor' | 'equipe';
 

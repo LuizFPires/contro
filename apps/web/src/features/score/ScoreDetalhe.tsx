@@ -1,5 +1,4 @@
 import {
-  rotuloFaixa,
   tendencia,
   type IndicadoresEquipe,
   type IndicadoresPrestador,
@@ -7,8 +6,11 @@ import {
 } from '@contro/core';
 import { Icon } from '@contro/ui';
 import { NavInferior, type ItemNav } from '../../screens/NavInferior';
+import { hojeISO } from '../obras/api';
+import { EvolucaoScore } from './EvolucaoScore';
 import { decimal, du, pct } from './formato';
-import { contagem, corFaixa, nomeExibido, type AbaScore, type LinhaQualquer } from './scoreTela';
+import { useScoreHistorico } from './scoreDiario';
+import { contagem, nomeExibido, type AbaScore, type LinhaQualquer } from './scoreTela';
 import styles from './ScoreScreen.module.css';
 
 const TENDENCIA = { melhorando: 'melhorando', estavel: 'estável', piorando: 'piorando' } as const;
@@ -100,6 +102,7 @@ export function ScoreDetalhe({
   score30,
   score90,
   voce,
+  onJanela,
   onVoltar,
   onNav,
 }: {
@@ -109,10 +112,12 @@ export function ScoreDetalhe({
   score30: number | null;
   score90: number | null;
   voce: boolean;
+  onJanela: (j: Janela) => void;
   onVoltar: () => void;
   onNav: (item: ItemNav) => void;
 }) {
-  const cor = corFaixa(l.faixa);
+  const hoje = hojeISO();
+  const { data: historico = [] } = useScoreHistorico(aba, l.chave, hoje);
   const t = tendencia(score30, score90);
   const kpis = aba === 'equipe' ? kpisEquipe(l) : kpisPrestador(l);
   const unidade = aba === 'equipe' ? 'ações' : 'atividades';
@@ -141,23 +146,18 @@ export function ScoreDetalhe({
       </header>
 
       <div className={styles.corpo}>
-        <div className={styles.resumoCard}>
-          <div className={styles.cardTexto}>
-            <span className={styles.nome}>
-              {l.score == null
-                ? `Sem score ainda · mínimo de 5 ${unidade}`
-                : `Score ${l.score} · ${rotuloFaixa(l.faixa)}`}
-            </span>
-            <span className={styles.numeros}>
-              30 dias: <b>{score30 ?? '—'}</b> · 90 dias: <b>{score90 ?? '—'}</b> ·{' '}
-              {t ? `tendência ${TENDENCIA[t]}` : 'sem tendência ainda'}
-            </span>
-          </div>
-          <span className={`${styles.score} ${styles[`faixa_${cor}`]}`}>
-            <span className={styles.scoreValor}>{l.score ?? '—'}</span>
-            <span className={styles.scoreFaixa}>/100</span>
-          </span>
-        </div>
+        <EvolucaoScore
+          registros={historico}
+          agora={l.score}
+          faixaAgora={l.faixa}
+          hoje={hoje}
+          janela={janela}
+          score30={score30}
+          score90={score90}
+          tendencia={t ? `tendência ${TENDENCIA[t]}` : 'sem tendência ainda'}
+          minimo={`mínimo de 5 ${unidade}`}
+          onJanela={onJanela}
+        />
 
         <div className={styles.kpis}>
           {kpis.map((k) => (
