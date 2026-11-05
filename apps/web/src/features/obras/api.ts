@@ -188,13 +188,79 @@ export async function listarObras(ambiente: Ambiente): Promise<ObraResumo[]> {
   if (!supabase) return [];
   const sb = supabase;
   const hoje = hojeISO();
-  // 1ª consulta: as obras do ambiente; as tabelas filhas ficam restritas a elas.
-  const obrasRes = await sb
-    .from('obra')
-    .select('id,nome,modelo_rotulo,inicio,entrega_original,ambiente')
-    .eq('status', 'ativa')
-    .eq('ambiente', ambiente)
-    .is('deleted_at', null);
+  // Tudo numa ida só: as filhas se restringem às obras do ambiente por um
+  // embed interno (o!inner), sem esperar a lista de ids.
+  const filtroObra = { ambiente, status: 'ativa' } as const;
+  const doAmbiente = <Q extends { eq: (c: string, v: string) => Q; is: (c: string, v: null) => Q }>(
+    q: Q,
+  ): Q =>
+    q
+      .eq('o.ambiente', filtroObra.ambiente)
+      .eq('o.status', filtroObra.status)
+      .is('o.deleted_at', null);
+  // O embed só filtra: tira o campo `o` das linhas devolvidas.
+  const semO = <T>(data: unknown): T[] =>
+    ((data ?? []) as Record<string, unknown>[]).map((r) => {
+      const resto = { ...r };
+      delete resto.o;
+      return resto as T;
+    });
+  const emb = 'o:obra!inner(ambiente,status,deleted_at)';
+  const [obrasRes, fasesRes, atvsRes, depsRes, provsRes, tarefasRes, pendRes, cfgRes, liberaRes] =
+    await Promise.all([
+      sb
+        .from('obra')
+        .select('id,nome,modelo_rotulo,inicio,entrega_original,ambiente')
+        .eq('status', 'ativa')
+        .eq('ambiente', ambiente)
+        .is('deleted_at', null),
+      doAmbiente(
+        sb.from('obra_fase').select(`id,obra_id,ordem,titulo,preliminar,${emb}`).order('ordem'),
+      ),
+      doAmbiente(
+        sb
+          .from('obra_atividade')
+          .select(
+            'id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,' +
+              `mapa_antecedencia_du,avanco_pct,prestador,fim_previsto_calc,${emb}`,
+          )
+          .is('deleted_at', null),
+      ),
+      doAmbiente(
+        sb
+          .from('obra_dependencia')
+          .select(`obra_id,atividade_id,predecessora_id,defasagem_du,${emb}`),
+      ),
+      doAmbiente(
+        sb
+          .from('obra_providencia')
+          .select(
+            `id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du,providenciar_ate,${emb}`,
+          )
+          .is('deleted_at', null),
+      ),
+      doAmbiente(
+        sb
+          .from('tarefa')
+          .select(
+            'id,obra_id,texto,prazo,status,responsavel_nome,vinculo_tipo,vinculo_id,' +
+              `responsavel:pessoa!responsavel_id(nome),${emb}`,
+          )
+          .eq('status', 'aberta')
+          .is('deleted_at', null),
+      ),
+      doAmbiente(
+        sb
+          .from('pendencia')
+          .select(
+            `id,obra_id,titulo,criticidade,apontada_em,responsavel_id,responsavel:pessoa!responsavel_id(nome),${emb}`,
+          )
+          .eq('status', 'aberta')
+          .is('deleted_at', null),
+      ),
+      sb.from('config_avisos').select('pend_alta_du,pend_media_du,pend_baixa_du').maybeSingle(),
+      doAmbiente(sb.from('obra_mapa_libera').select(`mapa_id,atividade_id,${emb}`)),
+    ]);
   const obras = obrasDoAmbiente(
     (obrasRes.data ?? []) as {
       id: string;
@@ -207,76 +273,27 @@ export async function listarObras(ambiente: Ambiente): Promise<ObraResumo[]> {
     ambiente,
   );
   if (obras.length === 0) return [];
-  const ids = obras.map((o) => o.id);
-  const [fasesRes, atvsRes, depsRes, provsRes, tarefasRes, pendRes, cfgRes, liberaRes] =
-    await Promise.all([
-      sb
-        .from('obra_fase')
-        .select('id,obra_id,ordem,titulo,preliminar')
-        .in('obra_id', ids)
-        .order('ordem'),
-      sb
-        .from('obra_atividade')
-        .select(
-          'id,obra_id,nome,fase_id,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,' +
-            'mapa_antecedencia_du,avanco_pct,prestador,fim_previsto_calc',
-        )
-        .in('obra_id', ids)
-        .is('deleted_at', null),
-      sb
-        .from('obra_dependencia')
-        .select('obra_id,atividade_id,predecessora_id,defasagem_du')
-        .in('obra_id', ids),
-      sb
-        .from('obra_providencia')
-        .select(
-          'id,obra_id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du,providenciar_ate',
-        )
-        .in('obra_id', ids)
-        .is('deleted_at', null),
-      sb
-        .from('tarefa')
-        .select(
-          'id,obra_id,texto,prazo,status,responsavel_nome,vinculo_tipo,vinculo_id,' +
-            'responsavel:pessoa!responsavel_id(nome)',
-        )
-        .in('obra_id', ids)
-        .eq('status', 'aberta')
-        .is('deleted_at', null),
-      sb
-        .from('pendencia')
-        .select(
-          'id,obra_id,titulo,criticidade,apontada_em,responsavel_id,responsavel:pessoa!responsavel_id(nome)',
-        )
-        .in('obra_id', ids)
-        .eq('status', 'aberta')
-        .is('deleted_at', null),
-      sb.from('config_avisos').select('pend_alta_du,pend_media_du,pend_baixa_du').maybeSingle(),
-      sb.from('obra_mapa_libera').select('mapa_id,atividade_id').in('obra_id', ids),
-    ]);
   const liberaPorMapa = new Map<string, string[]>();
-  for (const l of (liberaRes.data ?? []) as { mapa_id: string; atividade_id: string }[])
+  for (const l of semO<{ mapa_id: string; atividade_id: string }>(liberaRes.data))
     liberaPorMapa.set(l.mapa_id, [...(liberaPorMapa.get(l.mapa_id) ?? []), l.atividade_id]);
 
-  const fases = (fasesRes.data ?? []) as {
+  const fases = semO<{
     id: string;
     obra_id: string;
     ordem: number;
     titulo: string;
     preliminar: boolean;
-  }[];
-  const atvs = (atvsRes.data ?? []) as unknown as LinhaAtv[];
-  const deps = (depsRes.data ?? []) as LinhaDependencia[];
-  const provs = (provsRes.data ?? []) as unknown as (LinhaProvidencia & {
-    duracao_du: number;
-  })[];
+  }>(fasesRes.data);
+  const atvs = semO<LinhaAtv>(atvsRes.data);
+  const deps = semO<LinhaDependencia>(depsRes.data);
+  const provs = semO<LinhaProvidencia & { duracao_du: number }>(provsRes.data);
 
   const mapasDep = mapasDeDependencia(deps, new Set(atvs.map((a) => a.id)));
   const predsPorAtv = mapasDep.preds;
   const provPendentePorAtv = new Set<string>();
   for (const p of provs) if (p.status === 'pendente') provPendentePorAtv.add(p.atividade_id);
 
-  const tarefas = (tarefasRes.data ?? []) as unknown as {
+  const tarefas = semO<{
     id: string;
     obra_id: string;
     texto: string;
@@ -286,7 +303,7 @@ export async function listarObras(ambiente: Ambiente): Promise<ObraResumo[]> {
     vinculo_tipo: string | null;
     vinculo_id: string | null;
     responsavel: { nome: string } | null;
-  }[];
+  }>(tarefasRes.data);
   // Providência com tarefa aberta vinculada: a tarefa a representa (sem duplicar).
   const provComTarefa = new Set(
     tarefas
@@ -305,14 +322,14 @@ export async function listarObras(ambiente: Ambiente): Promise<ObraResumo[]> {
   const prazos: PrazosPendencia = cfg
     ? { alta: cfg.pend_alta_du, media: cfg.pend_media_du, baixa: cfg.pend_baixa_du }
     : PRAZOS_PENDENCIA_PADRAO;
-  const pendencias = (pendRes.data ?? []) as unknown as {
+  const pendencias = semO<{
     id: string;
     obra_id: string;
     titulo: string;
     criticidade: 'alta' | 'media' | 'baixa';
     apontada_em: string;
     responsavel: { nome: string } | null;
-  }[];
+  }>(pendRes.data);
   // Ação = tarefa ou pendência aberta (mesma conta de Tarefas da equipe).
   type AcaoLinha = {
     id: string;
