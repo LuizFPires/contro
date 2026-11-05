@@ -369,6 +369,8 @@ Atividade sem tarefa vinculada aberta vira ação "Sem responsável"; o gestor a
 ## Decisões
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
+- 2026-11-05 · **Selo dos chips de Tarefas da equipe.** "Sem responsável" mostra o total que a lista mostra (atrasadas + vencem hoje + próximos 5 dias); o chip de cada pessoa mostra atrasadas + vencem hoje. O selo é branco (preto no chip ativo) e fica vermelho só quando há atraso. Regra em `core/acoes.seloChipResponsavel`. Pedido do usuário.
+
 - 2026-11-04 · **Score lista todos com ação atribuída; "Sem responsável" primeiro em Tarefas.** (1) No Score da equipe aparece toda pessoa com tarefa ou pendência atribuída (não excluída), mesmo sem nada concluído ou vencido no período: fica com "0 ações no período · sem score ainda", depois dos pontuados. Antes só entrava quem tinha item na janela. (2) Em Tarefas, o chip "Sem responsável" vem antes de "Todos" e só aparece quando há pelo menos uma ação sem responsável; sem nenhuma, "Todos" é o primeiro. "Todos" continua selecionado ao abrir. · pedido do usuário · usuário
 
 - 2026-11-04 · **Número do Hoje no menu = total do dia.** O badge do item Hoje mostra atrasados + para hoje (a soma dos cards das obras), não só os atrasados; fica vermelho quando há atraso e preto quando não há. · pedido do usuário · usuário

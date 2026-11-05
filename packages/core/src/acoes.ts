@@ -147,6 +147,25 @@ export function contarAcoesNaJanela(
   return acoes.filter((a) => a.aberta && a.prazo <= limite).length;
 }
 
+/**
+ * Selo do chip de responsável em Tarefas da equipe (pedido do usuário, 05/11/2026).
+ * "Sem responsável" conta tudo o que a lista mostra (atrasadas + hoje + próximos
+ * `proximosDU` dias úteis); o chip de uma pessoa conta atrasadas + vencem hoje.
+ * `atrasadas` vem junto para o selo ficar vermelho só quando há atraso.
+ */
+export function seloChipResponsavel(
+  acoes: Pick<Acao, 'aberta' | 'prazo'>[],
+  hoje: DataISO,
+  semResponsavel: boolean,
+  proximosDU: number = PROXIMOS_DU,
+): { total: number; atrasadas: number } {
+  const { atrasadas, hoje: venceHoje } = resumoAcoesDia(acoes, hoje);
+  const total = semResponsavel
+    ? contarAcoesNaJanela(acoes, hoje, proximosDU)
+    : atrasadas + venceHoje;
+  return { total, atrasadas };
+}
+
 export interface LinhaEquipe extends ResumoAcoes {
   /** responsavelId | `nome:${nome}` | 'sem' */
   chave: string;

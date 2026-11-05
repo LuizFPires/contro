@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import {
   classificarAcoes,
-  estadoAcao,
   nomeCurto,
   providenciaParaAcaoBase,
+  seloChipResponsavel,
   textoResumoSecoes,
   type AtividadeSemDono,
   type ProvidenciaSemDono,
@@ -66,16 +66,22 @@ export function TarefasScreen({
   // Estável: a folha reinicia o formulário quando `obras` muda de identidade.
   const opcoesObra = useMemo(() => obras.map((o) => ({ id: o.id, nome: o.nome })), [obras]);
 
-  // Chips: uma pessoa por responsável com ação; o selo conta só as atrasadas.
+  // Chips: uma pessoa por responsável com ação. Selo: "Sem responsável" conta
+  // atrasadas + hoje + próximos 5 dias; a pessoa, atrasadas + vencem hoje.
+  // Vermelho só quando há atraso.
   const chips = useMemo(() => {
-    const m = new Map<string, { nome: string; atrasadas: number }>();
+    const m = new Map<string, { nome: string; itens: AcaoObra[] }>();
     for (const a of lista) {
       const k = chaveResp(a);
-      const c = m.get(k) ?? { nome: a.responsavelNome ?? 'Sem responsável', atrasadas: 0 };
-      if (estadoAcao(a, hoje) === 'atrasada') c.atrasadas += 1;
+      const c = m.get(k) ?? { nome: a.responsavelNome ?? 'Sem responsável', itens: [] };
+      c.itens.push(a);
       m.set(k, c);
     }
-    return [...m.entries()].map(([id, c]) => ({ id, ...c }));
+    return [...m.entries()].map(([id, c]) => ({
+      id,
+      nome: c.nome,
+      ...seloChipResponsavel(c.itens, hoje, id === SEM),
+    }));
   }, [lista, hoje]);
 
   // "Sem responsável" vem antes de "Todos" (é o que precisa de dono) e some quando
@@ -83,7 +89,7 @@ export function TarefasScreen({
   const semResp = chips.find((c) => c.id === SEM);
   const ordemChips = [
     ...(semResp ? [semResp] : []),
-    { id: 'todos', nome: 'Todos', atrasadas: 0 },
+    { id: 'todos', nome: 'Todos', total: 0, atrasadas: 0 },
     ...chips.filter((c) => c.id !== SEM),
   ];
   // Filtro de quem saiu da lista (ex.: a última sem responsável foi atribuída) volta a "Todos".
@@ -233,10 +239,12 @@ export function TarefasScreen({
               onClick={() => setFiltro(c.id)}
             >
               {c.nome}
-              {c.atrasadas ? (
-                <span className={styles.chipAtraso}>
-                  <span className="sr-only">atrasadas: </span>
-                  {c.atrasadas}
+              {c.total ? (
+                <span className={`${styles.chipSelo} ${c.atrasadas ? styles.chipAtraso : ''}`}>
+                  <span className="sr-only">
+                    {c.atrasadas ? `${c.atrasadas} atrasadas, total: ` : 'total: '}
+                  </span>
+                  {c.total}
                 </span>
               ) : null}
             </button>
