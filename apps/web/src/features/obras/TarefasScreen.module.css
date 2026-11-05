@@ -101,17 +101,26 @@
   border-color: var(--contro-turquoise);
   color: var(--contro-black);
 }
-.chipAtraso {
+/* Selo do chip: branco no chip solto, preto no ativo; vermelho só se há atraso. */
+.chipSelo {
   min-width: 18px;
   height: 18px;
   border-radius: 99px;
-  background: var(--contro-late);
-  color: var(--contro-white);
+  background: var(--contro-white);
+  color: var(--contro-black);
   font-size: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0 4px;
+}
+.chipAtivo .chipSelo {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.chipSelo.chipAtraso {
+  background: var(--contro-late);
+  color: var(--contro-white);
 }
 .resumo {
   padding: 10px 16px 0;

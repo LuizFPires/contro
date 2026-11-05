@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   classificarAcoes,
   contarAcoesNaJanela,
+  seloChipResponsavel,
   estadoAcao,
   prazoPendencia,
   PROXIMOS_DU,
@@ -91,6 +92,30 @@ describe('classificarAcoes · próximos 5 dias', () => {
     expect(r.proximas.map((a) => a.id)).toEqual(['seg', 'lim']);
     expect(r.depois.map((a) => a.id)).toEqual(['x', 'd2']);
     expect(r.concluidas.map((a) => a.id)).toEqual(['c']);
+  });
+});
+
+describe('seloChipResponsavel', () => {
+  const sexta = '2026-11-06';
+  const lista = [
+    acao({ id: 'a', prazo: '2026-10-30' }),
+    acao({ id: 'h', prazo: sexta }),
+    acao({ id: 'p', prazo: '2026-11-10' }),
+    acao({ id: 'lim', prazo: '2026-11-13' }),
+    acao({ id: 'x', prazo: '2026-11-16' }),
+    acao({ id: 'c', aberta: false, prazo: '2026-10-29' }),
+  ];
+  it('sem responsável: atrasadas + hoje + próximos 5 dias úteis', () => {
+    expect(seloChipResponsavel(lista, sexta, true)).toEqual({ total: 4, atrasadas: 1 });
+  });
+  it('pessoa: atrasadas + vencem hoje', () => {
+    expect(seloChipResponsavel(lista, sexta, false)).toEqual({ total: 2, atrasadas: 1 });
+  });
+  it('sem nada no período: zero', () => {
+    expect(seloChipResponsavel([acao({ id: 'x', prazo: '2026-11-16' })], sexta, false)).toEqual({
+      total: 0,
+      atrasadas: 0,
+    });
   });
 });
 
