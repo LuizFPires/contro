@@ -48,7 +48,7 @@ export function ObraCard({
       <span className={styles.rodape}>
         <span className={ritmo.atrasada ? styles.ritmoAtraso : styles.ritmo}>{ritmo.texto}</span>
         <span className={styles.entrega}>
-          Entrega {formatarDataCurta(obra.entrega)}
+          Entrega {formatarDataCurta(obra.entregaPrevista)}
           {obra.inauguracao ? (
             <>
               <br />

@@ -73,6 +73,8 @@ export interface ObraResumo {
   atividadesSemDono: AtividadeSemDono[];
   /** Inauguração planejada (fixada na obra; sem ela, a do cronograma atual). */
   inauguracao: string | null;
+  /** Entrega prevista (atrasadas terminam hoje); sem cálculo, a do cronograma. */
+  entregaPrevista: string;
   /** Inauguração prevista depois da planejada (null = no prazo). */
   risco: { original: string; prevista: string; atrasoDu: number } | null;
 }
@@ -478,13 +480,18 @@ export async function listarObras(): Promise<ObraResumo[]> {
           });
           return {
             inauguracao: p.entregaOriginal,
+            entregaPrevista: p.entregaPrevista,
             risco:
               p.atrasoDu > 0
                 ? { original: p.entregaOriginal, prevista: p.entregaPrevista, atrasoDu: p.atrasoDu }
                 : null,
           };
         } catch {
-          return { inauguracao: o.entrega_original, risco: null };
+          return {
+            inauguracao: o.entrega_original,
+            entregaPrevista: est.indicadores.entrega,
+            risco: null,
+          };
         }
       })(),
       agenda: agendaDoDia({
