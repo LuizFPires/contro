@@ -282,3 +282,157 @@
   font-weight: 800;
   font-size: 14px;
 }
+
+/* Evolução (opção B, 05/11/2026): número grande + linha do score de fim de dia. */
+.evolucao {
+  padding: 12px;
+  border: 1.5px solid var(--contro-black);
+  border-radius: 14px;
+  background: var(--contro-white);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.evoTopo {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+.evoNumero {
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+}
+.evoNumero small {
+  font-size: 14px;
+  font-weight: 700;
+  color: #5f5f5f;
+}
+.evoDireita {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.evoSelo,
+.evoDelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border: 1.5px solid currentColor;
+  border-radius: 99px;
+}
+.evoDelta {
+  color: var(--contro-black);
+}
+.evoDia {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5f5f5f;
+  margin-top: 4px;
+}
+.evoGrafico {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  cursor: crosshair;
+}
+.evoRef {
+  stroke: rgb(24 24 24 / 25%);
+  stroke-dasharray: 2 4;
+}
+.evoTexto,
+.evoRotulo {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  fill: #5f5f5f;
+}
+.evoRotulo {
+  font-weight: 800;
+  fill: var(--contro-black);
+}
+.evoArea {
+  fill: rgb(84 180 176 / 22%);
+}
+.evoLinha {
+  fill: none;
+  stroke: var(--contro-black);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.evoHoje {
+  fill: none;
+  stroke: var(--contro-black);
+  stroke-width: 1.6;
+  stroke-dasharray: 3 3;
+}
+.evoMarca {
+  fill: var(--contro-black);
+}
+.evoGuia {
+  stroke: var(--contro-black);
+  stroke-dasharray: 2 3;
+}
+.evoPonto {
+  stroke: var(--contro-white);
+  stroke-width: 2;
+}
+.evoPontoAberto {
+  fill: var(--contro-white);
+  stroke: var(--contro-black);
+  stroke-width: 1.8;
+}
+.evoPonto.ponto_ok {
+  fill: var(--contro-turquoise);
+}
+.evoPonto.ponto_regular {
+  fill: var(--contro-attention);
+}
+.evoPonto.ponto_atencao {
+  fill: var(--contro-late);
+}
+.evoPonto.ponto_sem {
+  fill: #5f5f5f;
+}
+.evoVazio {
+  margin: 4px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5f5f5f;
+}
+.evoRodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+.evoJanela {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 1.5px solid var(--contro-black);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.evoJanela button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+.evoJanela .evoJanelaAtiva {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}

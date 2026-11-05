@@ -16,6 +16,7 @@ import { hojeISO } from '../obras/api';
 import { usePerfil } from '../perfil/usePerfil';
 import { du, pct } from './formato';
 import { ScoreDetalhe } from './ScoreDetalhe';
+import { linhasDaAba, useGravarScoreDiario } from './scoreDiario';
 import { contagem, corFaixa, nomeExibido, type AbaScore, type LinhaQualquer } from './scoreTela';
 import styles from './ScoreScreen.module.css';
 
@@ -33,15 +34,32 @@ export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
   const [sel, setSel] = useState<string | null>(null);
   const hoje = hojeISO();
 
-  // As duas janelas: a lista usa a escolhida; o detalhe mostra a tendência 30 × 90.
-  const porJanela = useMemo(() => {
-    const calc = (j: Janela): LinhaQualquer[] =>
-      aba === 'equipe'
-        ? calcularScoreEquipe(equipe, j, hoje)
-        : calcularScorePrestadores(prestadores, j, hoje);
-    return { 30: calc(30), 90: calc(90) } as Record<Janela, LinhaQualquer[]>;
-  }, [aba, equipe, prestadores, hoje]);
+  // As duas abas nas duas janelas, calculadas uma vez: a lista usa a aba e a
+  // janela escolhidas, o detalhe mostra a tendência 30 × 90 e o score diário
+  // grava todas.
+  const todas = useMemo(() => {
+    const eq = (j: Janela): LinhaQualquer[] => calcularScoreEquipe(equipe, j, hoje);
+    const pr = (j: Janela): LinhaQualquer[] => calcularScorePrestadores(prestadores, j, hoje);
+    return {
+      equipe: { 30: eq(30), 90: eq(90) } as Record<Janela, LinhaQualquer[]>,
+      prestadores: { 30: pr(30), 90: pr(90) } as Record<Janela, LinhaQualquer[]>,
+    };
+  }, [equipe, prestadores, hoje]);
+  const porJanela = todas[aba];
   const linhas = porJanela[janela];
+
+  // Score diário: grava o de hoje das duas abas (o último cálculo do dia vence).
+  const paraGravar = useMemo(
+    () =>
+      carregando || erro
+        ? null
+        : [
+            ...linhasDaAba('equipe', todas.equipe),
+            ...linhasDaAba('prestadores', todas.prestadores),
+          ],
+    [carregando, erro, todas],
+  );
+  useGravarScoreDiario(paraGravar, hoje);
   const eu = aba === 'equipe' ? perfil?.id : undefined;
 
   const linhaSel = sel ? linhas.find((l) => l.chave === sel) : undefined;
@@ -55,6 +73,7 @@ export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
         score30={s(30)}
         score90={s(90)}
         voce={linhaSel.chave === eu}
+        onJanela={setJanela}
         onVoltar={() => setSel(null)}
         onNav={(item) => {
           setSel(null);
