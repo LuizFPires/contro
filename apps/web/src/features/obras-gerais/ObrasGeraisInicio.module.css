@@ -55,3 +55,73 @@
   color: var(--contro-text);
   margin: 0;
 }
+.topo {
+  padding: 20px 20px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.titulo {
+  margin: 0;
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 800;
+}
+.nova {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  border: 0;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 8px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card {
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--contro-black);
+}
+.nome {
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 24px;
+}
+.meta {
+  font-size: 14px;
+  color: #696969;
+}
+.aviso {
+  padding: 0 20px;
+  color: var(--contro-muted);
+}
+.vazio p {
+  margin: 0;
+}
+.tentar {
+  min-height: var(--contro-touch);
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--contro-black);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}

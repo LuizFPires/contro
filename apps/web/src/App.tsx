@@ -8,6 +8,7 @@ import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
 import { useAmbiente } from './features/perfil/useAmbiente';
 import { ObrasGeraisInicio } from './features/obras-gerais/ObrasGeraisInicio';
+import { PessoasGeraisPlaceholder } from './features/obras-gerais/PessoasGeraisPlaceholder';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
 import { NovaVersao } from './features/offline/NovaVersao';
@@ -33,7 +34,7 @@ export function App() {
   const qc = useQueryClient();
   usePush(Boolean(session && pessoa?.ativo), session?.user.id);
   // Lembrada: ao voltar ao app (ou à guia), continua na mesma tela.
-  const [tela, setTela] = useLembrado<'inicio' | DestinoInicio>('app', 'inicio');
+  const [tela, setTela] = useLembrado<'inicio' | 'pessoas-gerais' | DestinoInicio>('app', 'inicio');
   // Contorno ou Obras gerais (o último escolhido fica lembrado); trocar volta ao início.
   const voltarAoInicio = useCallback(() => setTela('inicio'), [setTela]);
   const { ambiente, disponiveis, trocar: trocarAmbiente } = useAmbiente(pessoa, voltarAoInicio);
@@ -156,20 +157,29 @@ export function App() {
     void supabase?.auth.signOut();
   };
 
+  // Ativa, mas sem Contorno e sem papel em Obras gerais: nada a mostrar ainda.
+  if (disponiveis.length === 0) {
+    return <AguardandoAprovacao nome={pessoa.nome} />;
+  }
+
   // Obras gerais: tela própria. As telas da Contorno só para quem tem a Contorno.
   if (ambiente === 'geral' || !disponiveis.includes('contorno')) {
     return (
       <div className="app-shell">
         <NovaVersao />
         <PullToRefresh onRefresh={aoAtualizar}>
-          <ObrasGeraisInicio
-            pessoa={pessoa}
-            ambiente="geral"
-            disponiveis={disponiveis}
-            onTrocarAmbiente={trocarAmbiente}
-            onSair={sair}
-            onPessoas={() => {}}
-          />
+          {tela === 'pessoas-gerais' && pessoa.administrador ? (
+            <PessoasGeraisPlaceholder onVoltar={voltar} />
+          ) : (
+            <ObrasGeraisInicio
+              pessoa={pessoa}
+              ambiente={ambiente}
+              disponiveis={disponiveis}
+              onTrocarAmbiente={trocarAmbiente}
+              onSair={sair}
+              onPessoas={() => setTela('pessoas-gerais')}
+            />
+          )}
         </PullToRefresh>
         <SyncIndicator />
       </div>
