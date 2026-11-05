@@ -534,3 +534,39 @@ Comportamento (C5, C6, C7):
   - Decisões que continuam abertas: desativar na Contorno tira as Obras gerais; texto de cadastro do convidado; participação apagada sem histórico; devolver a Contorno a quem é só de Obras gerais.
 - [ ] **Step 4: CLAUDE.md.** Na regra 11, uma linha: "Em Obras gerais, planejar (fases, atividades, datas, responsáveis, subitens, pessoas da obra) é do Coordenador e do Administrador, e o Membro faz o campo. Vale na UI, nas RPCs e na RLS."
 - [ ] **Step 5: Commit:** `git commit -m "documenta a obra geral por dentro"`
+
+---
+
+### Task 11: Banco: excluir subitem na Contorno (correção pedida pelo usuário em 06/11/2026)
+
+Defeito encontrado durante a etapa: na ficha da Contorno (`FichaAtividade.tsx`), a lixeira do subitem chama `excluir_atividade_obra`, que só aceita atividade de topo (`pai_id is null`), e o usuário vê "Não foi possível excluir o item.". O usuário pediu a correção. Executar antes da Task 10.
+
+**Files:**
+- Create: `supabase/migrations/20261106130000_excluir_subitem.sql`
+- Create: `supabase/tests/excluir_subitem.test.sql`
+
+**Interfaces:**
+- Consumes: `excluir_atividade_obra(uuid)` e `restaurar_atividade_obra(uuid)` na versão da Task 2 (`20261106100000_obras_gerais_planejamento.sql`, entrada `contro_tem_acesso` + `contro_planeja_obra`).
+- Produces: as mesmas assinaturas, agora aceitando também id de subitem.
+
+Regras:
+- Recriar as duas funções a partir da versão da Task 2, sem mudar a entrada.
+- `excluir_atividade_obra`:
+  - Atividade de topo: como hoje (leva os subitens junto).
+  - Subitem não excluído: exclui só ele (`deleted_at = now()`) e grava o evento `excluida` com `depois = {subitens: []}`.
+  - Id inexistente ou já excluído: 23503, como hoje.
+- `restaurar_atividade_obra`:
+  - Atividade de topo: como hoje.
+  - Subitem: restaura só ele, e o pai tem de estar não excluído (23503).
+- Nenhuma mudança no web: a ficha da Contorno já chama essas RPCs e já tem o Desfazer.
+
+- [ ] **Step 1: Escrever `excluir_subitem.test.sql`:**
+  - Membro da Contorno exclui um subitem: só ele some, o pai e os irmãos ficam, e o evento `excluida` é gravado.
+  - Restaurar devolve o subitem.
+  - Restaurar subitem cujo pai foi excluído → 23503.
+  - Excluir atividade de topo continua levando os subitens, e restaurar traz todos de volta.
+  - Membro de obra geral (não Coordenador) excluindo subitem → 42501.
+- [ ] **Step 2: Rodar e ver falhar.**
+- [ ] **Step 3: Escrever a migration.**
+- [ ] **Step 4: Rodar a suíte inteira e ver passar.**
+- [ ] **Step 5: Commit:** `git commit -m "corrige excluir subitem na ficha da obra"`
