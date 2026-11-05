@@ -34,29 +34,31 @@ export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
   const [sel, setSel] = useState<string | null>(null);
   const hoje = hojeISO();
 
-  // As duas janelas: a lista usa a escolhida; o detalhe mostra a tendência 30 × 90.
-  const porJanela = useMemo(() => {
-    const calc = (j: Janela): LinhaQualquer[] =>
-      aba === 'equipe'
-        ? calcularScoreEquipe(equipe, j, hoje)
-        : calcularScorePrestadores(prestadores, j, hoje);
-    return { 30: calc(30), 90: calc(90) } as Record<Janela, LinhaQualquer[]>;
-  }, [aba, equipe, prestadores, hoje]);
+  // As duas abas nas duas janelas, calculadas uma vez: a lista usa a aba e a
+  // janela escolhidas, o detalhe mostra a tendência 30 × 90 e o score diário
+  // grava todas.
+  const todas = useMemo(() => {
+    const eq = (j: Janela): LinhaQualquer[] => calcularScoreEquipe(equipe, j, hoje);
+    const pr = (j: Janela): LinhaQualquer[] => calcularScorePrestadores(prestadores, j, hoje);
+    return {
+      equipe: { 30: eq(30), 90: eq(90) } as Record<Janela, LinhaQualquer[]>,
+      prestadores: { 30: pr(30), 90: pr(90) } as Record<Janela, LinhaQualquer[]>,
+    };
+  }, [equipe, prestadores, hoje]);
+  const porJanela = todas[aba];
   const linhas = porJanela[janela];
 
-  // Score diário: grava o de hoje das duas abas (o último cálculo do dia vence),
-  // para o gráfico de evolução do detalhe.
-  const paraGravar = useMemo(() => {
-    if (carregando || erro) return null;
-    const ambas = (aba2: AbaScore) => {
-      const calc = (j: Janela): LinhaQualquer[] =>
-        aba2 === 'equipe'
-          ? calcularScoreEquipe(equipe, j, hoje)
-          : calcularScorePrestadores(prestadores, j, hoje);
-      return linhasDaAba(aba2, { 30: calc(30), 90: calc(90) });
-    };
-    return [...ambas('equipe'), ...ambas('prestadores')];
-  }, [carregando, erro, equipe, prestadores, hoje]);
+  // Score diário: grava o de hoje das duas abas (o último cálculo do dia vence).
+  const paraGravar = useMemo(
+    () =>
+      carregando || erro
+        ? null
+        : [
+            ...linhasDaAba('equipe', todas.equipe),
+            ...linhasDaAba('prestadores', todas.prestadores),
+          ],
+    [carregando, erro, todas],
+  );
   useGravarScoreDiario(paraGravar, hoje);
   const eu = aba === 'equipe' ? perfil?.id : undefined;
 

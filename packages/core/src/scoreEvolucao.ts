@@ -1,7 +1,7 @@
 // Evolução do Score (05/11/2026): série do score com que a pessoa ou o prestador
 // fechou cada dia útil, para o gráfico do detalhe. Puro: recebe os registros já
 // carregados (score_diario), o score de agora e o "hoje".
-import { addDU, type DataISO } from './calendar';
+import { addDU, deslocarDU, type DataISO } from './calendar';
 import type { Janela } from './score';
 
 export interface RegistroScoreDia {
@@ -73,14 +73,18 @@ export function evolucaoScore(
 
 /**
  * Variação do ponto em relação ao dia fechado anterior da série; nula para o
- * primeiro ponto. `ontem` diz se o anterior é o dia útil imediatamente antes.
+ * primeiro ponto e para o de hoje (aberto). `desdeOntem` só quando o ponto é o
+ * dia útil de ontem e o anterior é o dia útil logo antes dele; `eOntem` diz se o
+ * ponto é o dia útil de ontem.
  */
 export function variacaoScore(
   pontos: PontoScore[],
   i: number,
-): { delta: number; ontem: boolean } | null {
+  hoje: DataISO,
+): { delta: number; desdeOntem: boolean; eOntem: boolean } | null {
   const p = pontos[i];
   const ant = pontos[i - 1];
-  if (!p || !ant) return null;
-  return { delta: p.score - ant.score, ontem: addDU(ant.dia, 1) === p.dia };
+  if (!p || !ant || p.aberto) return null;
+  const eOntem = p.dia === deslocarDU(hoje, -1);
+  return { delta: p.score - ant.score, desdeOntem: eOntem && addDU(ant.dia, 1) === p.dia, eOntem };
 }

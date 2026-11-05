@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   evolucaoScore,
+  faixaDoScore,
   rotuloFaixa,
   variacaoScore,
   type Faixa,
@@ -10,19 +11,12 @@ import {
 } from '@contro/core';
 import { Icon } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
-import { corFaixa } from './scoreTela';
+import { corFaixa, type AbaScore } from './scoreTela';
 import styles from './ScoreScreen.module.css';
 
 const W = 320;
 const H = 96;
 const PAD = { l: 6, r: 10, t: 16, b: 16 };
-
-/** Faixa de um valor do gráfico, pela mesma régua do Score (75 e 50). */
-function faixaDoValor(v: number, ok: Faixa): Faixa {
-  if (v >= 75) return ok;
-  if (v >= 50) return 'regular';
-  return 'atencao';
-}
 
 /**
  * Card do topo do detalhe (opção B, 05/11/2026): número grande com a faixa e a
@@ -30,6 +24,7 @@ function faixaDoValor(v: number, ok: Faixa): Faixa {
  * marcados, hoje vazado) e a janela 30/90. Tocar ou arrastar lê um dia.
  */
 export function EvolucaoScore({
+  aba,
   registros,
   agora,
   faixaAgora,
@@ -41,6 +36,7 @@ export function EvolucaoScore({
   minimo,
   onJanela,
 }: {
+  aba: AbaScore;
   registros: RegistroScoreDia[];
   agora: number | null;
   faixaAgora: Faixa;
@@ -53,7 +49,6 @@ export function EvolucaoScore({
   minimo: string;
   onJanela: (j: Janela) => void;
 }) {
-  const ok: Faixa = faixaAgora === 'em_dia' ? 'em_dia' : 'resolutivo';
   const { pontos, maior, menor } = useMemo(
     () => evolucaoScore(registros, agora, hoje, janela),
     [registros, agora, hoje, janela],
@@ -89,15 +84,14 @@ export function EvolucaoScore({
     setSel(melhor);
   }
 
-  const v = p ? variacaoScore(pontos, i) : null;
-  const delta = p && !p.aberto ? v : null;
-  const faixaSel = p ? (p.aberto ? faixaAgora : faixaDoValor(p.score, ok)) : faixaAgora;
+  const delta = p ? variacaoScore(pontos, i, hoje) : null;
+  const faixaSel = p && !p.aberto ? faixaDoScore(p.score, aba) : faixaAgora;
   const cor = corFaixa(faixaSel);
   const dia = !p
     ? ''
     : p.aberto
       ? 'hoje, até agora'
-      : `fechou ${formatarDataCurta(p.dia)}${v?.ontem && i === ultimoFechado ? ' · ontem' : ''}`;
+      : `fechou ${formatarDataCurta(p.dia)}${delta?.eOntem ? ' · ontem' : ''}`;
 
   return (
     <div className={styles.evolucao}>
@@ -121,7 +115,7 @@ export function EvolucaoScore({
                 strokeWidth={2.6}
               />
               {delta.delta > 0 ? '+' : delta.delta < 0 ? '−' : ''}
-              {Math.abs(delta.delta)} {delta.ontem ? 'desde ontem' : 'no dia'}
+              {Math.abs(delta.delta)} {delta.desdeOntem ? 'desde ontem' : 'vs dia anterior'}
             </span>
           ) : null}
         </span>

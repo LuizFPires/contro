@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  faixaDoScore,
   calcularScoreEquipe,
   calcularScorePrestadores,
   MINIMO_ITENS,
@@ -466,5 +467,15 @@ describe('rotuloFaixa', () => {
     expect(rotuloFaixa('regular')).toBe('Regular');
     expect(rotuloFaixa('atencao')).toBe('Atenção');
     expect(rotuloFaixa('sem_score')).toBe('Sem score ainda');
+  });
+});
+
+describe('faixaDoScore', () => {
+  it('75+ é resolutivo na equipe e em dia nos prestadores; 50–74 regular; < 50 atenção', () => {
+    expect(faixaDoScore(75, 'equipe')).toBe('resolutivo');
+    expect(faixaDoScore(75, 'prestadores')).toBe('em_dia');
+    expect(faixaDoScore(74, 'prestadores')).toBe('regular');
+    expect(faixaDoScore(49, 'equipe')).toBe('atencao');
+    expect(faixaDoScore(null, 'equipe')).toBe('sem_score');
   });
 });

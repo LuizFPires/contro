@@ -66,13 +66,18 @@ describe('variacaoScore', () => {
     HOJE,
     30,
   );
-  it('desde ontem quando o anterior é o dia útil de antes', () => {
-    expect(variacaoScore(pontos, 2)).toEqual({ delta: -10, ontem: true });
+  it('desde ontem quando o ponto é ontem e o anterior é o dia útil de antes', () => {
+    expect(variacaoScore(pontos, 2, HOJE)).toEqual({ delta: -10, desdeOntem: true, eOntem: true });
   });
-  it('com lacuna, não é "ontem"', () => {
-    expect(variacaoScore(pontos, 1)).toEqual({ delta: -4, ontem: false });
+  it('dia que não é ontem não diz "ontem"', () => {
+    expect(variacaoScore(pontos, 1, HOJE)).toEqual({ delta: -4, desdeOntem: false, eOntem: false });
   });
-  it('primeiro ponto não tem variação', () => {
-    expect(variacaoScore(pontos, 0)).toBeNull();
+  it('último dia fechado antes de ontem não é "ontem"', () => {
+    const { pontos: p } = evolucaoScore([r('2026-11-02', 80), r('2026-11-03', 71)], 61, HOJE, 30);
+    expect(variacaoScore(p, 1, HOJE)).toEqual({ delta: -9, desdeOntem: false, eOntem: false });
+  });
+  it('primeiro ponto e hoje não têm variação', () => {
+    expect(variacaoScore(pontos, 0, HOJE)).toBeNull();
+    expect(variacaoScore(pontos, 3, HOJE)).toBeNull();
   });
 });

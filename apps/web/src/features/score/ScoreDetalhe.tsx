@@ -147,6 +147,7 @@ export function ScoreDetalhe({
 
       <div className={styles.corpo}>
         <EvolucaoScore
+          aba={aba}
           registros={historico}
           agora={l.score}
           faixaAgora={l.faixa}

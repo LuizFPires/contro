@@ -42,13 +42,16 @@ export function linhasDaAba(aba: AbaScore, porJanela: PorJanela): LinhaGravar[] 
  */
 export function useGravarScoreDiario(linhas: LinhaGravar[] | null, hoje: string): void {
   const ultimo = useRef<string>('');
+  const seq = useRef(0);
   useEffect(() => {
     if (!supabase || !linhas || linhas.length === 0) return;
     const assinatura = `${hoje}|${JSON.stringify(linhas)}`;
     if (assinatura === ultimo.current) return;
     ultimo.current = assinatura;
+    const minha = ++seq.current;
     void supabase.rpc('gravar_score_diario', { p_linhas: linhas }).then(({ error }) => {
-      if (error) ultimo.current = '';
+      // Só a gravação mais recente decide: se falhou, a próxima abertura tenta de novo.
+      if (error && minha === seq.current) ultimo.current = '';
     });
   }, [linhas, hoje]);
 }

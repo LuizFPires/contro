@@ -154,6 +154,11 @@ function pontuar<K extends string>(
   return pesoUsado === 0 ? null : Math.round((soma / pesoUsado) * 100);
 }
 
+/** Faixa de um score pela régua do Score: equipe "resolutivo", prestadores "em dia" de 75 para cima. */
+export function faixaDoScore(score: number | null, aba: 'equipe' | 'prestadores'): Faixa {
+  return faixaDo(score, aba === 'equipe' ? 'resolutivo' : 'em_dia');
+}
+
 function faixaDo(score: number | null, ok: 'resolutivo' | 'em_dia'): Faixa {
   if (score == null) return 'sem_score';
   if (score >= 75) return ok;
