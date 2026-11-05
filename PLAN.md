@@ -395,6 +395,11 @@ Registro do que mudou em relação ao PRD/SPEC durante a implementação (data �
 - 2026-11-05 · **Obras gerais · dar acesso.** Dar acesso a quem estava pendente, desativado ou recusado na Contorno entra só em Obras gerais; não devolve a Contorno.
 - 2026-11-05 · **Obras gerais · convite por e-mail.** `convite_geral` é usado no cadastro: a pessoa entra direto, sem aprovação.
 - 2026-11-05 · **Obras gerais · navegação.** Sem tela de pouso: o app abre no último ambiente e o primeiro acesso é na Contorno; seletor de ambiente de 44 px; nome do ambiente em branco 55% no cabeçalho preto.
+- 2026-11-05 · **Obras gerais · desativar.** Desativar alguém na Contorno (`definir_membro_ativo`) também tira o acesso às Obras gerais, porque `ativo` vale para os dois ambientes; tratar na etapa 2 (desativar só a Contorno quando a pessoa tem papel geral). Hoje ninguém tem os dois.
+- 2026-11-05 · **Obras gerais · RLS por papel.** Na etapa 2, as regras de Coordenador × Membro precisam valer também na RLS das tabelas (hoje quem participa de uma obra geral pode escrever direto nela pela API).
+- 2026-11-05 · **Obras gerais · nomes antigos.** Quem passa a ser só de Obras gerais deixa de aparecer pelo nome nos registros antigos da Contorno (`pessoa_sel` exige `acesso_contorno`).
+- 2026-11-05 · **Obras gerais · convite.** O convite por e-mail depende da confirmação de e-mail ativa no Supabase de produção; quem chega por convite ainda vê o texto de cadastro "aguarde a liberação do gestor" (ajustar na etapa 2).
+- 2026-11-05 · **Obras gerais · participações.** Participações em obra geral são apagadas de fato ao tirar o acesso (sem histórico); avaliar evento na etapa 2.
 - 2026-11-05 · **"Aprovar membros" passa a se chamar "Pessoas e acessos"** (mesma função na Contorno).
 - 2026-11-05 · **Administradores marcados por migration de dados** (primeiro nome luiz, rafael ou rodrigo entre gestores); conferir em produção antes do merge.
 
