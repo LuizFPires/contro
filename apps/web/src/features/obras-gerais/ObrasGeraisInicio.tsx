@@ -1,93 +1,42 @@
-import { useEffect, useState } from 'react';
-import { podeGerirObrasGerais, rotuloAmbiente, type Ambiente } from '@contro/core';
-import { Icon, Logo, Simbolo } from '@contro/ui';
-import { useLembrado } from '../../lib/useLembrado';
-import { ItemMenu, PerfilSheet } from '../perfil/PerfilSheet';
+import { useState } from 'react';
+import { podeGerirObrasGerais, textoEficiencia } from '@contro/core';
+import { Icon, Simbolo } from '@contro/ui';
 import type { PessoaAtual } from '../perfil/usePerfil';
+import { BlocoAcoesGeral } from './BlocoAcoesGeral';
 import { NovaObraGeralSheet } from './NovaObraGeralSheet';
-import { ObraGeralDetalhe } from './ObraGeralDetalhe';
-import { PessoasDaObra } from './PessoasDaObra';
-import { TrocarObraSheet } from './TrocarObraSheet';
 import { useObrasGerais } from './useObrasGerais';
+import { useResumoObrasGerais } from './useResumoObrasGerais';
 import styles from './ObrasGeraisInicio.module.css';
 
 /**
- * Início das obras gerais (etapa 1): lista de obras e, para o Administrador, a
- * criação. A obra por dentro (reunião, ações) chega nas etapas seguintes.
+ * Lista das obras gerais (aba Obras do Administrador; Coordenador e Membro com mais de
+ * uma obra, quando nenhuma foi aberta) e, para o Administrador, a criação.
  */
 export function ObrasGeraisInicio({
   pessoa,
-  ambiente,
-  disponiveis,
-  onTrocarAmbiente,
-  onSair,
-  onPessoas,
+  onAbrirObra,
+  onAbrirAcoes,
 }: {
   pessoa: PessoaAtual;
-  ambiente: Ambiente;
-  disponiveis: Ambiente[];
-  onTrocarAmbiente: (a: Ambiente) => void;
-  onSair: () => void;
-  onPessoas: () => void;
+  onAbrirObra: (id: string) => void;
+  /** Administrador: abre as ações de todas as obras gerais juntas. */
+  onAbrirAcoes?: (obraIds: string[]) => void;
 }) {
-  const [perfilAberto, setPerfilAberto] = useState(false);
   const [nova, setNova] = useState(false);
-  // Pessoas da obra (Coordenador e Administrador): a obra aberta nessa tela e o seletor de obra.
-  const [pessoasObraId, setPessoasObraId] = useLembrado<string | null>('obrasgerais:pessoas', null);
-  const [escolhendo, setEscolhendo] = useState(false);
-  // A obra aberta fica lembrada: ao voltar ao app, reabre nela.
-  const [obraAberta, setObraAberta] = useLembrado<string | null>('obrasgerais:obra', null);
   const { data: obras, isLoading, isError, refetch } = useObrasGerais();
+  const { data: resumo } = useResumoObrasGerais();
+  const porId = new Map((resumo ?? []).map((r) => [r.id, r]));
+  const eficienciaDe = (id: string) => {
+    const r = porId.get(id);
+    return r ? textoEficiencia(r.eficiencia) : null;
+  };
   const admin = podeGerirObrasGerais({
     administrador: pessoa.administrador,
     acessoContorno: pessoa.acessoContorno,
     papelGeral: pessoa.papelGeral,
   });
-  const coordenador = !pessoa.administrador && pessoa.papelGeral === 'coordenador';
-  const podePessoasDaObra = pessoa.administrador || coordenador;
-  // Chave lembrada de quem já não tem o papel: limpa.
-  useEffect(() => {
-    if (pessoasObraId && !podePessoasDaObra) setPessoasObraId(null);
-  }, [pessoasObraId, podePessoasDaObra, setPessoasObraId]);
-  if (pessoasObraId && podePessoasDaObra) {
-    return (
-      <PessoasDaObra
-        obraId={pessoasObraId}
-        pessoa={pessoa}
-        onVoltar={() => setPessoasObraId(null)}
-      />
-    );
-  }
-  if (obraAberta) {
-    return (
-      <ObraGeralDetalhe
-        id={obraAberta}
-        pessoa={pessoa}
-        onVoltar={() => setObraAberta(null)}
-        onTrocarObra={setObraAberta}
-        onAbrirPessoas={() => setPessoasObraId(obraAberta)}
-      />
-    );
-  }
   return (
-    <div className={styles.screen}>
-      <header className={styles.cabecalho}>
-        <div className={styles.marca}>
-          <Logo on="preto" height={30} />
-          {disponiveis.length > 1 ? (
-            <span className={styles.ambiente}>{rotuloAmbiente(ambiente)}</span>
-          ) : null}
-        </div>
-        <button
-          type="button"
-          className={styles.perfil}
-          aria-label="Perfil e ajustes"
-          onClick={() => setPerfilAberto(true)}
-        >
-          <Icon name="pessoa" size={22} />
-        </button>
-      </header>
-
+    <>
       <div className={styles.topo}>
         <h1 className={styles.titulo}>Minhas obras</h1>
         {admin ? (
@@ -103,6 +52,17 @@ export function ObrasGeraisInicio({
         ) : null}
       </div>
 
+      {pessoa.administrador && onAbrirAcoes && resumo && resumo.length > 0 ? (
+        <div className={styles.blocoAcoes}>
+          <BlocoAcoesGeral
+            acoes={resumo.flatMap((r) => r.acoes)}
+            pessoaId={pessoa.id}
+            soDaPessoa={false}
+            onAbrir={() => onAbrirAcoes(resumo.map((r) => r.id))}
+          />
+        </div>
+      ) : null}
+
       {isLoading ? (
         <p className={styles.aviso}>Carregando…</p>
       ) : isError ? (
@@ -116,12 +76,17 @@ export function ObrasGeraisInicio({
         <ul className={styles.lista}>
           {obras.map((o) => (
             <li key={o.id}>
-              <button type="button" className={styles.card} onClick={() => setObraAberta(o.id)}>
+              <button type="button" className={styles.card} onClick={() => onAbrirObra(o.id)}>
                 <span className={styles.cardTexto}>
                   <span className={styles.nome}>{o.nome}</span>
                   <span className={styles.meta}>
-                    {o.cidade ? `${o.cidade} · ` : ''}
-                    {o.pessoas === 1 ? '1 pessoa' : `${o.pessoas} pessoas`}
+                    {[
+                      o.cidade,
+                      eficienciaDe(o.id),
+                      o.pessoas === 1 ? '1 pessoa' : `${o.pessoas} pessoas`,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </span>
                 </span>
                 <Icon name="seta" size={20} />
@@ -138,51 +103,6 @@ export function ObrasGeraisInicio({
       )}
 
       {admin ? <NovaObraGeralSheet aberto={nova} onFechar={() => setNova(false)} /> : null}
-
-      <TrocarObraSheet
-        aberto={escolhendo}
-        obras={obras ?? []}
-        atualId=""
-        papel="Coordenador"
-        onEscolher={(id) => {
-          setEscolhendo(false);
-          setPessoasObraId(id);
-        }}
-        onFechar={() => setEscolhendo(false)}
-      />
-
-      <PerfilSheet
-        aberto={perfilAberto}
-        onFechar={() => setPerfilAberto(false)}
-        pessoa={pessoa}
-        ambiente={ambiente}
-        disponiveis={disponiveis}
-        onTrocarAmbiente={onTrocarAmbiente}
-        itensDoAmbiente={
-          pessoa.administrador ? (
-            <ItemMenu
-              icon="pessoa"
-              rotulo="Pessoas e acessos"
-              onClick={() => {
-                setPerfilAberto(false);
-                onPessoas();
-              }}
-            />
-          ) : coordenador ? (
-            <ItemMenu
-              icon="pessoa"
-              rotulo="Pessoas da obra"
-              onClick={() => {
-                setPerfilAberto(false);
-                const lista = obras ?? [];
-                if (lista.length === 1) setPessoasObraId(lista[0]!.id);
-                else if (lista.length > 1) setEscolhendo(true);
-              }}
-            />
-          ) : null
-        }
-        onSair={onSair}
-      />
-    </div>
+    </>
   );
 }

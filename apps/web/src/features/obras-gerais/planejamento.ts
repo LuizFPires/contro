@@ -103,6 +103,17 @@ export async function definirResponsavelAtividade(
   });
 }
 
+/** Desfaz a troca de responsável: volta o anterior sem avisar ninguém por push. */
+export async function desfazerResponsavelAtividade(
+  atividadeId: string,
+  responsavelId: string | null,
+): Promise<void> {
+  await chamar('desfazer_responsavel_atividade', {
+    p_atividade_id: atividadeId,
+    p_responsavel_id: responsavelId,
+  });
+}
+
 export async function excluirSubitemGeral(subitemId: string): Promise<void> {
   await chamar('excluir_subitem_geral', { p_subitem_id: subitemId });
 }

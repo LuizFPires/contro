@@ -350,9 +350,9 @@ Primeira de 5 etapas de Obras gerais (obras que não são da Contorno, com pesso
 - [x] 9. Documentação: PRD, SPEC, PLAN e CLAUDE.
 
 **Próximas etapas** (cada uma com plano próprio, escrito depois que a anterior entra na `main`):
-- Etapa 3: menu de baixo com seletor de obra, Hoje, Ações da equipe, avisos (push) e eficiência em Obras gerais.
-- Etapa 4: reunião, ata, pendências e boletim por obra, com "+ lembrete de providência" e "+ nota" na nova atividade.
-- Etapa 5: Score e Log por participação; sugestões separadas por ambiente (nome livre de responsável e autocompletar de prestador).
+- ~~Etapa 3: menu de baixo, Hoje, Ações da equipe, avisos (push) e eficiência~~ → entregue (ver "Obras gerais · Etapa 3").
+- Etapa 4: reunião, ata, pendências (Check list) e boletim por obra, com "+ lembrete de providência" e "+ nota" na nova atividade, e **Reunião e avisos por obra** (inclui os horários dos avisos gerais, hoje os de `config_avisos`).
+- Etapa 5: Score e Log por participação, com os itens Score e Log no menu de baixo de Obras gerais; sugestões separadas por ambiente (nome livre de responsável e autocompletar de prestador).
 
 ---
 
@@ -370,7 +370,20 @@ Segunda de 5 etapas. Entrega a obra geral por dentro: trilha de fases e atividad
 - [x] 10. Documentação: PRD, SPEC, PLAN e CLAUDE.
 - [x] 11. Correção: excluir subitem na ficha da Contorno (migration `20261106130000_excluir_subitem.sql`).
 
-**Próximas etapas:** etapas 3 a 5, listadas em "Obras gerais · Etapa 1".
+**Próximas etapas:** etapas 4 e 5, listadas em "Obras gerais · Etapa 1".
+
+---
+
+## Obras gerais · Etapa 3 · Hoje, Ações da equipe e avisos (06/11/2026)
+Terceira de 5 etapas. Entrega o dia a dia da Contorno nas Obras gerais: menu de baixo, aba Hoje, bloco e tela Ações da equipe por obra, "% no prazo" da obra e avisos por push. Spec: `docs/superpowers/specs/2026-11-05-obras-gerais-design.md` · plano: `docs/superpowers/plans/2026-11-06-obras-gerais-3-hoje-acoes-avisos.md`.
+- [x] 1. Core: `agendaObraGeral`, `detalheItemGeral`, `acoesDaObraGeral`, `eficienciaObraGeral`, `textoEficiencia` e `textoAcoesBloco` em `obraGeral.ts`, com testes.
+- [x] 2. Migration `20261106200000_obras_gerais_avisos.sql`: tipos `acoes_geral` e `equipe_geral`, gatilho de aviso de atribuição e nova data, aviso de saída da obra e `gerar_avisos_gerais` com o cron `avisos-gerais` (teste pgTAP `obras_gerais_avisos.test.sql`).
+- [x] 3. Web: `carregarResumoObrasGerais` e `useResumoObrasGerais` (uma consulta por tabela, sem N+1).
+- [x] 4. Web: `ObrasGeraisCasca`, `NavGeral` e `HojeGeral`; `?ir=geral-hoje` abre o Hoje de Obras gerais; estado de erro na `ObraGeralDetalhe`.
+- [x] 5. Web: `BlocoAcoesGeral`, `AcoesObraGeral` e "% no prazo".
+- [x] 6. Documentação: PRD, SPEC e PLAN.
+
+**Próximas etapas:** etapas 4 e 5, listadas em "Obras gerais · Etapa 1".
 
 ---
 
@@ -437,6 +450,16 @@ Registro do que mudou em relação ao PRD/SPEC durante a implementação (data �
 - 2026-11-06 · **Obras gerais · replanejamento do Score (etapa 3).** Mudar a data de item concluído não conta replanejamento (só `data_definida`), e o Desfazer não apaga o evento `replanejada` · o Score da etapa 3 contará o replanejamento pelos eventos (`replanejada` menos os desfeitos por `data_desfeita`), não só pela coluna.
 - 2026-11-06 · **Obras gerais · funções de planejamento da Contorno recusam obra geral.** `adicionar_atividade_obra`, `ajustar_inicio`, `adicionar_mapa_obra`, `atualizar_prazos_atividades`, `atualizar_prazos_providencias`, `aplicar_plano_recuperacao` e `fixar_entrega_original` dão 23505 em obra geral · eram liberadas só por `contro_e_membro()`, então quem tem a Contorno e é Membro de uma obra geral planejava por elas. `gerar_obra` (cria obra Contorno nova), `concluir_tarefa` e `reabrir_tarefa` (campo, tarefas da reunião) ficaram de fora. Mapa de coleta (`obra_mapa_libera`, `mapa_proposta`) passa a usar `contro_planeja_obra` na RLS de escrita.
 - 2026-11-06 · **Obras gerais · pendências em aberto.** Seguem abertas: desativar na Contorno tira as Obras gerais; texto de cadastro do convidado; participação apagada sem histórico; devolver a Contorno a quem é só de Obras gerais.
+- 2026-11-06 · **Obras gerais · etapa 3 · ação = atividade.** Na obra geral, a ação da equipe é a própria atividade de topo aberta (com ou sem responsável); ela não aparece duas vezes. Tarefas de reunião entram na etapa 4 · se errado, a etapa 4 soma as tarefas à mesma lista.
+- 2026-11-06 · **Obras gerais · etapa 3 · atividade sem data.** `Acao.prazo` é obrigatório no core: atividade sem data prevista fica fora das Ações da equipe, do Hoje e dos avisos, e aparece só na trilha · custo: atividade sem data não é cobrada até ganhar data.
+- 2026-11-06 · **Obras gerais · etapa 3 · menu de baixo.** Hoje · Obra (Coordenador e Membro) e Hoje · Obras (Administrador). Score e Log entram na etapa 5, junto com os dados deles; abas vazias seriam pior. A casca sempre abre no Hoje (a aba escolhida só volta dentro da sessão).
+- 2026-11-06 · **Obras gerais · etapa 3 · horários dos avisos.** Os avisos do dia das obras gerais usam `acoes_ativo` e `acoes_hora` de `config_avisos` (seg a sex, janela de 3 h) até a etapa 4 trazer a configuração por obra ("Reunião e avisos por obra").
+- 2026-11-06 · **Obras gerais · etapa 3 · textos dos pushes imediatos.** Atribuição, nova data e saída da obra têm o texto só no SQL, como o push de tarefa atribuída da Contorno; o app nunca os mostra. "1 atividade ficou" / "n atividades ficaram" (singular e plural) · custo: nenhum.
+- 2026-11-06 · **Obras gerais · etapa 3 · avisos só para quem participa.** Pessoa só da Contorno nunca recebe aviso geral e vice-versa; o Administrador recebe os dois sem somar. Defesa em profundidade: o gatilho confere que o destinatário participa da obra ou é Administrador ativo, mesmo que as RPCs já validem o responsável. Não avisa quem fez a mudança a si mesmo, e o Desfazer da data não gera "Nova data".
+- 2026-11-06 · **Obras gerais · etapa 3 · Coordenador de duas obras.** Recebe um só aviso "equipe do dia" com as obras somadas (o índice único diário por tipo e pessoa não colide).
+- 2026-11-06 · **Obras gerais · etapa 3 · eficiência.** "% no prazo" = concluídas dentro do prazo original sobre concluídas com prazo mais abertas já atrasadas; sem nenhuma, sem texto. `AtividadeGeral` ganhou `data_prevista_original`.
+- 2026-11-06 · **Obras gerais · etapa 3 · review final.** (1) O Desfazer da troca de responsável usa `desfazer_responsavel_atividade`, que não manda "Nova atividade" (o gatilho pula a atribuição com `contro.desfazer` ligado). (2) "Nova data" segue o prazo efetivo da atividade de topo: replanejar um subitem que muda o prazo avisa o responsável da atividade (nome dela, prazo antigo → novo); editar a data da atividade enquanto os subitens mandam no prazo não avisa. (3) Eficiência: concluída sem original própria usa o maior original (ou data) dos subitens. (4) Ações da equipe voltam com o mesmo chip ao fechar a ficha, e o Voltar delas volta à aba e à obra de onde foram abertas. (5) Linha do Hoje: fechar a ficha ou voltar da obra volta ao Hoje, em todos os papéis. Tocar numa aba do menu esquece essas voltas.
+- 2026-11-06 · **Obras gerais · etapa 3 · pendência de infra.** Confirmar em produção, depois do `db push`, que o job `avisos-gerais` existe no pg_cron.
 - 2026-11-05 · **"Aprovar membros" passa a se chamar "Pessoas e acessos"** (mesma função na Contorno).
 - 2026-11-05 · **Administradores marcados por migration de dados** (primeiro nome luiz, rafael ou rodrigo entre gestores); conferir em produção antes do merge.
 

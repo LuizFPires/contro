@@ -40,6 +40,7 @@ export function PessoasDaObra({
   const atualizar = () => {
     void qc.invalidateQueries({ queryKey: ['obra', obraId] });
     void qc.invalidateQueries({ queryKey: ['obras-gerais'] });
+    void qc.invalidateQueries({ queryKey: ['obras-gerais', 'resumo'] });
   };
 
   // O Administrador mexe em qualquer um; o Coordenador só em Membros (o banco também barra).

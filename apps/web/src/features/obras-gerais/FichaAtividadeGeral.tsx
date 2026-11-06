@@ -26,6 +26,7 @@ import {
   definirDataPrevista,
   definirResponsavelAtividade,
   desfazerDataPrevista,
+  desfazerResponsavelAtividade,
 } from './planejamento';
 
 const NOTA_MEMBRO =
@@ -110,7 +111,10 @@ export function FichaAtividadeGeral({
           ? { txt: `Em andamento · ${a.avancoPct}%`, cls: fichaStyles.tagLiberada, icone: null }
           : { txt: 'Aberta', cls: fichaStyles.tagPlanejada, icone: null };
 
-  const atualizar = () => qc.invalidateQueries({ queryKey: ['obra', obra.id] });
+  const atualizar = () => {
+    void qc.invalidateQueries({ queryKey: ['obras-gerais', 'resumo'] });
+    return qc.invalidateQueries({ queryKey: ['obra', obra.id] });
+  };
   const avisarErro = (e: unknown) =>
     showToast({ message: e instanceof Error ? e.message : 'Não foi possível salvar.' });
 
@@ -154,7 +158,7 @@ export function FichaAtividadeGeral({
     if (novo === antes) return;
     void planejar(
       () => definirResponsavelAtividade(a.id, novo),
-      () => definirResponsavelAtividade(a.id, antes),
+      () => desfazerResponsavelAtividade(a.id, antes),
       'Responsável alterado.',
     );
   }

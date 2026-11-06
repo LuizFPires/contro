@@ -37,6 +37,7 @@ export function NovaFaseSheet({
     setErro('');
     try {
       const id = await adicionarFaseGeral(obraId, limpo);
+      void qc.invalidateQueries({ queryKey: ['obras-gerais', 'resumo'] });
       await qc.invalidateQueries({ queryKey: ['obra', obraId] });
       onCriada(id);
       onFechar();

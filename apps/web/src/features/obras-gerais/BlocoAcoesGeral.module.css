@@ -1,0 +1,43 @@
+/* Bloco "Ações da equipe": mesmo desenho do bloco de Minhas obras da Contorno. */
+.bloco {
+  width: 100%;
+  min-height: 76px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgb(24 24 24 / 10%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 15px;
+}
+.principal {
+  font-size: 13px;
+  color: #696969;
+}
+.atraso {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--contro-late);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.hoje {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--contro-attention);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

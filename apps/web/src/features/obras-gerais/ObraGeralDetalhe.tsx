@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   podePlanejarObraGeral,
   resumoObraGeral,
+  textoEficiencia,
   rotuloPapelGeral,
   trilhaObraGeral,
   type FaseGeral,
@@ -16,6 +17,7 @@ import type { AoConcluir } from '../obras/useConcluirAtividade';
 import { useAvanco } from '../obras/useAvanco';
 import { useObraCampo } from '../obras/useObraCampo';
 import type { PessoaAtual } from '../perfil/usePerfil';
+import { BlocoAcoesGeral } from './BlocoAcoesGeral';
 import { FichaAtividadeGeral } from './FichaAtividadeGeral';
 import { NovaAtividadeGeralSheet } from './NovaAtividadeGeralSheet';
 import { NovaFaseSheet } from './NovaFaseSheet';
@@ -23,6 +25,7 @@ import styles from './ObraGeralDetalhe.module.css';
 import { TrocarObraSheet } from './TrocarObraSheet';
 import { useObraGeral } from './useObraGeral';
 import { useObrasGerais } from './useObrasGerais';
+import { useResumoObrasGerais } from './useResumoObrasGerais';
 
 /** Obra geral por dentro: trilha de fases com as atividades e o anel de avanço. */
 export function ObraGeralDetalhe({
@@ -31,15 +34,33 @@ export function ObraGeralDetalhe({
   onVoltar,
   onTrocarObra,
   onAbrirPessoas,
+  semVoltar = false,
+  abrirAtividadeId,
+  onAtalhoUsado,
+  onAbrirPerfil,
+  onAbrirAcoes,
+  onFichaFechada,
 }: {
   id: string;
   pessoa: PessoaAtual;
   onVoltar: () => void;
+  /** Obra como aba (Coordenador ou Membro com uma obra só): sem a seta de voltar. */
+  semVoltar?: boolean;
+  /** Abre a ficha desta atividade ao montar (linha tocada no Hoje). */
+  abrirAtividadeId?: string;
+  onAtalhoUsado?: () => void;
+  /** Obra como aba: o avatar do perfil (Perfil, Sair, Pessoas da obra) fica no topo dela. */
+  onAbrirPerfil?: () => void;
+  /** Abre a tela de ações da equipe desta obra. */
+  onAbrirAcoes?: () => void;
+  /** A ficha aberta a partir das ações foi fechada: volta para elas. */
+  onFichaFechada?: () => void;
   onTrocarObra: (id: string) => void;
   onAbrirPessoas: () => void;
 }) {
-  const { data: obra, isLoading } = useObraGeral(id);
+  const { data: obra, isLoading, isError, refetch } = useObraGeral(id);
   const { data: obras } = useObrasGerais();
+  const { data: resumoObras } = useResumoObrasGerais();
   const campo = useObraCampo(id);
   const { showToast } = useToast();
   const [faseAberta, setFaseAberta] = useLembrado<string | null>(`obrageral:${id}:fase`, null);
@@ -49,6 +70,11 @@ export function ObraGeralDetalhe({
   const [trocando, setTrocando] = useState(false);
   const [novaFase, setNovaFase] = useState(false);
   const [anexandoId, setAnexandoId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!abrirAtividadeId) return;
+    setFichaId(abrirAtividadeId);
+    onAtalhoUsado?.();
+  }, [abrirAtividadeId, onAtalhoUsado, setFichaId]);
 
   const aoConcluir: AoConcluir = (r, det) => {
     showToast({
@@ -79,7 +105,7 @@ export function ObraGeralDetalhe({
     if (!isLoading && obra === null) onVoltar();
   }, [isLoading, obra, onVoltar]);
 
-  const voltar = (
+  const voltar = semVoltar ? null : (
     <button
       type="button"
       className={base.voltar}
@@ -89,6 +115,23 @@ export function ObraGeralDetalhe({
       <Icon name="chevronLeft" size={22} />
     </button>
   );
+
+  // Falhou sem nada em cache: avisa e deixa tentar de novo.
+  if (isError && !obra) {
+    return (
+      <div className={base.screen}>
+        <header className={base.cabecalho}>
+          <div className={base.topo}>{voltar}</div>
+        </header>
+        <div className={styles.erro}>
+          <p>Sem conexão. Tente de novo.</p>
+          <button type="button" className={styles.tentar} onClick={() => void refetch()}>
+            Tentar de novo
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading || !obra) {
     return (
@@ -113,6 +156,8 @@ export function ObraGeralDetalhe({
     : pessoa.papelGeral
       ? rotuloPapelGeral(pessoa.papelGeral)
       : 'Membro';
+  const resumoDaObra = resumoObras?.find((o) => o.id === id);
+  const eficiencia = resumoDaObra ? textoEficiencia(resumoDaObra.eficiencia) : null;
   const lista = obras ?? [];
   const podeTrocar = lista.length > 1;
   const atual = fases.find((f) => !f.concluida);
@@ -141,7 +186,9 @@ export function ObraGeralDetalhe({
                 obra.nome
               )}
             </h1>
-            <div className={base.sub}>{resumoObraGeral(fases)}</div>
+            <div className={base.sub}>
+              {[resumoObraGeral(fases), eficiencia].filter(Boolean).join(' · ')}
+            </div>
           </div>
           {planeja ? (
             <button
@@ -150,6 +197,16 @@ export function ObraGeralDetalhe({
               aria-label="Pessoas da obra"
               onClick={onAbrirPessoas}
             >
+              <Icon name={onAbrirPerfil ? 'membros' : 'pessoa'} size={22} />
+            </button>
+          ) : null}
+          {onAbrirPerfil ? (
+            <button
+              type="button"
+              className={styles.perfil}
+              aria-label="Perfil e ajustes"
+              onClick={onAbrirPerfil}
+            >
               <Icon name="pessoa" size={22} />
             </button>
           ) : null}
@@ -157,6 +214,16 @@ export function ObraGeralDetalhe({
       </header>
 
       <div className={base.conteudo}>
+        {resumoDaObra && onAbrirAcoes ? (
+          <div className={styles.blocoAcoes}>
+            <BlocoAcoesGeral
+              acoes={resumoDaObra.acoes}
+              pessoaId={pessoa.id}
+              soDaPessoa={resumoDaObra.papel === 'membro'}
+              onAbrir={onAbrirAcoes}
+            />
+          </div>
+        ) : null}
         <div className={base.mapa}>
           {fases.length === 0 ? (
             <p className={styles.vazio}>
@@ -231,7 +298,10 @@ export function ObraGeralDetalhe({
           obra={obra}
           atividadeId={fichaId}
           pessoa={pessoa}
-          onClose={() => setFichaId(null)}
+          onClose={() => {
+            setFichaId(null);
+            onFichaFechada?.();
+          }}
         />
       ) : null}
 

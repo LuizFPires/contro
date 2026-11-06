@@ -88,6 +88,7 @@ export function CardAcao({
   hoje,
   obra = null,
   comResponsavel = true,
+  meta,
   esquerda,
   direita,
   cardInteiro = false,
@@ -101,6 +102,8 @@ export function CardAcao({
   /** Nome da obra na linha de detalhe (null quando a lista já agrupa por obra). */
   obra?: string | null;
   comResponsavel?: boolean;
+  /** Linha de detalhe já pronta (obras gerais); sem ela vale a da Contorno. */
+  meta?: string;
   esquerda?: ReactNode;
   direita?: ReactNode;
   cardInteiro?: boolean;
@@ -151,7 +154,7 @@ export function CardAcao({
   const corpo = (
     <>
       <span className={styles.texto}>{a.texto}</span>
-      <span className={styles.meta}>{linhaMeta(a, obra, comResponsavel)}</span>
+      <span className={styles.meta}>{meta ?? linhaMeta(a, obra, comResponsavel)}</span>
       <span className={styles.prazo}>
         {iconePrazo ? <Icon name={iconePrazo} size={14} strokeWidth={2.4} /> : null}
         {prazo}

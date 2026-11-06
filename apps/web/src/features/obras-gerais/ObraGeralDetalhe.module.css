@@ -126,3 +126,48 @@
   font-size: 13px;
   color: var(--contro-muted);
 }
+
+/* Carga falhou sem dados em cache. */
+.erro {
+  margin: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+}
+.erro p {
+  margin: 0;
+}
+.tentar {
+  min-height: var(--contro-touch);
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--contro-black);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Avatar do perfil (obra como aba): o mesmo do cabeçalho do Hoje. */
+.perfil {
+  flex-shrink: 0;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  border: 0;
+  background: rgb(255 255 255 / 14%);
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blocoAcoes {
+  padding: 14px 16px 0;
+}
