@@ -73,7 +73,7 @@ export function TarefaSheet({
   const [obraId, setObraId] = useState('');
   // Motivo opcional do replanejamento (só quando o prazo da tarefa aberta muda).
   const [motivo, setMotivo] = useState('');
-  const { data: nomesSugeridos = [] } = useNomesSugeridos();
+  const { data: nomesSugeridos = [] } = useNomesSugeridos(ambiente);
   const idNomes = useId();
   const pedeObra = !tarefa && !atribuir && Boolean(obras?.length);
   // Rascunho da nova tarefa (a edição de uma tarefa existente não usa).

@@ -730,7 +730,6 @@ export function ReuniaoGeralScreen({
           aberto
           tarefa={folha.tarefa}
           pessoas={pessoas}
-          nomeLivre={false}
           ambiente="geral"
           pendente={r.salvarAcao.isPending}
           modo={folha.tarefa ? undefined : 'atribuir'}

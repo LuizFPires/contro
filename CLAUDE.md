@@ -12,7 +12,7 @@ Cada obra nasce de um **modelo de obra** escolhido entre os modelos salvos (ex.:
 - boletim semanal pelo WhatsApp e em PDF;
 - reunião semanal (dia e horário definidos pelo gestor; padrão segunda 16h) com ata e tarefas por responsável, e avisos por push.
 
-O app tem ainda o ambiente **Obras gerais** (obras que não são das unidades Contorno do Corpo, com acesso por obra): as etapas 1 (ambientes e acesso) e 2 (a obra geral por dentro) estão entregues e o resto vem nas etapas seguintes (ver PLAN.md).
+O app tem ainda o ambiente **Obras gerais** (obras que não são das unidades Contorno do Corpo, com acesso por obra), entregue nas 5 etapas: ambientes e acesso, a obra por dentro, Hoje e avisos, reunião e boletim por obra, e Score, Log e sugestões por ambiente (ver PLAN.md).
 
 A **maquete 3D da obra** é uma melhoria futura (E1) em avaliação: **não implemente** nada dela sem pedido explícito do usuário.
 

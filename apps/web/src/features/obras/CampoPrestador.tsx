@@ -1,6 +1,7 @@
 import { nomePrestadorExistente, normalizarPrestador } from './nomesPrestador';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Ambiente } from '@contro/core';
 import { Icon, useToast } from '@contro/ui';
 import { useAutoSalvar } from '../../lib/useAutoSalvar';
 import { supabase } from '../../lib/supabase';
@@ -12,9 +13,9 @@ interface Sugestao {
 }
 
 /** Prestadores já usados nas obras (sugestao tipo prestador), mais usados primeiro. */
-function useSugestoesPrestador() {
+function useSugestoesPrestador(ambiente: Ambiente) {
   return useQuery<Sugestao[]>({
-    queryKey: ['sugestao', 'prestador'],
+    queryKey: ['sugestao', 'prestador', ambiente],
     enabled: Boolean(supabase),
     queryFn: async () => {
       if (!supabase) return [];
@@ -24,6 +25,7 @@ function useSugestoesPrestador() {
           .from('sugestao')
           .select('texto,usos')
           .eq('tipo', 'prestador')
+          .eq('ambiente', ambiente)
           .is('deleted_at', null)
           .order('created_at')
           .order('texto')
@@ -58,6 +60,7 @@ export function CampoPrestador({
   placeholder = 'Opcional · nome de quem executa',
   autoFocus = false,
   required = false,
+  ambiente = 'contorno',
 }: {
   atividadeId: string;
   valor: string | null;
@@ -70,8 +73,10 @@ export function CampoPrestador({
   placeholder?: string;
   autoFocus?: boolean;
   required?: boolean;
+  /** Ambiente da obra: cada um tem as suas sugestões de prestador. */
+  ambiente?: Ambiente;
 }) {
-  const { data: sugestoes = [] } = useSugestoesPrestador();
+  const { data: sugestoes = [] } = useSugestoesPrestador(ambiente);
   const [texto, setTexto] = useState(valor ?? '');
   const [aberto, setAberto] = useState(false);
   const [excluir, setExcluir] = useState<string | null>(null);
@@ -80,12 +85,15 @@ export function CampoPrestador({
   const remover = useMutation({
     mutationFn: async (nome: string) => {
       if (!supabase) throw new Error('Sem conexão');
-      const { error } = await supabase.rpc('excluir_sugestao_prestador', { p_nome: nome });
+      const { error } = await supabase.rpc('excluir_sugestao_prestador', {
+        p_nome: nome,
+        p_ambiente: ambiente,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
       setExcluir(null);
-      void qc.invalidateQueries({ queryKey: ['sugestao', 'prestador'] });
+      void qc.invalidateQueries({ queryKey: ['sugestao', 'prestador', ambiente] });
       showToast({ message: 'Nome removido das sugestões' });
     },
     onError: () => showToast({ message: 'Não foi possível excluir o nome. Tente novamente.' }),
