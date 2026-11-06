@@ -14,7 +14,13 @@ create policy score_diario_sel on public.score_diario
   for select to authenticated using (
     case ambiente
       when 'contorno' then public.contro_e_membro()
-      else public.contro_tem_papel_geral() or public.contro_e_admin()
+      -- Obras gerais: o Administrador lê tudo; os demais leem só a aba equipe de
+      -- pessoas que a própria RLS de pessoa deixa ver (quem divide obra com
+      -- eles). Prestadores e nomes livres (nome:...) ficam só com o Administrador.
+      else public.contro_e_admin()
+        or (public.contro_tem_papel_geral()
+            and aba = 'equipe'
+            and exists (select 1 from public.pessoa p where p.id::text = score_diario.chave))
     end
   );
 
