@@ -18,6 +18,7 @@ import type { PessoaAtual } from '../perfil/usePerfil';
 import { EscolherResponsavel } from './EscolherResponsavel';
 import type { ObraGeral } from './obraGeral';
 import { adicionarAtividadeGeral } from './planejamento';
+import { ANTECEDENCIA_LEMBRETE_PADRAO, antecedenciaLembrete } from './antecedenciaLembrete';
 import styles from './NovaAtividadeGeralSheet.module.css';
 
 interface LinhaSub {
@@ -107,6 +108,18 @@ export function NovaAtividadeGeralSheet({
 
   async function adicionar() {
     if (!nomeLimpo || ocupado) return;
+    // Lembretes com texto: antecedência vazia vale 5; fora de 0 a 60 não salva nada.
+    const comTexto = lembretes
+      .map((l) => ({
+        ...l,
+        descricao: limpar(l.descricao),
+        du: antecedenciaLembrete(l.antecedencia),
+      }))
+      .filter((l) => l.descricao);
+    if (comTexto.some((l) => l.du === null)) {
+      setErro('Informe a antecedência em dias úteis (0 a 60).');
+      return;
+    }
     setOcupado(true);
     setErro('');
     try {
@@ -125,9 +138,6 @@ export function NovaAtividadeGeralSheet({
         subitens: subs,
       });
       // Lembretes depois da atividade (precisam dela); o banco calcula o "providenciar até".
-      const comTexto = lembretes
-        .map((l) => ({ ...l, descricao: limpar(l.descricao) }))
-        .filter((l) => l.descricao);
       let lembreteFalhou = false;
       for (const l of comTexto) {
         try {
@@ -136,7 +146,7 @@ export function NovaAtividadeGeralSheet({
             id,
             l.tipo,
             l.descricao,
-            Math.min(60, Number(l.antecedencia) || 0),
+            l.du ?? ANTECEDENCIA_LEMBRETE_PADRAO,
           );
         } catch {
           lembreteFalhou = true;
@@ -325,7 +335,11 @@ export function NovaAtividadeGeralSheet({
             onClick={() =>
               setLembretes((arr) => [
                 ...arr,
-                { tipo: 'contratacao', descricao: '', antecedencia: '5' },
+                {
+                  tipo: 'contratacao',
+                  descricao: '',
+                  antecedencia: String(ANTECEDENCIA_LEMBRETE_PADRAO),
+                },
               ])
             }
           >

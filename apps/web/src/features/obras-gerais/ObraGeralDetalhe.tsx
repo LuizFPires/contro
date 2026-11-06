@@ -102,6 +102,13 @@ export function ObraGeralDetalhe({
     setFichaId(null);
     setSecao('checklist');
   }, [abrirPendenciaId, setFichaId, setSecao]);
+  // A pendência do atalho já não existe (excluída, ou de outra obra): limpa o atalho aqui
+  // mesmo, sem depender do Check list montar e aplicar o foco.
+  const pendenciasDaObra = pendencias.query.data;
+  useEffect(() => {
+    if (!abrirPendenciaId || !pendenciasDaObra) return;
+    if (!pendenciasDaObra.some((p) => p.id === abrirPendenciaId)) onAtalhoUsado?.();
+  }, [abrirPendenciaId, pendenciasDaObra, onAtalhoUsado]);
   const pendAbertas = useMemo(
     () => classificarPendencias(pendencias.query.data ?? []).pendentes.length,
     [pendencias.query.data],
