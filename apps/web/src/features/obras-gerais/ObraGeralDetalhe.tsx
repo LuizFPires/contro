@@ -30,6 +30,7 @@ export function ObraGeralDetalhe({
   pessoa,
   onVoltar,
   onTrocarObra,
+  onAbrirPessoas,
 }: {
   id: string;
   pessoa: PessoaAtual;
@@ -142,6 +143,16 @@ export function ObraGeralDetalhe({
             </h1>
             <div className={base.sub}>{resumoObraGeral(fases)}</div>
           </div>
+          {planeja ? (
+            <button
+              type="button"
+              className={base.voltar}
+              aria-label="Pessoas da obra"
+              onClick={onAbrirPessoas}
+            >
+              <Icon name="pessoa" size={22} />
+            </button>
+          ) : null}
         </div>
       </header>
 

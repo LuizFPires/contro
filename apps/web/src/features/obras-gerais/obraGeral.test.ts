@@ -53,6 +53,14 @@ describe('carregarObraGeral', () => {
     expect(o?.pessoas.find((p) => p.id === 'p2')?.papel).toBe('membro');
   });
 
+  it('distingue quem participa do Administrador que só vê', async () => {
+    const o = await carregarObraGeral('o1');
+    const participa = (id: string) => o?.pessoas.find((p) => p.id === id)?.participa;
+    expect(participa('a1')).toBe(true);
+    expect(participa('a2')).toBe(false);
+    expect(participa('p2')).toBe(true);
+  });
+
   it('marca as fases como não preliminares', async () => {
     const o = await carregarObraGeral('o1');
     expect(o?.fases).toEqual([{ id: 'f1', ordem: 1, titulo: 'Estrutura', preliminar: false }]);

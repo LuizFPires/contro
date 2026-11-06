@@ -9,6 +9,8 @@ export interface PessoaDaObra {
   id: string;
   nome: string;
   papel: 'coordenador' | 'membro' | 'administrador';
+  /** Participa da obra (Administrador que não participa só aparece porque sempre vê). */
+  participa: boolean;
 }
 
 export interface ObraGeral {
@@ -39,10 +41,16 @@ function montarPessoas(
       id: pessoa.id,
       nome: pessoa.nome,
       papel: pessoa.papel_geral ?? 'membro',
+      participa: true,
     });
   }
   for (const p of administradores)
-    porId.set(p.id, { id: p.id, nome: p.nome, papel: 'administrador' });
+    porId.set(p.id, {
+      id: p.id,
+      nome: p.nome,
+      papel: 'administrador',
+      participa: porId.get(p.id)?.participa ?? false,
+    });
   return [...porId.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 }
 

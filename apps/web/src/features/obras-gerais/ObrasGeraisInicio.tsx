@@ -6,6 +6,8 @@ import { ItemMenu, PerfilSheet } from '../perfil/PerfilSheet';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { NovaObraGeralSheet } from './NovaObraGeralSheet';
 import { ObraGeralDetalhe } from './ObraGeralDetalhe';
+import { PessoasDaObra } from './PessoasDaObra';
+import { TrocarObraSheet } from './TrocarObraSheet';
 import { useObrasGerais } from './useObrasGerais';
 import styles from './ObrasGeraisInicio.module.css';
 
@@ -30,6 +32,9 @@ export function ObrasGeraisInicio({
 }) {
   const [perfilAberto, setPerfilAberto] = useState(false);
   const [nova, setNova] = useState(false);
+  // Pessoas da obra (Coordenador e Administrador): a obra aberta nessa tela e o seletor de obra.
+  const [pessoasObraId, setPessoasObraId] = useLembrado<string | null>('obrasgerais:pessoas', null);
+  const [escolhendo, setEscolhendo] = useState(false);
   // A obra aberta fica lembrada: ao voltar ao app, reabre nela.
   const [obraAberta, setObraAberta] = useLembrado<string | null>('obrasgerais:obra', null);
   const { data: obras, isLoading, isError, refetch } = useObrasGerais();
@@ -38,6 +43,16 @@ export function ObrasGeraisInicio({
     acessoContorno: pessoa.acessoContorno,
     papelGeral: pessoa.papelGeral,
   });
+  const coordenador = !pessoa.administrador && pessoa.papelGeral === 'coordenador';
+  if (pessoasObraId) {
+    return (
+      <PessoasDaObra
+        obraId={pessoasObraId}
+        pessoa={pessoa}
+        onVoltar={() => setPessoasObraId(null)}
+      />
+    );
+  }
   if (obraAberta) {
     return (
       <ObraGeralDetalhe
@@ -45,7 +60,7 @@ export function ObrasGeraisInicio({
         pessoa={pessoa}
         onVoltar={() => setObraAberta(null)}
         onTrocarObra={setObraAberta}
-        onAbrirPessoas={onPessoas}
+        onAbrirPessoas={() => setPessoasObraId(obraAberta)}
       />
     );
   }
@@ -119,6 +134,18 @@ export function ObrasGeraisInicio({
 
       {admin ? <NovaObraGeralSheet aberto={nova} onFechar={() => setNova(false)} /> : null}
 
+      <TrocarObraSheet
+        aberto={escolhendo}
+        obras={obras ?? []}
+        atualId=""
+        papel="Coordenador"
+        onEscolher={(id) => {
+          setEscolhendo(false);
+          setPessoasObraId(id);
+        }}
+        onFechar={() => setEscolhendo(false)}
+      />
+
       <PerfilSheet
         aberto={perfilAberto}
         onFechar={() => setPerfilAberto(false)}
@@ -134,6 +161,17 @@ export function ObrasGeraisInicio({
               onClick={() => {
                 setPerfilAberto(false);
                 onPessoas();
+              }}
+            />
+          ) : coordenador ? (
+            <ItemMenu
+              icon="pessoa"
+              rotulo="Pessoas da obra"
+              onClick={() => {
+                setPerfilAberto(false);
+                const lista = obras ?? [];
+                if (lista.length === 1) setPessoasObraId(lista[0]!.id);
+                else if (lista.length > 1) setEscolhendo(true);
               }}
             />
           ) : null
