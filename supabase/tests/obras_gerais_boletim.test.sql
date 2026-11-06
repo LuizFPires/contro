@@ -84,11 +84,11 @@ select throws_ok($$ select salvar_config_boletim_obra('00000000-0000-0000-0000-0
 select throws_ok($$ insert into config_boletim_obra (obra_id) values ('00000000-0000-0000-0000-00000007b003') $$,
   '42501', null, 'sem escrita direta (nem o Administrador)');
 
--- Coordenador e Membro leem, não gravam.
+-- Coordenador lê e grava a da obra dele (06/11/2026); Membro só lê.
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000007b2","role":"authenticated"}';
 select is((select count(*)::int from config_boletim_obra), 1, 'Coordenador lê a config da obra dele');
-select throws_ok($$ select salvar_config_boletim_obra('00000000-0000-0000-0000-00000007b001', '{"hora":"09:00"}'::jsonb) $$,
-  '42501', null, 'Coordenador não grava (só Administrador)');
+select is(salvar_config_boletim_obra('00000000-0000-0000-0000-00000007b001', '{"hora":"08:00"}'::jsonb) ->> 'hora',
+  '08:00:00', 'Coordenador grava a config da obra dele');
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000007b4","role":"authenticated"}';
 select is((select count(*)::int from config_boletim_obra), 1, 'Membro lê a config da obra dele');
 select throws_ok($$ select salvar_config_boletim_obra('00000000-0000-0000-0000-00000007b001', '{"hora":"09:00"}'::jsonb) $$,

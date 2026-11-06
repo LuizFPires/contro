@@ -114,7 +114,7 @@ export function ObrasGeraisCasca({
   useEffect(() => {
     if (pessoasObraId && !podePessoasDaObra) setPessoasObraId(null);
     if (avisosObraId && !podePessoasDaObra) setAvisosObraId(null);
-    if (boletimConfigObraId && !admin) setBoletimConfigObraId(null);
+    if (boletimConfigObraId && !podePessoasDaObra) setBoletimConfigObraId(null);
   }, [
     pessoasObraId,
     avisosObraId,
@@ -252,7 +252,7 @@ export function ObrasGeraisCasca({
                   else if (lista.length > 1) setEscolhendo('avisos');
                 }}
               />
-              {admin ? (
+              {admin || coordenador ? (
                 <ItemMenu
                   icon="documento"
                   rotulo="Boletim automático"
@@ -324,7 +324,7 @@ export function ObrasGeraisCasca({
   const obraBoletimConfig = boletimConfigObraId
     ? lista.find((o) => o.id === boletimConfigObraId)
     : undefined;
-  if (boletimConfigObraId && admin) {
+  if (boletimConfigObraId && podePessoasDaObra) {
     return (
       <ConfigBoletimScreen
         key={boletimConfigObraId}

@@ -37,8 +37,8 @@ const COLUNAS = 'ativo, dia_semana, hora, fechamento_ativo, fechamento_dia, fech
 
 /**
  * Lê e grava a configuração do boletim automático. Sem `obraId`, a global da Contorno (só
- * gestor grava; RLS). Com `obraId` (obra geral), a da obra: lê quem vê a obra, grava só o
- * Administrador, pela função do banco; sem linha, o formulário usa o padrão.
+ * gestor grava; RLS). Com `obraId` (obra geral), a da obra: lê quem vê a obra, grava o
+ * Gestor ou o Coordenador da obra, pela função do banco; sem linha, o formulário usa o padrão.
  */
 export function useConfigBoletim(obraId: string | null = null) {
   const qc = useQueryClient();
