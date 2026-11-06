@@ -30,10 +30,13 @@ import styles from './OrganizarObraGeral.module.css';
 export function OrganizarObraGeral({
   obraId,
   fases,
+  numeros,
   onPronto,
 }: {
   obraId: string;
   fases: FaseGeral[];
+  /** #N de cada atividade, para a lista bater com a trilha. */
+  numeros: Map<string, number>;
   onPronto: () => void;
 }) {
   const qc = useQueryClient();
@@ -153,7 +156,12 @@ export function OrganizarObraGeral({
                               id={a.id}
                               rotulo={a.nome}
                               classe={styles.atividade}
-                              principal={<span className={styles.atvNome}>{a.nome}</span>}
+                              principal={
+                                <span className={styles.atvNome}>
+                                  {numeros.get(a.id) ? `#${numeros.get(a.id)} ` : ''}
+                                  {a.nome}
+                                </span>
+                              }
                             />
                           ))}
                         </ul>

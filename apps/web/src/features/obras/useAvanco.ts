@@ -12,7 +12,7 @@ import { useObraCampo } from './useObraCampo';
 export function useAvanco(
   obra: ObraConclusao | null,
   aoConcluir: AoConcluir,
-  /** Obra geral não numera (#N): passe `false`. */
+  /** `false` para não pôr o #N no aviso. */
   numerar = true,
 ) {
   const campo = useObraCampo(obra?.id ?? '');

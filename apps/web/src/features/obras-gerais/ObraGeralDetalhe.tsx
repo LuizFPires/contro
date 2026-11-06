@@ -20,6 +20,7 @@ import type { AoConcluir } from '../obras/useConcluirAtividade';
 import { useAvanco } from '../obras/useAvanco';
 import { useObraCampo } from '../obras/useObraCampo';
 import { useObraPendencias } from '../obras/useObraPendencias';
+import { numeracaoObra } from '../obras/numeracaoObra';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { BlocoAcoesGeral } from './BlocoAcoesGeral';
 import { EditarObraGeralSheet } from './EditarObraGeralSheet';
@@ -126,7 +127,7 @@ export function ObraGeralDetalhe({
       onUndo: () => campo.desfazer.mutate({ atividadeId: det.atividadeId, xp: r.xp }),
     });
   };
-  const avanco = useAvanco(obra ?? null, aoConcluir, false);
+  const avanco = useAvanco(obra ?? null, aoConcluir);
 
   const fases = useMemo(
     () =>
@@ -141,6 +142,8 @@ export function ObraGeralDetalhe({
         : [],
     [obra, pessoa.id],
   );
+  // #N de cada atividade (fase a fase, na ordem), como na Contorno.
+  const numeros = useMemo(() => (obra ? numeracaoObra(obra) : new Map<string, number>()), [obra]);
 
   // A obra lembrada não existe mais ou deixou de ser visível: volta para a lista.
   useEffect(() => {
@@ -349,6 +352,7 @@ export function ObraGeralDetalhe({
             <OrganizarObraGeral
               obraId={obra.id}
               fases={fases}
+              numeros={numeros}
               onPronto={() => setOrganizando(false)}
             />
           ) : (
@@ -364,6 +368,7 @@ export function ObraGeralDetalhe({
                 <FaseGeralView
                   key={f.id}
                   fase={f}
+                  numeros={numeros}
                   atual={atual?.id === f.id}
                   aberta={aberta === f.id}
                   planeja={planeja}
@@ -471,6 +476,7 @@ export function ObraGeralDetalhe({
 
 function FaseGeralView({
   fase: f,
+  numeros,
   atual,
   aberta,
   planeja,
@@ -484,6 +490,7 @@ function FaseGeralView({
   atual: boolean;
   aberta: boolean;
   planeja: boolean;
+  numeros: Map<string, number>;
   onToggle: () => void;
   onAnel: (id: string) => void;
   onFicha: (id: string) => void;
@@ -555,7 +562,10 @@ function FaseGeralView({
                 />
                 <div className={styles.atvCorpo}>
                   <button type="button" className={base.atvTexto} onClick={() => onFicha(a.id)}>
-                    <span className={base.atvNome}>{a.nome}</span>
+                    <span className={base.atvNome}>
+                      {numeros.get(a.id) ? `#${numeros.get(a.id)} ` : ''}
+                      {a.nome}
+                    </span>
                     <span className={`${base.atvSub} ${styles.subHoje}`}>{a.sub}</span>
                     {a.status !== 'concluida' && a.avancoPct > 0 && a.avancoPct < 100 ? (
                       <span className={base.atvBarra} aria-hidden="true">

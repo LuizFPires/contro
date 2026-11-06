@@ -21,6 +21,7 @@ import linhaStyles from '../obras/LinhaPara.module.css';
 import { NovaProvidenciaSheet } from '../obras/ProvidenciasAba';
 import { CampoPrestador } from '../obras/CampoPrestador';
 import { RodapeAvanco } from '../obras/RodapeAvanco';
+import { numeracaoObra } from '../obras/numeracaoObra';
 import { TextoEditavel } from '../obras/TextoEditavel';
 import { useAvanco } from '../obras/useAvanco';
 import { useConcluirAtividade, type AoConcluir } from '../obras/useConcluirAtividade';
@@ -63,7 +64,7 @@ export function FichaAtividadeGeral({
         : `"${det.nome}" concluída`,
       onUndo: () => campo.desfazer.mutate({ atividadeId: det.atividadeId, xp: r.xp }),
     });
-  const avanco = useAvanco(obra, aoConcluir, false);
+  const avanco = useAvanco(obra, aoConcluir);
 
   const [menuAberto, setMenuAberto] = useState(false);
   const [editandoNome, setEditandoNome] = useState(false);
@@ -203,6 +204,8 @@ export function FichaAtividadeGeral({
     );
   }
 
+  // #N da atividade (fase a fase, na ordem), como na Contorno: orienta a conversa.
+  const numero = numeracaoObra(obra).get(a.id);
   const dataTxt = a.prazo ? diaCurto(a.prazo) : 'sem data';
   const replan = bruta.replanejamentos;
 
@@ -226,6 +229,7 @@ export function FichaAtividadeGeral({
                   {status.icone ? <Icon name={status.icone} size={12} strokeWidth={2.6} /> : null}
                   {status.txt}
                 </span>
+                {numero ? <span className={fichaStyles.numero}>#{numero}</span> : null}
               </div>
               {planeja ? (
                 <TextoEditavel
