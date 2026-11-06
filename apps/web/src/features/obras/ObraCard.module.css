@@ -1,16 +1,24 @@
 /* Cartão da obra — protótipo aprovado (INÍCIO / CARTEIRA). */
 .card {
   width: 100%;
-  text-align: left;
   background: var(--contro-white);
   border: 1px solid rgb(24 24 24 / 10%);
   border-radius: 16px;
+  overflow: hidden;
+  color: var(--contro-black);
+}
+/* Corpo: abre a obra. A faixa de risco embaixo é outro botão (abre o plano). */
+.corpo {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
   padding: 14px 16px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  color: var(--contro-black);
+  color: inherit;
   font: inherit;
 }
 .comAtraso {
@@ -83,6 +91,8 @@
 }
 .entrega {
   color: #696969;
+  text-align: right;
+  line-height: 18px;
 }
 .alertaAtraso {
   display: flex;
@@ -91,4 +101,44 @@
   font-size: 13px;
   font-weight: 800;
   color: var(--contro-late);
+}
+
+/* "Inauguração em risco" no pé do card: abre o plano de recuperação. */
+.risco {
+  width: 100%;
+  min-height: var(--contro-touch);
+  padding: 10px 16px;
+  border: 0;
+  border-top: 1px solid rgb(198 40 40 / 15%);
+  background: rgb(198 40 40 / 7%);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.riscoIcone {
+  flex: none;
+  color: var(--contro-late);
+}
+.riscoTexto {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+.riscoTitulo {
+  font-weight: 800;
+  color: var(--contro-late);
+}
+.riscoLink {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: underline;
+  white-space: nowrap;
 }

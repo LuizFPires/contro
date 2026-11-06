@@ -73,6 +73,10 @@ export interface ObraResumo {
   providenciasSemDono: ProvidenciaSemDono[];
   /** Atividades de topo abertas sem tarefa aberta vinculada ("Sem responsável"). */
   atividadesSemDono: AtividadeSemDono[];
+  /** Inauguração planejada (fixada na obra; sem ela, a do cronograma atual). */
+  inauguracao: string | null;
+  /** Entrega prevista (atrasadas terminam hoje); sem cálculo, a do cronograma. */
+  entregaPrevista: string;
   /** Inauguração prevista depois da planejada (null = no prazo). */
   risco: { original: string; prevista: string; atrasoDu: number } | null;
 }
@@ -500,7 +504,7 @@ export async function listarObras(ambiente: Ambiente): Promise<ObraResumo[]> {
       acoesHoje: contaEstado('hoje'),
       providenciasSemDono: semDono,
       atividadesSemDono: atvSemDono,
-      risco: (() => {
+      ...(() => {
         try {
           const p = previsaoEntrega({
             inicio: o.inicio,
@@ -510,11 +514,20 @@ export async function listarObras(ambiente: Ambiente): Promise<ObraResumo[]> {
             nomes: {},
             entregaOriginal: o.entrega_original,
           });
-          return p.atrasoDu > 0
-            ? { original: p.entregaOriginal, prevista: p.entregaPrevista, atrasoDu: p.atrasoDu }
-            : null;
+          return {
+            inauguracao: p.entregaOriginal,
+            entregaPrevista: p.entregaPrevista,
+            risco:
+              p.atrasoDu > 0
+                ? { original: p.entregaOriginal, prevista: p.entregaPrevista, atrasoDu: p.atrasoDu }
+                : null,
+          };
         } catch {
-          return null;
+          return {
+            inauguracao: o.entrega_original,
+            entregaPrevista: est.indicadores.entrega,
+            risco: null,
+          };
         }
       })(),
       agenda: agendaDoDia({

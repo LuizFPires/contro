@@ -256,7 +256,12 @@ export function MinhasObras({
           ) : lista.length ? (
             <div className={styles.lista}>
               {lista.map((o) => (
-                <ObraCard key={o.id} obra={o} onAbrir={() => setObraAberta({ id: o.id })} />
+                <ObraCard
+                  key={o.id}
+                  obra={o}
+                  onAbrir={() => setObraAberta({ id: o.id })}
+                  onAbrirPlano={() => setObraAberta({ id: o.id, plano: true })}
+                />
               ))}
             </div>
           ) : (
