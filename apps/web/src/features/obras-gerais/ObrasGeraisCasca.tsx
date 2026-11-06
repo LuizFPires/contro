@@ -11,6 +11,9 @@ import { NavGeral, type AbaGeral } from './NavGeral';
 import { ObraGeralDetalhe } from './ObraGeralDetalhe';
 import { ObrasGeraisInicio } from './ObrasGeraisInicio';
 import { PessoasDaObra } from './PessoasDaObra';
+import { ConfigBoletimScreen } from '../boletim-auto/ConfigBoletimScreen';
+import { ProntosParaEnviar } from '../boletim-auto/ProntosParaEnviar';
+import { BoletimGeralScreen } from './boletim/BoletimGeralScreen';
 import { ConfigAvisosObraScreen } from './reuniao/ConfigAvisosObraScreen';
 import { ReuniaoGeralScreen } from './reuniao/ReuniaoGeralScreen';
 import { ReunioesGeraisScreen } from './reuniao/ReunioesGeraisScreen';
@@ -58,9 +61,16 @@ export function ObrasGeraisCasca({
   // Pessoas da obra (Coordenador e Administrador): a obra aberta nessa tela e o seletor de obra.
   const [pessoasObraId, setPessoasObraId] = useLembrado<string | null>('obrasgerais:pessoas', null);
   // Seletor de obra do perfil: para Pessoas da obra ou para Reunião e avisos.
-  const [escolhendo, setEscolhendo] = useState<'pessoas' | 'avisos' | null>(null);
+  const [escolhendo, setEscolhendo] = useState<'pessoas' | 'avisos' | 'boletim' | null>(null);
   // Reunião e avisos da obra (Coordenador e Administrador).
   const [avisosObraId, setAvisosObraId] = useLembrado<string | null>('obrasgerais:avisos', null);
+  // Boletim da obra aberto (ícone da obra, "Prontos para enviar" ou o aviso) e, para o
+  // Administrador, a configuração do boletim automático de uma obra.
+  const [boletimObraId, setBoletimObraId] = useLembrado<string | null>('obrasgerais:boletim', null);
+  const [boletimConfigObraId, setBoletimConfigObraId] = useLembrado<string | null>(
+    'obrasgerais:boletimConfig',
+    null,
+  );
   // Reunião da obra aberta (o aviso de reunião abre direto nela) e a lista das reuniões
   // (Administrador: todas as obras; da reunião: só a obra dela).
   const [reuniaoAberta, setReuniaoAberta] = useLembrado<{
@@ -94,7 +104,17 @@ export function ObrasGeraisCasca({
   useEffect(() => {
     if (pessoasObraId && !podePessoasDaObra) setPessoasObraId(null);
     if (avisosObraId && !podePessoasDaObra) setAvisosObraId(null);
-  }, [pessoasObraId, avisosObraId, podePessoasDaObra, setPessoasObraId, setAvisosObraId]);
+    if (boletimConfigObraId && !admin) setBoletimConfigObraId(null);
+  }, [
+    pessoasObraId,
+    avisosObraId,
+    boletimConfigObraId,
+    podePessoasDaObra,
+    admin,
+    setPessoasObraId,
+    setAvisosObraId,
+    setBoletimConfigObraId,
+  ]);
 
   const abrirAtividade = (obraId: string, atividadeId: string) => {
     setAtalho({ obraId, atividadeId });
@@ -135,6 +155,7 @@ export function ObrasGeraisCasca({
       onAbrirPerfil={admin ? undefined : () => setPerfilAberto(true)}
       onAbrirAcoes={() => abrirAcoes([id])}
       onAbrirReuniao={() => setReuniaoAberta({ obraId: id, data: null })}
+      onAbrirBoletim={() => setBoletimObraId(id)}
       onFichaFechada={
         retornoAcoes
           ? () => {
@@ -158,6 +179,7 @@ export function ObrasGeraisCasca({
         papel={admin ? 'Administrador' : 'Coordenador'}
         onEscolher={(id) => {
           if (escolhendo === 'avisos') setAvisosObraId(id);
+          else if (escolhendo === 'boletim') setBoletimConfigObraId(id);
           else setPessoasObraId(id);
           setEscolhendo(null);
         }}
@@ -183,6 +205,17 @@ export function ObrasGeraisCasca({
                   else if (lista.length > 1) setEscolhendo('avisos');
                 }}
               />
+              {admin ? (
+                <ItemMenu
+                  icon="documento"
+                  rotulo="Boletim automático"
+                  onClick={() => {
+                    setPerfilAberto(false);
+                    if (lista.length === 1) setBoletimConfigObraId(lista[0]!.id);
+                    else if (lista.length > 1) setEscolhendo('boletim');
+                  }}
+                />
+              ) : null}
               {admin ? (
                 <ItemMenu
                   icon="pessoa"
@@ -228,6 +261,23 @@ export function ObrasGeraisCasca({
           setAcoesAberta(null);
           abrirAtividade(obraId, atividadeId);
         }}
+      />
+    );
+  }
+
+  if (boletimObraId) {
+    return <BoletimGeralScreen obraId={boletimObraId} onVoltar={() => setBoletimObraId(null)} />;
+  }
+
+  const obraBoletimConfig = boletimConfigObraId
+    ? lista.find((o) => o.id === boletimConfigObraId)
+    : undefined;
+  if (boletimConfigObraId && admin) {
+    return (
+      <ConfigBoletimScreen
+        key={boletimConfigObraId}
+        obra={{ id: boletimConfigObraId, nome: obraBoletimConfig?.nome ?? 'a obra' }}
+        onVoltar={() => setBoletimConfigObraId(null)}
       />
     );
   }
@@ -306,14 +356,19 @@ export function ObrasGeraisCasca({
             <span className={inicio.ambiente}>{rotuloAmbiente(ambiente)}</span>
           ) : null}
         </div>
-        <button
-          type="button"
-          className={inicio.perfil}
-          aria-label="Perfil e ajustes"
-          onClick={() => setPerfilAberto(true)}
-        >
-          <Icon name="pessoa" size={22} />
-        </button>
+        <div className={inicio.acoesCabecalho}>
+          {podePessoasDaObra ? (
+            <ProntosParaEnviar ambiente="geral" onAbrirBoletim={setBoletimObraId} />
+          ) : null}
+          <button
+            type="button"
+            className={inicio.perfil}
+            aria-label="Perfil e ajustes"
+            onClick={() => setPerfilAberto(true)}
+          >
+            <Icon name="pessoa" size={22} />
+          </button>
+        </div>
       </header>
 
       {aba === 'hoje' ? (

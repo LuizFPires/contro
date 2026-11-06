@@ -15,10 +15,12 @@ const EDICAO: Record<string, string> = {
  */
 export function ProntosParaEnviar({
   onAbrirBoletim,
+  ambiente = 'contorno',
 }: {
   onAbrirBoletim: (obraId: string) => void;
+  ambiente?: 'contorno' | 'geral';
 }) {
-  const { query, marcarEnviado, desfazerEnviado } = useDisparosPendentes();
+  const { query, marcarEnviado, desfazerEnviado } = useDisparosPendentes(ambiente);
   const { showToast } = useToast();
   const [aberto, setAberto] = useState(false);
   const itens = query.data ?? [];

@@ -141,3 +141,9 @@
 .blocoAcoes {
   padding: 0 20px 12px;
 }
+
+.acoesCabecalho {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

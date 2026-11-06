@@ -48,6 +48,7 @@ export function ObraGeralDetalhe({
   onAbrirPerfil,
   onAbrirAcoes,
   onAbrirReuniao,
+  onAbrirBoletim,
   onFichaFechada,
 }: {
   id: string;
@@ -64,6 +65,8 @@ export function ObraGeralDetalhe({
   onAbrirAcoes?: () => void;
   /** Abre a reunião da obra (pauta e atas). */
   onAbrirReuniao?: () => void;
+  /** Abre o boletim da semana da obra. */
+  onAbrirBoletim?: () => void;
   /** A ficha aberta a partir das ações foi fechada: volta para elas. */
   onFichaFechada?: () => void;
   onTrocarObra: (id: string) => void;
@@ -217,6 +220,17 @@ export function ObraGeralDetalhe({
               onClick={onAbrirPessoas}
             >
               <Icon name={onAbrirPerfil ? 'membros' : 'pessoa'} size={22} />
+            </button>
+          ) : null}
+          {onAbrirBoletim ? (
+            <button
+              type="button"
+              className={styles.perfil}
+              aria-label="Boletim da semana"
+              title="Boletim da semana"
+              onClick={onAbrirBoletim}
+            >
+              <Icon name="documento" size={20} />
             </button>
           ) : null}
           {onAbrirPerfil ? (
