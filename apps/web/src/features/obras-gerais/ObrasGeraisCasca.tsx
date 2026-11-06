@@ -5,6 +5,7 @@ import { useLembrado } from '../../lib/useLembrado';
 import { ItemMenu, PerfilSheet } from '../perfil/PerfilSheet';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { abaGeralDaSessao, guardarAbaGeral, obraDaAbaGeral } from './abaObraGeral';
+import { AcoesObraGeral } from './AcoesObraGeral';
 import { HojeGeral } from './HojeGeral';
 import { NavGeral, type AbaGeral } from './NavGeral';
 import { ObraGeralDetalhe } from './ObraGeralDetalhe';
@@ -49,6 +50,11 @@ export function ObrasGeraisCasca({
   // A obra aberta fica lembrada: ao voltar ao app, reabre nela.
   const [obraAberta, setObraAberta] = useLembrado<string | null>('obrasgerais:obra', null);
   // Linha tocada no Hoje: a obra abre na ficha dessa atividade (uma vez).
+  // Tela de ações da equipe (de uma obra ou de todas): fica lembrada como a obra aberta.
+  const [acoesAberta, setAcoesAberta] = useLembrado<{ obraIds: string[] } | null>(
+    'obrasgerais:acoes',
+    null,
+  );
   const [atalho, setAtalho] = useState<{ obraId: string; atividadeId: string } | null>(null);
   const { data: obras } = useObrasGerais();
   const {
@@ -86,6 +92,7 @@ export function ObrasGeraisCasca({
       onTrocarObra={setObraAberta}
       onAbrirPessoas={() => setPessoasObraId(id)}
       onAbrirPerfil={admin ? undefined : () => setPerfilAberto(true)}
+      onAbrirAcoes={() => setAcoesAberta({ obraIds: [id] })}
     />
   );
 
@@ -137,6 +144,20 @@ export function ObrasGeraisCasca({
       />
     </>
   );
+
+  if (acoesAberta) {
+    return (
+      <AcoesObraGeral
+        obraIds={acoesAberta.obraIds}
+        pessoa={pessoa}
+        onVoltar={() => setAcoesAberta(null)}
+        onAbrirAtividade={(obraId, atividadeId) => {
+          setAcoesAberta(null);
+          abrirAtividade(obraId, atividadeId);
+        }}
+      />
+    );
+  }
 
   if (pessoasObraId && podePessoasDaObra) {
     return (
@@ -202,7 +223,11 @@ export function ObrasGeraisCasca({
           </div>
         )
       ) : (
-        <ObrasGeraisInicio pessoa={pessoa} onAbrirObra={setObraAberta} />
+        <ObrasGeraisInicio
+          pessoa={pessoa}
+          onAbrirObra={setObraAberta}
+          onAbrirAcoes={(obraIds) => setAcoesAberta({ obraIds })}
+        />
       )}
 
       {nav}

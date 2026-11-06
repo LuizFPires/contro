@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   podePlanejarObraGeral,
   resumoObraGeral,
+  textoEficiencia,
   rotuloPapelGeral,
   trilhaObraGeral,
   type FaseGeral,
@@ -16,6 +17,7 @@ import type { AoConcluir } from '../obras/useConcluirAtividade';
 import { useAvanco } from '../obras/useAvanco';
 import { useObraCampo } from '../obras/useObraCampo';
 import type { PessoaAtual } from '../perfil/usePerfil';
+import { BlocoAcoesGeral } from './BlocoAcoesGeral';
 import { FichaAtividadeGeral } from './FichaAtividadeGeral';
 import { NovaAtividadeGeralSheet } from './NovaAtividadeGeralSheet';
 import { NovaFaseSheet } from './NovaFaseSheet';
@@ -23,6 +25,7 @@ import styles from './ObraGeralDetalhe.module.css';
 import { TrocarObraSheet } from './TrocarObraSheet';
 import { useObraGeral } from './useObraGeral';
 import { useObrasGerais } from './useObrasGerais';
+import { useResumoObrasGerais } from './useResumoObrasGerais';
 
 /** Obra geral por dentro: trilha de fases com as atividades e o anel de avanço. */
 export function ObraGeralDetalhe({
@@ -35,6 +38,7 @@ export function ObraGeralDetalhe({
   abrirAtividadeId,
   onAtalhoUsado,
   onAbrirPerfil,
+  onAbrirAcoes,
 }: {
   id: string;
   pessoa: PessoaAtual;
@@ -46,11 +50,14 @@ export function ObraGeralDetalhe({
   onAtalhoUsado?: () => void;
   /** Obra como aba: o avatar do perfil (Perfil, Sair, Pessoas da obra) fica no topo dela. */
   onAbrirPerfil?: () => void;
+  /** Abre a tela de ações da equipe desta obra. */
+  onAbrirAcoes?: () => void;
   onTrocarObra: (id: string) => void;
   onAbrirPessoas: () => void;
 }) {
   const { data: obra, isLoading, isError, refetch } = useObraGeral(id);
   const { data: obras } = useObrasGerais();
+  const { data: resumoObras } = useResumoObrasGerais();
   const campo = useObraCampo(id);
   const { showToast } = useToast();
   const [faseAberta, setFaseAberta] = useLembrado<string | null>(`obrageral:${id}:fase`, null);
@@ -146,6 +153,8 @@ export function ObraGeralDetalhe({
     : pessoa.papelGeral
       ? rotuloPapelGeral(pessoa.papelGeral)
       : 'Membro';
+  const resumoDaObra = resumoObras?.find((o) => o.id === id);
+  const eficiencia = resumoDaObra ? textoEficiencia(resumoDaObra.eficiencia) : null;
   const lista = obras ?? [];
   const podeTrocar = lista.length > 1;
   const atual = fases.find((f) => !f.concluida);
@@ -174,7 +183,9 @@ export function ObraGeralDetalhe({
                 obra.nome
               )}
             </h1>
-            <div className={base.sub}>{resumoObraGeral(fases)}</div>
+            <div className={base.sub}>
+              {[resumoObraGeral(fases), eficiencia].filter(Boolean).join(' · ')}
+            </div>
           </div>
           {planeja ? (
             <button
@@ -200,6 +211,16 @@ export function ObraGeralDetalhe({
       </header>
 
       <div className={base.conteudo}>
+        {resumoDaObra && onAbrirAcoes ? (
+          <div className={styles.blocoAcoes}>
+            <BlocoAcoesGeral
+              acoes={resumoDaObra.acoes}
+              pessoaId={pessoa.id}
+              soDaPessoa={resumoDaObra.papel === 'membro'}
+              onAbrir={onAbrirAcoes}
+            />
+          </div>
+        ) : null}
         <div className={base.mapa}>
           {fases.length === 0 ? (
             <p className={styles.vazio}>

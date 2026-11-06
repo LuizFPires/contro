@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { podeGerirObrasGerais } from '@contro/core';
+import { podeGerirObrasGerais, textoEficiencia } from '@contro/core';
 import { Icon, Simbolo } from '@contro/ui';
 import type { PessoaAtual } from '../perfil/usePerfil';
+import { BlocoAcoesGeral } from './BlocoAcoesGeral';
 import { NovaObraGeralSheet } from './NovaObraGeralSheet';
 import { useObrasGerais } from './useObrasGerais';
+import { useResumoObrasGerais } from './useResumoObrasGerais';
 import styles from './ObrasGeraisInicio.module.css';
 
 /**
@@ -13,12 +15,17 @@ import styles from './ObrasGeraisInicio.module.css';
 export function ObrasGeraisInicio({
   pessoa,
   onAbrirObra,
+  onAbrirAcoes,
 }: {
   pessoa: PessoaAtual;
   onAbrirObra: (id: string) => void;
+  /** Administrador: abre as ações de todas as obras gerais juntas. */
+  onAbrirAcoes?: (obraIds: string[]) => void;
 }) {
   const [nova, setNova] = useState(false);
   const { data: obras, isLoading, isError, refetch } = useObrasGerais();
+  const { data: resumo } = useResumoObrasGerais();
+  const porId = new Map((resumo ?? []).map((r) => [r.id, r]));
   const admin = podeGerirObrasGerais({
     administrador: pessoa.administrador,
     acessoContorno: pessoa.acessoContorno,
@@ -41,6 +48,17 @@ export function ObrasGeraisInicio({
         ) : null}
       </div>
 
+      {pessoa.administrador && onAbrirAcoes && resumo && resumo.length > 0 ? (
+        <div className={styles.blocoAcoes}>
+          <BlocoAcoesGeral
+            acoes={resumo.flatMap((r) => r.acoes)}
+            pessoaId={pessoa.id}
+            soDaPessoa={false}
+            onAbrir={() => onAbrirAcoes(resumo.map((r) => r.id))}
+          />
+        </div>
+      ) : null}
+
       {isLoading ? (
         <p className={styles.aviso}>Carregando…</p>
       ) : isError ? (
@@ -58,8 +76,13 @@ export function ObrasGeraisInicio({
                 <span className={styles.cardTexto}>
                   <span className={styles.nome}>{o.nome}</span>
                   <span className={styles.meta}>
-                    {o.cidade ? `${o.cidade} · ` : ''}
-                    {o.pessoas === 1 ? '1 pessoa' : `${o.pessoas} pessoas`}
+                    {[
+                      o.cidade,
+                      porId.has(o.id) ? textoEficiencia(porId.get(o.id)!.eficiencia) : null,
+                      o.pessoas === 1 ? '1 pessoa' : `${o.pessoas} pessoas`,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </span>
                 </span>
                 <Icon name="seta" size={20} />
