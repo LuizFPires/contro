@@ -293,6 +293,24 @@ export interface EficienciaGeral {
   pct: number | null;
 }
 
+/**
+ * Prazo original da atividade: o original dela; sem ele, o maior entre os
+ * subitens (o original de cada um, ou a data dele); sem subitem com data, a
+ * data da própria atividade.
+ */
+function prazoOriginalAtividadeGeral(
+  a: AtividadeGeral,
+  subitens: AtividadeGeral[],
+): DataISO | null {
+  if (a.data_prevista_original) return a.data_prevista_original;
+  let maior: DataISO | null = null;
+  for (const s of subitens) {
+    const d = s.data_prevista_original ?? s.data_prevista;
+    if (d && (maior === null || d > maior)) maior = d;
+  }
+  return maior ?? a.data_prevista;
+}
+
 /** Concluídas contra o prazo original e abertas já atrasadas. */
 export function eficienciaObraGeral(atividades: AtividadeGeral[], hoje: DataISO): EficienciaGeral {
   const filhos = filhosPorPai(atividades);
@@ -301,10 +319,7 @@ export function eficienciaObraGeral(atividades: AtividadeGeral[], hoje: DataISO)
   for (const a of atividades) {
     if (a.pai_id !== null) continue;
     if (a.concluida_em !== null) {
-      const original =
-        a.data_prevista_original ??
-        a.data_prevista ??
-        prazoAtividadeGeral(a, filhos.get(a.id) ?? []);
+      const original = prazoOriginalAtividadeGeral(a, filhos.get(a.id) ?? []);
       if (!original) continue;
       total += 1;
       if (atrasoDU(original, diaLocal(a.concluida_em)) === 0) noPrazo += 1;

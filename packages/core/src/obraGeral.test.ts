@@ -363,6 +363,53 @@ describe('eficienciaObraGeral', () => {
     expect(r).toEqual({ noPrazo: 0, total: 0, pct: null });
     expect(textoEficiencia(r)).toBeNull();
   });
+
+  it('sem original na atividade, com subitens: o maior original (ou data) entre os subitens', () => {
+    const sub = (id: string, extra: Partial<AtividadeGeral>) =>
+      ativ({ id, pai_id: 'a', concluida_em: '2026-11-04T10:00:00', ...extra });
+    // Subitem replanejado de 03/11 para 06/11: o original é 03/11; o outro vai até 02/11.
+    // Concluída em 04/11, depois do original 03/11: fora do prazo (a data dela, 06/11, não conta).
+    const r = eficienciaObraGeral(
+      [
+        concl('a', '2026-11-06', '2026-11-04T10:00:00'),
+        sub('a1', { data_prevista: '2026-11-06', data_prevista_original: '2026-11-03' }),
+        sub('a2', { data_prevista: '2026-11-02' }),
+      ],
+      hoje,
+    );
+    expect(r).toEqual({ noPrazo: 0, total: 1, pct: 0 });
+  });
+
+  it('sem original na atividade: subitens sem replanejar dão o maior prazo deles', () => {
+    const r = eficienciaObraGeral(
+      [
+        concl('a', '2026-11-02', '2026-11-04T10:00:00'),
+        ativ({ id: 'a1', pai_id: 'a', data_prevista: '2026-11-04' }),
+        ativ({ id: 'a2', pai_id: 'a', data_prevista: '2026-11-03' }),
+      ],
+      hoje,
+    );
+    expect(r).toEqual({ noPrazo: 1, total: 1, pct: 100 });
+  });
+
+  it('original da própria atividade vale mais que os subitens', () => {
+    const r = eficienciaObraGeral(
+      [
+        concl('a', '2026-11-06', '2026-11-04T10:00:00', { data_prevista_original: '2026-11-02' }),
+        ativ({ id: 'a1', pai_id: 'a', data_prevista: '2026-11-06' }),
+      ],
+      hoje,
+    );
+    expect(r).toEqual({ noPrazo: 0, total: 1, pct: 0 });
+  });
+
+  it('subitens sem data: usa a data da atividade', () => {
+    const r = eficienciaObraGeral(
+      [concl('a', '2026-11-04', '2026-11-04T10:00:00'), ativ({ id: 'a1', pai_id: 'a' })],
+      hoje,
+    );
+    expect(r).toEqual({ noPrazo: 1, total: 1, pct: 100 });
+  });
 });
 
 describe('textoAcoesBloco', () => {
