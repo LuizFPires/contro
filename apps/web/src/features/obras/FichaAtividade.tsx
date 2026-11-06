@@ -12,7 +12,6 @@ import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import { PropostasMapa } from './PropostasMapa';
-import { PendenciasAba } from './PendenciasAba';
 import { AjustePrazo } from './AjustePrazo';
 import { VidaDoItem } from '../log/VidaDoItem';
 import { Camera } from './Camera';
@@ -372,10 +371,8 @@ export function FichaAtividade({
             ) : null}
           </section>
 
-          <section className={styles.secao}>
-            <h3 className={styles.rotulo}>Pendências da atividade</h3>
-            <PendenciasAba key={a.id} obra={obra} atividadeId={a.id} />
-          </section>
+          {/* Sem "Pendências da atividade" na ficha (06/11/2026): repetia o Check list e
+              confundia. As pendências ficam só na aba Check list da obra. */}
 
           {subitens.length > 0 ? (
             <section className={styles.secao}>
