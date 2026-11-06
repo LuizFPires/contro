@@ -208,6 +208,8 @@ export async function adicionarProvidencia(
   atividadeId: string,
   tipo: 'contratacao' | 'locacao' | 'compra',
   descricao: string,
+  /** Obra geral: dias úteis antes da data prevista (o banco calcula o "providenciar até"). */
+  antecedenciaDu = 0,
 ): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.from('obra_providencia').insert({
@@ -215,7 +217,7 @@ export async function adicionarProvidencia(
     atividade_id: atividadeId,
     tipo,
     descricao,
-    antecedencia_du: 0,
+    antecedencia_du: antecedenciaDu,
     manual: true,
   });
   if (error) throw error;

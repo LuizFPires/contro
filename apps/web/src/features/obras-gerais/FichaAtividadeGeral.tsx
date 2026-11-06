@@ -4,14 +4,21 @@ import {
   atalhosDataPrevista,
   diaCurto,
   podePlanejarObraGeral,
+  ROTULO_TIPO_PROVIDENCIA,
+  situacaoProvidenciaGeral,
   trilhaObraGeral,
   type SubitemGeral,
+  type TipoProvidencia,
 } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { EscolherData } from '../../components/EscolherData';
 import { hojeISO } from '../obras/api';
 import { Camera } from '../obras/Camera';
 import fichaStyles from '../obras/FichaAtividade.module.css';
+import { LinhaPara } from '../obras/LinhaPara';
+import linhaStyles from '../obras/LinhaPara.module.css';
+import { PendenciasAba } from '../obras/PendenciasAba';
+import { NovaProvidenciaSheet } from '../obras/ProvidenciasAba';
 import { RodapeAvanco } from '../obras/RodapeAvanco';
 import { TextoEditavel } from '../obras/TextoEditavel';
 import { useAvanco } from '../obras/useAvanco';
@@ -62,6 +69,8 @@ export function FichaAtividadeGeral({
   const [mudandoData, setMudandoData] = useState(false);
   const [trocandoResp, setTrocandoResp] = useState(false);
   const [camera, setCamera] = useState<'concluir' | 'anexar' | null>(null);
+  const [novoTipo, setNovoTipo] = useState<TipoProvidencia | null>(null);
+  const [provMenuId, setProvMenuId] = useState<string | null>(null);
   // `undefined` = fechado; `null` = subitem novo.
   const [subitemEdit, setSubitemEdit] = useState<SubitemGeral | null | undefined>(undefined);
 
@@ -160,6 +169,36 @@ export function FichaAtividadeGeral({
       () => definirResponsavelAtividade(a.id, novo),
       () => desfazerResponsavelAtividade(a.id, antes),
       'Responsável alterado.',
+    );
+  }
+
+  // Lembretes de contratação, locação e compra desta atividade (prazo pela data prevista).
+  const provs = obra.providencias
+    .filter((p) => p.atividade_id === a.id)
+    .map((p) => ({
+      p,
+      feito: p.status === 'feito',
+      ...situacaoProvidenciaGeral({
+        status: p.status,
+        atividadeConcluida: concluida,
+        prazoAtividade: a.prazo,
+        antecedenciaDu: p.antecedencia_du,
+        hoje,
+      }),
+    }));
+  const provsFeitas = provs.filter((x) => x.feito).length;
+  const provMenu = provs.find((x) => x.p.id === provMenuId)?.p ?? null;
+
+  function alternarProv(id: string, feito: boolean, tipoTxt: string) {
+    campo.providencia.mutate(
+      { id, feito },
+      {
+        onSuccess: () =>
+          showToast({
+            message: feito ? `${tipoTxt} providenciada` : `${tipoTxt} reaberta`,
+            onUndo: () => campo.providencia.mutate({ id, feito: !feito }),
+          }),
+      },
     );
   }
 
@@ -385,6 +424,74 @@ export function FichaAtividadeGeral({
             </section>
           ) : null}
 
+          {provs.length || planeja ? (
+            <section className={fichaStyles.secao}>
+              <h3 className={fichaStyles.rotulo}>
+                Para começar ·{' '}
+                {provs.length
+                  ? `${provsFeitas} de ${provs.length} ${provs.length === 1 ? 'providenciado' : 'providenciados'}`
+                  : 'nada a providenciar'}
+              </h3>
+              {provs.length ? (
+                <div className={linhaStyles.lista}>
+                  {provs.map(({ p, feito, ate, atrasada, venceHoje }) => (
+                    <LinhaPara
+                      key={p.id}
+                      tipo={ROTULO_TIPO_PROVIDENCIA[p.tipo]}
+                      nome={p.descricao}
+                      feito={feito}
+                      atrasado={atrasada}
+                      meta={
+                        feito ? (
+                          p.feito_por_nome || 'Providenciado'
+                        ) : !ate ? (
+                          `${p.antecedencia_du} d.u. antes da data prevista`
+                        ) : atrasada ? (
+                          `Atrasado · era até ${diaCurto(ate)}`
+                        ) : venceHoje ? (
+                          <span className={styles.venceHoje}>Vence hoje</span>
+                        ) : (
+                          `até ${diaCurto(ate)}`
+                        )
+                      }
+                      onAlternar={() => alternarProv(p.id, !feito, ROTULO_TIPO_PROVIDENCIA[p.tipo])}
+                      onMais={planeja ? () => setProvMenuId(p.id) : undefined}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className={fichaStyles.vazio}>
+                  Nenhuma contratação, locação ou compra lançada para esta atividade.
+                </div>
+              )}
+              {planeja && !concluida ? (
+                <div className={fichaStyles.novos}>
+                  {(Object.keys(ROTULO_TIPO_PROVIDENCIA) as TipoProvidencia[]).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      className={fichaStyles.novo}
+                      onClick={() => setNovoTipo(t)}
+                    >
+                      + {ROTULO_TIPO_PROVIDENCIA[t]}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
+          <section className={fichaStyles.secao}>
+            <h3 className={fichaStyles.rotulo}>Pendências da atividade</h3>
+            <PendenciasAba
+              key={a.id}
+              obra={obra}
+              atividadeId={a.id}
+              pessoas={obra.pessoas}
+              podeAtribuir={planeja}
+            />
+          </section>
+
           {concluida && a.semFoto ? (
             <div className={fichaStyles.semFoto}>
               <span>
@@ -436,6 +543,58 @@ export function FichaAtividadeGeral({
           permitirNenhum
         />
       </BottomSheet>
+
+      <BottomSheet open={Boolean(provMenu)} onClose={() => setProvMenuId(null)}>
+        {provMenu ? (
+          <div className={linhaStyles.detalhe}>
+            <span className={linhaStyles.detTipo}>{ROTULO_TIPO_PROVIDENCIA[provMenu.tipo]}</span>
+            <h3 className={fichaStyles.provDesc}>{provMenu.descricao}</h3>
+            <span className={linhaStyles.detTexto}>
+              Providenciar {provMenu.antecedencia_du} dias úteis antes da data prevista
+            </span>
+            <button
+              type="button"
+              className={linhaStyles.acao}
+              disabled={campo.removerProv.isPending}
+              onClick={() => {
+                const id = provMenu.id;
+                campo.removerProv.mutate(id, {
+                  onSuccess: () => {
+                    setProvMenuId(null);
+                    showToast({
+                      message: 'Lembrete excluído',
+                      onUndo: () => campo.restaurarProv.mutate(id),
+                    });
+                  },
+                  onError: () =>
+                    showToast({ message: 'Não foi possível excluir o lembrete. Tente novamente.' }),
+                });
+              }}
+            >
+              <Icon name="lixeira" size={18} strokeWidth={2} />
+              Excluir lembrete
+            </button>
+          </div>
+        ) : null}
+      </BottomSheet>
+
+      <NovaProvidenciaSheet
+        obra={obra}
+        tipo={novoTipo}
+        atividadeFixa={a.id}
+        comAntecedencia
+        pendente={campo.addProvidencia.isPending}
+        onFechar={() => setNovoTipo(null)}
+        onSalvar={(v) =>
+          campo.addProvidencia.mutate(v, {
+            onSuccess: () => {
+              setNovoTipo(null);
+              showToast({ message: 'Lembrete salvo' });
+            },
+            onError: () => showToast({ message: 'Não foi possível salvar o lembrete' }),
+          })
+        }
+      />
 
       <EditarSubitemSheet
         aberto={subitemEdit !== undefined}

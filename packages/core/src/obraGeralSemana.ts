@@ -130,3 +130,20 @@ export function montarBoletimGeral(e: {
 export function providenciarAteGeral(dataPrevista: DataISO, antecedenciaDu: number): DataISO {
   return deslocarDU(dataPrevista, -Math.max(0, antecedenciaDu));
 }
+
+/**
+ * Situação do lembrete na obra geral: data limite (data prevista da atividade menos a
+ * antecedência), atrasado (pendente, atividade aberta e limite já passou) e vence hoje.
+ * Atividade sem data não tem limite nem atraso.
+ */
+export function situacaoProvidenciaGeral(e: {
+  status: 'pendente' | 'feito';
+  atividadeConcluida: boolean;
+  prazoAtividade: DataISO | null;
+  antecedenciaDu: number;
+  hoje: DataISO;
+}): { ate: DataISO | null; atrasada: boolean; venceHoje: boolean } {
+  const ate = e.prazoAtividade ? providenciarAteGeral(e.prazoAtividade, e.antecedenciaDu) : null;
+  const aberta = e.status === 'pendente' && !e.atividadeConcluida && ate !== null;
+  return { ate, atrasada: aberta && ate! < e.hoje, venceHoje: aberta && ate === e.hoje };
+}

@@ -12,7 +12,7 @@ import { Camera } from './Camera';
 import { FotoViewer, type FotoAmpliada } from './FotoViewer';
 import { ChecklistInfo } from './ChecklistInfo';
 import { PendenciaDeck } from './PendenciaDeck';
-import type { ObraCompleta } from './detalhe';
+import type { ObraChecklist } from './listaAtividades';
 import type { PendenciaObra } from './pendenciasObra';
 import type { NovaPendencia } from './campo';
 import { useObraPendencias } from './useObraPendencias';
@@ -35,9 +35,15 @@ export function PendenciasAba({
   atividadeId,
   focoId,
   onFocoAplicado,
+  pessoas,
+  podeAtribuir = true,
 }: {
-  obra: ObraCompleta;
+  obra: ObraChecklist;
   atividadeId?: string;
+  /** Quem pode ser responsável (obra geral: as pessoas da obra); sem ela, a equipe Contorno. */
+  pessoas?: { id: string; nome: string }[];
+  /** Obra geral: só quem planeja atribui o responsável. */
+  podeAtribuir?: boolean;
   /** Pendência tocada em Tarefas ou Minhas ações: abre nela, com destaque. */
   focoId?: string;
   onFocoAplicado?: () => void;
@@ -239,6 +245,7 @@ export function PendenciasAba({
         <ChecklistResponsavel
           key={atribuir.id}
           pendencia={atribuir}
+          pessoas={pessoas}
           onFechar={() => setAtribuir(null)}
           onSalvar={(id, nome) =>
             campo.atribuir.mutateAsync({
@@ -485,16 +492,18 @@ export function PendenciasAba({
                 <div className={styles.meta}>{onde(menuPend)}</div>
               </div>
             </div>
-            <button
-              type="button"
-              className={styles.menuPendItem}
-              onClick={() => {
-                setAtribuir(menuPend);
-                setMenuPend(null);
-              }}
-            >
-              <Icon name="pessoa" size={20} /> Atribuir responsável
-            </button>
+            {podeAtribuir ? (
+              <button
+                type="button"
+                className={styles.menuPendItem}
+                onClick={() => {
+                  setAtribuir(menuPend);
+                  setMenuPend(null);
+                }}
+              >
+                <Icon name="pessoa" size={20} /> Atribuir responsável
+              </button>
+            ) : null}
             {fotosDe(menuPend).length ? (
               <button
                 type="button"

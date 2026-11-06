@@ -11,7 +11,7 @@ import { BottomSheet, Button, Icon, Input, useToast } from '@contro/ui';
 import { AtividadePicker } from './AtividadePicker';
 import { Camera } from './Camera';
 import type { NovaPendencia } from './campo';
-import type { ObraCompleta } from './detalhe';
+import type { ObraChecklist } from './listaAtividades';
 import styles from './AdiarSheet.module.css';
 import lote from './ApontarLote.module.css';
 
@@ -29,7 +29,7 @@ function PendenciaCampos({
   dados,
   onMudar,
 }: {
-  obra: ObraCompleta;
+  obra: ObraChecklist;
   dados: NovaPendencia;
   onMudar: (d: NovaPendencia) => void;
 }) {
@@ -104,7 +104,7 @@ export function ApontarSheet({
 }: {
   atividadeInicial?: string;
   aberto: boolean;
-  obra: ObraCompleta;
+  obra: ObraChecklist;
   onFechar: () => void;
   /** Grava uma pendência (otimista e offline) e devolve o id. */
   onApontar: (dados: NovaPendencia, file: File) => Promise<string>;
@@ -458,7 +458,7 @@ function ParaTodas({
   n,
   onAplicar,
 }: {
-  obra: ObraCompleta;
+  obra: ObraChecklist;
   n: number;
   onAplicar: (campos: Partial<Pick<ItemLote, 'local' | 'criticidade' | 'atividadeId'>>) => void;
 }) {
@@ -515,7 +515,7 @@ export function EditarPendenciaSheet({
   onFechar,
   onSalvar,
 }: {
-  obra: ObraCompleta;
+  obra: ObraChecklist;
   /** Pendência em edição (null = fechado). */
   inicial: NovaPendencia | null;
   onFechar: () => void;

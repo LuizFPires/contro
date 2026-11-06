@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  classificarPendencias,
   podePlanejarObraGeral,
   resumoObraGeral,
   textoEficiencia,
@@ -12,10 +13,12 @@ import { useLembrado } from '../../lib/useLembrado';
 import { hojeISO } from '../obras/api';
 import { AnelAvanco } from '../obras/AnelAvanco';
 import { Camera } from '../obras/Camera';
+import { PendenciasAba } from '../obras/PendenciasAba';
 import base from '../obras/ObraDetalhe.module.css';
 import type { AoConcluir } from '../obras/useConcluirAtividade';
 import { useAvanco } from '../obras/useAvanco';
 import { useObraCampo } from '../obras/useObraCampo';
+import { useObraPendencias } from '../obras/useObraPendencias';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { BlocoAcoesGeral } from './BlocoAcoesGeral';
 import { FichaAtividadeGeral } from './FichaAtividadeGeral';
@@ -27,7 +30,9 @@ import { useObraGeral } from './useObraGeral';
 import { useObrasGerais } from './useObrasGerais';
 import { useResumoObrasGerais } from './useResumoObrasGerais';
 
-/** Obra geral por dentro: trilha de fases com as atividades e o anel de avanço. */
+type SecaoObra = 'fases' | 'checklist';
+
+/** Obra geral por dentro: trilha de fases (com o anel de avanço) e o Check list. */
 export function ObraGeralDetalhe({
   id,
   pessoa,
@@ -62,7 +67,9 @@ export function ObraGeralDetalhe({
   const { data: obras } = useObrasGerais();
   const { data: resumoObras } = useResumoObrasGerais();
   const campo = useObraCampo(id);
+  const pendencias = useObraPendencias(id);
   const { showToast } = useToast();
+  const [secao, setSecao] = useLembrado<SecaoObra>(`obrageral:${id}:secao`, 'fases');
   const [faseAberta, setFaseAberta] = useLembrado<string | null>(`obrageral:${id}:fase`, null);
   // A ficha da atividade e a nova atividade abrem por estes estados (telas próprias).
   const [fichaId, setFichaId] = useLembrado<string | null>(`obrageral:${id}:ficha`, null);
@@ -72,9 +79,14 @@ export function ObraGeralDetalhe({
   const [anexandoId, setAnexandoId] = useState<string | null>(null);
   useEffect(() => {
     if (!abrirAtividadeId) return;
+    setSecao('fases');
     setFichaId(abrirAtividadeId);
     onAtalhoUsado?.();
-  }, [abrirAtividadeId, onAtalhoUsado, setFichaId]);
+  }, [abrirAtividadeId, onAtalhoUsado, setFichaId, setSecao]);
+  const pendAbertas = useMemo(
+    () => classificarPendencias(pendencias.query.data ?? []).pendentes.length,
+    [pendencias.query.data],
+  );
 
   const aoConcluir: AoConcluir = (r, det) => {
     showToast({
@@ -211,58 +223,92 @@ export function ObraGeralDetalhe({
             </button>
           ) : null}
         </div>
+        <div role="tablist" aria-label="Seções da obra" className={styles.secoes}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={secao === 'fases'}
+            className={`${styles.secao} ${secao === 'fases' ? styles.secaoAtiva : ''}`}
+            onClick={() => setSecao('fases')}
+          >
+            <Icon name="fases" size={18} />
+            Fases
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={secao === 'checklist'}
+            className={`${styles.secao} ${secao === 'checklist' ? styles.secaoAtiva : ''}`}
+            onClick={() => setSecao('checklist')}
+          >
+            <Icon name="pendencias" size={18} />
+            Check list
+            {pendAbertas > 0 ? (
+              <span className={styles.secaoBadge}>
+                <span className="sr-only">pendências abertas: </span>
+                {pendAbertas}
+              </span>
+            ) : null}
+          </button>
+        </div>
       </header>
 
-      <div className={base.conteudo}>
-        {resumoDaObra && onAbrirAcoes ? (
-          <div className={styles.blocoAcoes}>
-            <BlocoAcoesGeral
-              acoes={resumoDaObra.acoes}
-              pessoaId={pessoa.id}
-              soDaPessoa={resumoDaObra.papel === 'membro'}
-              onAbrir={onAbrirAcoes}
-            />
-          </div>
-        ) : null}
-        <div className={base.mapa}>
-          {fases.length === 0 ? (
-            <p className={styles.vazio}>
-              <b>Nenhuma fase ainda.</b>
-              {planeja ? 'Toque em + fase para começar.' : null}
-            </p>
-          ) : null}
-
-          {fases.map((f) => (
-            <FaseGeralView
-              key={f.id}
-              fase={f}
-              atual={atual?.id === f.id}
-              aberta={aberta === f.id}
-              planeja={planeja}
-              onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
-              onAnel={avanco.anel}
-              onFicha={setFichaId}
-              onAnexar={setAnexandoId}
-              onAdicionar={() => setNovaAtividadeFaseId(f.id)}
-            />
-          ))}
-
-          {planeja ? (
-            <button type="button" className={styles.mais} onClick={() => setNovaFase(true)}>
-              + fase
-            </button>
-          ) : null}
-
-          <div className={base.inauguracao}>
-            <div className={base.inaugIcone}>
-              <Icon name="bandeira" size={22} />
+      {secao === 'checklist' ? (
+        <div className={base.conteudo}>
+          <PendenciasAba obra={obra} pessoas={obra.pessoas} podeAtribuir={planeja} />
+        </div>
+      ) : (
+        <div className={base.conteudo}>
+          {resumoDaObra && onAbrirAcoes ? (
+            <div className={styles.blocoAcoes}>
+              <BlocoAcoesGeral
+                acoes={resumoDaObra.acoes}
+                pessoaId={pessoa.id}
+                soDaPessoa={resumoDaObra.papel === 'membro'}
+                onAbrir={onAbrirAcoes}
+              />
             </div>
-            <div className={base.inaugTexto}>
-              <div className={base.inaugData}>Entrega da obra</div>
+          ) : null}
+          <div className={base.mapa}>
+            {fases.length === 0 ? (
+              <p className={styles.vazio}>
+                <b>Nenhuma fase ainda.</b>
+                {planeja ? 'Toque em + fase para começar.' : null}
+              </p>
+            ) : null}
+
+            {fases.map((f) => (
+              <FaseGeralView
+                key={f.id}
+                fase={f}
+                atual={atual?.id === f.id}
+                aberta={aberta === f.id}
+                planeja={planeja}
+                onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
+                onAnel={avanco.anel}
+                onFicha={setFichaId}
+                onAnexar={setAnexandoId}
+                onAdicionar={() => setNovaAtividadeFaseId(f.id)}
+              />
+            ))}
+
+            {planeja ? (
+              <button type="button" className={styles.mais} onClick={() => setNovaFase(true)}>
+                + fase
+              </button>
+            ) : null}
+
+            <div className={base.inauguracao}>
+              <div className={base.inaugIcone}>
+                <Icon name="bandeira" size={22} />
+              </div>
+              <div className={base.inaugTexto}>
+                <div className={base.inaugData}>Entrega da obra</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <TrocarObraSheet
         aberto={trocando}

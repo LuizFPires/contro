@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { atalhosDataPrevista, diaCurto } from '@contro/core';
+import {
+  atalhosDataPrevista,
+  diaCurto,
+  ROTULO_TIPO_PROVIDENCIA,
+  type TipoProvidencia,
+} from '@contro/core';
 import { BottomSheet, Button, Icon, useToast } from '@contro/ui';
 import { AvisoRascunho } from '../../components/AvisoRascunho';
 import { EscolherData } from '../../components/EscolherData';
 import { useRascunho } from '../../lib/useRascunho';
 import { hojeISO } from '../obras/api';
+import { adicionarProvidencia } from '../obras/campo';
+import provStyles from '../obras/ProvidenciasAba.module.css';
 import { useObraCampo } from '../obras/useObraCampo';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { EscolherResponsavel } from './EscolherResponsavel';
@@ -17,12 +24,22 @@ interface LinhaSub {
   nome: string;
   data: string;
 }
+/** Lembrete de contratação, locação ou compra (regra 4: sem valor nem fornecedor). */
+interface LinhaLembrete {
+  tipo: TipoProvidencia;
+  descricao: string;
+  /** Dias úteis antes da data prevista, como digitado. */
+  antecedencia: string;
+}
 interface Rascunho {
   nome: string;
   quem: string | null;
   data: string;
   subitens: LinhaSub[];
+  lembretes?: LinhaLembrete[];
 }
+
+const TIPOS = Object.keys(ROTULO_TIPO_PROVIDENCIA) as TipoProvidencia[];
 
 const limpar = (s: string) => s.trim().replace(/\s+/g, ' ');
 
@@ -53,6 +70,7 @@ export function NovaAtividadeGeralSheet({
   const [quem, setQuem] = useState<string | null>(lido?.quem ?? null);
   const [data, setData] = useState(lido?.data ?? '');
   const [subitens, setSubitens] = useState<LinhaSub[]>(lido?.subitens ?? []);
+  const [lembretes, setLembretes] = useState<LinhaLembrete[]>(lido?.lembretes ?? []);
   const [recuperado, setRecuperado] = useState(Boolean(lido));
   const [dataDoSub, setDataDoSub] = useState<number | null>(null);
   const [ocupado, setOcupado] = useState(false);
@@ -60,9 +78,10 @@ export function NovaAtividadeGeralSheet({
 
   const guardar = rascunho.guardar;
   useEffect(() => {
-    const vazio = !nome.trim() && !subitens.some((s) => s.nome.trim());
-    guardar({ nome, quem, data, subitens }, vazio);
-  }, [nome, quem, data, subitens, guardar]);
+    const vazio =
+      !nome.trim() && !subitens.some((s) => s.nome.trim()) && !lembretes.some((l) => l.descricao);
+    guardar({ nome, quem, data, subitens, lembretes }, vazio);
+  }, [nome, quem, data, subitens, lembretes, guardar]);
 
   const comSubitens = subitens.length > 0;
   const nomeLimpo = limpar(nome);
@@ -73,6 +92,9 @@ export function NovaAtividadeGeralSheet({
   function mudarSub(i: number, parte: Partial<LinhaSub>) {
     setSubitens((arr) => arr.map((x, j) => (j === i ? { ...x, ...parte } : x)));
   }
+  function mudarLembrete(i: number, parte: Partial<LinhaLembrete>) {
+    setLembretes((arr) => arr.map((x, j) => (j === i ? { ...x, ...parte } : x)));
+  }
   function descartar() {
     rascunho.limpar();
     setRecuperado(false);
@@ -80,6 +102,7 @@ export function NovaAtividadeGeralSheet({
     setQuem(null);
     setData('');
     setSubitens([]);
+    setLembretes([]);
   }
 
   async function adicionar() {
@@ -101,10 +124,33 @@ export function NovaAtividadeGeralSheet({
         dataPrevista: subs.length > 0 ? null : data || null,
         subitens: subs,
       });
+      // Lembretes depois da atividade (precisam dela); o banco calcula o "providenciar até".
+      const comTexto = lembretes
+        .map((l) => ({ ...l, descricao: limpar(l.descricao) }))
+        .filter((l) => l.descricao);
+      let lembreteFalhou = false;
+      for (const l of comTexto) {
+        try {
+          await adicionarProvidencia(
+            obra.id,
+            id,
+            l.tipo,
+            l.descricao,
+            Math.min(60, Number(l.antecedencia) || 0),
+          );
+        } catch {
+          lembreteFalhou = true;
+        }
+      }
       rascunho.limpar();
       void qc.invalidateQueries({ queryKey: ['obras-gerais', 'resumo'] });
       await qc.invalidateQueries({ queryKey: ['obra', obra.id] });
-      showToast({ message: 'Atividade adicionada.', onUndo: () => campo.excluir.mutate(id) });
+      showToast({
+        message: lembreteFalhou
+          ? 'Atividade adicionada. Não foi possível salvar um lembrete: lance pela ficha.'
+          : 'Atividade adicionada.',
+        onUndo: () => campo.excluir.mutate(id),
+      });
       onFechar();
     } catch (e) {
       setOcupado(false);
@@ -219,6 +265,72 @@ export function NovaAtividadeGeralSheet({
               </>
             ) : null}
           </div>
+
+          {lembretes.map((l, i) => (
+            <div key={i} className={styles.caixa}>
+              <div className={styles.caixaTopo}>
+                <b>Lembrete de providência</b>
+                <button
+                  type="button"
+                  className={styles.remover}
+                  aria-label={`Remover lembrete ${i + 1}`}
+                  onClick={() => setLembretes((arr) => arr.filter((_, j) => j !== i))}
+                >
+                  <Icon name="close" size={20} />
+                </button>
+              </div>
+              <div
+                className={provStyles.tipos}
+                role="group"
+                aria-label={`Tipo do lembrete ${i + 1}`}
+              >
+                {TIPOS.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    aria-pressed={l.tipo === t}
+                    className={`${provStyles.tipoBtn} ${l.tipo === t ? provStyles.tipoAtivo : ''}`}
+                    onClick={() => mudarLembrete(i, { tipo: t })}
+                  >
+                    {ROTULO_TIPO_PROVIDENCIA[t]}
+                  </button>
+                ))}
+              </div>
+              <input
+                className={styles.campo}
+                value={l.descricao}
+                aria-label={`O que providenciar no lembrete ${i + 1}`}
+                placeholder="O que providenciar (ex.: caminhão Munk)"
+                onChange={(e) => mudarLembrete(i, { descricao: e.target.value })}
+              />
+              <div className={styles.linha}>
+                <input
+                  className={`${styles.campo} ${styles.campoDu}`}
+                  inputMode="numeric"
+                  value={l.antecedencia}
+                  aria-label={`Dias úteis antes da data prevista, lembrete ${i + 1}`}
+                  onChange={(e) =>
+                    mudarLembrete(i, {
+                      antecedencia: e.target.value.replace(/\D/g, '').slice(0, 2),
+                    })
+                  }
+                />
+                <span className={styles.nota}>dias úteis antes da data prevista</span>
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            className={styles.maisSub}
+            onClick={() =>
+              setLembretes((arr) => [
+                ...arr,
+                { tipo: 'contratacao', descricao: '', antecedencia: '5' },
+              ])
+            }
+          >
+            + lembrete de providência
+          </button>
 
           {erro ? (
             <p role="alert" className={styles.erro}>

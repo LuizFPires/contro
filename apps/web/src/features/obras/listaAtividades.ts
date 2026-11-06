@@ -1,6 +1,15 @@
 import { filtrarAtividades, normalizarBusca } from '@contro/core';
-import type { ObraCompleta, ObraFase } from './detalhe';
+import type { ObraAtv, ObraCompleta, ObraFase } from './detalhe';
 import { numeracaoObra } from './numeracaoObra';
+
+/** O que a lista de atividades lê: serve para a obra Contorno e para a obra geral. */
+export type ObraListavel = {
+  fases: Pick<ObraFase, 'id' | 'ordem' | 'titulo'>[];
+  atividades: Pick<ObraAtv, 'id' | 'nome' | 'pai_id' | 'fase_id' | 'ordem'>[];
+};
+
+/** O que o Check list lê da obra (Contorno ou geral). */
+export type ObraChecklist = ObraListavel & { id: string; nome: string };
 
 /** Atividade de topo numa lista de escolha (com o #N da obra), na ordem das fases. */
 export interface ItemLista {
@@ -11,7 +20,7 @@ export interface ItemLista {
 }
 
 /** Atividades de topo da obra, fase a fase, com a numeração #N. */
-export function itensAtividadesObra(obra: ObraCompleta): ItemLista[] {
+export function itensAtividadesObra(obra: ObraListavel): ItemLista[] {
   const num = numeracaoObra(obra);
   const ordemFase = new Map(obra.fases.map((f) => [f.id, f.ordem]));
   const chave = (a: { fase_id: string; ordem: number }) =>
@@ -23,10 +32,10 @@ export function itensAtividadesObra(obra: ObraCompleta): ItemLista[] {
 }
 
 /** Agrupa os itens pelas fases da obra (na ordem), sem grupos vazios. */
-export function agruparPorFase<T extends { faseId: string }>(
-  fases: ObraFase[],
-  itens: T[],
-): { fase: ObraFase; itens: T[] }[] {
+export function agruparPorFase<
+  F extends Pick<ObraFase, 'id' | 'ordem'>,
+  T extends { faseId: string },
+>(fases: F[], itens: T[]): { fase: F; itens: T[] }[] {
   return fases
     .slice()
     .sort((a, b) => a.ordem - b.ordem)

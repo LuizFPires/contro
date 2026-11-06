@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { textoBoletimWhatsapp } from './boletim';
 import type { AtividadeGeral } from './obraGeral';
-import { montarBoletimGeral, providenciarAteGeral, semanaDaReuniaoGeral } from './obraGeralSemana';
+import {
+  montarBoletimGeral,
+  providenciarAteGeral,
+  semanaDaReuniaoGeral,
+  situacaoProvidenciaGeral,
+} from './obraGeralSemana';
 
 let n = 0;
 function ativ(p: Partial<AtividadeGeral>): AtividadeGeral {
@@ -129,5 +134,40 @@ describe('providenciarAteGeral', () => {
   });
   it('antecedência 0 é a própria data', () => {
     expect(providenciarAteGeral('2026-11-09', 0)).toBe('2026-11-09');
+  });
+});
+
+describe('situacaoProvidenciaGeral', () => {
+  const base = {
+    status: 'pendente' as const,
+    atividadeConcluida: false,
+    prazoAtividade: '2026-11-09',
+    antecedenciaDu: 3,
+  };
+  it('pendente antes do prazo: só a data limite', () => {
+    expect(situacaoProvidenciaGeral({ ...base, hoje: '2026-11-03' })).toEqual({
+      ate: '2026-11-04',
+      atrasada: false,
+      venceHoje: false,
+    });
+  });
+  it('no dia do prazo vence hoje', () => {
+    expect(situacaoProvidenciaGeral({ ...base, hoje: '2026-11-04' }).venceHoje).toBe(true);
+  });
+  it('passou do prazo e segue pendente: atrasada', () => {
+    expect(situacaoProvidenciaGeral({ ...base, hoje: '2026-11-05' }).atrasada).toBe(true);
+  });
+  it('feita ou com a atividade concluída não atrasa', () => {
+    expect(
+      situacaoProvidenciaGeral({ ...base, status: 'feito', hoje: '2026-11-20' }).atrasada,
+    ).toBe(false);
+    expect(
+      situacaoProvidenciaGeral({ ...base, atividadeConcluida: true, hoje: '2026-11-20' }).atrasada,
+    ).toBe(false);
+  });
+  it('atividade sem data: sem prazo e sem atraso', () => {
+    expect(situacaoProvidenciaGeral({ ...base, prazoAtividade: null, hoje: '2026-11-20' })).toEqual(
+      { ate: null, atrasada: false, venceHoje: false },
+    );
   });
 });
