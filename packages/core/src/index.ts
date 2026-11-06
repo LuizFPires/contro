@@ -33,6 +33,7 @@ export * from './log';
 export * from './score';
 export * from './scoreEvolucao';
 export * from './papelContorno';
+export * from './reordenar';
 
 export type Perfil = 'gestor' | 'equipe';
 

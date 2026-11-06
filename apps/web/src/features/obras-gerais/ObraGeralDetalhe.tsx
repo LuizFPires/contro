@@ -28,6 +28,7 @@ import { useConfigAvisosObra } from './reuniao/useConfigAvisosObra';
 import { FichaAtividadeGeral } from './FichaAtividadeGeral';
 import { NovaAtividadeGeralSheet } from './NovaAtividadeGeralSheet';
 import { NovaFaseSheet } from './NovaFaseSheet';
+import { OrganizarObraGeral } from './OrganizarObraGeral';
 import styles from './ObraGeralDetalhe.module.css';
 import { TrocarObraSheet } from './TrocarObraSheet';
 import { useObraGeral } from './useObraGeral';
@@ -90,6 +91,7 @@ export function ObraGeralDetalhe({
   const [novaAtividadeFaseId, setNovaAtividadeFaseId] = useState<string | null>(null);
   const [trocando, setTrocando] = useState(false);
   const [editando, setEditando] = useState(false);
+  const [organizando, setOrganizando] = useState(false);
   const [novaFase, setNovaFase] = useState(false);
   const [anexandoId, setAnexandoId] = useState<string | null>(null);
   useEffect(() => {
@@ -343,44 +345,57 @@ export function ObraGeralDetalhe({
               </BlocosObraGeral>
             </div>
           ) : null}
-          <div className={base.mapa}>
-            {fases.length === 0 ? (
-              <p className={styles.vazio}>
-                <b>Nenhuma fase ainda.</b>
-                {planeja ? 'Toque em + fase para começar.' : null}
-              </p>
-            ) : null}
+          {organizando && planeja ? (
+            <OrganizarObraGeral
+              obraId={obra.id}
+              fases={fases}
+              onPronto={() => setOrganizando(false)}
+            />
+          ) : (
+            <div className={base.mapa}>
+              {fases.length === 0 ? (
+                <p className={styles.vazio}>
+                  <b>Nenhuma fase ainda.</b>
+                  {planeja ? 'Toque em + fase para começar.' : null}
+                </p>
+              ) : null}
 
-            {fases.map((f) => (
-              <FaseGeralView
-                key={f.id}
-                fase={f}
-                atual={atual?.id === f.id}
-                aberta={aberta === f.id}
-                planeja={planeja}
-                onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
-                onAnel={avanco.anel}
-                onFicha={setFichaId}
-                onAnexar={setAnexandoId}
-                onAdicionar={() => setNovaAtividadeFaseId(f.id)}
-              />
-            ))}
+              {fases.map((f) => (
+                <FaseGeralView
+                  key={f.id}
+                  fase={f}
+                  atual={atual?.id === f.id}
+                  aberta={aberta === f.id}
+                  planeja={planeja}
+                  onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
+                  onAnel={avanco.anel}
+                  onFicha={setFichaId}
+                  onAnexar={setAnexandoId}
+                  onAdicionar={() => setNovaAtividadeFaseId(f.id)}
+                />
+              ))}
 
-            {planeja ? (
-              <button type="button" className={styles.mais} onClick={() => setNovaFase(true)}>
-                + fase
-              </button>
-            ) : null}
-
-            <div className={base.inauguracao}>
-              <div className={base.inaugIcone}>
-                <Icon name="bandeira" size={22} />
-              </div>
-              <div className={base.inaugTexto}>
-                <div className={base.inaugData}>Entrega da obra</div>
-              </div>
+              {planeja ? (
+                <div className={styles.planejarAcoes}>
+                  <button type="button" className={styles.mais} onClick={() => setNovaFase(true)}>
+                    + fase
+                  </button>
+                  {fases.length > 0 ? (
+                    <button
+                      type="button"
+                      className={styles.mais}
+                      onClick={() => setOrganizando(true)}
+                    >
+                      <Icon name="arrastar" size={18} />
+                      Organizar
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+              {/* Sem "Entrega da obra" por enquanto: obra geral não tem data de entrega
+                (precisaria de todas as datas e sequências). Decisão de 06/11/2026. */}
             </div>
-          </div>
+          )}
         </div>
       )}
 
