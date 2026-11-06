@@ -56,29 +56,41 @@ export async function adicionarSubitemGeral(
   return id;
 }
 
+/** Devolve o id do evento da data (para o Desfazer), ou null se a data não mudou. */
 export async function editarSubitemGeral(
   subitemId: string,
   nome: string,
   dataPrevista: string | null,
-): Promise<void> {
-  await chamar('editar_subitem_geral', {
+): Promise<string | null> {
+  const data = await chamar('editar_subitem_geral', {
     p_subitem_id: subitemId,
     p_nome: nome,
     p_data_prevista: dataPrevista,
   });
+  return (data as string | null) ?? null;
 }
 
-/** `data` nula limpa a data. `motivo` é opcional e vai no evento de replanejamento. */
+/**
+ * Muda a data prevista. Item aberto com data não volta a "sem data" (use o Desfazer).
+ * `motivo` é opcional e vai no evento de replanejamento. Devolve o id do evento da
+ * data (para o Desfazer), ou null se nada mudou.
+ */
 export async function definirDataPrevista(
   atividadeId: string,
   data: string | null,
   motivo?: string | null,
-): Promise<void> {
-  await chamar('definir_data_prevista', {
+): Promise<string | null> {
+  const id = await chamar('definir_data_prevista', {
     p_atividade_id: atividadeId,
     p_data: data,
     p_motivo: motivo ?? null,
   });
+  return (id as string | null) ?? null;
+}
+
+/** Desfaz a mudança de data do evento (volta data, original e replanejamentos exatamente). */
+export async function desfazerDataPrevista(eventoId: string): Promise<void> {
+  await chamar('desfazer_data_prevista', { p_evento_id: eventoId });
 }
 
 export async function definirResponsavelAtividade(
@@ -103,7 +115,7 @@ export async function adicionarMembroObra(obraId: string, pessoaId: string): Pro
   await chamar('adicionar_membro_obra', { p_obra_id: obraId, p_pessoa_id: pessoaId });
 }
 
-/** Convida pessoa nova como membro. Devolve o id da pessoa, ou null se já existia. */
+/** Convida como membro. Devolve o id da pessoa quando a conta já existe, ou null quando fica como convite. */
 export async function convidarMembroObra(
   obraId: string,
   nome: string,

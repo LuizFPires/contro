@@ -22,7 +22,11 @@ import { EditarSubitemSheet } from './EditarSubitemSheet';
 import { EscolherResponsavel } from './EscolherResponsavel';
 import styles from './FichaAtividadeGeral.module.css';
 import type { ObraGeral } from './obraGeral';
-import { definirDataPrevista, definirResponsavelAtividade } from './planejamento';
+import {
+  definirDataPrevista,
+  definirResponsavelAtividade,
+  desfazerDataPrevista,
+} from './planejamento';
 
 const NOTA_MEMBRO =
   'Data e responsável são definidos pelo coordenador. Se não vai dar no prazo, fale com ele para ajustar.';
@@ -110,7 +114,7 @@ export function FichaAtividadeGeral({
   const avisarErro = (e: unknown) =>
     showToast({ message: e instanceof Error ? e.message : 'Não foi possível salvar.' });
 
-  /** Chama a RPC, atualiza a obra e avisa com Desfazer (que repete a RPC com o valor antigo). */
+  /** Chama a RPC, atualiza a obra e avisa com Desfazer. */
   async function planejar(
     fazer: () => Promise<void>,
     desfazer: () => Promise<void>,
@@ -130,11 +134,16 @@ export function FichaAtividadeGeral({
 
   function mudarData(nova: string) {
     setMudandoData(false);
-    const antes = bruta!.data_prevista;
-    if (nova === antes) return;
+    if (nova === bruta!.data_prevista) return;
+    let evento: string | null = null;
     void planejar(
-      () => definirDataPrevista(a.id, nova),
-      () => definirDataPrevista(a.id, antes),
+      async () => {
+        evento = await definirDataPrevista(a.id, nova);
+      },
+      // Volta exatamente (data, original e replanejamentos), sem contar outro replanejamento.
+      async () => {
+        if (evento) await desfazerDataPrevista(evento);
+      },
       'Data alterada.',
     );
   }

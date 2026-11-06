@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { atalhosDataPrevista, type SubitemGeral } from '@contro/core';
-import { BottomSheet, Button, Input, useToast } from '@contro/ui';
+import { BottomSheet, Button, Icon, Input, useToast } from '@contro/ui';
 import { EscolherData } from '../../components/EscolherData';
 import { hojeISO } from '../obras/api';
 import {
   adicionarSubitemGeral,
+  desfazerDataPrevista,
   editarSubitemGeral,
   excluirSubitemGeral,
   restaurarSubitemGeral,
@@ -56,14 +57,17 @@ export function EditarSubitemSheet({
     try {
       if (subitem) {
         const antes = { nome: subitem.nome, data: subitem.prazo };
-        await editarSubitemGeral(subitem.id, limpo, data || null);
+        const evento = await editarSubitemGeral(subitem.id, limpo, data || null);
         await atualizar();
+        // Desfazer: a data volta exatamente (sem contar replanejamento); depois o nome,
+        // com a data já restaurada.
+        const desfazer = async () => {
+          if (evento) await desfazerDataPrevista(evento);
+          if (antes.nome !== limpo) await editarSubitemGeral(subitem.id, antes.nome, antes.data);
+        };
         showToast({
           message: 'Subitem salvo.',
-          onUndo: () =>
-            void editarSubitemGeral(subitem.id, antes.nome, antes.data)
-              .then(atualizar)
-              .catch(avisarErro),
+          onUndo: () => void desfazer().then(atualizar).catch(avisarErro),
         });
       } else {
         const id = await adicionarSubitemGeral(atividadeId, limpo, data || null);
@@ -124,6 +128,7 @@ export function EditarSubitemSheet({
         <p className={styles.nota}>A data da atividade acompanha a do último subitem.</p>
         {erro ? (
           <p role="alert" className={styles.erro}>
+            <Icon name="alert" size={16} />
             {erro}
           </p>
         ) : null}
