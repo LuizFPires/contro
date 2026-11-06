@@ -10,6 +10,36 @@ export interface BottomSheetProps {
   children: ReactNode;
 }
 
+// Trava da tela de trás. No iPhone, `overflow: hidden` no body não impede o dedo de
+// rolar a página; fixar o body na posição atual impede. Contador: com folha aberta
+// sobre folha, só a última a fechar destrava, e a página volta para onde estava.
+let travas = 0;
+let rolagemAntes = 0;
+let estiloAntes: string | null = null;
+
+function travarFundo() {
+  travas += 1;
+  if (travas > 1) return;
+  const b = document.body;
+  rolagemAntes = window.scrollY;
+  estiloAntes = b.getAttribute('style');
+  b.style.position = 'fixed';
+  b.style.top = `-${rolagemAntes}px`;
+  b.style.left = '0';
+  b.style.right = '0';
+  b.style.width = '100%';
+  b.style.overflow = 'hidden';
+}
+
+function destravarFundo() {
+  travas = Math.max(0, travas - 1);
+  if (travas > 0) return;
+  const b = document.body;
+  if (estiloAntes) b.setAttribute('style', estiloAntes);
+  else b.removeAttribute('style');
+  window.scrollTo(0, rolagemAntes);
+}
+
 export function BottomSheet({ open, title, onClose, children }: BottomSheetProps) {
   const titleId = useId();
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -30,14 +60,13 @@ export function BottomSheet({ open, title, onClose, children }: BottomSheetProps
 
     // Trava o scroll do fundo e move o foco para dentro do sheet.
     const anterior = document.activeElement as HTMLElement | null;
-    const overflowAntes = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    sheetRef.current?.focus();
+    travarFundo();
+    sheetRef.current?.focus({ preventScroll: true });
 
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = overflowAntes;
-      anterior?.focus?.();
+      destravarFundo();
+      anterior?.focus?.({ preventScroll: true });
     };
   }, [open]);
 
