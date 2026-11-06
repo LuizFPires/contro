@@ -203,7 +203,7 @@ export function ConfigAvisosScreen({ onVoltar }: { onVoltar: () => void }) {
   );
 }
 
-function Aviso({
+export function Aviso({
   titulo,
   desc,
   ligado,
@@ -246,7 +246,7 @@ function Aviso({
   );
 }
 
-function Opcoes({
+export function Opcoes({
   opcoes,
   valor,
   onEscolher,
@@ -278,7 +278,7 @@ const PRAZOS_OPCOES = Array.from({ length: 10 }, (_, i) => ({
   t: String(i + 1),
 }));
 
-function PrazoPendencia({
+export function PrazoPendencia({
   rotulo,
   valor,
   onEscolher,
@@ -299,7 +299,7 @@ function PrazoPendencia({
   );
 }
 
-function HoraEPara({
+export function HoraEPara({
   hora,
   onHora,
   para,

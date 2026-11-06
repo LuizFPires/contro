@@ -1,5 +1,5 @@
 import { faseFechaCom, xpConclusao } from '@contro/core';
-import type { ObraCompleta } from './detalhe';
+import type { ObraAtv, ObraFase } from './detalhe';
 import { useObraCampo } from './useObraCampo';
 
 export interface ConclusaoDetalhe {
@@ -11,13 +11,31 @@ export interface ConclusaoDetalhe {
   proxOrdem: number | null;
 }
 
+/** O que a conclusão lê da obra: serve para a obra Contorno (`ObraCompleta`) e para a geral (`ObraGeral`). */
+export interface ObraConclusao {
+  id: string;
+  fases: Pick<ObraFase, 'id' | 'ordem' | 'titulo'>[];
+  atividades: (Pick<
+    ObraAtv,
+    | 'id'
+    | 'nome'
+    | 'ordem'
+    | 'fase_id'
+    | 'pai_id'
+    | 'concluida_em'
+    | 'avanco_pct'
+    | 'foto_conclusao_id'
+    | 'mapa_antecedencia_du'
+  > & { predecessoras?: string[] })[];
+}
+
 export type AoConcluir = (r: { xp: number; fase_fechada: boolean }, det: ConclusaoDetalhe) => void;
 
 /**
  * Concluir atividade, com ou sem foto (regra 3: a foto é opcional). O fechamento de fase e o XP vêm do core
  * (espelham o servidor); usado pela ficha e pelo botão de câmera da trilha.
  */
-export function useConcluirAtividade(obra: ObraCompleta | null) {
+export function useConcluirAtividade(obra: ObraConclusao | null) {
   const campo = useObraCampo(obra?.id ?? '');
 
   /** Conclui com foto (`file`) ou sem foto (`null`). */
@@ -28,7 +46,7 @@ export function useConcluirAtividade(obra: ObraCompleta | null) {
     const fase = obra.fases.find((f) => f.id === a.fase_id);
     const prox = obra.fases.find((f) => f.ordem === (fase?.ordem ?? 0) + 1);
     const libera = obra.atividades
-      .filter((x) => !x.pai_id && x.predecessoras.includes(a.id))
+      .filter((x) => !x.pai_id && x.predecessoras?.includes(a.id))
       .map((x) => x.nome);
     // Mapa de coleta: marcar pronto não vale pontos nem celebra a fase.
     const mapa = a.mapa_antecedencia_du !== null;

@@ -1,0 +1,222 @@
+/* Acrescenta à tela da Contorno (ObraDetalhe.module.css, reaproveitado) só o que é da obra geral. */
+.nomeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-height: var(--contro-touch);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.nomeTxt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progAtraso {
+  color: var(--contro-late);
+  font-weight: 800;
+}
+.progHoje {
+  color: var(--contro-attention);
+  font-weight: 800;
+}
+
+.vence_hoje {
+  border-color: var(--contro-attention);
+}
+.vence_hoje .subHoje {
+  color: var(--contro-attention);
+  font-weight: 800;
+}
+
+.atvCorpo {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.anexarLink {
+  min-height: var(--contro-touch);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.mais {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: var(--contro-touch);
+  margin: 4px 0 8px;
+  border-radius: 12px;
+  border: 1.5px dashed rgb(24 24 24 / 35%);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.vazio {
+  margin: 24px 0;
+  text-align: center;
+  color: var(--contro-muted);
+  font-size: 15px;
+}
+.vazio b {
+  display: block;
+  color: var(--contro-black);
+  font-size: 17px;
+}
+
+.obras {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.obraLinha {
+  width: 100%;
+  min-height: var(--contro-touch);
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 14%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.obraAtual {
+  border-color: var(--contro-turquoise);
+  background: var(--contro-selected);
+}
+.obraTexto {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.obraNome {
+  font-weight: 800;
+  font-size: 16px;
+}
+.obraPapel {
+  font-size: 13px;
+  color: var(--contro-muted);
+}
+
+/* Carga falhou sem dados em cache. */
+.erro {
+  margin: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+}
+.erro p {
+  margin: 0;
+}
+.tentar {
+  min-height: var(--contro-touch);
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--contro-black);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Avatar do perfil (obra como aba): o mesmo do cabeçalho do Hoje. */
+.perfil {
+  flex-shrink: 0;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  border: 0;
+  background: rgb(255 255 255 / 14%);
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blocoAcoes {
+  padding: 14px 16px 0;
+}
+
+/* Fases | Check list no cabeçalho preto (a obra geral não tem a barra de abas da Contorno). */
+.secoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin: 10px 4px 0;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 12%);
+}
+.secao {
+  position: relative;
+  min-height: var(--contro-touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--contro-white);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.secaoAtiva {
+  background: var(--contro-white);
+  color: var(--contro-black);
+}
+.secaoBadge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 99px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+/* + fase e Organizar lado a lado. */
+.planejarAcoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}

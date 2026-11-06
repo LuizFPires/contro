@@ -131,6 +131,7 @@ function invalidar(payload: Record<string, unknown>) {
   const obraId = payload?.obraId as string | undefined;
   if (qc && obraId) {
     qc.invalidateQueries({ queryKey: ['obra', obraId] });
+    qc.invalidateQueries({ queryKey: ['obras-gerais', 'resumo'] });
     qc.invalidateQueries({ queryKey: ['obras'] });
     qc.invalidateQueries({ queryKey: ['tarefas', obraId] });
     qc.invalidateQueries({ queryKey: ['pendencias', obraId] });

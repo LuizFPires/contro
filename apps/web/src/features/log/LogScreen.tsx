@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   agruparPorDia,
   filtrarLog,
   nomeCurto,
   nomeCurtoObra,
   rotuloLinhaLog,
+  type Ambiente,
   type EventoBruto,
   type FiltroLog,
   type ItemLog,
@@ -14,10 +15,9 @@ import {
 import { Icon, type IconName } from '@contro/ui';
 import { formatarDiaSemana } from '../../lib/datas';
 import { useLembrado } from '../../lib/useLembrado';
-import { NavInferior, type ItemNav } from '../../screens/NavInferior';
 import { usePerfil } from '../perfil/usePerfil';
 import { useLogDados } from './dadosLogScore';
-import { horaDe } from './formatos';
+import { chaveFiltroLog, horaDe } from './formatos';
 import { LinhaDoTempo } from './VidaDoItem';
 import styles from './LogScreen.module.css';
 
@@ -47,7 +47,12 @@ function iconeDo(tipo: TipoLinhaLog): IconName {
       return 'checkGrosso';
     case 'replanejada':
     case 'inicio_ajustado':
+    case 'data_alterada':
       return 'replanejar';
+    case 'data_desfeita':
+      return 'undo';
+    case 'responsavel_trocado':
+      return 'pessoa';
     case 'vencida':
       return 'alert';
     case 'criada':
@@ -64,25 +69,33 @@ function iconeDo(tipo: TipoLinhaLog): IconName {
  * tempo de todas as obras, por dia; chips por obra, por tipo e "Eu". No filtro
  * Replanejadas a lista vira um card por item, com a vida dele. Só leitura: o Log é a
  * foto do que aconteceu; editar fica nas telas de cada item (pedido do usuário, 04/11/2026).
+ * Obras gerais (`ambiente="geral"`): as obras gerais que a pessoa vê, com os filtros
+ * lembrados à parte.
  */
 export function LogScreen({
+  ambiente = 'contorno',
   obraInicial,
   onVoltar,
-  onNav,
+  menu,
 }: {
+  ambiente?: Ambiente;
   /** Começa filtrado por esta obra (relógio do cabeçalho da obra). */
   obraInicial?: string | null;
   /** Só quando veio de uma obra: volta para ela. */
   onVoltar?: () => void;
-  onNav: (item: ItemNav) => void;
+  /** Menu de baixo (Contorno: NavInferior; Obras gerais: NavGeral). */
+  menu: ReactNode;
 }) {
-  const { linhas, itens, eventosPorItem, obras, carregando, erro } = useLogDados();
+  const { linhas, itens, eventosPorItem, obras, nomes, carregando, erro } = useLogDados(ambiente);
   const { data: perfil } = usePerfil();
   // O filtro da obra vem lembrado: o relógio da obra grava a obra uma vez ao
   // abrir (App), então "Todas as obras" escolhido depois não volta sozinho.
-  const [obraId, setObraId] = useLembrado<string | null>('log:obra', obraInicial ?? null);
-  const [tipo, setTipo] = useLembrado<TipoFiltro | null>('log:tipo', null);
-  const [eu, setEu] = useLembrado<boolean>('log:eu', false);
+  const [obraId, setObraId] = useLembrado<string | null>(
+    chaveFiltroLog(ambiente, 'obra'),
+    obraInicial ?? null,
+  );
+  const [tipo, setTipo] = useLembrado<TipoFiltro | null>(chaveFiltroLog(ambiente, 'tipo'), null);
+  const [eu, setEu] = useLembrado<boolean>(chaveFiltroLog(ambiente, 'eu'), false);
 
   // Obra lembrada que saiu da carga (apagada, pausada): volta para todas.
   const obraValida = obraId && obras.some((o) => o.id === obraId) ? obraId : null;
@@ -193,6 +206,7 @@ export function LogScreen({
                 item={it}
                 eventos={eventosPorItem.get(it.id) ?? SEM_EVENTOS}
                 comObra={!obraValida}
+                nomes={nomes}
               />
             ))
           : diasVisiveis.map((d) => (
@@ -214,7 +228,7 @@ export function LogScreen({
         ) : null}
       </div>
 
-      <NavInferior ativo="log" onEscolher={onNav} />
+      {menu}
     </div>
   );
 }
@@ -273,10 +287,12 @@ function CardItem({
   item,
   eventos,
   comObra,
+  nomes,
 }: {
   item: ItemLog;
   eventos: EventoBruto[];
   comObra: boolean;
+  nomes?: Record<string, string>;
 }) {
   const meta = [
     ORIGEM[item.origem],
@@ -293,7 +309,7 @@ function CardItem({
           <span className={styles.evMeta}>{meta}</span>
         </span>
       </div>
-      <LinhaDoTempo item={item} eventos={eventos} semTitulo />
+      <LinhaDoTempo item={item} eventos={eventos} semTitulo nomes={nomes} />
     </article>
   );
 }

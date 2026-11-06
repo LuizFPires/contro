@@ -2,8 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ConfigBoletim, DiaSemana } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
-const KEY = ['config-boletim'];
-
 interface Row {
   ativo: boolean;
   dia_semana: number;
@@ -35,20 +33,26 @@ function toDb(c: ConfigBoletim): Row {
   };
 }
 
-/** Lê e grava a configuração global do boletim automático (só gestor grava; RLS). */
-export function useConfigBoletim() {
+const COLUNAS = 'ativo, dia_semana, hora, fechamento_ativo, fechamento_dia, fechamento_hora';
+
+/**
+ * Lê e grava a configuração do boletim automático. Sem `obraId`, a global da Contorno (só
+ * gestor grava; RLS). Com `obraId` (obra geral), a da obra: lê quem vê a obra, grava o
+ * Gestor ou o Coordenador da obra, pela função do banco; sem linha, o formulário usa o padrão.
+ */
+export function useConfigBoletim(obraId: string | null = null) {
   const qc = useQueryClient();
+  const KEY = obraId ? ['config-boletim', obraId] : ['config-boletim'];
 
   const query = useQuery<ConfigBoletim | null>({
     queryKey: KEY,
     enabled: Boolean(supabase),
     queryFn: async () => {
       if (!supabase) return null;
-      const { data, error } = await supabase
-        .from('config_boletim')
-        .select('ativo, dia_semana, hora, fechamento_ativo, fechamento_dia, fechamento_hora')
-        .eq('id', true)
-        .maybeSingle();
+      const base = obraId
+        ? supabase.from('config_boletim_obra').select(COLUNAS).eq('obra_id', obraId)
+        : supabase.from('config_boletim').select(COLUNAS).eq('id', true);
+      const { data, error } = await base.maybeSingle();
       if (error) throw error;
       return data ? fromDb(data as Row) : null;
     },
@@ -62,7 +66,9 @@ export function useConfigBoletim() {
   >({
     mutationFn: async (c) => {
       if (!supabase) throw new Error('Supabase não configurado.');
-      const { error } = await supabase.from('config_boletim').update(toDb(c)).eq('id', true);
+      const { error } = obraId
+        ? await supabase.rpc('salvar_config_boletim_obra', { p_obra_id: obraId, p_config: toDb(c) })
+        : await supabase.from('config_boletim').update(toDb(c)).eq('id', true);
       if (error) throw error;
       return c;
     },

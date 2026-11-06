@@ -485,51 +485,6 @@
   color: #464646;
 }
 
-/* Rodapé de avanço (protótipo, opção D): 25 · 50 · 75 · Pronta · Foto numa linha. */
-.rodapeAvanco {
-  gap: 6px;
-}
-.passo,
-.passoFoto {
-  flex: 1;
-  min-width: 0;
-  min-height: 48px;
-  border-radius: 12px;
-  font: inherit;
-  font-weight: 800;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  cursor: pointer;
-}
-.passo {
-  border: 2px solid rgb(24 24 24 / 22%);
-  background: var(--contro-white);
-  color: #464646;
-  font-size: 14px;
-}
-.passoOn {
-  background: var(--contro-turquoise);
-  border-color: transparent;
-  color: var(--contro-black);
-}
-.passoAtual {
-  border-color: var(--contro-black);
-}
-/* Foto: botão secundário do design system (preto, texto branco). */
-.passoFoto {
-  border: 0;
-  background: var(--contro-black);
-  color: var(--contro-white);
-  font-size: 12px;
-}
-.passo:disabled,
-.passoFoto:disabled {
-  opacity: 0.6;
-}
-
 .sugestaoLinha {
   display: flex;
   align-items: stretch;

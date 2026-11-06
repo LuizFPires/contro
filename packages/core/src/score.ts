@@ -5,6 +5,7 @@
 // feriados). Puro: recebe os itens já carregados e o "hoje".
 import { type DataISO } from './calendar';
 import { atrasoDU, diaLocal } from './datas';
+import { eventosDesfeitos } from './log';
 import { normalizarNome } from './nomes';
 
 export type Janela = 30 | 90;
@@ -12,7 +13,8 @@ export type Faixa = 'resolutivo' | 'em_dia' | 'regular' | 'atencao' | 'sem_score
 
 export interface ItemEquipe {
   id: string;
-  origem: 'tarefa' | 'pendencia';
+  /** Atividade: só nas obras gerais (atividade com responsável é ação dele). */
+  origem: 'tarefa' | 'pendencia' | 'atividade';
   obraId: string;
   obraNome: string;
   texto: string;
@@ -71,7 +73,7 @@ export interface NumerosScore {
   atrasoMedioDU: number | null;
   /** Equipe: mediana de d.u. entre vencer e concluir, só dos que atrasaram. */
   respostaMedianaDU: number | null;
-  /** Equipe: replanejamentos por tarefa. */
+  /** Equipe: replanejamentos por tarefa (e atividade de obra geral). */
   replanejamentosMedia: number | null;
   /** Obras distintas com itens na janela. */
   obras: number;
@@ -251,7 +253,8 @@ export function calcularScoreEquipe(
       (i) => i.prazo >= inicio && i.prazo <= hoje && (i.concluidaEm != null || i.prazo < hoje),
     );
     const pendencias = atrasos.filter((a) => a.item.origem === 'pendencia');
-    const tarefas = grupo.filter((i) => i.origem === 'tarefa');
+    // Atividade de obra geral replaneja como tarefa (data prevista digitada).
+    const tarefas = grupo.filter((i) => i.origem === 'tarefa' || i.origem === 'atividade');
     const respostaMedianaDU = mediana(atrasos.filter((a) => a.du > 0).map((a) => a.du));
     const replanejamentosMedia = media(tarefas.map((t) => t.replanejamentos));
 
@@ -280,7 +283,7 @@ export function calcularScoreEquipe(
         obras: new Set(grupo.map((i) => i.obraId)).size,
       },
       piores: piores(atrasos, (i) =>
-        i.origem === 'tarefa' && i.replanejamentos > 0
+        i.origem !== 'pendencia' && i.replanejamentos > 0
           ? plural(i.replanejamentos, 'replanejamento', 'replanejamentos')
           : null,
       ),
@@ -318,6 +321,22 @@ export function calcularScoreEquipe(
     });
   }
   return ordenar(linhas);
+}
+
+/**
+ * Replanejamentos por item contados pelos eventos (obras gerais): cada `replanejada`
+ * conta, menos as desfeitas (apontadas pelo `evento_id` de um `data_desfeita`).
+ */
+export function replanejamentosPorEventos(
+  eventos: { id: string; itemId: string; tipo: string; depois: unknown }[],
+): Record<string, number> {
+  const desfeitos = eventosDesfeitos(eventos);
+  const contagem: Record<string, number> = {};
+  for (const ev of eventos) {
+    if (ev.tipo !== 'replanejada' || desfeitos.has(ev.id)) continue;
+    contagem[ev.itemId] = (contagem[ev.itemId] ?? 0) + 1;
+  }
+  return contagem;
 }
 
 /** Score dos prestadores por nome normalizado (atividades de topo). */

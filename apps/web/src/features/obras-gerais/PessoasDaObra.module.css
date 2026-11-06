@@ -1,0 +1,152 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+.topo {
+  padding: 12px 20px 4px 8px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0));
+}
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--contro-touch);
+  padding: 0 12px 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cabecalho {
+  padding: 0 20px 8px;
+}
+.titulo {
+  margin: 0;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 800;
+}
+.nota {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: rgb(24 24 24 / 72%);
+}
+.secao {
+  margin: 12px 20px 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+.lista {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.linha {
+  width: 100%;
+  min-height: var(--contro-touch);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font: inherit;
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 16px;
+  padding: 10px 16px;
+  color: var(--contro-black);
+}
+button.linha {
+  cursor: pointer;
+}
+.iniciais {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  font-size: 14px;
+  font-weight: 800;
+}
+.texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.nome {
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 22px;
+}
+.meta {
+  font-size: 14px;
+  color: rgb(24 24 24 / 72%);
+  overflow-wrap: anywhere;
+}
+.aviso {
+  padding: 0 20px;
+  color: var(--contro-muted);
+}
+.rodape {
+  padding: 0 20px 24px;
+}
+.erro {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.texto2 {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: rgb(24 24 24 / 80%);
+}
+.botoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.busca {
+  margin-bottom: 8px;
+}
+.resultados {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 32vh;
+  overflow-y: auto;
+}
+.add {
+  flex: none;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  border: 0;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.rotulo {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 800;
+}
+.campos {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}

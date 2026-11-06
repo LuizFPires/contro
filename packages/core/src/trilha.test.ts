@@ -127,7 +127,7 @@ describe('trilhaDeFases', () => {
     expect(f2.atividades[0]).toMatchObject({ status: 'concluida', avancoPct: 100 });
     expect(f2.atividades[1]).toMatchObject({
       avancoPct: 50,
-      sub: 'Prevista 20/10–29/10 · 50% feito · falta compra: placas',
+      sub: 'Prevista 20/10–29/10 · 50% feito · falta comprar placas',
     });
     expect(f3.atividades[0]).toMatchObject({ avancoPct: 0, sub: 'Prevista 02/11–06/11' });
     // Avanço parcial não conclui: a fase segue com 1 de 2.
@@ -149,7 +149,7 @@ describe('trilhaDeFases', () => {
       },
     );
     const f2 = trilhaDeFases(e)[1];
-    expect(f2.atividades[1].sub).toBe('Prevista 20/10–29/10 · falta contratação: gesseiro');
+    expect(f2.atividades[1].sub).toBe('Prevista 20/10–29/10 · falta contratar gesseiro');
     expect(f2.atividades[1].podeConcluir).toBe(true);
     expect(f2.info).toBe('1 com contratação, locação ou compra a providenciar');
   });

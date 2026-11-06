@@ -5,11 +5,15 @@ import {
   FORMATOS_PREPARO,
   formatosEmOrdem,
   preparoPorPessoa,
+  colunasPreparoPessoa,
+  limitesPreparo,
   textoBotaoPreparo,
   textoPreparoWhatsapp,
   totaisPreparo,
   type FormatoPreparo,
   type ItemPreparo,
+  type ItemPessoaPreparo,
+  type PessoaPreparo,
   type ObraPreparo,
 } from '@contro/core';
 import { BottomSheet, Icon } from '@contro/ui';
@@ -22,8 +26,8 @@ import styles from './PrepararReuniao.module.css';
 
 /**
  * Preparar a reunião (protótipo aprovado em 30/10/2026): a pauta antecipada da
- * próxima reunião, de todas as obras, em até três formatos num PDF só (a tabela
- * em paisagem; a folha e o por pessoa em retrato). Sai pela impressão do
+ * próxima reunião, de todas as obras, em até quatro formatos num PDF só (a tabela
+ * e o por pessoa em paisagem; a folha em retrato). Sai pela impressão do
  * aparelho ("Salvar como PDF"); o WhatsApp manda o resumo em texto.
  */
 export function PrepararSheet({
@@ -121,8 +125,8 @@ export function PrepararSheet({
         {marcados.length > 1 ? (
           <p className={styles.miuda}>
             Sai um PDF só
-            {marcados.includes('tabela')
-              ? ': a tabela em paisagem e as outras páginas em retrato'
+            {marcados.includes('tabela') || marcados.includes('pessoa')
+              ? ': por obra e por pessoa em paisagem; os demais em retrato'
               : ''}
             .
           </p>
@@ -335,45 +339,118 @@ function FolhaBloco({
   );
 }
 
-/** C · Por pessoa (retrato): o que cada um vai ser cobrado. */
-function PorPessoa({ obras, data, horaFmt }: Props) {
-  const { pessoas, semDono } = preparoPorPessoa(obras);
+/** C · Por pessoa (paisagem): três colunas com referência na data da reunião. */
+export function PorPessoa({ obras, data, horaFmt }: Props) {
+  const { pessoas, semDono } = preparoPorPessoa(obras, data);
+  const { quinze } = limitesPreparo(data);
   return (
-    <section className={`${styles.pagina} ${styles.retrato}`}>
+    <section className={`${styles.pagina} ${styles.paisagem}`}>
       <Topo
         titulo={`CONTRO · pendências por pessoa · reunião de ${formatarDataCurta(data)} · ${horaFmt}`}
-        sub="Todas as tarefas abertas, agrupadas pelo responsável."
+        sub={`Tarefas abertas até ${formatarDataCurta(quinze)} · 15 dias corridos após a reunião · (#) = atividade da obra.`}
       />
-      {pessoas.map((p) => {
-        const atr = p.itens.filter((i) => i.atraso).length;
-        return (
-          <div key={p.pessoa} className={styles.pessoa}>
-            <h2 className={styles.pessoaNome}>
-              {p.pessoa} · {p.itens.length} {p.itens.length === 1 ? 'ação' : 'ações'}
-              {atr ? ` · ${atr} ${atr === 1 ? 'atrasada' : 'atrasadas'}` : ''}
-            </h2>
-            {p.itens.map((i, k) => (
-              <div key={k} className={i.atraso ? styles.atraso : undefined}>
-                <span className={styles.box} /> {i.texto} · {i.prazo}
-              </div>
-            ))}
-          </div>
-        );
-      })}
+      {pessoas.map((p) => (
+        <TabelaPessoa key={p.pessoa} pessoa={p} data={data} />
+      ))}
       {semDono.length ? (
-        <div className={styles.pessoa}>
-          <h2 className={styles.pessoaNome}>Sem responsável · providências</h2>
-          {semDono.map((i, k) => (
-            <div key={k} className={i.atraso ? styles.atraso : undefined}>
-              <span className={styles.box} /> {i.texto} · {i.prazo}
-            </div>
-          ))}
-        </div>
+        <TabelaPessoa
+          pessoa={{ pessoa: 'Sem responsável · providências', itens: semDono }}
+          data={data}
+        />
       ) : null}
       {!pessoas.length && !semDono.length ? (
         <p className={styles.cinza}>Nenhuma ação aberta para cobrar.</p>
       ) : null}
     </section>
+  );
+}
+
+function AcaoPessoa({ item }: { item?: ItemPessoaPreparo }) {
+  if (!item) return null;
+  return (
+    <div className={styles.acaoPessoa}>
+      <span className={styles.box} aria-hidden="true" />
+      <div>
+        <span>{item.texto}</span>
+        <div className={styles.prazoPessoa}>
+          {item.data ? `até ${formatarDataCurta(item.data)}` : 'sem prazo'}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TabelaPessoa({ pessoa, data }: { pessoa: PessoaPreparo; data: string }) {
+  const { atrasadas, noDia, ateCinco, aposCinco, semPrazo } = colunasPreparoPessoa(
+    pessoa.itens,
+    data,
+  );
+  const proximas = [...ateCinco, ...aposCinco];
+  const linhas = Math.max(atrasadas.length, noDia.length, proximas.length, 1);
+  return (
+    <table className={styles.pessoaTabela}>
+      <thead>
+        <tr>
+          <th colSpan={3} className={styles.pessoaTitulo}>
+            {pessoa.pessoa} · {pessoa.itens.length} {pessoa.itens.length === 1 ? 'ação' : 'ações'}
+          </th>
+        </tr>
+        <tr>
+          <th scope="col">
+            Atrasadas <span>({atrasadas.length})</span>
+          </th>
+          <th scope="col">
+            Vencendo no dia da reunião <span>({noDia.length})</span>
+          </th>
+          <th scope="col">
+            Próximos 15 dias após a reunião <span>({proximas.length})</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from({ length: linhas }, (_, k) => (
+          <tr key={k}>
+            <td className={styles.atraso}>
+              {k === 0 && !atrasadas.length ? (
+                <span className={styles.cinza}>Nenhuma</span>
+              ) : (
+                <AcaoPessoa item={atrasadas[k]} />
+              )}
+            </td>
+            <td>
+              {k === 0 && !noDia.length ? (
+                <span className={styles.cinza}>Nenhuma</span>
+              ) : (
+                <AcaoPessoa item={noDia[k]} />
+              )}
+            </td>
+            <td>
+              {k === 0 && ateCinco.length > 0 ? (
+                <div className={styles.faixaDias}>Até 5 dias após a reunião</div>
+              ) : null}
+              {k === ateCinco.length && aposCinco.length > 0 ? (
+                <div className={styles.divisoriaDias}>De 6 a 15 dias após a reunião</div>
+              ) : null}
+              {k === 0 && !proximas.length ? (
+                <span className={styles.cinza}>Nenhuma</span>
+              ) : (
+                <AcaoPessoa item={proximas[k]} />
+              )}
+            </td>
+          </tr>
+        ))}
+        {semPrazo.length > 0 ? (
+          <tr>
+            <td colSpan={3}>
+              <b>Sem prazo definido</b>
+              {semPrazo.map((i, k) => (
+                <AcaoPessoa key={k} item={i} />
+              ))}
+            </td>
+          </tr>
+        ) : null}
+      </tbody>
+    </table>
   );
 }
 

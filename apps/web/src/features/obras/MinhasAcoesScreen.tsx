@@ -248,17 +248,23 @@ function Anel({ pct, atrasada }: { pct: number; atrasada: boolean }) {
   );
 }
 
-function AvancoSheet({
+/** Folha "Quanto já fez?" da tarefa (também nas ações das obras gerais). */
+export function AvancoSheet({
   tarefa,
   obra,
   hoje,
   onFechar,
   onSalvar,
+  mudaPrazo = true,
+  aviso = 'O gestor vê o avanço e o comentário nas Tarefas e na cobrança da próxima reunião.',
 }: {
   tarefa: TarefaObra | null;
   obra: string;
   hoje: string;
   onFechar: () => void;
+  /** Obra geral: só quem planeja muda o prazo; sem isso, o prazo só aparece. */
+  mudaPrazo?: boolean;
+  aviso?: string;
   onSalvar: (v: {
     pct: number | 'feita';
     comentario: string;
@@ -336,7 +342,7 @@ function AvancoSheet({
           />
 
           <p className={styles.rotulo}>Prazo</p>
-          {mudarPrazo ? (
+          {mudarPrazo && mudaPrazo ? (
             <EscolherData
               rotulo="Novo prazo"
               valor={prazo}
@@ -348,9 +354,11 @@ function AvancoSheet({
           ) : (
             <div className={styles.prazoLinha}>
               <span className={styles.prazoAtual}>{formatarDataCurta(tarefa.prazo)}</span>
-              <button type="button" className={styles.mudar} onClick={() => setMudarPrazo(true)}>
-                <Icon name="calendario" size={18} /> Mudar
-              </button>
+              {mudaPrazo ? (
+                <button type="button" className={styles.mudar} onClick={() => setMudarPrazo(true)}>
+                  <Icon name="calendario" size={18} /> Mudar
+                </button>
+              ) : null}
             </div>
           )}
           {repl ? <p className={styles.meta}>{repl}</p> : null}
@@ -369,9 +377,7 @@ function AvancoSheet({
               />
             </>
           ) : null}
-          <p className={styles.aviso}>
-            O gestor vê o avanço e o comentário nas Tarefas e na cobrança da próxima reunião.
-          </p>
+          <p className={styles.aviso}>{aviso}</p>
 
           <button
             type="button"

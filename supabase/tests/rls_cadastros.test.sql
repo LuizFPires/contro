@@ -2,7 +2,7 @@
 -- RLS dos cadastros: gestor escreve, equipe lê, não-membro é bloqueado.
 
 begin;
-select plan(9);
+select plan(10);
 
 -- RLS habilitada nas três tabelas
 select ok((select relrowsecurity from pg_class where oid = 'public.pessoa'::regclass), 'RLS ligada em pessoa');
@@ -52,6 +52,11 @@ select is(
 select lives_ok(
   $$ insert into sugestao (tipo, texto) values ('local', 'Coworking') $$,
   'equipe grava sugestão (cadastro pelo uso)'
+);
+select throws_ok(
+  $$ insert into sugestao (ambiente, tipo, texto) values ('geral', 'local', 'Coworking') $$,
+  '42501', null,
+  'equipe da Contorno NÃO grava sugestão de Obras gerais'
 );
 
 -- NÃO-MEMBRO (autenticado sem pessoa): não enxerga nada

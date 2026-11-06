@@ -34,7 +34,7 @@ select is(
   'grava observação e nome sem espaços nas pontas'
 );
 select ok(
-  exists (select 1 from sugestao where tipo = 'pessoa' and texto = 'Zé da Caçamba'),
+  exists (select 1 from sugestao where ambiente = 'contorno' and tipo = 'pessoa' and texto = 'Zé da Caçamba'),
   'nome digitado vira sugestão'
 );
 

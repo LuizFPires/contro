@@ -12,6 +12,8 @@ Cada obra nasce de um **modelo de obra** escolhido entre os modelos salvos (ex.:
 - boletim semanal pelo WhatsApp e em PDF;
 - reunião semanal (dia e horário definidos pelo gestor; padrão segunda 16h) com ata e tarefas por responsável, e avisos por push.
 
+O app tem ainda o ambiente **Obras gerais** (obras que não são das unidades Contorno do Corpo, com acesso por obra), entregue nas 5 etapas: ambientes e acesso, a obra por dentro, Hoje e avisos, reunião e boletim por obra, e Score, Log e sugestões por ambiente (ver PLAN.md).
+
 A **maquete 3D da obra** é uma melhoria futura (E1) em avaliação: **não implemente** nada dela sem pedido explícito do usuário.
 
 ## Documentos (fonte da verdade)
@@ -57,7 +59,7 @@ pnpm lint && pnpm typecheck
 8. **Replanejar tarefa é rastreado:** mudar o prazo de tarefa aberta preserva `prazo_original` e incrementa `replanejamentos`.
 9. **Toda ação de campo é otimista e funciona offline.** Fila com `client_op_id` idempotente. Nenhum toque espera o servidor para dar feedback (meta: < 100 ms).
 10. **Ações destrutivas ou fáceis de tocar sem querer têm "Desfazer"** (toast de 5 s): concluir tarefa, adiar pendência, excluir, salvar edição.
-11. **Dois perfis só:** Gestor (tudo) e Equipe de obra (tudo menos editar modelos). Esconda a edição de modelos na UI **e** bloqueie na RLS.
+11. **Perfis.** Na Contorno: Gestor (tudo), **Coordenador** (tudo, inclusive criar obras e editar modelos, mas só desliga quem é da Equipe; perfil `gestor` com `coordenador_contorno`, desde 06/11/2026) e Equipe de obra (tudo menos editar modelos); esconda a edição de modelos na UI **e** bloqueie na RLS. Há também o **Administrador** (só Luiz Felipe desde 06/11/2026; Rafael e Rodrigo são Coordenadores em Obras gerais), que vê todas as obras gerais e dá acesso, e, em **Obras gerais**, o **Coordenador** e o **Membro** por obra. O isolamento entre ambientes e entre obras é por RLS (`contro_ve_obra`), nunca só na UI. A tela de aprovação se chama **"Pessoas e acessos"** (antes "Aprovar membros"). Em Obras gerais, planejar (fases, atividades, datas, responsáveis, subitens, pessoas da obra) é do Coordenador e do Administrador, e o Membro faz o campo. Vale na UI, nas RPCs e na RLS.
 12. **Dependências entre quaisquer fases, sem ciclo.** O core calcula por ordenação topológica e rejeita ciclo.
 13. **Modelos se editam no celular** por assistente de 5 passos (nome com sugestões, prazo, começa depois de, providências, revisão). Editar abre direto na revisão.
 
@@ -89,6 +91,7 @@ pnpm lint && pnpm typecheck
 - Datas no formato "qua 21/10"; data completa "quinta, 03/12/2026".
 - Números e valores no padrão brasileiro (1.234,56).
 - Vocabulário: obra, unidade, fase, atividade, subitem, **lembrete/providência** (contratação, locação, compra), pendência, resolvido, tarefa, reunião, ata, boletim, inauguração, prestador.
+- Papéis na tela (06/11/2026): **Gestor** (nunca "Administrador") e **Equipe** (nunca "Membro"), nos dois ambientes; em Obras gerais o terceiro papel é **Coordenador**. No código e no banco os valores seguem dministrador e membro.
 
 ## Performance
 - Abrir uma obra deve levar < 1,5 s em 4G. Busque a obra inteira em uma consulta e calcule os derivados no cliente com o core.

@@ -6,6 +6,7 @@ export * from './calendar';
 export * from './schedule';
 export * from './obra';
 export * from './providencias';
+export * from './textoProvidencia';
 export * from './atividadesAcoes';
 export * from './pendencias';
 export * from './indicadores';
@@ -32,6 +33,8 @@ export * from './acoes';
 export * from './log';
 export * from './score';
 export * from './scoreEvolucao';
+export * from './papelContorno';
+export * from './reordenar';
 
 export type Perfil = 'gestor' | 'equipe';
 
@@ -52,3 +55,7 @@ export function podeEditarModelos(perfil: Perfil): boolean {
 export * from './loteFotos';
 export * from './preparo';
 export * from './whatsapp';
+export * from './ambiente';
+export * from './obraGeral';
+export * from './obraGeralSemana';
+export * from './obraGeralLog';

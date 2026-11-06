@@ -1,0 +1,159 @@
+.organizar {
+  display: grid;
+  gap: 14px;
+  padding: 16px 16px 24px;
+}
+
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tituloTela {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.dica {
+  margin: 0;
+  line-height: 1.45;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(24 24 24 / 70%);
+}
+
+.dica svg {
+  vertical-align: -3px;
+}
+
+.pronto {
+  min-height: var(--contro-touch);
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--contro-action-primary-bg);
+  color: var(--contro-action-primary-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.lista,
+.atividades {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atividades {
+  margin: 4px 0 8px 44px;
+}
+
+.fase,
+.atividade {
+  position: relative;
+  border-radius: 12px;
+  background: var(--contro-surface);
+  box-shadow: 0 1px 2px rgb(24 24 24 / 8%);
+}
+
+.atividade {
+  background: rgb(84 180 176 / 8%);
+  box-shadow: none;
+}
+
+.arrastando {
+  z-index: 2;
+  box-shadow: 0 8px 20px rgb(24 24 24 / 18%);
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  min-height: var(--contro-touch);
+}
+
+.alca {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: rgb(24 24 24 / 60%);
+  cursor: grab;
+  touch-action: none;
+}
+
+.alca:active {
+  cursor: grabbing;
+}
+
+.faseBtn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: var(--contro-touch);
+  padding: 0 12px 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.num {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--contro-black);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.titulo {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qtd {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(24 24 24 / 60%);
+}
+
+.atvNome {
+  flex: 1;
+  min-width: 0;
+  padding-right: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.vazio {
+  margin: 0 0 10px 56px;
+  font-size: 13px;
+  color: rgb(24 24 24 / 60%);
+}

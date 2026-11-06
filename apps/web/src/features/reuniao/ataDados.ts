@@ -10,6 +10,8 @@ import {
   respostaEfetiva,
   ritmoTexto,
   totaisAta,
+  textoProvidencia,
+  textoComNumeroAtividade,
   type ItemPautaAta,
   type ObraAta,
   type ObraAtaEntrada,
@@ -28,12 +30,6 @@ import {
   type ReuniaoObraDados,
   type TarefaAtrib,
 } from './reuniaoApi';
-
-export const VERBO_PROV: Record<string, string> = {
-  contratacao: 'Contratar',
-  locacao: 'Alugar',
-  compra: 'Comprar',
-};
 
 export type SecaoPassada = 'passada_concluir' | 'passada_comecar';
 export type SecaoSemana = 'semana_concluir' | 'semana_comecar' | 'semana_providencia';
@@ -103,7 +99,7 @@ export function itensSemana(o: ReuniaoObraDados): ItemSemanaPauta[] {
       sub: 'era para já estar providenciado',
       prestador: null,
       atraso: p.naObraEm ? `Atrasado · na obra ${formatarDataCurta(p.naObraEm)}` : 'Atrasado',
-      sugestao: `${VERBO_PROV[p.tipo]} ${p.descricao}`,
+      sugestao: textoProvidencia(p.tipo, p.descricao),
       tipoProvidencia: p.tipo,
       naObraEm: p.naObraEm,
       data: p.naObraEm,
@@ -118,7 +114,7 @@ export function itensSemana(o: ReuniaoObraDados): ItemSemanaPauta[] {
         : 'providenciar nesta semana',
       prestador: null,
       atraso: null,
-      sugestao: `${VERBO_PROV[p.tipo]} ${p.descricao}`,
+      sugestao: textoProvidencia(p.tipo, p.descricao),
       tipoProvidencia: p.tipo,
       naObraEm: p.naObraEm,
       data: p.naObraEm,
@@ -301,23 +297,25 @@ export function montarAta(r: ReuniaoCompleta): AtaCompleta {
  * está aberto (ação feita ou atividade concluída no app não precisa de resposta).
  */
 export function montarPreparo(r: ReuniaoCompleta, porPessoa = false): ObraPreparo[] {
-  const hoje = hojeISO();
+  const hoje = porPessoa ? r.data : hojeISO();
   return r.obras.map((o) => {
     const ritmo = ritmoTexto(o.ritmoDias, true);
+    const referenciar = (texto: string, id: string | null) =>
+      textoComNumeroAtividade(texto, id ? o.numerosPorVinculo?.[id] : undefined);
     const tarefas = porPessoa
       ? r.tarefas.filter((t) => t.obraId === o.obraId)
       : cobrancaDaObra(r, o.obraId);
     const cobranca = tarefas
       .filter((t) => !t.concluido)
       .map((t) => ({
-        texto: t.avancoPct > 0 ? `${t.texto} · ${t.avancoPct}%` : t.texto,
+        texto: referenciar(t.avancoPct > 0 ? `${t.texto} · ${t.avancoPct}%` : t.texto, t.vinculoId),
         pessoa: porPessoa
           ? t.pessoaNomeCompleto || t.responsavelNome || t.pessoa || 'Sem responsável'
           : t.pessoa,
         prazo: t.prazo
-          ? `${t.atrasado ? 'era' : 'até'} ${formatarDataCurta(t.prazo)}`
+          ? `${t.prazo < hoje ? 'era' : 'até'} ${formatarDataCurta(t.prazo)}`
           : 'sem prazo',
-        atraso: t.atrasado,
+        atraso: Boolean(t.prazo && t.prazo < hoje),
         data: t.prazo,
       }));
     const previstos = itensPassada(o)
@@ -325,7 +323,10 @@ export function montarPreparo(r: ReuniaoCompleta, porPessoa = false): ObraPrepar
       .map((it) => {
         const terminar = it.secao === 'passada_concluir';
         return {
-          texto: `${terminar ? 'Terminar' : 'Começar'} ${it.nome}${it.avancoPct > 0 ? ` · ${it.avancoPct}%` : ''}`,
+          texto: referenciar(
+            `${terminar ? 'Terminar' : 'Começar'} ${it.nome}${it.avancoPct > 0 ? ` · ${it.avancoPct}%` : ''}`,
+            it.atividadeId,
+          ),
           prazo: `${terminar ? 'fim' : 'início'} ${formatarDataCurta(it.data)}`,
           atraso: it.data < hoje,
           data: it.data,
@@ -335,7 +336,10 @@ export function montarPreparo(r: ReuniaoCompleta, porPessoa = false): ObraPrepar
     const semanaQueVem = semana
       .filter((it) => it.secao !== 'semana_providencia')
       .map((it) => ({
-        texto: `${it.secao === 'semana_concluir' ? 'Terminar' : 'Começar'} ${it.nome}`,
+        texto: referenciar(
+          `${it.secao === 'semana_concluir' ? 'Terminar' : 'Começar'} ${it.nome}`,
+          it.id,
+        ),
         prazo: it.sub.replace(' previsto', ''),
         atraso: false,
         data: it.data,
@@ -350,7 +354,7 @@ export function montarPreparo(r: ReuniaoCompleta, porPessoa = false): ObraPrepar
           ),
       )
       .map((it) => ({
-        texto: `${VERBO_PROV[it.tipoProvidencia ?? 'compra']} ${it.nome}`,
+        texto: referenciar(textoProvidencia(it.tipoProvidencia ?? 'compra', it.nome), it.id),
         prazo: it.atraso
           ? 'atrasado'
           : it.naObraEm

@@ -9,12 +9,14 @@ import {
   type RespostaReuniao,
   type SecaoResposta,
   nomeCurto,
+  normalizarTextoProvidencia,
   duEntre,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { hojeISO } from '../obras/api';
 import { loadObra, type ObraCompleta } from '../obras/detalhe';
 import { montarTrilha } from '../obras/trilhaObra';
+import { numerosPorVinculo } from '../obras/numeracaoObra';
 
 export async function abrirReuniao(data: string): Promise<string> {
   if (!supabase) throw new Error('Sem conexão');
@@ -109,6 +111,8 @@ export interface ItemProv {
 }
 
 export interface ReuniaoObraDados {
+  /** Número da atividade da obra, também indexado pelo id de suas providências. */
+  numerosPorVinculo?: Record<string, number>;
   /** Contratado por atividade ou providência, para exportação da ata. */
   contratadosPorVinculo?: Record<string, string>;
   obraId: string;
@@ -280,6 +284,7 @@ function derivarObra(
   const faseAtual = montarTrilha(obra).find((f) => f.status === 'execucao');
 
   return {
+    numerosPorVinculo: numerosPorVinculo(obra),
     contratadosPorVinculo: Object.fromEntries(
       obra.atividades.flatMap((a) =>
         a.prestador?.trim()
@@ -328,7 +333,13 @@ export async function loadReuniao(data: string, criar = true): Promise<ReuniaoCo
   if (criar) {
     id = await abrirReuniao(data);
   } else {
-    const { data: r } = await supabase.from('reuniao').select('id').eq('data', data).maybeSingle();
+    // Só a reunião da Contorno (obra_id nulo): a de obra geral na mesma data é outra.
+    const { data: r } = await supabase
+      .from('reuniao')
+      .select('id')
+      .eq('data', data)
+      .is('obra_id', null)
+      .maybeSingle();
     if (!r) return null;
     id = (r as { id: string }).id;
   }
@@ -404,7 +415,7 @@ export async function loadReuniao(data: string, criar = true): Promise<ReuniaoCo
       id: t.id,
       obraId: t.obra_id,
       origem: t.origem_texto,
-      texto: t.texto,
+      texto: normalizarTextoProvidencia(t.texto),
       pessoa: nomeCurto(t.responsavel?.nome ?? t.responsavel_nome) || 'Sem responsável',
       pessoaNomeCompleto: t.responsavel?.nome ?? t.responsavel_nome ?? 'Sem responsável',
       prazo: t.prazo,

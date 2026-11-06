@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { PapelGeral, Perfil } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 export interface MembroPendente {
@@ -28,6 +29,7 @@ export function useMembrosPendentes(ativo = true) {
         .from('pessoa')
         .select('id, nome, created_at')
         .eq('ativo', false)
+        .eq('acesso_contorno', true)
         .is('desativado_em', null)
         .is('deleted_at', null)
         .order('created_at');
@@ -75,16 +77,21 @@ export function useTodosMembros() {
       if (!supabase) throw new Error('Sem conexão');
       const { data, error } = await supabase
         .from('pessoa')
-        .select('id,nome,perfil,ativo,desativado_em')
+        .select('id,nome,perfil,ativo,desativado_em,coordenador_contorno,administrador,papel_geral')
+        // Pessoas e acessos da Contorno: sem quem só está nas obras gerais.
+        .eq('acesso_contorno', true)
         .is('deleted_at', null)
         .order('nome');
       if (error) throw error;
       return data as {
         id: string;
         nome: string;
-        perfil: string;
+        perfil: Perfil;
         ativo: boolean;
         desativado_em: string | null;
+        coordenador_contorno: boolean;
+        administrador: boolean;
+        papel_geral: PapelGeral | null;
       }[];
     },
   });

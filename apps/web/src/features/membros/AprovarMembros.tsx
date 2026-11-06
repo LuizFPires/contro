@@ -1,3 +1,4 @@
+import { podeDesligarNaContorno, rotuloPapelContorno } from '@contro/core';
 import { BottomSheet, Button, Icon, useToast } from '@contro/ui';
 import { useState } from 'react';
 import { usePerfil } from '../perfil/usePerfil';
@@ -14,6 +15,17 @@ export function AprovarMembros({ onVoltar }: { onVoltar: () => void }) {
   const [erroDesativar, setErroDesativar] = useState('');
   const { showToast } = useToast();
   const itens = query.data ?? [];
+  // O Coordenador só desliga quem é da Equipe (o banco também barra).
+  const podeMexer = (m: NonNullable<typeof todos.query.data>[number]) =>
+    pessoa
+      ? podeDesligarNaContorno(pessoa, {
+          id: m.id,
+          perfil: m.perfil,
+          coordenadorContorno: m.coordenador_contorno,
+          administrador: m.administrador,
+          papelGeral: m.papel_geral,
+        })
+      : false;
 
   return (
     <div className={styles.screen}>
@@ -21,10 +33,10 @@ export function AprovarMembros({ onVoltar }: { onVoltar: () => void }) {
         <button type="button" className={styles.voltar} aria-label="Voltar" onClick={onVoltar}>
           <Icon name="chevronRight" size={22} />
         </button>
-        <span className={styles.titulo}>Aprovar membros</span>
+        <span className={styles.titulo}>Pessoas e acessos</span>
       </div>
 
-      <div className={styles.acoes} role="tablist" aria-label="Status dos membros">
+      <div className={styles.acoes} role="tablist" aria-label="Status da equipe">
         {(['pendentes', 'ativos', 'inativos'] as const).map((a) => (
           <button
             type="button"
@@ -42,7 +54,7 @@ export function AprovarMembros({ onVoltar }: { onVoltar: () => void }) {
         todos.query.isLoading ? (
           <p>Carregando…</p>
         ) : todos.query.isError ? (
-          <p role="alert">Não foi possível carregar os membros.</p>
+          <p role="alert">Não foi possível carregar a equipe.</p>
         ) : (
           <ul className={styles.lista}>
             {(todos.query.data ?? [])
@@ -50,13 +62,19 @@ export function AprovarMembros({ onVoltar }: { onVoltar: () => void }) {
               .map((m) => (
                 <li key={m.id} className={styles.item}>
                   <span className={styles.nome}>
-                    {m.nome} · {m.perfil === 'gestor' ? 'Gestor' : 'Equipe'}
+                    {m.nome} ·{' '}
+                    {m.perfil === 'gestor'
+                      ? rotuloPapelContorno({
+                          perfil: 'gestor',
+                          coordenadorContorno: m.coordenador_contorno,
+                        })
+                      : 'Equipe'}
                     {m.id === pessoa?.id ? ' (você)' : ''}
                   </span>
                   <button
                     type="button"
                     className={m.ativo ? styles.recusar : styles.aprovar}
-                    disabled={todos.definirAtivo.isPending || m.id === pessoa?.id}
+                    disabled={todos.definirAtivo.isPending || !podeMexer(m)}
                     onClick={() => {
                       if (m.ativo) {
                         setErroDesativar('');
@@ -79,7 +97,7 @@ export function AprovarMembros({ onVoltar }: { onVoltar: () => void }) {
             {!(todos.query.data ?? []).some((m) =>
               aba === 'ativos' ? m.ativo : !m.ativo && m.desativado_em,
             ) ? (
-              <li className={styles.vazio}>Nenhum membro nesta lista.</li>
+              <li className={styles.vazio}>Ninguém da equipe nesta lista.</li>
             ) : null}
           </ul>
         )

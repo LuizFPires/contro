@@ -6,7 +6,7 @@ import {
   useQueryClient,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import { nomeCurto } from '@contro/core';
+import { nomeCurto, normalizarTextoProvidencia } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
 import { type EntradaTarefa } from './campo';
@@ -100,7 +100,7 @@ export function useTarefasAcoes() {
               x.id === id
                 ? {
                     ...x,
-                    texto: t.texto,
+                    texto: normalizarTextoProvidencia(t.texto),
                     responsavel_id: t.responsavelId,
                     responsavelNome,
                     responsavelNomeBruto,
@@ -114,7 +114,7 @@ export function useTarefasAcoes() {
               {
                 id,
                 obra_id: obraId,
-                texto: t.texto,
+                texto: normalizarTextoProvidencia(t.texto),
                 responsavel_id: t.responsavelId,
                 responsavelNome,
                 responsavelNomeBruto,

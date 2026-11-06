@@ -1,3 +1,4 @@
+import { normalizarTextoProvidencia } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 export async function marcarSubitem(
@@ -208,6 +209,8 @@ export async function adicionarProvidencia(
   atividadeId: string,
   tipo: 'contratacao' | 'locacao' | 'compra',
   descricao: string,
+  /** Obra geral: dias úteis antes da data prevista (o banco calcula o "providenciar até"). */
+  antecedenciaDu = 0,
 ): Promise<void> {
   if (!supabase) throw new Error('Sem conexão');
   const { error } = await supabase.from('obra_providencia').insert({
@@ -215,7 +218,7 @@ export async function adicionarProvidencia(
     atividade_id: atividadeId,
     tipo,
     descricao,
-    antecedencia_du: 0,
+    antecedencia_du: antecedenciaDu,
     manual: true,
   });
   if (error) throw error;
@@ -400,7 +403,7 @@ export function argsSalvarTarefa(
   return {
     p_id: t.id ?? null,
     p_obra_id: obraId,
-    p_texto: t.texto,
+    p_texto: normalizarTextoProvidencia(t.texto),
     p_responsavel_id: t.responsavelId,
     p_prazo: t.prazo,
     p_vinculo_tipo: t.vinculoTipo ?? null,

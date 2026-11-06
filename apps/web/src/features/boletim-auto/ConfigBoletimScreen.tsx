@@ -35,8 +35,15 @@ function isoLocal(d: Date): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
-export function ConfigBoletimScreen({ onVoltar }: { onVoltar: () => void }) {
-  const { query, salvar, salvando } = useConfigBoletim();
+/** Sem `obra`, o agendamento global da Contorno; com `obra`, o de uma obra geral. */
+export function ConfigBoletimScreen({
+  onVoltar,
+  obra,
+}: {
+  onVoltar: () => void;
+  obra?: { id: string; nome: string };
+}) {
+  const { query, salvar, salvando } = useConfigBoletim(obra?.id ?? null);
   const { showToast } = useToast();
   const [cfg, setCfg] = useState<ConfigBoletim>(PADRAO);
 
@@ -87,8 +94,9 @@ export function ConfigBoletimScreen({ onVoltar }: { onVoltar: () => void }) {
       </div>
 
       <p className={styles.intro}>
-        No horário escolhido, o boletim de cada obra ativa é gerado e você recebe um aviso para
-        enviar pelo WhatsApp. Vale para todas as obras.
+        {obra
+          ? `No horário escolhido, o boletim de ${obra.nome} é gerado e quem coordena a obra recebe um aviso para enviar pelo WhatsApp.`
+          : 'No horário escolhido, o boletim de cada obra ativa é gerado e você recebe um aviso para enviar pelo WhatsApp. Vale para todas as obras.'}
       </p>
 
       {query.isLoading ? (

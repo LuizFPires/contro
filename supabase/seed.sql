@@ -5,7 +5,7 @@ insert into sugestao (tipo, texto, usos) values
   ('prestador', 'Elétrica Silva', 3),
   ('prestador', 'Hidráulica Souza', 2),
   ('local', 'Recepção', 1)
-on conflict (tipo, texto) do nothing;
+on conflict (ambiente, tipo, texto) do nothing;
 
 -- pessoas são criadas após o cadastro no Auth; o primeiro gestor é promovido
 -- manualmente (service role) no ambiente de homologação.

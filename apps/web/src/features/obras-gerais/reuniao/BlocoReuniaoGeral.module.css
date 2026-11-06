@@ -1,0 +1,39 @@
+/* Bloco "Reunião": mesmo desenho do bloco de Minhas obras da Contorno. */
+.blocos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.bloco {
+  text-align: left;
+  border: 0;
+  border-radius: 16px;
+  padding: 12px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 76px;
+  font: inherit;
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 15px;
+}
+.icone {
+  color: var(--contro-turquoise);
+}
+.sub {
+  font-size: 13px;
+  color: rgb(255 255 255 / 75%);
+}
+.status {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--contro-turquoise);
+}

@@ -1,0 +1,174 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+.topo {
+  padding: 12px 20px 8px 8px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.voltar {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--contro-black);
+  cursor: pointer;
+  flex: none;
+}
+.titulos {
+  flex: 1;
+  min-width: 0;
+}
+.titulo {
+  margin: 0;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 800;
+}
+.sub {
+  margin: 0;
+  font-size: 14px;
+  color: #696969;
+}
+.nova {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  border: 0;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 8px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card {
+  width: 100%;
+  min-height: var(--contro-touch);
+  text-align: left;
+  font: inherit;
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--contro-black);
+}
+button.card {
+  cursor: pointer;
+}
+.nome {
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 24px;
+}
+.meta {
+  font-size: 14px;
+  color: #696969;
+  overflow-wrap: anywhere;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.aviso {
+  padding: 0 20px;
+  color: var(--contro-muted);
+}
+
+/* Ficha e nova pessoa */
+.campos {
+  display: grid;
+  gap: 16px;
+}
+.rotulo {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 800;
+}
+.nota {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #696969;
+}
+.erro {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+.switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--contro-touch);
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.switchLabel {
+  font-weight: 700;
+  color: var(--contro-black);
+}
+.direita {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+.estado {
+  font-size: 12px;
+  font-weight: 800;
+}
+.track {
+  flex: none;
+  width: 48px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgb(24 24 24 / 12%);
+  box-shadow: inset 0 0 0 1.5px rgb(24 24 24 / 20%);
+  position: relative;
+  transition: background 0.15s ease;
+}
+.trackOn {
+  background: var(--contro-turquoise);
+  box-shadow: none;
+}
+.knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--contro-white);
+  box-shadow: 0 1px 3px rgb(24 24 24 / 30%);
+  transition: transform 0.15s ease;
+}
+.trackOn .knob {
+  transform: translateX(20px);
+}

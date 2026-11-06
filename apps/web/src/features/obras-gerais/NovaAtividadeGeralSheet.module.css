@@ -1,0 +1,158 @@
+.corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rotulo {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgb(24 24 24 / 72%);
+}
+.caixa {
+  border: 1px solid rgb(24 24 24 / 12%);
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.caixaTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+}
+.chaveBox {
+  min-width: var(--contro-touch);
+  min-height: var(--contro-touch);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+.chave {
+  width: 56px;
+  height: 34px;
+  border-radius: 99px;
+  background: rgb(24 24 24 / 25%);
+  position: relative;
+  flex-shrink: 0;
+}
+.chave span {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--contro-white);
+  transition: left 0.15s;
+}
+.chaveOn {
+  background: var(--contro-turquoise);
+}
+.chaveOn span {
+  left: 26px;
+}
+.linha {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.campo {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 48px;
+  border: 2px solid rgb(24 24 24 / 25%);
+  border-radius: 14px;
+  padding: 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--contro-black);
+  background: var(--contro-white);
+}
+.campoNome {
+  width: 100%;
+  min-height: 56px;
+  font-size: 18px;
+}
+.campo:focus {
+  border-color: var(--contro-black);
+  outline: none;
+}
+.dataSub {
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.remover {
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--contro-black);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.maisSub {
+  min-height: var(--contro-touch);
+  border-radius: 12px;
+  border: 1.5px dashed rgb(24 24 24 / 40%);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.nota {
+  margin: 0;
+  font-size: 13px;
+  color: rgb(24 24 24 / 72%);
+}
+.erro {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.campoDu {
+  flex: 0 0 72px;
+  text-align: center;
+}
+
+/* Subitem: o texto ocupa a largura toda; data e remover ficam embaixo, à direita. */
+.subItem {
+  display: grid;
+  gap: 6px;
+}
+.subAcoes {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}

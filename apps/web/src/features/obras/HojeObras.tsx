@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { resumoDoDia, ritmoTexto, type ItemDia, type TipoItemDia } from '@contro/core';
+import {
+  resumoDoDia,
+  ritmoTexto,
+  VERBO_PROVIDENCIA,
+  type ItemDia,
+  type TipoItemDia,
+} from '@contro/core';
 import { Icon } from '@contro/ui';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import { hojeISO, type ObraResumo } from './api';
@@ -9,9 +15,7 @@ const ROTULO: Record<TipoItemDia, string> = {
   concluir: 'Concluir',
   comecar: 'Começar',
   andamento: 'Em andamento',
-  contratacao: 'Contratação',
-  locacao: 'Locação',
-  compra: 'Compra',
+  ...VERBO_PROVIDENCIA,
   acao: 'Ação',
 };
 

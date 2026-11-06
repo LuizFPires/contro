@@ -3,6 +3,7 @@
 // de cada fase e atividade. A tela só desenha o que sai daqui.
 import type { DataISO } from './calendar';
 import { normalizarAvanco, textoAvanco } from './avanco';
+import { VERBO_PROVIDENCIA } from './textoProvidencia';
 import type { AtividadeEstado } from './obra';
 import type { Cronograma } from './schedule';
 
@@ -162,9 +163,7 @@ function atividadeTrilha(a: TrilhaAtividadeEntrada, e: EntradaTrilha): Atividade
 
   // Lembrete pendente é só aviso: não trava a atividade.
   const p = a.providenciasPendentes[0];
-  const lembrete = p
-    ? ` · falta ${ROTULO_TIPO_PROVIDENCIA[p.tipo].toLowerCase()}: ${p.descricao}`
-    : '';
+  const lembrete = p ? ` · falta ${VERBO_PROVIDENCIA[p.tipo].toLowerCase()} ${p.descricao}` : '';
   const atrasada = Boolean(est?.atrasada);
   const avancoPct = Math.min(99, normalizarAvanco(a.avancoPct));
   const feito = textoAvanco(avancoPct);

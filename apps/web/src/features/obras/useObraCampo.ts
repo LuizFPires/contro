@@ -15,7 +15,7 @@ import {
 } from './campo';
 import { JANELA_DESFAZER_MS, tarefasFechadasPelaAtividade } from './acoesObra';
 import { guardarFotoLocal } from './foto';
-import type { ObraCompleta } from './detalhe';
+import type { ObraCompleta, ObraProv } from './detalhe';
 import type { TarefaObra } from './tarefasObra';
 
 /**
@@ -90,22 +90,25 @@ export function useObraCampo(obraId: string) {
       const prev = qc.getQueryData<ObraCompleta>(['obra', obraId]);
       // Quem marcou: a pessoa logada (o servidor grava o mesmo em feito_por).
       const eu = nomeCurto(qc.getQueryData<{ nome: string } | null>(['perfil'])?.nome) || null;
+      const marcar = (p: ObraProv): ObraProv =>
+        p.id === id
+          ? {
+              ...p,
+              status: feito ? 'feito' : 'pendente',
+              feito_em: feito ? new Date().toISOString() : null,
+              feito_por_nome: feito ? eu : null,
+            }
+          : p;
       if (prev) {
+        // Obra geral guarda as providências na própria obra (sem lista por atividade).
+        const doTopo = (prev as ObraCompleta & { providencias?: ObraProv[] }).providencias;
         qc.setQueryData<ObraCompleta>(['obra', obraId], {
           ...prev,
           atividades: prev.atividades.map((a) => ({
             ...a,
-            providencias: a.providencias.map((p) =>
-              p.id === id
-                ? {
-                    ...p,
-                    status: feito ? 'feito' : 'pendente',
-                    feito_em: feito ? new Date().toISOString() : null,
-                    feito_por_nome: feito ? eu : null,
-                  }
-                : p,
-            ),
+            providencias: (a.providencias ?? []).map(marcar),
           })),
+          ...(doTopo ? { providencias: doTopo.map(marcar) } : {}),
         });
       }
       return { prev };
@@ -119,7 +122,8 @@ export function useObraCampo(obraId: string) {
       atividadeId: string;
       tipo: 'contratacao' | 'locacao' | 'compra';
       descricao: string;
-    }) => adicionarProvidencia(obraId, p.atividadeId, p.tipo, p.descricao),
+      antecedenciaDu?: number;
+    }) => adicionarProvidencia(obraId, p.atividadeId, p.tipo, p.descricao, p.antecedenciaDu),
     onSuccess: inval,
   });
   const restaurarProv = useMutation({
@@ -149,6 +153,7 @@ export function useObraCampo(obraId: string) {
     onSuccess: inval,
   });
   // Patch otimista de uma atividade na obra em cache (cancela refetch, guarda o anterior).
+  // A obra geral usa este hook com o cache dela (sem xp nem providências): `?? 0` e `?? []`.
   const patchAtv = async (
     atividadeId: string,
     troca: (a: ObraCompleta['atividades'][number]) => ObraCompleta['atividades'][number],
@@ -159,7 +164,7 @@ export function useObraCampo(obraId: string) {
     if (prev) {
       qc.setQueryData<ObraCompleta>(['obra', obraId], {
         ...prev,
-        xp: Math.max(0, prev.xp + xp),
+        xp: Math.max(0, (prev.xp ?? 0) + xp),
         atividades: prev.atividades.map((a) => (a.id === atividadeId ? troca(a) : a)),
       });
     }
@@ -322,7 +327,7 @@ export function useObraCampo(obraId: string) {
     onMutate: (v) =>
       patchAtv(v.atividadeId, (a) => ({
         ...a,
-        providencias: a.providencias.map((p) =>
+        providencias: (a.providencias ?? []).map((p) =>
           p.id === v.id ? { ...p, descricao: v.descricao } : p,
         ),
       })),
@@ -412,7 +417,7 @@ export function useReabrirAtividade() {
         qc.setQueryData<ObraCompleta>(['obra', v.obraId], {
           ...prev,
           // Devolve o XP otimista da conclusão (o servidor acerta no sync).
-          xp: Math.max(0, prev.xp - 50),
+          xp: Math.max(0, (prev.xp ?? 0) - 50),
           atividades: prev.atividades.map((a) =>
             a.id === v.atividadeId ? { ...a, concluida_em: null, foto_conclusao_id: null } : a,
           ),

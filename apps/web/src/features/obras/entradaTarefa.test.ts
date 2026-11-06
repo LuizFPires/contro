@@ -44,7 +44,7 @@ describe('entradaAtribuicao', () => {
       },
     );
     expect(e).toEqual({
-      texto: 'Compra: Cabos',
+      texto: 'Comprar Cabos',
       responsavelId: null,
       responsavelNome: 'Maria Souza',
       prazo: '2026-11-10',
@@ -130,7 +130,7 @@ describe('folha de tarefa (edição)', () => {
     );
     expect(e).toEqual({
       id: 't1',
-      texto: 'Compra: Cabos',
+      texto: 'Comprar Cabos',
       responsavelId: null,
       responsavelNome: 'Maria Souza',
       prazo: '2026-11-12',

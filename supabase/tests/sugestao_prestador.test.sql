@@ -28,21 +28,21 @@ create temp table duas as
 
 update obra_atividade set prestador = ' Zé Teste Prestador ' where id = (select id from duas where n = 1);
 select is(
-  (select usos from sugestao where tipo = 'prestador' and texto = 'Zé Teste Prestador'),
+  (select usos from sugestao where ambiente = 'contorno' and tipo = 'prestador' and texto = 'Zé Teste Prestador'),
   1,
   'nome novo vira sugestão (sem espaços nas pontas)'
 );
 
 update obra_atividade set prestador = 'Zé Teste Prestador' where id = (select id from duas where n = 2);
 select is(
-  (select usos from sugestao where tipo = 'prestador' and texto = 'Zé Teste Prestador'),
+  (select usos from sugestao where ambiente = 'contorno' and tipo = 'prestador' and texto = 'Zé Teste Prestador'),
   2,
   'usar em outra atividade incrementa'
 );
 
 update obra_atividade set prestador = 'Zé Teste Prestador' where id = (select id from duas where n = 2);
 select is(
-  (select usos from sugestao where tipo = 'prestador' and texto = 'Zé Teste Prestador'),
+  (select usos from sugestao where ambiente = 'contorno' and tipo = 'prestador' and texto = 'Zé Teste Prestador'),
   2,
   'regravar o mesmo nome não conta de novo'
 );

@@ -182,72 +182,11 @@
   font-size: var(--contro-fs-body-sm);
 }
 
-/* ---------- Painel de perfil (opção A) ---------- */
-.painel {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 0 4px 8px;
-}
-.quem {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgb(24 24 24 / 10%);
-  margin-bottom: 4px;
-}
-.avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--contro-black);
-  color: var(--contro-white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.quemNome {
-  display: block;
-  font-weight: 800;
-  font-size: 18px;
-}
-.quemPerfil {
-  display: block;
-  font-size: 14px;
-  color: #696969;
-}
-.item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 56px;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  color: var(--contro-black);
-  cursor: pointer;
-  padding: 0;
-  font: inherit;
-}
-.itemSeparado {
-  border-top: 1px solid rgb(24 24 24 / 10%);
-  margin-top: 4px;
-}
-.itemRotulo {
-  flex-grow: 1;
-  font-weight: 700;
-  font-size: 16px;
-}
-.itemSeta {
-  color: #696969;
-}
-.selo {
+/* Nome do ambiente ao lado da marca (só para quem tem os dois). O cabeçalho é
+   preto: o texto usa branco a 55% (preto a 55% sumiria no fundo). */
+.ambiente {
   font-size: 12px;
   font-weight: 800;
-  padding: 3px 9px;
-  border-radius: 99px;
-  background: var(--contro-turquoise);
-  color: var(--contro-black);
+  color: rgb(255 255 255 / 55%);
+  white-space: nowrap;
 }

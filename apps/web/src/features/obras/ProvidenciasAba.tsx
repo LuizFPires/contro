@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import { VERBO_PROVIDENCIA } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { AvisoRascunho } from '../../components/AvisoRascunho';
 import { formatarDataCurta } from '../../lib/datas';
 import { useRascunho } from '../../lib/useRascunho';
 import { hojeISO } from './api';
-import type { ObraCompleta } from './detalhe';
+import type { ObraAtv, ObraCompleta } from './detalhe';
 import {
   classificarProvidencias,
   type ItemProvidencia,
@@ -18,10 +19,13 @@ import styles from './ProvidenciasAba.module.css';
 
 type Tipo = 'contratacao' | 'locacao' | 'compra';
 const TIPOS: { tipo: Tipo; rotulo: string }[] = [
-  { tipo: 'contratacao', rotulo: 'Contratação' },
-  { tipo: 'locacao', rotulo: 'Locação' },
-  { tipo: 'compra', rotulo: 'Compra' },
+  { tipo: 'contratacao', rotulo: VERBO_PROVIDENCIA.contratacao },
+  { tipo: 'locacao', rotulo: VERBO_PROVIDENCIA.locacao },
+  { tipo: 'compra', rotulo: VERBO_PROVIDENCIA.compra },
 ];
+
+/** Antecedência sugerida do lembrete da obra geral: uma semana de dias úteis. */
+const ANTECEDENCIA_PADRAO = '5';
 
 const p2 = (n: number) => String(n).padStart(2, '0');
 /** Dia local (ISO) de um instante. */
@@ -279,28 +283,41 @@ export function NovaProvidenciaSheet({
   obra,
   tipo: tipoInicial,
   atividadeFixa,
+  comAntecedencia = false,
   pendente,
   onFechar,
   onSalvar,
 }: {
-  obra: ObraCompleta;
+  /** Contorno ou obra geral: só o id e as atividades. */
+  obra: { id: string; atividades: Pick<ObraAtv, 'id' | 'nome' | 'pai_id' | 'concluida_em'>[] };
   tipo: Tipo | null;
   /** Aberta pela ficha: a atividade já vem escolhida. */
   atividadeFixa?: string;
+  /** Obra geral: pede a antecedência em dias úteis antes da data prevista. */
+  comAntecedencia?: boolean;
   pendente: boolean;
   onFechar: () => void;
-  onSalvar: (v: { atividadeId: string; tipo: Tipo; descricao: string }) => void;
+  onSalvar: (v: {
+    atividadeId: string;
+    tipo: Tipo;
+    descricao: string;
+    antecedenciaDu?: number;
+  }) => void;
 }) {
   const abertas = obra.atividades.filter((a) => !a.pai_id && !a.concluida_em);
   const [tipo, setTipo] = useState<Tipo>('contratacao');
   const [atividadeId, setAtividadeId] = useState('');
   const [descricao, setDescricao] = useState('');
+  const [antecedencia, setAntecedencia] = useState(ANTECEDENCIA_PADRAO);
   const [erro, setErro] = useState('');
   const [abertoPara, setAbertoPara] = useState<Tipo | null>(null);
   // Rascunho: o que foi digitado volta ao reabrir, mesmo se o app fechou.
-  const rascunho = useRascunho<{ tipo: Tipo; atividadeId: string; descricao: string }>(
-    tipoInicial ? `lembrete:${obra.id}:${atividadeFixa ?? 'aba'}` : null,
-  );
+  const rascunho = useRascunho<{
+    tipo: Tipo;
+    atividadeId: string;
+    descricao: string;
+    antecedencia?: string;
+  }>(tipoInicial ? `lembrete:${obra.id}:${atividadeFixa ?? 'aba'}` : null);
   const [recuperado, setRecuperado] = useState(false);
 
   // Cada abertura começa no tipo do botão tocado, sem atividade nem texto
@@ -312,20 +329,30 @@ export function NovaProvidenciaSheet({
       setTipo(r?.tipo ?? tipoInicial);
       setAtividadeId(r?.atividadeId || atividadeFixa || '');
       setDescricao(r?.descricao ?? '');
+      setAntecedencia(r?.antecedencia ?? ANTECEDENCIA_PADRAO);
       setRecuperado(Boolean(r));
       setErro('');
     }
   }
   const guardarRascunho = rascunho.guardar;
   useEffect(() => {
-    if (tipoInicial) guardarRascunho({ tipo, atividadeId, descricao }, !descricao.trim());
-  }, [tipoInicial, tipo, atividadeId, descricao, guardarRascunho]);
+    if (tipoInicial)
+      guardarRascunho({ tipo, atividadeId, descricao, antecedencia }, !descricao.trim());
+  }, [tipoInicial, tipo, atividadeId, descricao, antecedencia, guardarRascunho]);
 
   function salvar() {
     if (!atividadeId) return setErro('Escolha a atividade que depende deste lembrete.');
     if (!descricao.trim()) return setErro('Descreva o que precisa ser providenciado.');
+    const du = Number(antecedencia);
+    if (comAntecedencia && (!/^\d+$/.test(antecedencia.trim()) || du > 60))
+      return setErro('Informe a antecedência em dias úteis (0 a 60).');
     rascunho.limpar();
-    onSalvar({ atividadeId, tipo, descricao: descricao.trim() });
+    onSalvar({
+      atividadeId,
+      tipo,
+      descricao: descricao.trim(),
+      ...(comAntecedencia ? { antecedenciaDu: du } : {}),
+    });
   }
 
   const rotulo = TIPOS.find((t) => t.tipo === tipo)?.rotulo ?? '';
@@ -333,7 +360,7 @@ export function NovaProvidenciaSheet({
   return (
     <BottomSheet open={tipoInicial !== null} onClose={onFechar}>
       <div className={styles.form}>
-        <h2 className={styles.formTitulo}>Nova {rotulo.toLowerCase()}</h2>
+        <h2 className={styles.formTitulo}>{rotulo}</h2>
         {recuperado ? (
           <AvisoRascunho
             onDescartar={() => {
@@ -342,6 +369,7 @@ export function NovaProvidenciaSheet({
               setTipo(tipoInicial ?? 'contratacao');
               setAtividadeId(atividadeFixa ?? '');
               setDescricao('');
+              setAntecedencia(ANTECEDENCIA_PADRAO);
             }}
           />
         ) : null}
@@ -400,6 +428,21 @@ export function NovaProvidenciaSheet({
             onChange={(e) => setDescricao(e.target.value)}
           />
         </div>
+
+        {comAntecedencia ? (
+          <div className={styles.campo}>
+            <label htmlFor="nova-prov-ant" className={styles.campoRotulo}>
+              Providenciar quantos dias úteis antes da data prevista
+            </label>
+            <input
+              id="nova-prov-ant"
+              className={styles.entrada}
+              inputMode="numeric"
+              value={antecedencia}
+              onChange={(e) => setAntecedencia(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            />
+          </div>
+        ) : null}
 
         <div className={styles.dica}>
           O lembrete avisa o que contratar, alugar ou comprar a tempo; não trava a atividade.

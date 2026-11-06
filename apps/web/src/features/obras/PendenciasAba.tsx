@@ -1,7 +1,12 @@
 import { ChecklistResponsavel } from './ChecklistResponsavel';
 import { ChecklistPdfSheet } from './ChecklistPdfSheet';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { classificarPendencias, pendenteHa, pendentesPorCriticidade } from '@contro/core';
+import {
+  classificarPendencias,
+  pendenteHa,
+  pendentesPorCriticidade,
+  type Ambiente,
+} from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
 import { formatarDataCurta } from '../../lib/datas';
@@ -12,7 +17,7 @@ import { Camera } from './Camera';
 import { FotoViewer, type FotoAmpliada } from './FotoViewer';
 import { ChecklistInfo } from './ChecklistInfo';
 import { PendenciaDeck } from './PendenciaDeck';
-import type { ObraCompleta } from './detalhe';
+import type { ObraChecklist } from './listaAtividades';
 import type { PendenciaObra } from './pendenciasObra';
 import type { NovaPendencia } from './campo';
 import { useObraPendencias } from './useObraPendencias';
@@ -35,9 +40,18 @@ export function PendenciasAba({
   atividadeId,
   focoId,
   onFocoAplicado,
+  pessoas,
+  podeAtribuir = true,
+  ambiente = 'contorno',
 }: {
-  obra: ObraCompleta;
+  obra: ObraChecklist;
   atividadeId?: string;
+  /** Ambiente da obra: a "Vida do item" lê o Log dele. */
+  ambiente?: Ambiente;
+  /** Quem pode ser responsável (obra geral: as pessoas da obra); sem ela, a equipe Contorno. */
+  pessoas?: { id: string; nome: string }[];
+  /** Obra geral: só quem planeja atribui o responsável. */
+  podeAtribuir?: boolean;
   /** Pendência tocada em Tarefas ou Minhas ações: abre nela, com destaque. */
   focoId?: string;
   onFocoAplicado?: () => void;
@@ -239,6 +253,7 @@ export function PendenciasAba({
         <ChecklistResponsavel
           key={atribuir.id}
           pendencia={atribuir}
+          pessoas={pessoas}
           onFechar={() => setAtribuir(null)}
           onSalvar={(id, nome) =>
             campo.atribuir.mutateAsync({
@@ -373,7 +388,7 @@ export function PendenciasAba({
                   </button>
                 </div>
                 <div className={styles.vVida}>
-                  <VidaDoItem itemId={p.id} />
+                  <VidaDoItem itemId={p.id} ambiente={ambiente} />
                 </div>
                 <div className={styles.vFotos}>
                   <button
@@ -485,16 +500,18 @@ export function PendenciasAba({
                 <div className={styles.meta}>{onde(menuPend)}</div>
               </div>
             </div>
-            <button
-              type="button"
-              className={styles.menuPendItem}
-              onClick={() => {
-                setAtribuir(menuPend);
-                setMenuPend(null);
-              }}
-            >
-              <Icon name="pessoa" size={20} /> Atribuir responsável
-            </button>
+            {podeAtribuir ? (
+              <button
+                type="button"
+                className={styles.menuPendItem}
+                onClick={() => {
+                  setAtribuir(menuPend);
+                  setMenuPend(null);
+                }}
+              >
+                <Icon name="pessoa" size={20} /> Atribuir responsável
+              </button>
+            ) : null}
             {fotosDe(menuPend).length ? (
               <button
                 type="button"
@@ -534,7 +551,7 @@ export function PendenciasAba({
               Apagar pendência
             </button>
             <div className={styles.menuPendVida}>
-              <VidaDoItem itemId={menuPend.id} />
+              <VidaDoItem itemId={menuPend.id} ambiente={ambiente} />
             </div>
             <p className={styles.menuPendDica}>
               Foto errada? Apague e aponte de novo com a foto certa.
