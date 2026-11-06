@@ -11,7 +11,7 @@
 --   gerar_avisos_gerais: ações = atividades + tarefas + pendências +
 --     providências; horário e ativo por obra; lembretes de reunião por obra
 --     (reuniao_manha_geral, reuniao_antes_geral).
---   abrir_reuniao_geral: a hora vem da config da obra (config_avisos_da_obra).
+--   abrir_reuniao_geral: a hora vem da config da obra (contro_config_avisos_obra).
 -- Origem das cópias:
 --   gerar_avisos_gerais   20261106200000_obras_gerais_avisos.sql §5
 --   abrir_reuniao_geral   20261106300000_obras_gerais_reuniao.sql §4
@@ -286,14 +286,14 @@ create trigger obra_atividade_recalcula_providencias
 update public.obra_providencia op
    set providenciar_ate = public.contro_providenciar_ate_geral(op.atividade_id, op.antecedencia_du)
   from public.obra o
- where o.id = op.obra_id and o.ambiente = 'geral'
+ where o.id = op.obra_id and o.ambiente = 'geral' and op.deleted_at is null
    and op.providenciar_ate is distinct from
        public.contro_providenciar_ate_geral(op.atividade_id, op.antecedencia_du);
 
 -- 4) Reunião da obra geral: a hora vem da config efetiva da obra -----------
 
 -- Cópia literal de 20261106300000 §4; muda só a hora (config da obra → global
--- → 16:00, por config_avisos_da_obra).
+-- → 16:00, pela interna contro_config_avisos_obra).
 create or replace function abrir_reuniao_geral(p_obra_id uuid, p_data date)
 returns uuid
 language plpgsql
@@ -318,7 +318,7 @@ begin
   -- Hora: a da config da obra (config_avisos_obra) → a global → 16:00.
   insert into public.reuniao (data, hora, obra_id)
   values (p_data,
-    coalesce((public.config_avisos_da_obra(p_obra_id) ->> 'reuniao_hora')::time, '16:00'),
+    coalesce((public.contro_config_avisos_obra(p_obra_id)).reuniao_hora, '16:00'),
     p_obra_id)
   on conflict (obra_id, data) where obra_id is not null do nothing;
   select id, status into v_id, v_status from public.reuniao
