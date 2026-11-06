@@ -102,6 +102,7 @@ export function NovaAtividadeGeralSheet({
         subitens: subs,
       });
       rascunho.limpar();
+      void qc.invalidateQueries({ queryKey: ['obras-gerais', 'resumo'] });
       await qc.invalidateQueries({ queryKey: ['obra', obra.id] });
       showToast({ message: 'Atividade adicionada.', onUndo: () => campo.excluir.mutate(id) });
       onFechar();

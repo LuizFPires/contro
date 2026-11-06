@@ -46,7 +46,10 @@ export function EditarSubitemSheet({
   }, [aberto, subitem?.id]);
 
   const limpo = nome.trim().replace(/\s+/g, ' ');
-  const atualizar = () => qc.invalidateQueries({ queryKey: ['obra', obraId] });
+  const atualizar = () => {
+    void qc.invalidateQueries({ queryKey: ['obras-gerais', 'resumo'] });
+    return qc.invalidateQueries({ queryKey: ['obra', obraId] });
+  };
   const avisarErro = (e: unknown) =>
     showToast({ message: e instanceof Error ? e.message : 'Não foi possível desfazer.' });
 
