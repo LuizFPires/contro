@@ -1,6 +1,26 @@
 begin;
 select no_plan();
 
+-- O pg_prove monta apenas a pasta de testes. Reaplica as instruções que o
+-- Supabase realmente registrou ao subir o banco, sem depender de arquivos externos.
+create function pg_temp.reaplicar_padronizacao()
+returns void language plpgsql as $teste$
+declare
+  instrucao text;
+begin
+  for instrucao in
+    select unnest(statements)
+    from supabase_migrations.schema_migrations
+    where version = '20261105210000'
+  loop
+    execute instrucao;
+  end loop;
+  if not found then
+    raise exception 'Migration de padronização não registrada';
+  end if;
+end;
+$teste$;
+
 select is(public.normalizar_texto_providencia('Compra: Cimento e areia'), 'Comprar Cimento e areia', 'compra usa verbo');
 select is(public.normalizar_texto_providencia('Locação: Betoneira'), 'Alugar Betoneira', 'locação usa verbo');
 select is(public.normalizar_texto_providencia('Contratação: Pintor'), 'Contratar Pintor', 'contratação usa verbo');
@@ -23,7 +43,7 @@ insert into public.tarefa (id, obra_id, texto, prazo, status, deleted_at) values
   ('00000000-0000-0000-0000-00000000d513', '00000000-0000-0000-0000-00000000d501', 'Contratação: Pintor', '2026-11-23', 'aberta', now());
 alter table public.tarefa enable trigger tarefa_padronizar_texto;
 
-\ir ../migrations/20261105210000_padronizar_textos_providencias.sql
+select lives_ok('select pg_temp.reaplicar_padronizacao()', 'reaplica a migration registrada');
 
 select is((select texto from public.tarefa where id = '00000000-0000-0000-0000-00000000d511'), 'Comprar Cimento', 'migra aberta');
 select is((select texto from public.tarefa where id = '00000000-0000-0000-0000-00000000d512'), 'Alugar Betoneira', 'migra feita');
@@ -33,7 +53,7 @@ select is((select count(*) from public.tarefa where obra_id = '00000000-0000-000
 select is((select antes->>'texto' from public.tarefa_evento where tarefa_id = '00000000-0000-0000-0000-00000000d511'), 'Compra: Cimento', 'guarda título anterior na auditoria');
 select is((select depois->>'texto' from public.tarefa_evento where tarefa_id = '00000000-0000-0000-0000-00000000d511'), 'Comprar Cimento', 'guarda título novo na auditoria');
 
-\ir ../migrations/20261105210000_padronizar_textos_providencias.sql
+select lives_ok('select pg_temp.reaplicar_padronizacao()', 'reaplica a migration novamente');
 select is((select count(*) from public.tarefa_evento where tarefa_id = '00000000-0000-0000-0000-00000000d511'), 1::bigint, 'reaplicar não duplica eventos');
 
 insert into auth.users (id, email) values ('00000000-0000-0000-0000-00000000d521', 'vocabulário@teste.contro');
