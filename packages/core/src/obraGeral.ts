@@ -1,8 +1,10 @@
 import type { AcessoPessoa } from './ambiente';
 import { addDU, type DataISO } from './calendar';
-import type { Acao } from './acoes';
+import { PRAZOS_PENDENCIA_PADRAO, prazoPendencia, type Acao, type PrazosPendencia } from './acoes';
 import type { AgendaObra, ItemDia } from './agendaDia';
 import { atrasoDU, diaLocal } from './datas';
+import type { Criticidade } from './pendencias';
+import { ROTULO_TIPO_PROVIDENCIA, type TipoProvidencia } from './trilha';
 
 // Obra geral: a data prevista é digitada pelo coordenador, sem cálculo de cronograma.
 
@@ -201,7 +203,7 @@ export function podePlanejarObraGeral(p: AcessoPessoa): boolean {
   return p.administrador || p.papelGeral === 'coordenador';
 }
 
-function filhosPorPai(atividades: AtividadeGeral[]): Map<string, AtividadeGeral[]> {
+export function filhosPorPai(atividades: AtividadeGeral[]): Map<string, AtividadeGeral[]> {
   const filhos = new Map<string, AtividadeGeral[]>();
   for (const a of [...atividades].sort((x, y) => x.ordem - y.ordem)) {
     if (a.pai_id === null) continue;
@@ -210,66 +212,73 @@ function filhosPorPai(atividades: AtividadeGeral[]): Map<string, AtividadeGeral[
   return filhos;
 }
 
-function quemGeral(
-  responsavelId: string | null,
-  pessoaId: string | null,
-  nomes: Record<string, string>,
-): string {
-  if (responsavelId !== null && responsavelId === pessoaId) return 'Você';
-  return (responsavelId ? nomes[responsavelId] : undefined) ?? 'Sem responsável';
-}
-
-/** "Hoje" da obra geral: atividades de topo abertas, com prazo, atrasadas ou para hoje. */
+/**
+ * "Hoje" da obra geral: ações abertas, com prazo, atrasadas ou para hoje. Sem `acoes`, só as
+ * atividades de topo; com elas (`acoesCompletasObraGeral`), também tarefas, pendências e
+ * providências (tipo `acao`, chave `{origem}:{id}`). Atividade usa o atraso em dias úteis.
+ */
 export function agendaObraGeral(e: {
   atividades: AtividadeGeral[];
   hoje: DataISO;
   pessoaId: string | null;
   nomes: Record<string, string>;
+  acoes?: Acao[];
 }): AgendaObra {
-  const filhos = filhosPorPai(e.atividades);
+  const acoes = e.acoes ?? acoesDaObraGeral(e.atividades, '', '', e.nomes);
   const atrasados: ItemDia[] = [];
   const hoje: ItemDia[] = [];
-  for (const a of e.atividades) {
-    if (a.pai_id !== null || a.concluida_em !== null) continue;
-    const prazo = prazoAtividadeGeral(a, filhos.get(a.id) ?? []);
-    if (!prazo) continue;
-    const status = statusAtividadeGeral(null, prazo, e.hoje);
-    if (status !== 'atrasada' && status !== 'vence_hoje') continue;
+  for (const a of acoes) {
+    if (!a.aberta) continue;
+    const atividade = a.origem === 'atividade';
+    const atraso = atividade
+      ? statusAtividadeGeral(null, a.prazo, e.hoje) === 'atrasada'
+      : a.prazo < e.hoje;
+    if (!atraso && a.prazo !== e.hoje) continue;
     const item: ItemDia = {
-      chave: `geral:${a.id}`,
-      tipo: 'concluir',
-      nome: a.nome,
-      data: prazo,
-      atraso: status === 'atrasada',
-      pessoa: quemGeral(a.responsavel_id, e.pessoaId, e.nomes),
+      chave: atividade ? `geral:${a.id}` : `${a.origem}:${a.id}`,
+      tipo: atividade ? 'concluir' : 'acao',
+      nome: a.texto,
+      data: a.prazo,
+      atraso,
+      pessoa:
+        a.responsavelId !== null && a.responsavelId === e.pessoaId
+          ? 'Você'
+          : (a.responsavelNome ?? 'Sem responsável'),
     };
-    (item.atraso ? atrasados : hoje).push(item);
+    (atraso ? atrasados : hoje).push(item);
   }
   atrasados.sort((x, y) => x.data.localeCompare(y.data) || x.nome.localeCompare(y.nome, 'pt-BR'));
   hoje.sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR'));
   return { atrasados, hoje };
 }
 
-/** Texto de linha do Hoje para atividade de obra geral. */
+/** Texto de linha do Hoje da obra geral (atividade ou ação). */
 export function detalheItemGeral(i: ItemDia): string {
   const quem = i.pessoa ?? 'Sem responsável';
+  if (i.tipo === 'acao')
+    return i.atraso ? `${quem} · venceu ${diaCurto(i.data)}` : `${quem} · até hoje`;
   return i.atraso
     ? `${quem} · devia terminar ${diaCurto(i.data)}`
     : `${quem} · previsto concluir hoje`;
 }
 
-/** Uma ação por atividade de topo com prazo (sem prazo, fica fora: `Acao.prazo` é obrigatório). */
+/**
+ * Uma ação por atividade de topo com prazo (sem prazo, fica fora: `Acao.prazo` é obrigatório).
+ * Atividade aberta em `comTarefaAberta` fica fora: a tarefa vinculada aberta a representa.
+ */
 export function acoesDaObraGeral(
   atividades: AtividadeGeral[],
   obraId: string,
   obraNome: string,
   nomes: Record<string, string>,
+  comTarefaAberta: ReadonlySet<string> = new Set(),
 ): Acao[] {
   void obraNome;
   const filhos = filhosPorPai(atividades);
   const acoes: Acao[] = [];
   for (const a of atividades) {
     if (a.pai_id !== null) continue;
+    if (a.concluida_em === null && comTarefaAberta.has(a.id)) continue;
     const prazo = prazoAtividadeGeral(a, filhos.get(a.id) ?? []);
     if (!prazo) continue;
     acoes.push({
@@ -287,6 +296,140 @@ export function acoesDaObraGeral(
   return acoes;
 }
 
+/** Tarefa como as ações da obra geral precisam (`TarefaObra` da web serve). */
+export interface TarefaAcaoGeral {
+  id: string;
+  texto: string;
+  prazo: DataISO;
+  status: 'aberta' | 'feita';
+  responsavel_id: string | null;
+  /** Nome da pessoa ou digitado; vale quando a pessoa não está em `nomes`. */
+  responsavelNome: string | null;
+  vinculo_tipo: 'providencia' | 'atividade' | null;
+  vinculo_id: string | null;
+  feita_em: string | null;
+}
+
+/** Pendência como as ações da obra geral precisam (`PendenciaObra` da web serve). */
+export interface PendenciaAcaoGeral {
+  id: string;
+  titulo: string;
+  criticidade: Criticidade;
+  status: string;
+  apontada_em: string;
+  responsavel_id?: string | null;
+  responsavelNome?: string | null;
+  resolvida_em: string | null;
+}
+
+/** Lembrete de providência com o prazo gravado pelo banco (`providenciar_ate`). */
+export interface ProvidenciaAcaoGeral {
+  id: string;
+  atividade_id: string;
+  tipo: TipoProvidencia;
+  descricao: string;
+  status: 'pendente' | 'feito';
+  providenciar_ate: DataISO | null;
+}
+
+/** Ação da obra geral; atividade e providência levam a atividade de topo a abrir. */
+export type AcaoGeral = Acao & { atividadeId?: string };
+
+/** Ids de atividade e de providência com tarefa vinculada aberta. */
+export function vinculosComTarefaAberta(
+  tarefas: Pick<TarefaAcaoGeral, 'status' | 'vinculo_tipo' | 'vinculo_id'>[],
+): { atividades: Set<string>; providencias: Set<string> } {
+  const atividades = new Set<string>();
+  const providencias = new Set<string>();
+  for (const t of tarefas) {
+    if (t.status !== 'aberta' || !t.vinculo_id) continue;
+    if (t.vinculo_tipo === 'atividade') atividades.add(t.vinculo_id);
+    else if (t.vinculo_tipo === 'providencia') providencias.add(t.vinculo_id);
+  }
+  return { atividades, providencias };
+}
+
+/**
+ * Ações da obra geral, a mesma conta das ações do dia (gerar_avisos_gerais): atividades de
+ * topo (a aberta com tarefa vinculada aberta fica fora: conta a tarefa), tarefas, pendências
+ * (prazo pela config da obra) e providências pendentes com prazo, de atividade aberta e sem
+ * tarefa vinculada aberta, com o responsável da atividade de topo (ou sem responsável).
+ * Responsável com pessoa usa o nome de `nomes` (o mesmo nas atividades e nos chips).
+ */
+export function acoesCompletasObraGeral(e: {
+  obraId: string;
+  atividades: AtividadeGeral[];
+  tarefas: TarefaAcaoGeral[];
+  pendencias: PendenciaAcaoGeral[];
+  providencias: ProvidenciaAcaoGeral[];
+  nomes: Record<string, string>;
+  prazosPendencia?: PrazosPendencia;
+}): AcaoGeral[] {
+  const vinculos = vinculosComTarefaAberta(e.tarefas);
+  const nome = (id: string | null | undefined, outro: string | null | undefined) =>
+    (id ? e.nomes[id] : undefined) ?? outro ?? null;
+
+  const acoes: AcaoGeral[] = acoesDaObraGeral(
+    e.atividades,
+    e.obraId,
+    '',
+    e.nomes,
+    vinculos.atividades,
+  ).map((a) => ({ ...a, atividadeId: a.id }));
+
+  for (const t of e.tarefas) {
+    acoes.push({
+      origem: 'tarefa',
+      id: t.id,
+      obraId: e.obraId,
+      texto: t.texto,
+      prazo: t.prazo,
+      aberta: t.status === 'aberta',
+      responsavelId: t.responsavel_id,
+      responsavelNome: nome(t.responsavel_id, t.responsavelNome),
+      concluidaEm: t.feita_em,
+    });
+  }
+
+  const prazos = e.prazosPendencia ?? PRAZOS_PENDENCIA_PADRAO;
+  for (const p of e.pendencias) {
+    const aberta = p.status === 'aberta';
+    acoes.push({
+      origem: 'pendencia',
+      id: p.id,
+      obraId: e.obraId,
+      texto: p.titulo,
+      prazo: prazoPendencia(p.criticidade, diaLocal(p.apontada_em), prazos),
+      aberta,
+      responsavelId: p.responsavel_id ?? null,
+      responsavelNome: nome(p.responsavel_id, p.responsavelNome),
+      concluidaEm: aberta ? undefined : p.resolvida_em,
+    });
+  }
+
+  const porId = new Map(e.atividades.map((a) => [a.id, a]));
+  for (const p of e.providencias) {
+    if (p.status !== 'pendente' || !p.providenciar_ate) continue;
+    if (vinculos.providencias.has(p.id)) continue;
+    const atv = porId.get(p.atividade_id);
+    if (!atv || atv.concluida_em !== null) continue;
+    const topo = atv.pai_id === null ? atv : porId.get(atv.pai_id);
+    if (!topo) continue;
+    acoes.push({
+      origem: 'providencia',
+      id: p.id,
+      obraId: e.obraId,
+      texto: `${ROTULO_TIPO_PROVIDENCIA[p.tipo]}: ${p.descricao}`,
+      prazo: p.providenciar_ate,
+      aberta: true,
+      responsavelId: topo.responsavel_id,
+      responsavelNome: nome(topo.responsavel_id, null),
+      atividadeId: topo.id,
+    });
+  }
+  return acoes;
+}
+
 export interface EficienciaGeral {
   noPrazo: number;
   total: number;
@@ -298,7 +441,7 @@ export interface EficienciaGeral {
  * subitens (o original de cada um, ou a data dele); sem subitem com data, a
  * data da própria atividade.
  */
-function prazoOriginalAtividadeGeral(
+export function prazoOriginalAtividadeGeral(
   a: AtividadeGeral,
   subitens: AtividadeGeral[],
 ): DataISO | null {

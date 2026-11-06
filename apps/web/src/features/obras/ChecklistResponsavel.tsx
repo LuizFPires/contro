@@ -7,18 +7,22 @@ import styles from './ChecklistPdf.module.css';
 
 export function ChecklistResponsavel({
   pendencia,
+  pessoas: lista,
   onFechar,
   onSalvar,
 }: {
   pendencia: PendenciaObra;
+  /** Quem pode ser responsável (obra geral: as pessoas da obra). Sem ela, a equipe Contorno. */
+  pessoas?: { id: string; nome: string }[];
   onFechar: () => void;
   onSalvar: (id: string | null, nome: string | null) => Promise<unknown>;
 }) {
   const [id, setId] = useState(pendencia.responsavel_id ?? '');
   const [salvando, setSalvando] = useState(false);
   const { showToast } = useToast();
-  const pessoas = useQuery({
+  const consulta = useQuery({
     queryKey: ['responsaveis-checklist'],
+    enabled: !lista,
     queryFn: async () => {
       if (!supabase) throw new Error('Sem conexão');
       const { data, error } = await supabase
@@ -32,6 +36,9 @@ export function ChecklistResponsavel({
       return data as { id: string; nome: string }[];
     },
   });
+  const pessoas = lista
+    ? { data: lista, isLoading: false, isError: false, refetch: consulta.refetch }
+    : consulta;
   return (
     <BottomSheet
       open

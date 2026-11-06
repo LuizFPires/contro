@@ -351,7 +351,7 @@ Primeira de 5 etapas de Obras gerais (obras que não são da Contorno, com pesso
 
 **Próximas etapas** (cada uma com plano próprio, escrito depois que a anterior entra na `main`):
 - ~~Etapa 3: menu de baixo, Hoje, Ações da equipe, avisos (push) e eficiência~~ → entregue (ver "Obras gerais · Etapa 3").
-- Etapa 4: reunião, ata, pendências (Check list) e boletim por obra, com "+ lembrete de providência" e "+ nota" na nova atividade, e **Reunião e avisos por obra** (inclui os horários dos avisos gerais, hoje os de `config_avisos`).
+- ~~Etapa 4: reunião, ata, pendências (Check list) e boletim por obra, com "+ lembrete de providência" e "+ nota" na nova atividade, e Reunião e avisos por obra~~ → entregue (ver "Obras gerais · Etapa 4"; "+ nota" saiu do escopo).
 - Etapa 5: Score e Log por participação, com os itens Score e Log no menu de baixo de Obras gerais; sugestões separadas por ambiente (nome livre de responsável e autocompletar de prestador).
 
 ---
@@ -384,6 +384,22 @@ Terceira de 5 etapas. Entrega o dia a dia da Contorno nas Obras gerais: menu de 
 - [x] 6. Documentação: PRD, SPEC e PLAN.
 
 **Próximas etapas:** etapas 4 e 5, listadas em "Obras gerais · Etapa 1".
+
+---
+
+## Obras gerais · Etapa 4 · reunião, Check list, providências e boletim por obra (06/11/2026)
+Quarta de 5 etapas. Leva às Obras gerais o ciclo semanal da Contorno, por obra: reunião com pauta, ata e tarefas; Check list com antes e depois; lembretes de providência; boletim (WhatsApp, PDF e automático); "Reunião e avisos" da obra; e Ações da equipe com tarefas, pendências e providências. Spec: `docs/superpowers/specs/2026-11-05-obras-gerais-design.md` · plano: `docs/superpowers/plans/2026-11-06-obras-gerais-4-reuniao-checklist-boletim.md`.
+- [x] 1. Core: `obraGeralSemana.ts` (`semanaDaReuniaoGeral`, `montarBoletimGeral`, `providenciarAteGeral`, `situacaoProvidenciaGeral`, `entraNaCobrancaGeral`), com testes.
+- [x] 2. Migration `20261106300000_obras_gerais_reuniao.sql`: reunião por obra geral (`reuniao.obra_id`, `abrir_reuniao_geral`, fechar/reabrir/responder abertos à obra), teste pgTAP.
+- [x] 3. Migration `20261106310000_obras_gerais_tarefas_pendencias.sql`: tarefas e pendências abertas às obras gerais, teste pgTAP.
+- [x] 4. Migration `20261106320000_obras_gerais_avisos_obra.sql`: `config_avisos_obra`, prazo da pendência e da providência por obra, `gerar_avisos_gerais` com as ações completas e os lembretes de reunião por obra, teste pgTAP.
+- [x] 5. Migration `20261106330000_obras_gerais_boletim.sql`: `config_boletim_obra` e `gerar_disparos_boletim_geral`, teste pgTAP.
+- [x] 6. Web: Reunião e avisos da obra, reunião da obra e Reuniões (Administrador); filtro `obra_id is null` na Contorno.
+- [x] 7. Web: Check list e providências na obra geral ("+ lembrete de providência" na nova atividade).
+- [x] 8. Web: boletim da obra geral, "Prontos para enviar" e boletim automático por obra.
+- [x] 9. Web: Ações da equipe completas (`acoesCompletasObraGeral` no core; resumo, bloco, tela de ações e Hoje com tarefas, pendências e providências; boletim com a mesma lista) e documentação.
+
+**Próximas etapas:** etapa 5: Score e Log por participação, com os itens Score e Log no menu de baixo de Obras gerais; sugestões por ambiente (nome livre de responsável e autocompletar de prestador).
 
 ---
 
@@ -460,6 +476,24 @@ Registro do que mudou em relação ao PRD/SPEC durante a implementação (data �
 - 2026-11-06 · **Obras gerais · etapa 3 · eficiência.** "% no prazo" = concluídas dentro do prazo original sobre concluídas com prazo mais abertas já atrasadas; sem nenhuma, sem texto. `AtividadeGeral` ganhou `data_prevista_original`.
 - 2026-11-06 · **Obras gerais · etapa 3 · review final.** (1) O Desfazer da troca de responsável usa `desfazer_responsavel_atividade`, que não manda "Nova atividade" (o gatilho pula a atribuição com `contro.desfazer` ligado). (2) "Nova data" segue o prazo efetivo da atividade de topo: replanejar um subitem que muda o prazo avisa o responsável da atividade (nome dela, prazo antigo → novo); editar a data da atividade enquanto os subitens mandam no prazo não avisa. (3) Eficiência: concluída sem original própria usa o maior original (ou data) dos subitens. (4) Ações da equipe voltam com o mesmo chip ao fechar a ficha, e o Voltar delas volta à aba e à obra de onde foram abertas. (5) Linha do Hoje: fechar a ficha ou voltar da obra volta ao Hoje, em todos os papéis. Tocar numa aba do menu esquece essas voltas.
 - 2026-11-06 · **Obras gerais · etapa 3 · pendência de infra.** Confirmar em produção, depois do `db push`, que o job `avisos-gerais` existe no pg_cron.
+- 2026-11-06 · **Obras gerais · etapa 4 · reunião por obra.** Uma reunião por obra geral e data (`reuniao.obra_id`); a reunião única da Contorno (`obra_id` nulo) não muda. Fechar/reabrir a ata e criar/atribuir tarefas = quem planeja (Coordenador, Administrador); responder itens e observações = qualquer participante.
+- 2026-11-06 · **Obras gerais · etapa 4 · pauta e ata por datas.** Sem cronograma: "semana passada" = atividades de topo com prazo na semana anterior (concluídas no prazo, com atraso) e **todas** as abertas vencidas antes da semana da reunião (não só as da semana passada: a reunião existe para cobrar · custo: pauta mais longa); "esta semana" = prazo de segunda a sexta da reunião; cobrança = tarefas abertas da obra. Sem "começar" e sem ritmo em dias úteis.
+- 2026-11-06 · **Obras gerais · etapa 4 · tarefas.** Criar, editar, atribuir, excluir e restaurar = quem planeja; concluir, reabrir e informar avanço = qualquer participante. Responsável = pessoa da obra ou Administrador (sem nome livre até a etapa 5).
+- 2026-11-06 · **Obras gerais · etapa 4 · pendências.** Apontar, resolver (foto do depois), editar, reabrir, excluir/restaurar = qualquer participante; atribuir responsável = quem planeja.
+- 2026-11-06 · **Obras gerais · etapa 4 · providências.** Criar e remover = quem planeja; marcar = qualquer participante. `providenciar_ate` = data prevista da atividade menos a antecedência em dias úteis, recalculado no banco quando a data muda. O lembrete nasce com 5 d.u. de antecedência (editável).
+- 2026-11-06 · **Obras gerais · etapa 4 · "+ nota" fora.** A nova atividade ganha só "+ lembrete de providência"; "+ nota" sai do escopo (a atividade da Contorno não tem nota; o prestador cobre). Substitui a decisão "nova atividade" da etapa 2.
+- 2026-11-06 · **Obras gerais · etapa 4 · avisos por obra.** `config_avisos_obra` com as colunas da `config_avisos` (sem linha = a global). Ações do dia continuam um aviso por pessoa somando as obras, na **hora mais cedo entre as obras em que a pessoa tem algo vencendo ou vencido** (só essas geram aviso). Lembretes de reunião `reuniao_manha_geral` e `reuniao_antes_geral`, um por pessoa por dia; com reuniões de duas obras no mesmo dia, o da manhã lista as duas e o "antes de começar" vale para a primeira (limite aceito). Substitui a decisão "horários dos avisos" da etapa 3.
+- 2026-11-06 · **Obras gerais · etapa 4 · sem aviso de providências.** Obras gerais não têm aviso separado de providências; o toggle `provid_*` fica oculto em "Reunião e avisos" da obra, porque as providências já entram nas ações do dia.
+- 2026-11-06 · **Obras gerais · etapa 4 · boletim por obra.** `config_boletim_obra` configurada por Administradores; `gerar_disparos_boletim_geral` grava `boletim_disparo` e um aviso `boletim_geral` para Coordenadores da obra e Administradores; envio ao WhatsApp manual. O disparo nasce com `notificado_em` (o push vai pelo `aviso_disparo`, não pelo `enviar-push-boletim` que avisa gestores da Contorno). Um aviso `boletim_geral` por pessoa por dia (obras no mesmo horário juntam no texto · custo: boletim de outra obra mais tarde no mesmo dia sai sem push).
+- 2026-11-06 · **Obras gerais · etapa 4 · filtro mínimo na Contorno.** `reuniaoApi.loadReuniao` e `ReunioesScreen` filtram `obra_id is null`, e `fechar_reuniao`/`reabrir_reuniao` da Contorno também (senão o gestor fecharia ou reabriria reunião de obra geral) · resultado igual na Contorno.
+- 2026-11-06 · **Obras gerais · etapa 4 · obra Contorno excluída.** Ações de tarefa e pendência em obra Contorno excluída dão 42501, e `salvar_tarefa` com obra inexistente dá 42501 (mesma troca aceita na etapa 2) · nenhum efeito na UI.
+- 2026-11-06 · **Obras gerais · etapa 4 · "Reuniões hoje".** Ordena as obras pelo horário da reunião.
+- 2026-11-06 · **Obras gerais · etapa 4 · bloco Reunião.** Diz "Pauta e atas" (sem "preparar": a pauta antecipada é da reunião única da Contorno) · sem PDF de pauta antecipada nas obras gerais.
+- 2026-11-06 · **Obras gerais · etapa 4 · ações da equipe completas.** Ações = atividades de topo + tarefas + pendências (prazo pela config da obra) + providências pendentes com prazo, de atividade aberta e sem tarefa vinculada aberta; a mesma conta em `acoesCompletasObraGeral` (core) e em `gerar_avisos_gerais` (banco). A atividade aberta com tarefa vinculada aberta conta **uma vez**, pela tarefa; a providência sem dono vai para o **responsável da atividade de topo** (ou "Sem responsável"). Substitui a decisão "ação = atividade" da etapa 3.
+- 2026-11-06 · **Obras gerais · etapa 4 · toque nas ações.** Tarefa: o check conclui (Desfazer) e o toque abre o avanço (a própria tarefa, ou quem não planeja; "Mudar" o prazo só para quem planeja) ou a edição (quem planeja, tarefa de outro ou feita). Tarefa vinculada a atividade se conclui na ficha da atividade (abre a ficha; não há câmera de tarefa na obra geral). Pendência abre o Check list com ela em destaque; atividade e providência abrem a ficha da atividade de topo. No Hoje, tarefa, pendência e providência aparecem como "Ação" e abrem as ações da equipe da obra (como na Contorno).
+- 2026-11-06 · **Obras gerais · etapa 4 · quem faz o quê do boletim.** Usa a mesma lista das ações: tarefas e pendências abertas e, como na obra geral a atividade aberta com responsável é ação dessa pessoa, também ela e as providências dela; atividade e providência sem responsável ficam fora (o boletim já as mostra nos atrasos e na semana). A Contorno não muda (`quemFazOQueBoletim` continua igual; a conversão fica no `boletimDaObraGeral`).
+- 2026-11-06 · **Obras gerais · etapa 4 · tarefa ligada a subitem.** A web só vincula tarefa à atividade de topo (ficha); a regra de não repetir olha a atividade de topo · aceito.
+- 2026-11-06 · **Obras gerais · etapa 4 · saída da obra limpa tarefas e pendências.** Quem sai de uma obra geral também deixa as tarefas e as pendências abertas dela sem responsável (eventos `editada` e `responsavel_alterado`, motivo "saiu da obra"; migration `20261106340000_obras_gerais_saida_tarefas.sql`). O aviso aos Coordenadores e Administradores continua contando só atividades. Defesa: o `acoes_geral` só conta ações de obras de que a pessoa participa (ou de qualquer obra, para o Administrador).
 - 2026-11-05 · **"Aprovar membros" passa a se chamar "Pessoas e acessos"** (mesma função na Contorno).
 - 2026-11-05 · **Administradores marcados por migration de dados** (primeiro nome luiz, rafael ou rodrigo entre gestores); conferir em produção antes do merge.
 

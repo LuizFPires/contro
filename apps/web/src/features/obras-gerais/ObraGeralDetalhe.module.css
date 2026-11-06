@@ -171,3 +171,45 @@
 .blocoAcoes {
   padding: 14px 16px 0;
 }
+
+/* Fases | Check list no cabeçalho preto (a obra geral não tem a barra de abas da Contorno). */
+.secoes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin: 10px 4px 0;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 12%);
+}
+.secao {
+  position: relative;
+  min-height: var(--contro-touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--contro-white);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.secaoAtiva {
+  background: var(--contro-white);
+  color: var(--contro-black);
+}
+.secaoBadge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 99px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font-size: 12px;
+  line-height: 20px;
+}

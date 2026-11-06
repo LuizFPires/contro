@@ -11,6 +11,12 @@ import { NavGeral, type AbaGeral } from './NavGeral';
 import { ObraGeralDetalhe } from './ObraGeralDetalhe';
 import { ObrasGeraisInicio } from './ObrasGeraisInicio';
 import { PessoasDaObra } from './PessoasDaObra';
+import { ConfigBoletimScreen } from '../boletim-auto/ConfigBoletimScreen';
+import { ProntosParaEnviar } from '../boletim-auto/ProntosParaEnviar';
+import { BoletimGeralScreen } from './boletim/BoletimGeralScreen';
+import { ConfigAvisosObraScreen } from './reuniao/ConfigAvisosObraScreen';
+import { ReuniaoGeralScreen } from './reuniao/ReuniaoGeralScreen';
+import { ReunioesGeraisScreen } from './reuniao/ReunioesGeraisScreen';
 import { TrocarObraSheet } from './TrocarObraSheet';
 import { useObrasGerais } from './useObrasGerais';
 import { useResumoObrasGerais } from './useResumoObrasGerais';
@@ -54,7 +60,24 @@ export function ObrasGeraisCasca({
   const [perfilAberto, setPerfilAberto] = useState(false);
   // Pessoas da obra (Coordenador e Administrador): a obra aberta nessa tela e o seletor de obra.
   const [pessoasObraId, setPessoasObraId] = useLembrado<string | null>('obrasgerais:pessoas', null);
-  const [escolhendo, setEscolhendo] = useState(false);
+  // Seletor de obra do perfil: para Pessoas da obra ou para Reunião e avisos.
+  const [escolhendo, setEscolhendo] = useState<'pessoas' | 'avisos' | 'boletim' | null>(null);
+  // Reunião e avisos da obra (Coordenador e Administrador).
+  const [avisosObraId, setAvisosObraId] = useLembrado<string | null>('obrasgerais:avisos', null);
+  // Boletim da obra aberto (ícone da obra, "Prontos para enviar" ou o aviso) e, para o
+  // Administrador, a configuração do boletim automático de uma obra.
+  const [boletimObraId, setBoletimObraId] = useLembrado<string | null>('obrasgerais:boletim', null);
+  const [boletimConfigObraId, setBoletimConfigObraId] = useLembrado<string | null>(
+    'obrasgerais:boletimConfig',
+    null,
+  );
+  // Reunião da obra aberta (o aviso de reunião abre direto nela) e a lista das reuniões
+  // (Administrador: todas as obras; da reunião: só a obra dela).
+  const [reuniaoAberta, setReuniaoAberta] = useLembrado<{
+    obraId: string;
+    data: string | null;
+  } | null>('obrasgerais:reuniao', null);
+  const [reunioesAberta, setReunioesAberta] = useState<string[] | null>(null);
   // A obra aberta fica lembrada: ao voltar ao app, reabre nela.
   const [obraAberta, setObraAberta] = useLembrado<string | null>('obrasgerais:obra', null);
   // Tela de ações da equipe (de uma obra ou de todas), só nesta sessão, com a aba e a obra de
@@ -64,8 +87,13 @@ export function ObrasGeraisCasca({
   const [retornoAcoes, setRetornoAcoes] = useState<TelaAcoes | null>(null);
   // Linha tocada no Hoje: fechar a ficha ou voltar da obra volta ao Hoje (e à obra lembrada).
   const [retornoHoje, setRetornoHoje] = useState<{ obraAnterior: string | null } | null>(null);
-  // Linha tocada no Hoje: a obra abre na ficha dessa atividade (uma vez).
-  const [atalho, setAtalho] = useState<{ obraId: string; atividadeId: string } | null>(null);
+  // Linha tocada no Hoje (ou card nas ações): a obra abre na ficha dessa atividade ou no
+  // Check list com a pendência (uma vez).
+  const [atalho, setAtalho] = useState<{
+    obraId: string;
+    atividadeId?: string;
+    pendenciaId?: string;
+  } | null>(null);
   const { data: obras } = useObrasGerais();
   const {
     data: resumo,
@@ -80,16 +108,44 @@ export function ObrasGeraisCasca({
   // Chave lembrada de quem já não tem o papel: limpa.
   useEffect(() => {
     if (pessoasObraId && !podePessoasDaObra) setPessoasObraId(null);
-  }, [pessoasObraId, podePessoasDaObra, setPessoasObraId]);
+    if (avisosObraId && !podePessoasDaObra) setAvisosObraId(null);
+    if (boletimConfigObraId && !admin) setBoletimConfigObraId(null);
+  }, [
+    pessoasObraId,
+    avisosObraId,
+    boletimConfigObraId,
+    podePessoasDaObra,
+    admin,
+    setPessoasObraId,
+    setAvisosObraId,
+    setBoletimConfigObraId,
+  ]);
 
-  const abrirAtividade = (obraId: string, atividadeId: string) => {
-    setAtalho({ obraId, atividadeId });
+  // Abrir a ficha ou a pendência fecha as telas que ficam por cima da obra (reunião, lista
+  // das reuniões, boletim): sem isso o card tocado nas ações da ata voltava para a reunião.
+  const irParaObra = (obraId: string) => {
+    setReuniaoAberta(null);
+    setReunioesAberta(null);
+    setBoletimObraId(null);
     setObraAberta(obraId);
     setAba('obra');
   };
-  const abrirAcoes = (obraIds: string[]) => {
+  const abrirAtividade = (obraId: string, atividadeId: string) => {
+    setAtalho({ obraId, atividadeId });
+    irParaObra(obraId);
+  };
+  const abrirPendencia = (obraId: string, pendenciaId: string) => {
+    setAtalho({ obraId, pendenciaId });
+    irParaObra(obraId);
+  };
+  // Volta às ações de onde a ficha ou a pendência foi aberta.
+  const voltarAsAcoes = (r: TelaAcoes) => {
+    setAcoesAberta(r);
+    setRetornoAcoes(null);
+  };
+  const abrirAcoes = (obraIds: string[], filtro?: string) => {
     setRetornoHoje(null);
-    setAcoesAberta({ obraIds, abaAnterior: aba, obraAnterior: obraAberta });
+    setAcoesAberta({ obraIds, filtro, abaAnterior: aba, obraAnterior: obraAberta });
   };
   const voltarAoHoje = (r: { obraAnterior: string | null }) => {
     setRetornoHoje(null);
@@ -114,18 +170,24 @@ export function ObrasGeraisCasca({
       pessoa={pessoa}
       semVoltar={semVoltar}
       abrirAtividadeId={atalho?.obraId === id ? atalho.atividadeId : undefined}
+      abrirPendenciaId={atalho?.obraId === id ? atalho.pendenciaId : undefined}
       onAtalhoUsado={() => setAtalho(null)}
-      onVoltar={retornoHoje ? () => voltarAoHoje(retornoHoje) : () => setObraAberta(null)}
+      onVoltar={
+        retornoAcoes
+          ? () => voltarAsAcoes(retornoAcoes)
+          : retornoHoje
+            ? () => voltarAoHoje(retornoHoje)
+            : () => setObraAberta(null)
+      }
       onTrocarObra={setObraAberta}
       onAbrirPessoas={() => setPessoasObraId(id)}
       onAbrirPerfil={admin ? undefined : () => setPerfilAberto(true)}
       onAbrirAcoes={() => abrirAcoes([id])}
+      onAbrirReuniao={() => setReuniaoAberta({ obraId: id, data: null })}
+      onAbrirBoletim={() => setBoletimObraId(id)}
       onFichaFechada={
         retornoAcoes
-          ? () => {
-              setAcoesAberta(retornoAcoes);
-              setRetornoAcoes(null);
-            }
+          ? () => voltarAsAcoes(retornoAcoes)
           : retornoHoje
             ? () => voltarAoHoje(retornoHoje)
             : undefined
@@ -137,15 +199,17 @@ export function ObrasGeraisCasca({
   const folhas = (
     <>
       <TrocarObraSheet
-        aberto={escolhendo}
+        aberto={escolhendo !== null}
         obras={lista}
         atualId=""
-        papel="Coordenador"
+        papel={admin ? 'Administrador' : 'Coordenador'}
         onEscolher={(id) => {
-          setEscolhendo(false);
-          setPessoasObraId(id);
+          if (escolhendo === 'avisos') setAvisosObraId(id);
+          else if (escolhendo === 'boletim') setBoletimConfigObraId(id);
+          else setPessoasObraId(id);
+          setEscolhendo(null);
         }}
-        onFechar={() => setEscolhendo(false)}
+        onFechar={() => setEscolhendo(null)}
       />
 
       <PerfilSheet
@@ -156,25 +220,49 @@ export function ObrasGeraisCasca({
         disponiveis={disponiveis}
         onTrocarAmbiente={onTrocarAmbiente}
         itensDoAmbiente={
-          admin ? (
-            <ItemMenu
-              icon="pessoa"
-              rotulo="Pessoas e acessos"
-              onClick={() => {
-                setPerfilAberto(false);
-                onPessoas();
-              }}
-            />
-          ) : coordenador ? (
-            <ItemMenu
-              icon="pessoa"
-              rotulo="Pessoas da obra"
-              onClick={() => {
-                setPerfilAberto(false);
-                if (lista.length === 1) setPessoasObraId(lista[0]!.id);
-                else if (lista.length > 1) setEscolhendo(true);
-              }}
-            />
+          admin || coordenador ? (
+            <>
+              <ItemMenu
+                icon="calendario"
+                rotulo="Reunião e avisos"
+                onClick={() => {
+                  setPerfilAberto(false);
+                  if (lista.length === 1) setAvisosObraId(lista[0]!.id);
+                  else if (lista.length > 1) setEscolhendo('avisos');
+                }}
+              />
+              {admin ? (
+                <ItemMenu
+                  icon="documento"
+                  rotulo="Boletim automático"
+                  onClick={() => {
+                    setPerfilAberto(false);
+                    if (lista.length === 1) setBoletimConfigObraId(lista[0]!.id);
+                    else if (lista.length > 1) setEscolhendo('boletim');
+                  }}
+                />
+              ) : null}
+              {admin ? (
+                <ItemMenu
+                  icon="pessoa"
+                  rotulo="Pessoas e acessos"
+                  onClick={() => {
+                    setPerfilAberto(false);
+                    onPessoas();
+                  }}
+                />
+              ) : (
+                <ItemMenu
+                  icon="pessoa"
+                  rotulo="Pessoas da obra"
+                  onClick={() => {
+                    setPerfilAberto(false);
+                    if (lista.length === 1) setPessoasObraId(lista[0]!.id);
+                    else if (lista.length > 1) setEscolhendo('pessoas');
+                  }}
+                />
+              )}
+            </>
           ) : null
         }
         onSair={onSair}
@@ -199,6 +287,67 @@ export function ObrasGeraisCasca({
           setAcoesAberta(null);
           abrirAtividade(obraId, atividadeId);
         }}
+        onAbrirPendencia={(obraId, pendenciaId, filtro) => {
+          setRetornoAcoes({ ...acoesAberta, filtro });
+          setAcoesAberta(null);
+          abrirPendencia(obraId, pendenciaId);
+        }}
+      />
+    );
+  }
+
+  if (boletimObraId) {
+    return <BoletimGeralScreen obraId={boletimObraId} onVoltar={() => setBoletimObraId(null)} />;
+  }
+
+  const obraBoletimConfig = boletimConfigObraId
+    ? lista.find((o) => o.id === boletimConfigObraId)
+    : undefined;
+  if (boletimConfigObraId && admin) {
+    return (
+      <ConfigBoletimScreen
+        key={boletimConfigObraId}
+        obra={{ id: boletimConfigObraId, nome: obraBoletimConfig?.nome ?? 'a obra' }}
+        onVoltar={() => setBoletimConfigObraId(null)}
+      />
+    );
+  }
+
+  if (reuniaoAberta) {
+    const { obraId } = reuniaoAberta;
+    return (
+      <ReuniaoGeralScreen
+        key={`${obraId}:${reuniaoAberta.data ?? 'proxima'}`}
+        obraId={obraId}
+        data={reuniaoAberta.data}
+        pessoa={pessoa}
+        onVoltar={() => setReuniaoAberta(null)}
+        onReunioes={() => {
+          setReunioesAberta([obraId]);
+          setReuniaoAberta(null);
+        }}
+        onMinhas={() => abrirAcoes([obraId], pessoa.id)}
+      />
+    );
+  }
+
+  if (reunioesAberta) {
+    return (
+      <ReunioesGeraisScreen
+        obras={lista.filter((o) => reunioesAberta.includes(o.id))}
+        onVoltar={() => setReunioesAberta(null)}
+        onAbrir={(obraId, data) => setReuniaoAberta({ obraId, data })}
+      />
+    );
+  }
+
+  const obraAvisos = avisosObraId ? lista.find((o) => o.id === avisosObraId) : undefined;
+  if (avisosObraId && podePessoasDaObra) {
+    return (
+      <ConfigAvisosObraScreen
+        obraId={avisosObraId}
+        obraNome={obraAvisos?.nome ?? ''}
+        onVoltar={() => setAvisosObraId(null)}
       />
     );
   }
@@ -238,14 +387,19 @@ export function ObrasGeraisCasca({
             <span className={inicio.ambiente}>{rotuloAmbiente(ambiente)}</span>
           ) : null}
         </div>
-        <button
-          type="button"
-          className={inicio.perfil}
-          aria-label="Perfil e ajustes"
-          onClick={() => setPerfilAberto(true)}
-        >
-          <Icon name="pessoa" size={22} />
-        </button>
+        <div className={inicio.acoesCabecalho}>
+          {podePessoasDaObra ? (
+            <ProntosParaEnviar ambiente="geral" onAbrirBoletim={setBoletimObraId} />
+          ) : null}
+          <button
+            type="button"
+            className={inicio.perfil}
+            aria-label="Perfil e ajustes"
+            onClick={() => setPerfilAberto(true)}
+          >
+            <Icon name="pessoa" size={22} />
+          </button>
+        </div>
       </header>
 
       {aba === 'hoje' ? (
@@ -266,6 +420,7 @@ export function ObrasGeraisCasca({
               setRetornoHoje({ obraAnterior: obraAberta });
               abrirAtividade(obraId, atividadeId);
             }}
+            onAbrirAcoes={(obraId) => abrirAcoes([obraId])}
           />
         ) : (
           <div className={inicio.vazio}>
@@ -274,7 +429,12 @@ export function ObrasGeraisCasca({
           </div>
         )
       ) : (
-        <ObrasGeraisInicio pessoa={pessoa} onAbrirObra={setObraAberta} onAbrirAcoes={abrirAcoes} />
+        <ObrasGeraisInicio
+          pessoa={pessoa}
+          onAbrirObra={setObraAberta}
+          onAbrirAcoes={abrirAcoes}
+          onAbrirReunioes={() => setReunioesAberta(lista.map((o) => o.id))}
+        />
       )}
 
       {nav}

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  acoesCompletasObraGeral,
   acoesDaObraGeral,
+  vinculosComTarefaAberta,
+  type TarefaAcaoGeral,
   agendaObraGeral,
   detalheItemGeral,
   eficienciaObraGeral,
@@ -464,5 +467,221 @@ describe('textoAcoesBloco', () => {
       detalhe: null,
       atrasadas: 0,
     });
+  });
+});
+
+describe('acoesCompletasObraGeral', () => {
+  const tarefa = (p: Partial<TarefaAcaoGeral> & { id: string }): TarefaAcaoGeral => ({
+    texto: p.id,
+    prazo: hoje,
+    status: 'aberta',
+    responsavel_id: null,
+    responsavelNome: null,
+    vinculo_tipo: null,
+    vinculo_id: null,
+    feita_em: null,
+    ...p,
+  });
+  const base = {
+    obraId: 'o1',
+    nomes: { c: 'Carlos Lima', p: 'Paula' },
+    tarefas: [] as TarefaAcaoGeral[],
+    pendencias: [],
+    providencias: [],
+  };
+
+  it('junta atividades, tarefas, pendências e providências com os mesmos nomes', () => {
+    const r = acoesCompletasObraGeral({
+      ...base,
+      atividades: [
+        ativ({ id: 'a1', data_prevista: '2026-11-04', responsavel_id: 'c' }),
+        ativ({ id: 's1', pai_id: 'a1', data_prevista: '2026-11-03' }),
+      ],
+      tarefas: [tarefa({ id: 't1', responsavel_id: 'p', responsavelNome: 'Paula' })],
+      pendencias: [
+        {
+          id: 'pe1',
+          titulo: 'Rodapé solto',
+          criticidade: 'alta',
+          status: 'aberta',
+          apontada_em: '2026-11-02T12:00:00',
+          responsavel_id: 'c',
+          responsavelNome: 'Carlos L',
+          resolvida_em: null,
+        },
+      ],
+      providencias: [
+        {
+          id: 'pv1',
+          atividade_id: 's1',
+          tipo: 'compra',
+          descricao: 'Tinta',
+          status: 'pendente',
+          providenciar_ate: '2026-11-02',
+        },
+      ],
+      prazosPendencia: { alta: 1, media: 4, baixa: 6 },
+    });
+    expect(r.map((a) => [a.origem, a.id, a.prazo, a.responsavelNome])).toEqual([
+      ['atividade', 'a1', '2026-11-03', 'Carlos Lima'],
+      ['tarefa', 't1', hoje, 'Paula'],
+      ['pendencia', 'pe1', '2026-11-03', 'Carlos Lima'],
+      ['providencia', 'pv1', '2026-11-02', 'Carlos Lima'],
+    ]);
+    // Providência de subitem: dono e atividade a abrir são os da atividade de topo.
+    expect(r[3]).toMatchObject({ texto: 'Compra: Tinta', responsavelId: 'c', atividadeId: 'a1' });
+    expect(r[0]!.atividadeId).toBe('a1');
+  });
+
+  it('não repete a atividade nem a providência com tarefa vinculada aberta', () => {
+    const prov = (id: string, descricao: string) => ({
+      id,
+      atividade_id: 'a3',
+      tipo: 'compra' as const,
+      descricao,
+      status: 'pendente' as const,
+      providenciar_ate: hoje,
+    });
+    const r = acoesCompletasObraGeral({
+      ...base,
+      atividades: [
+        ativ({ id: 'a1', data_prevista: hoje }),
+        ativ({ id: 'a2', data_prevista: hoje, concluida_em: '2026-11-05T10:00:00Z' }),
+        ativ({ id: 'a3', data_prevista: hoje }),
+      ],
+      providencias: [prov('pv1', 'Cabos'), prov('pv2', 'Andaime')],
+      tarefas: [
+        tarefa({ id: 't1', vinculo_tipo: 'atividade', vinculo_id: 'a1' }),
+        // Concluir a atividade fecha a tarefa junto: a atividade concluída continua.
+        tarefa({ id: 't2', vinculo_tipo: 'atividade', vinculo_id: 'a2', status: 'feita' }),
+        tarefa({ id: 't3', vinculo_tipo: 'providencia', vinculo_id: 'pv1' }),
+        // Tarefa feita não representa a atividade aberta.
+        tarefa({ id: 't4', vinculo_tipo: 'atividade', vinculo_id: 'a3', status: 'feita' }),
+      ],
+    });
+    expect(r.map((a) => `${a.origem}:${a.id}`)).toEqual([
+      'atividade:a2',
+      'atividade:a3',
+      'tarefa:t1',
+      'tarefa:t2',
+      'tarefa:t3',
+      'tarefa:t4',
+      'providencia:pv2',
+    ]);
+  });
+
+  it('deixa fora providência feita, sem prazo ou de atividade concluída', () => {
+    const prov = (id: string, atividade_id: string, extra: object = {}) => ({
+      id,
+      atividade_id,
+      tipo: 'contratacao' as const,
+      descricao: id,
+      status: 'pendente' as const,
+      providenciar_ate: hoje as string | null,
+      ...extra,
+    });
+    const r = acoesCompletasObraGeral({
+      ...base,
+      atividades: [
+        ativ({ id: 'a1', data_prevista: hoje }),
+        ativ({ id: 'a2', data_prevista: hoje, concluida_em: '2026-11-05T10:00:00Z' }),
+      ],
+      providencias: [
+        prov('pv1', 'a1', { status: 'feito' }),
+        prov('pv2', 'a1', { providenciar_ate: null }),
+        prov('pv3', 'a2'),
+        prov('pv4', 'sumiu'),
+        prov('pv5', 'a1'),
+      ],
+    });
+    expect(r.filter((a) => a.origem === 'providencia').map((a) => a.id)).toEqual(['pv5']);
+    expect(r.find((a) => a.id === 'pv5')!.responsavelNome).toBeNull();
+  });
+
+  it('pendência resolvida fica concluída com a data de resolução', () => {
+    const r = acoesCompletasObraGeral({
+      ...base,
+      atividades: [],
+      pendencias: [
+        {
+          id: 'pe1',
+          titulo: 'Trinca',
+          criticidade: 'baixa',
+          status: 'fechada',
+          apontada_em: '2026-11-02T12:00:00',
+          resolvida_em: '2026-11-04T12:00:00Z',
+        },
+      ],
+    });
+    expect(r[0]).toMatchObject({
+      aberta: false,
+      responsavelId: null,
+      responsavelNome: null,
+      prazo: '2026-11-10',
+      concluidaEm: '2026-11-04T12:00:00Z',
+    });
+  });
+
+  it('vinculosComTarefaAberta só conta tarefa aberta com vínculo', () => {
+    const v = vinculosComTarefaAberta([
+      tarefa({ id: 't1', vinculo_tipo: 'atividade', vinculo_id: 'a1' }),
+      tarefa({ id: 't2', vinculo_tipo: 'providencia', vinculo_id: 'p1' }),
+      tarefa({ id: 't3', vinculo_tipo: 'providencia', vinculo_id: 'p2', status: 'feita' }),
+    ]);
+    expect([...v.atividades]).toEqual(['a1']);
+    expect([...v.providencias]).toEqual(['p1']);
+  });
+});
+
+describe('agendaObraGeral com as ações completas', () => {
+  it('põe tarefas, pendências e providências vencidas ou de hoje como ação', () => {
+    const t = {
+      status: 'aberta' as const,
+      vinculo_tipo: null,
+      vinculo_id: null,
+      feita_em: null,
+    };
+    const acoes = acoesCompletasObraGeral({
+      obraId: 'o1',
+      nomes: { p: 'Paula' },
+      atividades: [ativ({ id: 'a1', nome: 'Pintura', data_prevista: hoje, responsavel_id: 'p' })],
+      tarefas: [
+        {
+          ...t,
+          id: 't1',
+          texto: 'Pedir tinta',
+          prazo: '2026-11-04',
+          responsavel_id: 'p',
+          responsavelNome: 'Paula',
+        },
+        {
+          ...t,
+          id: 't2',
+          texto: 'Futuro',
+          prazo: '2026-11-09',
+          responsavel_id: null,
+          responsavelNome: null,
+        },
+      ],
+      pendencias: [],
+      providencias: [
+        {
+          id: 'pv1',
+          atividade_id: 'a1',
+          tipo: 'compra',
+          descricao: 'Rolo',
+          status: 'pendente',
+          providenciar_ate: hoje,
+        },
+      ],
+    });
+    const r = agendaObraGeral({ atividades: [], hoje, pessoaId: 'x', nomes: {}, acoes });
+    expect(r.atrasados.map((i) => [i.chave, i.tipo, detalheItemGeral(i)])).toEqual([
+      ['tarefa:t1', 'acao', 'Paula · venceu qua 04/11'],
+    ]);
+    expect(r.hoje.map((i) => [i.chave, i.tipo, detalheItemGeral(i)])).toEqual([
+      ['providencia:pv1', 'acao', 'Paula · até hoje'],
+      ['geral:a1', 'concluir', 'Paula · previsto concluir hoje'],
+    ]);
   });
 });

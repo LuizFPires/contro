@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  classificarPendencias,
   podePlanejarObraGeral,
+  reuniaoQueVem,
   resumoObraGeral,
   textoEficiencia,
   rotuloPapelGeral,
@@ -12,12 +14,16 @@ import { useLembrado } from '../../lib/useLembrado';
 import { hojeISO } from '../obras/api';
 import { AnelAvanco } from '../obras/AnelAvanco';
 import { Camera } from '../obras/Camera';
+import { PendenciasAba } from '../obras/PendenciasAba';
 import base from '../obras/ObraDetalhe.module.css';
 import type { AoConcluir } from '../obras/useConcluirAtividade';
 import { useAvanco } from '../obras/useAvanco';
 import { useObraCampo } from '../obras/useObraCampo';
+import { useObraPendencias } from '../obras/useObraPendencias';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { BlocoAcoesGeral } from './BlocoAcoesGeral';
+import { BlocoReuniaoGeral, BlocosObraGeral } from './reuniao/BlocoReuniaoGeral';
+import { useConfigAvisosObra } from './reuniao/useConfigAvisosObra';
 import { FichaAtividadeGeral } from './FichaAtividadeGeral';
 import { NovaAtividadeGeralSheet } from './NovaAtividadeGeralSheet';
 import { NovaFaseSheet } from './NovaFaseSheet';
@@ -27,7 +33,9 @@ import { useObraGeral } from './useObraGeral';
 import { useObrasGerais } from './useObrasGerais';
 import { useResumoObrasGerais } from './useResumoObrasGerais';
 
-/** Obra geral por dentro: trilha de fases com as atividades e o anel de avanço. */
+type SecaoObra = 'fases' | 'checklist';
+
+/** Obra geral por dentro: trilha de fases (com o anel de avanço) e o Check list. */
 export function ObraGeralDetalhe({
   id,
   pessoa,
@@ -36,9 +44,12 @@ export function ObraGeralDetalhe({
   onAbrirPessoas,
   semVoltar = false,
   abrirAtividadeId,
+  abrirPendenciaId,
   onAtalhoUsado,
   onAbrirPerfil,
   onAbrirAcoes,
+  onAbrirReuniao,
+  onAbrirBoletim,
   onFichaFechada,
 }: {
   id: string;
@@ -48,11 +59,17 @@ export function ObraGeralDetalhe({
   semVoltar?: boolean;
   /** Abre a ficha desta atividade ao montar (linha tocada no Hoje). */
   abrirAtividadeId?: string;
+  /** Abre o Check list com esta pendência em destaque (card tocado nas ações). */
+  abrirPendenciaId?: string;
   onAtalhoUsado?: () => void;
   /** Obra como aba: o avatar do perfil (Perfil, Sair, Pessoas da obra) fica no topo dela. */
   onAbrirPerfil?: () => void;
   /** Abre a tela de ações da equipe desta obra. */
   onAbrirAcoes?: () => void;
+  /** Abre a reunião da obra (pauta e atas). */
+  onAbrirReuniao?: () => void;
+  /** Abre o boletim da semana da obra. */
+  onAbrirBoletim?: () => void;
   /** A ficha aberta a partir das ações foi fechada: volta para elas. */
   onFichaFechada?: () => void;
   onTrocarObra: (id: string) => void;
@@ -62,7 +79,10 @@ export function ObraGeralDetalhe({
   const { data: obras } = useObrasGerais();
   const { data: resumoObras } = useResumoObrasGerais();
   const campo = useObraCampo(id);
+  const pendencias = useObraPendencias(id);
+  const agenda = useConfigAvisosObra(id);
   const { showToast } = useToast();
+  const [secao, setSecao] = useLembrado<SecaoObra>(`obrageral:${id}:secao`, 'fases');
   const [faseAberta, setFaseAberta] = useLembrado<string | null>(`obrageral:${id}:fase`, null);
   // A ficha da atividade e a nova atividade abrem por estes estados (telas próprias).
   const [fichaId, setFichaId] = useLembrado<string | null>(`obrageral:${id}:ficha`, null);
@@ -72,9 +92,27 @@ export function ObraGeralDetalhe({
   const [anexandoId, setAnexandoId] = useState<string | null>(null);
   useEffect(() => {
     if (!abrirAtividadeId) return;
+    setSecao('fases');
     setFichaId(abrirAtividadeId);
     onAtalhoUsado?.();
-  }, [abrirAtividadeId, onAtalhoUsado, setFichaId]);
+  }, [abrirAtividadeId, onAtalhoUsado, setFichaId, setSecao]);
+  // A pendência: o Check list a destaca e avisa quando aplicou (onAtalhoUsado).
+  useEffect(() => {
+    if (!abrirPendenciaId) return;
+    setFichaId(null);
+    setSecao('checklist');
+  }, [abrirPendenciaId, setFichaId, setSecao]);
+  // A pendência do atalho já não existe (excluída, ou de outra obra): limpa o atalho aqui
+  // mesmo, sem depender do Check list montar e aplicar o foco.
+  const pendenciasDaObra = pendencias.query.data;
+  useEffect(() => {
+    if (!abrirPendenciaId || !pendenciasDaObra) return;
+    if (!pendenciasDaObra.some((p) => p.id === abrirPendenciaId)) onAtalhoUsado?.();
+  }, [abrirPendenciaId, pendenciasDaObra, onAtalhoUsado]);
+  const pendAbertas = useMemo(
+    () => classificarPendencias(pendencias.query.data ?? []).pendentes.length,
+    [pendencias.query.data],
+  );
 
   const aoConcluir: AoConcluir = (r, det) => {
     showToast({
@@ -200,6 +238,17 @@ export function ObraGeralDetalhe({
               <Icon name={onAbrirPerfil ? 'membros' : 'pessoa'} size={22} />
             </button>
           ) : null}
+          {onAbrirBoletim ? (
+            <button
+              type="button"
+              className={styles.perfil}
+              aria-label="Boletim da semana"
+              title="Boletim da semana"
+              onClick={onAbrirBoletim}
+            >
+              <Icon name="documento" size={20} />
+            </button>
+          ) : null}
           {onAbrirPerfil ? (
             <button
               type="button"
@@ -211,58 +260,115 @@ export function ObraGeralDetalhe({
             </button>
           ) : null}
         </div>
+        <div role="tablist" aria-label="Seções da obra" className={styles.secoes}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={secao === 'fases'}
+            className={`${styles.secao} ${secao === 'fases' ? styles.secaoAtiva : ''}`}
+            onClick={() => setSecao('fases')}
+          >
+            <Icon name="fases" size={18} />
+            Fases
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={secao === 'checklist'}
+            className={`${styles.secao} ${secao === 'checklist' ? styles.secaoAtiva : ''}`}
+            onClick={() => setSecao('checklist')}
+          >
+            <Icon name="pendencias" size={18} />
+            Check list
+            {pendAbertas > 0 ? (
+              <span className={styles.secaoBadge}>
+                <span className="sr-only">pendências abertas: </span>
+                {pendAbertas}
+              </span>
+            ) : null}
+          </button>
+        </div>
       </header>
 
-      <div className={base.conteudo}>
-        {resumoDaObra && onAbrirAcoes ? (
-          <div className={styles.blocoAcoes}>
-            <BlocoAcoesGeral
-              acoes={resumoDaObra.acoes}
-              pessoaId={pessoa.id}
-              soDaPessoa={resumoDaObra.papel === 'membro'}
-              onAbrir={onAbrirAcoes}
-            />
-          </div>
-        ) : null}
-        <div className={base.mapa}>
-          {fases.length === 0 ? (
-            <p className={styles.vazio}>
-              <b>Nenhuma fase ainda.</b>
-              {planeja ? 'Toque em + fase para começar.' : null}
-            </p>
-          ) : null}
-
-          {fases.map((f) => (
-            <FaseGeralView
-              key={f.id}
-              fase={f}
-              atual={atual?.id === f.id}
-              aberta={aberta === f.id}
-              planeja={planeja}
-              onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
-              onAnel={avanco.anel}
-              onFicha={setFichaId}
-              onAnexar={setAnexandoId}
-              onAdicionar={() => setNovaAtividadeFaseId(f.id)}
-            />
-          ))}
-
-          {planeja ? (
-            <button type="button" className={styles.mais} onClick={() => setNovaFase(true)}>
-              + fase
-            </button>
-          ) : null}
-
-          <div className={base.inauguracao}>
-            <div className={base.inaugIcone}>
-              <Icon name="bandeira" size={22} />
+      {secao === 'checklist' ? (
+        <div className={base.conteudo}>
+          <PendenciasAba
+            obra={obra}
+            pessoas={obra.pessoas}
+            podeAtribuir={planeja}
+            focoId={abrirPendenciaId}
+            onFocoAplicado={onAtalhoUsado}
+          />
+        </div>
+      ) : (
+        <div className={base.conteudo}>
+          {(resumoDaObra && onAbrirAcoes) || onAbrirReuniao ? (
+            <div className={styles.blocoAcoes}>
+              <BlocosObraGeral>
+                {onAbrirReuniao ? (
+                  <BlocoReuniaoGeral
+                    proxima={
+                      agenda.query.isSuccess
+                        ? {
+                            data: reuniaoQueVem(hojeISO(), agenda.config.reuniaoDia),
+                            hora: agenda.config.reuniaoHora,
+                          }
+                        : null
+                    }
+                    onAbrir={onAbrirReuniao}
+                  />
+                ) : null}
+                {resumoDaObra && onAbrirAcoes ? (
+                  <BlocoAcoesGeral
+                    acoes={resumoDaObra.acoes}
+                    pessoaId={pessoa.id}
+                    soDaPessoa={resumoDaObra.papel === 'membro'}
+                    onAbrir={onAbrirAcoes}
+                  />
+                ) : null}
+              </BlocosObraGeral>
             </div>
-            <div className={base.inaugTexto}>
-              <div className={base.inaugData}>Entrega da obra</div>
+          ) : null}
+          <div className={base.mapa}>
+            {fases.length === 0 ? (
+              <p className={styles.vazio}>
+                <b>Nenhuma fase ainda.</b>
+                {planeja ? 'Toque em + fase para começar.' : null}
+              </p>
+            ) : null}
+
+            {fases.map((f) => (
+              <FaseGeralView
+                key={f.id}
+                fase={f}
+                atual={atual?.id === f.id}
+                aberta={aberta === f.id}
+                planeja={planeja}
+                onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
+                onAnel={avanco.anel}
+                onFicha={setFichaId}
+                onAnexar={setAnexandoId}
+                onAdicionar={() => setNovaAtividadeFaseId(f.id)}
+              />
+            ))}
+
+            {planeja ? (
+              <button type="button" className={styles.mais} onClick={() => setNovaFase(true)}>
+                + fase
+              </button>
+            ) : null}
+
+            <div className={base.inauguracao}>
+              <div className={base.inaugIcone}>
+                <Icon name="bandeira" size={22} />
+              </div>
+              <div className={base.inaugTexto}>
+                <div className={base.inaugData}>Entrega da obra</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <TrocarObraSheet
         aberto={trocando}

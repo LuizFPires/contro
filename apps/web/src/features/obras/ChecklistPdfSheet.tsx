@@ -4,7 +4,6 @@ import { supabase } from '../../lib/supabase';
 import { db } from '../../lib/db';
 import { loadPendencias, type PendenciaObra } from './pendenciasObra';
 import { gerarChecklistPdf, pendenciasParaPdf } from './checklistPdf';
-import type { ObraCompleta } from './detalhe';
 import styles from './ChecklistPdf.module.css';
 
 export function ChecklistPdfSheet({
@@ -13,7 +12,7 @@ export function ChecklistPdfSheet({
   atividadeId,
   onFechar,
 }: {
-  obra: ObraCompleta;
+  obra: { id: string; nome: string };
   lista: PendenciaObra[];
   atividadeId?: string;
   onFechar: () => void;

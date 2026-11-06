@@ -12,22 +12,25 @@ export interface ObraDoHoje {
   agenda: AgendaObra;
 }
 
-/** Id da atividade de uma linha do Hoje geral (chave `geral:{id}`). */
-function atividadeDaLinha(i: ItemDia): string {
-  return i.chave.replace(/^geral:/, '');
+/** Id da atividade de uma linha do Hoje geral (chave `geral:{id}`); null nas ações. */
+function atividadeDaLinha(i: ItemDia): string | null {
+  return i.chave.startsWith('geral:') ? i.chave.slice('geral:'.length) : null;
 }
 
 /**
  * "Hoje" das obras gerais (mockups A3, A14, C0, J0): igual ao da Contorno, um card
- * por obra, recolhido, com o que está atrasado e o que é para hoje. Tocar numa linha
- * abre a obra na ficha da atividade.
+ * por obra, recolhido, com o que está atrasado e o que é para hoje: atividades e as
+ * ações (tarefas, pendências e providências). Tocar numa atividade abre a obra na
+ * ficha dela; numa ação, as ações da equipe da obra (como na Contorno).
  */
 export function HojeGeral({
   obras,
   onAbrirAtividade,
+  onAbrirAcoes,
 }: {
   obras: ObraDoHoje[];
   onAbrirAtividade: (obraId: string, atividadeId: string) => void;
+  onAbrirAcoes: (obraId: string) => void;
 }) {
   const comAlgo = obras.filter((o) => o.agenda.atrasados.length + o.agenda.hoje.length > 0);
   const [abertas, setAbertas] = useState<Set<string>>(() => new Set());
@@ -55,7 +58,11 @@ export function HojeGeral({
         const aberta = abertas.has(o.id);
         const { atrasados, hoje } = o.agenda;
         const painel = `hoje-geral-${o.id}`;
-        const abrir = (i: ItemDia) => onAbrirAtividade(o.id, atividadeDaLinha(i));
+        const abrir = (i: ItemDia) => {
+          const atividadeId = atividadeDaLinha(i);
+          if (atividadeId) onAbrirAtividade(o.id, atividadeId);
+          else onAbrirAcoes(o.id);
+        };
         return (
           <div key={o.id} className={`${styles.card} ${atrasados.length ? styles.cardAtraso : ''}`}>
             <button
@@ -116,7 +123,9 @@ function Linha({ i, onClick }: { i: ItemDia; onClick: () => void }) {
   return (
     <button type="button" className={styles.linha} onClick={onClick}>
       <span className={styles.linhaTexto}>
-        <span className={i.atraso ? styles.tipoAtraso : styles.tipo}>Concluir</span>
+        <span className={i.atraso ? styles.tipoAtraso : styles.tipo}>
+          {i.tipo === 'acao' ? 'Ação' : 'Concluir'}
+        </span>
         <b className={i.atraso ? styles.txtAtraso : undefined}>{i.nome}</b>
         <span className={i.atraso ? styles.detalheAtraso : styles.detalhe}>
           {i.atraso ? <Icon name="relogio" size={13} strokeWidth={2.4} /> : null}

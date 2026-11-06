@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import { filtrarAtividades } from '@contro/core';
 import { Icon } from '@contro/ui';
-import type { ObraCompleta } from './detalhe';
-import { agruparPorFase, itensAtividadesObra } from './listaAtividades';
+import { agruparPorFase, itensAtividadesObra, type ObraListavel } from './listaAtividades';
 import styles from './AtividadePicker.module.css';
 
 /**
@@ -14,7 +13,7 @@ export function AtividadePicker({
   valor,
   onMudar,
 }: {
-  obra: ObraCompleta;
+  obra: ObraListavel;
   valor: string | null;
   onMudar: (id: string | null) => void;
 }) {

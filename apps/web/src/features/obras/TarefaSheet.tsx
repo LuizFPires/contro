@@ -39,6 +39,7 @@ export function TarefaSheet({
   modo,
   inicial,
   tituloAtribuir = 'Atribuir providência',
+  nomeLivre = true,
 }: {
   aberto: boolean;
   tarefa: TarefaObra | null; // null = nova
@@ -58,6 +59,8 @@ export function TarefaSheet({
   inicial?: { texto: string; prazo: string; obraId: string };
   /** Título da folha no modo atribuir. */
   tituloAtribuir?: string;
+  /** "Outro nome (digitar)" no responsável. Obras gerais: só pessoas da obra (false). */
+  nomeLivre?: boolean;
 }) {
   const atribuir = modo === 'atribuir';
   const [texto, setTexto] = useState('');
@@ -196,7 +199,7 @@ export function TarefaSheet({
             {p.papel_texto ? ` · ${p.papel_texto}` : ''}
           </option>
         ))}
-        <option value={OUTRO}>Outro nome (digitar)</option>
+        {nomeLivre ? <option value={OUTRO}>Outro nome (digitar)</option> : null}
       </select>
       {outro ? (
         <div style={{ marginTop: 8 }}>

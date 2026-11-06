@@ -16,14 +16,16 @@ interface Row {
   edicao: 'principal' | 'fechamento';
   semana_inicio: string;
   criado_em: string;
-  obra: { nome: string; status: string; deleted_at: string | null } | null;
+  obra: { nome: string; status: string; deleted_at: string | null; ambiente: string } | null;
 }
 
-const KEY = ['disparos-pendentes'];
-
-/** Boletins "prontos para enviar": disparos ainda não marcados como enviados. */
-export function useDisparosPendentes() {
+/**
+ * Boletins "prontos para enviar": disparos ainda não marcados como enviados, só das obras
+ * do ambiente (o Administrador vê as duas famílias, cada uma na sua tela).
+ */
+export function useDisparosPendentes(ambiente: 'contorno' | 'geral' = 'contorno') {
   const qc = useQueryClient();
+  const KEY = ['disparos-pendentes', ambiente];
 
   const query = useQuery<DisparoPendente[]>({
     queryKey: KEY,
@@ -33,8 +35,9 @@ export function useDisparosPendentes() {
       const { data, error } = await supabase
         .from('boletim_disparo')
         .select(
-          'id, obra_id, edicao, semana_inicio, criado_em, obra:obra_id(nome, status, deleted_at)',
+          'id, obra_id, edicao, semana_inicio, criado_em, obra:obra_id!inner(nome, status, deleted_at, ambiente)',
         )
+        .eq('obra.ambiente', ambiente)
         .is('enviado_em', null)
         .order('criado_em', { ascending: false });
       if (error) throw error;
