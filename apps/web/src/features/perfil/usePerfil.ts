@@ -14,6 +14,8 @@ export interface PessoaAtual {
   acessoContorno: boolean;
   /** Papel nas obras gerais (null = não participa). */
   papelGeral: PapelGeral | null;
+  /** Coordenador da Contorno: perfil gestor, mas só desliga quem é da Equipe. */
+  coordenadorContorno: boolean;
 }
 
 interface LinhaPessoa {
@@ -24,6 +26,7 @@ interface LinhaPessoa {
   administrador: boolean | null;
   acesso_contorno: boolean | null;
   papel_geral: PapelGeral | null;
+  coordenador_contorno: boolean | null;
 }
 
 /** Perfil/nome da pessoa logada. ativo=false → aguardando aprovação do gestor. */
@@ -38,7 +41,9 @@ export function usePerfil() {
       if (!user) return null;
       const { data } = await supabase
         .from('pessoa')
-        .select('id, perfil, nome, ativo, administrador, acesso_contorno, papel_geral')
+        .select(
+          'id, perfil, nome, ativo, administrador, acesso_contorno, papel_geral, coordenador_contorno',
+        )
         .eq('user_id', user.id)
         .maybeSingle();
       const p = data as LinhaPessoa | null;
@@ -51,6 +56,7 @@ export function usePerfil() {
         administrador: p.administrador === true,
         acessoContorno: p.acesso_contorno !== false,
         papelGeral: p.papel_geral ?? null,
+        coordenadorContorno: p.coordenador_contorno === true,
       };
     },
   });

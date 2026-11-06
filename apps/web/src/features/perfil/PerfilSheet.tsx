@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { rotuloAmbiente, rotuloPapelGeral, rotuloPerfil, type Ambiente } from '@contro/core';
+import { rotuloAmbiente, rotuloPapelContorno, rotuloPapelGeral, type Ambiente } from '@contro/core';
 import { BottomSheet, Icon, type IconName } from '@contro/ui';
 import { EditarNome } from '../../screens/EditarNome';
 import { TrocarSenha } from '../../screens/TrocarSenha';
@@ -41,7 +41,7 @@ export function PerfilSheet({
         : pessoa.papelGeral
           ? rotuloPapelGeral(pessoa.papelGeral)
           : ''
-      : rotuloPerfil(pessoa.perfil);
+      : rotuloPapelContorno(pessoa);
 
   return (
     <>
