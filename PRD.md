@@ -52,7 +52,13 @@ São **dois perfis de acesso** apenas:
   - **Responsável.** Só uma pessoa da obra ou um Administrador (sem nome livre). Quando a pessoa sai da obra, as atividades dela ficam sem responsável. Quem está em Obras gerais enxerga os Administradores pelo nome para poder escolhê-los.
   - **Pessoas da obra.** O Coordenador adiciona uma pessoa já cadastrada como Membro ou convida por e-mail, e tira pessoas da obra (não a si mesmo). Só o Administrador torna alguém Coordenador. O e-mail dos membros só aparece para o Administrador. A tela abre pelo perfil do Coordenador e pelo ícone de pessoas no cabeçalho da obra, para quem planeja.
   - **Prestador** da atividade de obra geral não usa nem alimenta as sugestões da Contorno.
-- **Nas próximas etapas:** menu de baixo (etapa 3), Hoje e avisos, "+ lembrete de providência" e "+ nota" na nova atividade, reunião, ata, pendências e boletim por obra, Score e Log por participação.
+- **Entregue na etapa 3 (06/11/2026), o dia a dia:**
+  - **Menu de baixo.** Hoje · Obra (Coordenador e Membro) e Hoje · Obras (Administrador), com contador de atrasados e de hoje; o app abre no Hoje. Score e Log entram na etapa 5.
+  - **Hoje.** Por obra, o que está atrasado ("Maria · devia terminar qua 04/11") e o que é para hoje ("Você · previsto concluir hoje"); tocar abre a ficha da atividade. Atividade sem data prevista não entra.
+  - **Ações da equipe.** Na obra geral a ação é a própria atividade aberta (com ou sem responsável). O bloco no topo da obra mostra "N abertas na obra" (Coordenador e Administrador) ou "N suas abertas" (Membro) e abre a tela com chips por pessoa e as seções Atrasadas, Vencem hoje, Próximos 5 dias e Concluídas.
+  - **"% no prazo".** Concluídas dentro do prazo original sobre as concluídas e as já atrasadas; aparece no card da obra e no resumo do cabeçalho. Sem base, não aparece.
+  - **Avisos por push.** Na hora: atividade atribuída, nova data e alguém saiu da obra (Coordenadores e Administradores). Do dia, em dia útil: as ações de cada responsável e a equipe do dia para Coordenadores e Administradores (obras somadas). Pessoa só da Contorno não recebe aviso geral e vice-versa; tocar abre o Hoje de Obras gerais. Os horários são os da configuração de avisos até a etapa 4.
+- **Nas próximas etapas:** etapa 4: reunião, ata, pendências e boletim por obra, "+ lembrete de providência" e "+ nota" na nova atividade, e Reunião e avisos por obra (horários dos avisos gerais); etapa 5: Score e Log por participação, com os itens no menu de baixo, e sugestões por ambiente.
 
 A função de cada pessoa (engenheiro, mestre, compras) é só um rótulo (`papel_texto`) para atribuições e relatórios; não muda o acesso.
 
