@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { atalhosDataPrevista, type SubitemGeral } from '@contro/core';
-import { BottomSheet, Button, Icon, Input, useToast } from '@contro/ui';
+import { BottomSheet, Button, Icon, TextoCrescente, useToast } from '@contro/ui';
 import { EscolherData } from '../../components/EscolherData';
 import { hojeISO } from '../obras/api';
 import {
@@ -112,7 +112,7 @@ export function EditarSubitemSheet({
       onClose={onFechar}
     >
       <div className={styles.sheetCorpo}>
-        <Input
+        <TextoCrescente
           label="Texto"
           value={nome}
           autoFocus={!subitem}

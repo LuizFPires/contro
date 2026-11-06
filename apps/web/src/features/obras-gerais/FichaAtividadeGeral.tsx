@@ -211,7 +211,7 @@ export function FichaAtividadeGeral({
     <>
       <BottomSheet open={!camera} onClose={onClose}>
         <div className={fichaStyles.ficha}>
-          <div className={fichaStyles.topo}>
+          <div className={`${fichaStyles.topo} ${styles.topoFixo}`}>
             <div className={fichaStyles.topoTexto}>
               <button
                 type="button"
