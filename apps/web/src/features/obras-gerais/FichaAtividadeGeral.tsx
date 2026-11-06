@@ -12,6 +12,7 @@ import {
 } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { EscolherData } from '../../components/EscolherData';
+import { VidaDoItem } from '../log/VidaDoItem';
 import { hojeISO } from '../obras/api';
 import { Camera } from '../obras/Camera';
 import fichaStyles from '../obras/FichaAtividade.module.css';
@@ -489,8 +490,11 @@ export function FichaAtividadeGeral({
               atividadeId={a.id}
               pessoas={obra.pessoas}
               podeAtribuir={planeja}
+              ambiente="geral"
             />
           </section>
+
+          <VidaDoItem itemId={a.id} ambiente="geral" />
 
           {concluida && a.semFoto ? (
             <div className={fichaStyles.semFoto}>

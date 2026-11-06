@@ -296,6 +296,7 @@ export function ObraGeralDetalhe({
             obra={obra}
             pessoas={obra.pessoas}
             podeAtribuir={planeja}
+            ambiente="geral"
             focoId={abrirPendenciaId}
             onFocoAplicado={onAtalhoUsado}
           />

@@ -1,5 +1,6 @@
-// Carga do Log e do Score. Itens limitados à janela de 90 dias: tarefas e
-// pendências abertas ou fechadas desde o início da janela; obras ativas e as
+// Carga do Log e do Score (Contorno; as obras gerais ficam em cargaLogGeral).
+// Itens limitados à janela de 90 dias: tarefas e pendências abertas ou fechadas
+// desde o início da janela; obras ativas e as
 // concluídas com algum item na janela; eventos dos últimos 90 dias. Rodadas:
 // (1) obras; (2) itens, eventos e o cronograma das ativas num só Promise.all;
 // (3) só se houver, o cronograma das concluídas com item na janela. Paginado,
@@ -23,6 +24,8 @@ import {
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { formatarDataCurta } from '../../lib/datas';
+import { dadosLogGeralVazios, loadDadosLogGeral } from './cargaLogGeral';
+import { lerEventosLog, lerPendenciasLog, lerTarefasLog, type Sb } from './consultasLog';
 import { todasAsPaginas } from './paginas';
 import {
   cronogramaDaObra,
@@ -41,15 +44,8 @@ import {
   obrasNaJanela,
   type DadosLogScore,
   type LinhaAtividadeLog,
-  type LinhaEventoAtividade,
-  type LinhaEventoPendencia,
-  type LinhaEventoTarefa,
-  type LinhaPendenciaLog,
-  type LinhaTarefaLog,
   type ObraLog,
 } from './itensLog';
-
-const POR = 'por_pessoa:pessoa!por(nome)';
 
 /** Primeiro dia da janela de carga: hoje − 90 dias corridos. */
 export function inicioJanelaLog(hoje: DataISO): DataISO {
@@ -57,7 +53,6 @@ export function inicioJanelaLog(hoje: DataISO): DataISO {
   return new Date(t).toISOString().slice(0, 10);
 }
 
-type Sb = NonNullable<typeof supabase>;
 type AtividadeCarga = LinhaAtividadeLog & LinhaAtvCron;
 
 /** Fases, atividades (todas: o cronograma pede) e dependências das obras dadas. */
@@ -102,7 +97,18 @@ async function cronogramaDasObras(
   ]);
 }
 
-export async function loadDadosLogScore(desde: DataISO): Promise<DadosLogScore> {
+/**
+ * Dados do Log e do Score do ambiente. Contorno: com o cronograma (fim previsto).
+ * Obras gerais: `loadDadosLogGeral` (data prevista digitada, sem cronograma).
+ */
+export async function loadDadosLogScore(
+  desde: DataISO,
+  ambiente: Ambiente = 'contorno',
+): Promise<DadosLogScore> {
+  if (ambiente === 'geral') {
+    if (!supabase) return dadosLogGeralVazios();
+    return loadDadosLogGeral(supabase, desde);
+  }
   const vazio: DadosLogScore = {
     obras: [],
     atividades: [],
@@ -117,8 +123,7 @@ export async function loadDadosLogScore(desde: DataISO): Promise<DadosLogScore> 
   if (!supabase) return vazio;
   const sb = supabase;
 
-  // 1ª rodada: as obras (o resto é filtrado pelos ids delas).
-  // Log e Score são da Contorno nesta etapa: as obras gerais ficam de fora.
+  // 1ª rodada: as obras da Contorno (o resto é filtrado pelos ids delas).
   type LinhaObra = ObraLog & { inicio: string; ambiente: Ambiente };
   const lidas = await todasAsPaginas<LinhaObra>((de, ate) =>
     sb
@@ -138,71 +143,14 @@ export async function loadDadosLogScore(desde: DataISO): Promise<DadosLogScore> 
   const concluidas = todas.filter((o) => o.status === 'concluida').map((o) => o.id);
 
   // 2ª rodada: tudo o mais em paralelo; cada tabela lê as próprias páginas em sequência.
-  // Itens: abertos ou fechados desde `desde`. Eventos: `em >= desde` com a data pura
-  // (meia-noite UTC); a borda de 3 h do fuso é aceita. As tabelas de evento não têm
-  // obra_id: os de outras obras são descartados nos adaptadores.
-  const [cronAtivas, tarefas, pendencias, cfgRes, evT, evP, evA, atvConcluidasNaJanela] =
+  // Itens: abertos ou fechados desde `desde`. Eventos: `em >= desde` (consultasLog).
+  const [cronAtivas, tarefas, pendencias, cfgRes, [evT, evP, evA], atvConcluidasNaJanela] =
     await Promise.all([
       cronogramaDasObras(sb, ativas),
-      todasAsPaginas<LinhaTarefaLog>((de, ate) =>
-        sb
-          .from('tarefa')
-          .select(
-            'id,obra_id,texto,status,prazo,prazo_original,replanejamentos,feita_em,responsavel_id,' +
-              'responsavel_nome,vinculo_tipo,vinculo_id,created_at,responsavel:pessoa!responsavel_id(nome)',
-          )
-          .in('obra_id', ids)
-          .is('deleted_at', null)
-          .or(`status.eq.aberta,feita_em.gte.${desde}`)
-          .order('id')
-          .range(de, ate)
-          .returns<LinhaTarefaLog[]>(),
-      ),
-      todasAsPaginas<LinhaPendenciaLog>((de, ate) =>
-        sb
-          .from('pendencia')
-          .select(
-            'id,obra_id,titulo,criticidade,apontada_em,resolvida_em,status,responsavel_id,' +
-              'responsavel:pessoa!responsavel_id(nome)',
-          )
-          .in('obra_id', ids)
-          .is('deleted_at', null)
-          .or(`status.eq.aberta,resolvida_em.gte.${desde}`)
-          .order('id')
-          .range(de, ate)
-          .returns<LinhaPendenciaLog[]>(),
-      ),
+      lerTarefasLog(sb, ids, desde),
+      lerPendenciasLog(sb, ids, desde),
       sb.from('config_avisos').select('pend_alta_du,pend_media_du,pend_baixa_du').maybeSingle(),
-      todasAsPaginas<LinhaEventoTarefa>((de, ate) =>
-        sb
-          .from('tarefa_evento')
-          .select(`id,tarefa_id,tipo,por,em,antes,depois,${POR}`)
-          .gte('em', desde)
-          .order('em', { ascending: false })
-          .order('id')
-          .range(de, ate)
-          .returns<LinhaEventoTarefa[]>(),
-      ),
-      todasAsPaginas<LinhaEventoPendencia>((de, ate) =>
-        sb
-          .from('pendencia_evento')
-          .select(`id,pendencia_id,tipo,por,em,dados,${POR}`)
-          .gte('em', desde)
-          .order('em', { ascending: false })
-          .order('id')
-          .range(de, ate)
-          .returns<LinhaEventoPendencia[]>(),
-      ),
-      todasAsPaginas<LinhaEventoAtividade>((de, ate) =>
-        sb
-          .from('obra_atividade_evento')
-          .select(`id,atividade_id,tipo,por,em,antes,depois,${POR}`)
-          .gte('em', desde)
-          .order('em', { ascending: false })
-          .order('id')
-          .range(de, ate)
-          .returns<LinhaEventoAtividade[]>(),
-      ),
+      lerEventosLog(sb, desde),
       // Concluídas: só interessa saber quais têm atividade aberta ou concluída na janela.
       concluidas.length === 0
         ? Promise.resolve([] as { id: string; obra_id: string }[])
@@ -261,17 +209,18 @@ export async function loadDadosLogScore(desde: DataISO): Promise<DadosLogScore> 
   };
 }
 
-function opcoesLogScore(desde: DataISO) {
+function opcoesLogScore(desde: DataISO, ambiente: Ambiente) {
   return {
-    queryKey: ['log-score', desde] as const,
+    // Invalidação por prefixo ['log-score'] (sync) pega os dois ambientes.
+    queryKey: ['log-score', ambiente, desde] as const,
     enabled: Boolean(supabase),
-    queryFn: () => loadDadosLogScore(desde),
+    queryFn: () => loadDadosLogScore(desde, ambiente),
     staleTime: 60_000,
   };
 }
 
-export function useDadosLogScore() {
-  return useQuery(opcoesLogScore(inicioJanelaLog(hojeISO())));
+export function useDadosLogScore(ambiente: Ambiente = 'contorno') {
+  return useQuery(opcoesLogScore(inicioJanelaLog(hojeISO()), ambiente));
 }
 
 /** Sem dados e com erro na carga: a tela diz "Sem conexão" em vez de "vazio". */
@@ -279,24 +228,35 @@ function semDadosPorErro(q: { data: unknown; isError: boolean }): boolean {
   return q.isError && q.data === undefined;
 }
 
-export function useLogDados(): {
+export function useLogDados(ambiente: Ambiente = 'contorno'): {
   linhas: LinhaLog[];
   itens: ItemLog[];
   eventosPorItem: Map<string, EventoBruto[]>;
   obras: { id: string; nome: string }[];
+  /** Obras gerais: nome por id de pessoa (linha do tempo dos cards); Contorno: undefined. */
+  nomes: Record<string, string> | undefined;
   carregando: boolean;
   erro: boolean;
 } {
-  const q = useDadosLogScore();
+  const q = useDadosLogScore(ambiente);
   const dados = q.data;
   const derivados = useMemo(() => {
-    if (!dados) return { linhas: [], itens: [], eventosPorItem: new Map(), obras: [] };
+    if (!dados)
+      return { linhas: [], itens: [], eventosPorItem: new Map(), obras: [], nomes: undefined };
     const { itens, eventos, porItem } = indiceVida(dados);
+    const nomes = dados.geral?.nomes;
     return {
-      linhas: montarLog({ itens, eventos, hoje: hojeISO(), formatarData: formatarDataCurta }),
+      linhas: montarLog({
+        itens,
+        eventos,
+        hoje: hojeISO(),
+        formatarData: formatarDataCurta,
+        ...(nomes ? { nomes } : {}),
+      }),
       itens,
       eventosPorItem: porItem,
       obras: dados.obras.map((o) => ({ id: o.id, nome: o.nome })),
+      nomes,
     };
   }, [dados]);
   return { ...derivados, carregando: q.isLoading, erro: semDadosPorErro(q) };
@@ -335,25 +295,32 @@ const SEM_EVENTOS: EventoBruto[] = [];
  * "Vida do item" nas fichas: lê a mesma consulta do Log (em cache) e devolve só
  * o item e os eventos dele, sem montar o Log inteiro.
  */
-export function useVidaDoItem(itemId: string): { item: ItemLog | null; eventos: EventoBruto[] } {
+export function useVidaDoItem(
+  itemId: string,
+  ambiente: Ambiente = 'contorno',
+): { item: ItemLog | null; eventos: EventoBruto[]; nomes?: Record<string, string> } {
   const select = useCallback(
     (dados: DadosLogScore) => {
       const ix = indiceVida(dados);
-      return { item: ix.porId.get(itemId) ?? null, eventos: ix.porItem.get(itemId) ?? SEM_EVENTOS };
+      return {
+        item: ix.porId.get(itemId) ?? null,
+        eventos: ix.porItem.get(itemId) ?? SEM_EVENTOS,
+        nomes: dados.geral?.nomes,
+      };
     },
     [itemId],
   );
-  const q = useQuery({ ...opcoesLogScore(inicioJanelaLog(hojeISO())), select });
+  const q = useQuery({ ...opcoesLogScore(inicioJanelaLog(hojeISO()), ambiente), select });
   return q.data ?? { item: null, eventos: SEM_EVENTOS };
 }
 
-export function useScoreDados(): {
+export function useScoreDados(ambiente: Ambiente = 'contorno'): {
   equipe: ItemEquipe[];
   prestadores: ItemPrestador[];
   carregando: boolean;
   erro: boolean;
 } {
-  const q = useDadosLogScore();
+  const q = useDadosLogScore(ambiente);
   const dados = q.data;
   const derivados = useMemo(
     () =>

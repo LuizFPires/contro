@@ -1,7 +1,12 @@
 import { ChecklistResponsavel } from './ChecklistResponsavel';
 import { ChecklistPdfSheet } from './ChecklistPdfSheet';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { classificarPendencias, pendenteHa, pendentesPorCriticidade } from '@contro/core';
+import {
+  classificarPendencias,
+  pendenteHa,
+  pendentesPorCriticidade,
+  type Ambiente,
+} from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
 import { formatarDataCurta } from '../../lib/datas';
@@ -37,9 +42,12 @@ export function PendenciasAba({
   onFocoAplicado,
   pessoas,
   podeAtribuir = true,
+  ambiente = 'contorno',
 }: {
   obra: ObraChecklist;
   atividadeId?: string;
+  /** Ambiente da obra: a "Vida do item" lê o Log dele. */
+  ambiente?: Ambiente;
   /** Quem pode ser responsável (obra geral: as pessoas da obra); sem ela, a equipe Contorno. */
   pessoas?: { id: string; nome: string }[];
   /** Obra geral: só quem planeja atribui o responsável. */
@@ -380,7 +388,7 @@ export function PendenciasAba({
                   </button>
                 </div>
                 <div className={styles.vVida}>
-                  <VidaDoItem itemId={p.id} />
+                  <VidaDoItem itemId={p.id} ambiente={ambiente} />
                 </div>
                 <div className={styles.vFotos}>
                   <button
@@ -543,7 +551,7 @@ export function PendenciasAba({
               Apagar pendência
             </button>
             <div className={styles.menuPendVida}>
-              <VidaDoItem itemId={menuPend.id} />
+              <VidaDoItem itemId={menuPend.id} ambiente={ambiente} />
             </div>
             <p className={styles.menuPendDica}>
               Foto errada? Apague e aponte de novo com a foto certa.

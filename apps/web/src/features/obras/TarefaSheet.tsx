@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react';
-import { textoReplanejamento } from '@contro/core';
+import { textoReplanejamento, type Ambiente } from '@contro/core';
 import { BottomSheet, Button, Input } from '@contro/ui';
 import { AvisoRascunho } from '../../components/AvisoRascunho';
 import { EscolherData } from '../../components/EscolherData';
@@ -40,6 +40,7 @@ export function TarefaSheet({
   inicial,
   tituloAtribuir = 'Atribuir providência',
   nomeLivre = true,
+  ambiente = 'contorno',
 }: {
   aberto: boolean;
   tarefa: TarefaObra | null; // null = nova
@@ -61,6 +62,8 @@ export function TarefaSheet({
   tituloAtribuir?: string;
   /** "Outro nome (digitar)" no responsável. Obras gerais: só pessoas da obra (false). */
   nomeLivre?: boolean;
+  /** Ambiente da obra: a "Vida do item" lê o Log dele. */
+  ambiente?: Ambiente;
 }) {
   const atribuir = modo === 'atribuir';
   const [texto, setTexto] = useState('');
@@ -247,7 +250,7 @@ export function TarefaSheet({
 
       {tarefa && !atribuir ? (
         <div style={{ marginTop: 16 }}>
-          <VidaDoItem itemId={tarefa.id} />
+          <VidaDoItem itemId={tarefa.id} ambiente={ambiente} />
         </div>
       ) : null}
 
