@@ -22,13 +22,17 @@ const chaveResp = (a: AcaoObra) =>
 export function AcoesObraGeral({
   obraIds,
   pessoa,
+  filtroInicial,
   onVoltar,
   onAbrirAtividade,
 }: {
   obraIds: string[];
   pessoa: PessoaAtual;
+  /** Chip com que a tela abre (ao voltar da ficha, o que estava escolhido). */
+  filtroInicial?: string;
   onVoltar: () => void;
-  onAbrirAtividade: (obraId: string, atividadeId: string) => void;
+  /** `filtro` é o chip escolhido, para a tela voltar nele. */
+  onAbrirAtividade: (obraId: string, atividadeId: string, filtro: string) => void;
 }) {
   const { data: resumo, isLoading } = useResumoObrasGerais();
   const hoje = hojeISO();
@@ -39,7 +43,7 @@ export function AcoesObraGeral({
   const soUma = obraIds.length === 1;
   // Membro (em todas as obras mostradas) abre no chip dele; o resto, em "Todos".
   const membro = obras.length > 0 && obras.every((o) => o.papel === 'membro');
-  const [escolhido, setFiltro] = useState<string | null>(null);
+  const [escolhido, setFiltro] = useState<string | null>(filtroInicial ?? null);
   const filtro = escolhido ?? (membro ? pessoa.id : 'todos');
 
   const lista = useMemo<AcaoObra[]>(
@@ -162,7 +166,7 @@ export function AcoesObraGeral({
                   .join(' · ')}
                 esquerda={<MarcadorAcao feita={!a.aberta} />}
                 rotulo={`${a.texto}: abrir a atividade`}
-                onToque={() => onAbrirAtividade(a.obraId, a.id)}
+                onToque={() => onAbrirAtividade(a.obraId, a.id, filtroAtivo)}
               />
             ))}
           </section>

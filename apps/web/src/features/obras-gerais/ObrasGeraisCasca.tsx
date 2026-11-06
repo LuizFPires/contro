@@ -17,6 +17,14 @@ import { useResumoObrasGerais } from './useResumoObrasGerais';
 import inicio from './ObrasGeraisInicio.module.css';
 import styles from './ObrasGeraisCasca.module.css';
 
+/** Tela de ações da equipe: as obras, o chip escolhido e de onde foi aberta. */
+interface TelaAcoes {
+  obraIds: string[];
+  filtro?: string;
+  abaAnterior: AbaGeral;
+  obraAnterior: string | null;
+}
+
 /**
  * Casca das obras gerais: cabeçalho (marca, ambiente, perfil), a aba (Hoje ou
  * Obra/Obras) e o menu de baixo. Abre no Hoje. O Administrador vê a lista em Obras e
@@ -49,10 +57,13 @@ export function ObrasGeraisCasca({
   const [escolhendo, setEscolhendo] = useState(false);
   // A obra aberta fica lembrada: ao voltar ao app, reabre nela.
   const [obraAberta, setObraAberta] = useLembrado<string | null>('obrasgerais:obra', null);
-  // Tela de ações da equipe (de uma obra ou de todas), só nesta sessão. `retornoAcoes` guarda de
-  // onde saiu ao abrir uma ficha: fechar a ficha volta para ela.
-  const [acoesAberta, setAcoesAberta] = useState<{ obraIds: string[] } | null>(null);
-  const [retornoAcoes, setRetornoAcoes] = useState<{ obraIds: string[] } | null>(null);
+  // Tela de ações da equipe (de uma obra ou de todas), só nesta sessão, com a aba e a obra de
+  // onde foi aberta (o Voltar volta para lá). `retornoAcoes` guarda a tela (com o chip) ao abrir
+  // uma ficha: fechar a ficha volta para ela.
+  const [acoesAberta, setAcoesAberta] = useState<TelaAcoes | null>(null);
+  const [retornoAcoes, setRetornoAcoes] = useState<TelaAcoes | null>(null);
+  // Linha tocada no Hoje: fechar a ficha ou voltar da obra volta ao Hoje (e à obra lembrada).
+  const [retornoHoje, setRetornoHoje] = useState<{ obraAnterior: string | null } | null>(null);
   // Linha tocada no Hoje: a obra abre na ficha dessa atividade (uma vez).
   const [atalho, setAtalho] = useState<{ obraId: string; atividadeId: string } | null>(null);
   const { data: obras } = useObrasGerais();
@@ -76,9 +87,26 @@ export function ObrasGeraisCasca({
     setObraAberta(obraId);
     setAba('obra');
   };
+  const abrirAcoes = (obraIds: string[]) => {
+    setRetornoHoje(null);
+    setAcoesAberta({ obraIds, abaAnterior: aba, obraAnterior: obraAberta });
+  };
+  const voltarAoHoje = (r: { obraAnterior: string | null }) => {
+    setRetornoHoje(null);
+    setObraAberta(r.obraAnterior);
+    setAba('hoje');
+  };
+  // Tocar numa aba do menu esquece de onde a tela veio.
+  const escolherAba = (a: AbaGeral) => {
+    setRetornoAcoes(null);
+    setRetornoHoje(null);
+    setAba(a);
+  };
   const lista = obras ?? [];
   const agendas = (resumo ?? []).map((o) => o.agenda);
-  const nav = <NavGeral ativo={aba} administrador={admin} agendas={agendas} onEscolher={setAba} />;
+  const nav = (
+    <NavGeral ativo={aba} administrador={admin} agendas={agendas} onEscolher={escolherAba} />
+  );
 
   const detalhe = (id: string, semVoltar: boolean) => (
     <ObraGeralDetalhe
@@ -87,18 +115,20 @@ export function ObrasGeraisCasca({
       semVoltar={semVoltar}
       abrirAtividadeId={atalho?.obraId === id ? atalho.atividadeId : undefined}
       onAtalhoUsado={() => setAtalho(null)}
-      onVoltar={() => setObraAberta(null)}
+      onVoltar={retornoHoje ? () => voltarAoHoje(retornoHoje) : () => setObraAberta(null)}
       onTrocarObra={setObraAberta}
       onAbrirPessoas={() => setPessoasObraId(id)}
       onAbrirPerfil={admin ? undefined : () => setPerfilAberto(true)}
-      onAbrirAcoes={() => setAcoesAberta({ obraIds: [id] })}
+      onAbrirAcoes={() => abrirAcoes([id])}
       onFichaFechada={
         retornoAcoes
           ? () => {
               setAcoesAberta(retornoAcoes);
               setRetornoAcoes(null);
             }
-          : undefined
+          : retornoHoje
+            ? () => voltarAoHoje(retornoHoje)
+            : undefined
       }
     />
   );
@@ -157,9 +187,15 @@ export function ObrasGeraisCasca({
       <AcoesObraGeral
         obraIds={acoesAberta.obraIds}
         pessoa={pessoa}
-        onVoltar={() => setAcoesAberta(null)}
-        onAbrirAtividade={(obraId, atividadeId) => {
-          setRetornoAcoes(acoesAberta);
+        filtroInicial={acoesAberta.filtro}
+        onVoltar={() => {
+          setAcoesAberta(null);
+          setRetornoAcoes(null);
+          setObraAberta(acoesAberta.obraAnterior);
+          setAba(acoesAberta.abaAnterior);
+        }}
+        onAbrirAtividade={(obraId, atividadeId, filtro) => {
+          setRetornoAcoes({ ...acoesAberta, filtro });
           setAcoesAberta(null);
           abrirAtividade(obraId, atividadeId);
         }}
@@ -223,7 +259,14 @@ export function ObrasGeraisCasca({
             </button>
           </div>
         ) : resumo && resumo.length > 0 ? (
-          <HojeGeral obras={resumo} onAbrirAtividade={abrirAtividade} />
+          <HojeGeral
+            obras={resumo}
+            onAbrirAtividade={(obraId, atividadeId) => {
+              setRetornoAcoes(null);
+              setRetornoHoje({ obraAnterior: obraAberta });
+              abrirAtividade(obraId, atividadeId);
+            }}
+          />
         ) : (
           <div className={inicio.vazio}>
             <Simbolo size={56} />
@@ -231,11 +274,7 @@ export function ObrasGeraisCasca({
           </div>
         )
       ) : (
-        <ObrasGeraisInicio
-          pessoa={pessoa}
-          onAbrirObra={setObraAberta}
-          onAbrirAcoes={(obraIds) => setAcoesAberta({ obraIds })}
-        />
+        <ObrasGeraisInicio pessoa={pessoa} onAbrirObra={setObraAberta} onAbrirAcoes={abrirAcoes} />
       )}
 
       {nav}
