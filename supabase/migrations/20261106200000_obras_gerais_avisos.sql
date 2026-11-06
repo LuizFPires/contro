@@ -1,7 +1,9 @@
 -- Obras gerais · Etapa 3: avisos por push das obras gerais. Nada disso toca a
 -- Contorno: o gerar_avisos e o cron avisos-gerar ficam como estão.
 --   Na hora (tipo atribuicao, enviado pelo gatilho aviso_atribuicao_imediata):
---     atividade atribuída, data mudada (replanejamento) e "saiu da obra".
+--     atividade atribuída, data mudada (replanejamento, também pelo subitem)
+--     e "saiu da obra"; o Desfazer da troca de responsável
+--     (desfazer_responsavel_atividade) não avisa.
 --   Do dia (gerar_avisos_gerais, cron avisos-gerais): acoes_geral por pessoa e
 --     equipe_geral para Coordenadores e Administradores.
 -- Horários: os de config_avisos (acoes_ativo, acoes_hora) até a etapa 4 trazer
@@ -33,18 +35,24 @@ as $$
 $$;
 revoke execute on function public.contro_prazo_atividade_geral(uuid, date) from public, anon, authenticated;
 
--- 3) Atividade atribuída e data mudada, na hora. Só obra geral, atividade de
--- topo (o responsável é dela; subitem não tem responsável), não excluída e
--- aberta. Nunca avisa quem fez a mudança (pessoa do auth.uid(); sem login,
--- avisa normalmente). Só avisa quem participa da obra ou é Administrador ativo
--- (defesa em profundidade: as RPCs já validam o responsável).
---   Atribuição: novo responsável não nulo e diferente do anterior (inclui criar
---     já com responsável). "até" = prazo da atividade (regra do último subitem);
---     sem prazo, sem o trecho " · até". Ao criar pelo adicionar_atividade_geral
---     os subitens entram depois da atividade: o "até" usa a data dela.
---   Nova data: a data prevista mudou de uma data para outra (replanejamento) e
---     há responsável. O Desfazer (desfazer_data_prevista) volta o contador de
---     replanejamentos; quando ele diminui, é Desfazer e não avisa.
+-- 3) Atividade atribuída e data mudada, na hora. Só obra geral; o responsável
+-- é da atividade de topo (subitem não tem responsável), que precisa estar não
+-- excluída e aberta. Nunca avisa quem fez a mudança (pessoa do auth.uid(); sem
+-- login, avisa normalmente). Só avisa quem participa da obra ou é
+-- Administrador ativo (defesa em profundidade: as RPCs já validam o responsável).
+--   Atribuição (atividade de topo): novo responsável não nulo e diferente do
+--     anterior (inclui criar já com responsável). "até" = prazo da atividade
+--     (regra do último subitem); sem prazo, sem o trecho " · até". Ao criar
+--     pelo adicionar_atividade_geral os subitens entram depois da atividade: o
+--     "até" usa a data dela. O Desfazer da troca (desfazer_responsavel_atividade)
+--     liga contro.desfazer na transação e não avisa.
+--   Nova data: replanejamento (a data mudou de uma data para outra) na
+--     atividade de topo ou num subitem dela que muda o prazo efetivo da
+--     atividade de topo (contro_prazo_atividade_geral). Avisa o responsável da
+--     atividade de topo, com o nome dela e o prazo efetivo antigo → novo. Prazo
+--     efetivo igual (ex.: data da atividade editada enquanto os subitens
+--     mandam): não avisa. O Desfazer (desfazer_data_prevista) volta o contador
+--     de replanejamentos; quando ele diminui, é Desfazer e não avisa.
 create or replace function public.contro_avisa_atividade_geral()
 returns trigger
 language plpgsql
@@ -56,8 +64,11 @@ declare
   v_por uuid;
   v_user uuid;
   v_prazo date;
+  v_topo public.obra_atividade%rowtype;
+  v_prazo_antigo date;
+  v_prazo_novo date;
 begin
-  if new.pai_id is not null or new.deleted_at is not null or new.concluida_em is not null then
+  if new.deleted_at is not null or new.concluida_em is not null then
     return new;
   end if;
   select o.nome into v_obra from public.obra o
@@ -67,9 +78,11 @@ begin
   end if;
   select id into v_por from public.pessoa where user_id = auth.uid() and deleted_at is null;
 
-  if new.responsavel_id is not null
+  if new.pai_id is null
+     and new.responsavel_id is not null
      and (tg_op = 'INSERT' or new.responsavel_id is distinct from old.responsavel_id)
-     and new.responsavel_id is distinct from v_por then
+     and new.responsavel_id is distinct from v_por
+     and coalesce(current_setting('contro.desfazer', true), '') <> '1' then
     select user_id into v_user from public.pessoa p
     where p.id = new.responsavel_id and p.ativo and p.deleted_at is null
       and (p.administrador or exists (
@@ -88,25 +101,50 @@ begin
     return new;
   end if;
 
-  if tg_op = 'UPDATE'
-     and old.data_prevista is not null and new.data_prevista is not null
-     and new.data_prevista <> old.data_prevista
-     and new.replanejamentos >= old.replanejamentos
-     and new.responsavel_id is not null
-     and new.responsavel_id is distinct from v_por then
-    select user_id into v_user from public.pessoa p
-    where p.id = new.responsavel_id and p.ativo and p.deleted_at is null
-      and (p.administrador or exists (
-        select 1 from public.obra_participante op
-        where op.obra_id = new.obra_id and op.pessoa_id = p.id));
-    if v_user is not null then
-      insert into public.aviso_disparo (tipo, dia, user_id, titulo, corpo, url)
-      values ('atribuicao', (now() at time zone 'America/Sao_Paulo')::date, v_user,
-        'CONTRO · ' || v_obra,
-        'Nova data: ' || new.nome || ' · ' || to_char(old.data_prevista, 'DD/MM')
-          || ' → ' || to_char(new.data_prevista, 'DD/MM'),
-        '/?ir=geral-hoje');
+  if tg_op <> 'UPDATE'
+     or old.data_prevista is null or new.data_prevista is null
+     or new.data_prevista = old.data_prevista
+     or new.replanejamentos < old.replanejamentos then
+    return new;
+  end if;
+
+  -- Prazo efetivo da atividade de topo antes e depois. O gatilho é after: a
+  -- linha já tem a data nova, e a antiga entra no lugar dela.
+  if new.pai_id is null then
+    v_topo := new;
+    v_prazo_antigo := public.contro_prazo_atividade_geral(new.id, old.data_prevista);
+  else
+    select * into v_topo from public.obra_atividade
+    where id = new.pai_id and pai_id is null and deleted_at is null and concluida_em is null;
+    if not found then
+      return new;
     end if;
+    select coalesce(max(x.d), v_topo.data_prevista) into v_prazo_antigo
+    from (
+      select s.data_prevista as d from public.obra_atividade s
+      where s.pai_id = v_topo.id and s.deleted_at is null and s.id <> new.id
+      union all
+      select old.data_prevista
+    ) x;
+  end if;
+  v_prazo_novo := public.contro_prazo_atividade_geral(v_topo.id, v_topo.data_prevista);
+  if v_prazo_antigo is null or v_prazo_novo is null or v_prazo_novo = v_prazo_antigo
+     or v_topo.responsavel_id is null
+     or v_topo.responsavel_id is not distinct from v_por then
+    return new;
+  end if;
+  select user_id into v_user from public.pessoa p
+  where p.id = v_topo.responsavel_id and p.ativo and p.deleted_at is null
+    and (p.administrador or exists (
+      select 1 from public.obra_participante op
+      where op.obra_id = v_topo.obra_id and op.pessoa_id = p.id));
+  if v_user is not null then
+    insert into public.aviso_disparo (tipo, dia, user_id, titulo, corpo, url)
+    values ('atribuicao', (now() at time zone 'America/Sao_Paulo')::date, v_user,
+      'CONTRO · ' || v_obra,
+      'Nova data: ' || v_topo.nome || ' · ' || to_char(v_prazo_antigo, 'DD/MM')
+        || ' → ' || to_char(v_prazo_novo, 'DD/MM'),
+      '/?ir=geral-hoje');
   end if;
   return new;
 end;
@@ -115,6 +153,49 @@ revoke execute on function public.contro_avisa_atividade_geral() from public, an
 create trigger obra_atividade_avisa_geral
   after insert or update of responsavel_id, data_prevista on public.obra_atividade
   for each row execute function public.contro_avisa_atividade_geral();
+
+-- Desfazer da troca de responsável (toast de 5 s): as mesmas regras do
+-- definir_responsavel_atividade (só quem planeja; responsável ativo que
+-- participa da obra ou Administrador), mas liga contro.desfazer só durante o
+-- update, para o gatilho não mandar "Nova atividade" a quem só volta a ser o
+-- responsável. Evento `responsavel` com depois {responsavel_id, desfeito: true}.
+create or replace function desfazer_responsavel_atividade(p_atividade_id uuid, p_responsavel_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_obra uuid;
+  v_antigo uuid;
+  v_pessoa uuid;
+begin
+  if not public.contro_tem_acesso() then
+    raise exception 'Sem acesso' using errcode = '42501';
+  end if;
+  select obra_id, responsavel_id into v_obra, v_antigo from public.obra_atividade
+  where id = p_atividade_id and pai_id is null and deleted_at is null
+  for update;
+  if v_obra is null then
+    raise exception 'Atividade inválida' using errcode = '23503';
+  end if;
+  perform public.contro_exige_planejar_geral(v_obra);
+  perform public.contro_valida_responsavel_geral(v_obra, p_responsavel_id);
+  if p_responsavel_id is not distinct from v_antigo then
+    return;
+  end if;
+  select id into v_pessoa from public.pessoa where user_id = auth.uid() and deleted_at is null;
+  perform set_config('contro.desfazer', '1', true);
+  update public.obra_atividade set responsavel_id = p_responsavel_id where id = p_atividade_id;
+  perform set_config('contro.desfazer', '', true);
+  insert into public.obra_atividade_evento (atividade_id, tipo, por, antes, depois)
+  values (p_atividade_id, 'responsavel', v_pessoa,
+    jsonb_build_object('responsavel_id', v_antigo),
+    jsonb_build_object('responsavel_id', p_responsavel_id, 'desfeito', true));
+end;
+$$;
+revoke execute on function desfazer_responsavel_atividade(uuid, uuid) from public, anon;
+grant execute on function desfazer_responsavel_atividade(uuid, uuid) to authenticated;
 
 -- 4) Saída da obra (etapa 2, 20261106120000): corpo copiado e, quando n > 0
 -- atividades abertas ficaram sem responsável, avisa cada Coordenador que

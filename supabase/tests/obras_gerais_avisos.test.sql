@@ -3,7 +3,7 @@
 -- por pessoa (acoes_geral) e da equipe (equipe_geral, Coordenadores e
 -- Administradores) saem do gerar_avisos_gerais. A Contorno não muda.
 begin;
-select plan(40);
+select plan(48);
 
 -- Elenco: A administrador (e gestor da Contorno), C coordenador de G1 e G2,
 -- J membro de G1 e G2, L membro de G1, K equipe só da Contorno.
@@ -277,6 +277,78 @@ set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000005a1","r
 select remover_da_obra('00000000-0000-0000-0000-00000005a002', (select id from ids where quem = 'C'));
 reset role;
 select is((select count(*)::int from aviso_disparo where corpo like 'Avs C saiu%'), 0, 'sem atividade aberta: nenhum aviso');
+
+-- Desfazer da troca de responsável não avisa; atribuir de novo avisa.
+-- J volta a G1 (saiu acima). A planeja Atv 9: C, troca para J, Desfazer volta C.
+insert into obra_participante (obra_id, pessoa_id)
+  values ('00000000-0000-0000-0000-00000005a001', (select id from ids where quem = 'J'));
+insert into obra_atividade (id, obra_id, fase_id, pai_id, ordem, nome, data_prevista) values
+  ('00000000-0000-0000-0000-00000005a221', '00000000-0000-0000-0000-00000005a001',
+   '00000000-0000-0000-0000-00000005a101', null, 9, 'Atv 9', null);
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000005a1","role":"authenticated"}';
+select definir_responsavel_atividade('00000000-0000-0000-0000-00000005a221', (select id from ids where quem = 'C'));
+select definir_responsavel_atividade('00000000-0000-0000-0000-00000005a221', (select id from ids where quem = 'J'));
+select desfazer_responsavel_atividade('00000000-0000-0000-0000-00000005a221', (select id from ids where quem = 'C'));
+reset role;
+select is((select responsavel_id from obra_atividade where id = '00000000-0000-0000-0000-00000005a221'),
+  (select id from ids where quem = 'C'), 'Desfazer volta o responsável');
+select is((select count(*)::int from aviso_disparo where corpo = 'Nova atividade para você: Atv 9'
+  and user_id = (select user_id from ids where quem = 'C')), 1, 'Desfazer do responsável não avisa');
+select results_eq(
+  $$ select antes, depois from obra_atividade_evento
+     where atividade_id = '00000000-0000-0000-0000-00000005a221' and tipo = 'responsavel' and depois ? 'desfeito' $$,
+  $$ select jsonb_build_object('responsavel_id', (select id from ids where quem = 'J')),
+            jsonb_build_object('responsavel_id', (select id from ids where quem = 'C'), 'desfeito', true) $$,
+  'Desfazer grava o evento responsavel com desfeito');
+set local role authenticated;
+select definir_responsavel_atividade('00000000-0000-0000-0000-00000005a221', (select id from ids where quem = 'J'));
+select definir_responsavel_atividade('00000000-0000-0000-0000-00000005a221', (select id from ids where quem = 'C'));
+reset role;
+select is((select count(*)::int from aviso_disparo where corpo = 'Nova atividade para você: Atv 9'
+  and user_id = (select user_id from ids where quem = 'C')), 2, 'depois do Desfazer, atribuir de novo avisa');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000005a3","role":"authenticated"}';
+select throws_ok(
+  $$ select desfazer_responsavel_atividade('00000000-0000-0000-0000-00000005a221',
+       (select id from ids where quem = 'J')) $$,
+  '42501', null, 'membro não desfaz a troca de responsável');
+reset role;
+
+-- Nova data pelo prazo efetivo (o último subitem). Atv 10 de C: data 10/02;
+-- subitens S1 12/02 e S2 11/02 (prazo 12/02). A planeja.
+insert into obra_atividade (id, obra_id, fase_id, pai_id, ordem, nome, data_prevista) values
+  ('00000000-0000-0000-0000-00000005a222', '00000000-0000-0000-0000-00000005a001',
+   '00000000-0000-0000-0000-00000005a101', null, 10, 'Atv 10', '2031-02-10');
+insert into obra_atividade (id, obra_id, fase_id, pai_id, ordem, nome, data_prevista) values
+  ('00000000-0000-0000-0000-00000005a223', '00000000-0000-0000-0000-00000005a001', '00000000-0000-0000-0000-00000005a101',
+   '00000000-0000-0000-0000-00000005a222', 1, 'S1', '2031-02-12'),
+  ('00000000-0000-0000-0000-00000005a224', '00000000-0000-0000-0000-00000005a001', '00000000-0000-0000-0000-00000005a101',
+   '00000000-0000-0000-0000-00000005a222', 2, 'S2', '2031-02-11');
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000005a1","role":"authenticated"}';
+select definir_responsavel_atividade('00000000-0000-0000-0000-00000005a222', (select id from ids where quem = 'C'));
+select set_config('avs.ev2',
+  editar_subitem_geral('00000000-0000-0000-0000-00000005a223', 'S1', '2031-02-16')::text, true);
+reset role;
+select is((select corpo from aviso_disparo where corpo like 'Nova data: Atv 10%'
+  and user_id = (select user_id from ids where quem = 'C')),
+  'Nova data: Atv 10 · 12/02 → 16/02', 'subitem replanejado avisa o responsável da atividade com o prazo antigo e o novo');
+-- Data da atividade com os subitens mandando (16/02), subitem que não muda o
+-- prazo e o Desfazer do subitem (16/02 → 12/02; prazo vira 13/02): nada.
+set local role authenticated;
+select definir_data_prevista('00000000-0000-0000-0000-00000005a222', '2031-02-13');
+select editar_subitem_geral('00000000-0000-0000-0000-00000005a224', 'S2', '2031-02-13');
+select desfazer_data_prevista(current_setting('avs.ev2')::uuid);
+reset role;
+select is((select count(*)::int from aviso_disparo where corpo like 'Nova data: Atv 10%'), 1,
+  'data da atividade com os subitens mandando, subitem que não muda o prazo e Desfazer não avisam');
+set local role authenticated;
+select editar_subitem_geral('00000000-0000-0000-0000-00000005a223', 'S1', '2031-02-14');
+reset role;
+select is((select count(*)::int from aviso_disparo where corpo = 'Nova data: Atv 10 · 13/02 → 14/02'
+  and user_id = (select user_id from ids where quem = 'C')), 1,
+  'subitem que passa a mandar no prazo avisa com o prazo efetivo');
 
 -- Rotina protegida e agendada.
 select ok(not has_function_privilege('authenticated', 'public.gerar_avisos_gerais(timestamptz)', 'execute'),
