@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { podeGerirObrasGerais, rotuloAmbiente, type Ambiente } from '@contro/core';
 import { Icon, Logo, Simbolo } from '@contro/ui';
 import { useLembrado } from '../../lib/useLembrado';
@@ -44,7 +44,12 @@ export function ObrasGeraisInicio({
     papelGeral: pessoa.papelGeral,
   });
   const coordenador = !pessoa.administrador && pessoa.papelGeral === 'coordenador';
-  if (pessoasObraId) {
+  const podePessoasDaObra = pessoa.administrador || coordenador;
+  // Chave lembrada de quem já não tem o papel: limpa.
+  useEffect(() => {
+    if (pessoasObraId && !podePessoasDaObra) setPessoasObraId(null);
+  }, [pessoasObraId, podePessoasDaObra, setPessoasObraId]);
+  if (pessoasObraId && podePessoasDaObra) {
     return (
       <PessoasDaObra
         obraId={pessoasObraId}

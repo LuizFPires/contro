@@ -33,7 +33,7 @@
 .nota {
   margin: 4px 0 0;
   font-size: 14px;
-  color: #696969;
+  color: rgb(24 24 24 / 72%);
 }
 .secao {
   margin: 12px 20px 0;
@@ -90,7 +90,7 @@ button.linha {
 }
 .meta {
   font-size: 14px;
-  color: #696969;
+  color: rgb(24 24 24 / 72%);
   overflow-wrap: anywhere;
 }
 .aviso {
@@ -108,7 +108,7 @@ button.linha {
 .texto2 {
   margin: 0 0 16px;
   font-size: 14px;
-  color: #464646;
+  color: rgb(24 24 24 / 80%);
 }
 .botoes {
   display: grid;

@@ -7,6 +7,7 @@ import { AdicionarMembroSheet } from './AdicionarMembroSheet';
 import type { PessoaDaObra } from './obraGeral';
 import { adicionarMembroObra, removerDaObra } from './planejamento';
 import { useObraGeral } from './useObraGeral';
+import { usePessoasGerais } from './usePessoasGerais';
 import styles from './PessoasDaObra.module.css';
 
 const ROTULO: Record<PessoaDaObra['papel'], string> = {
@@ -26,6 +27,9 @@ export function PessoasDaObra({
   onVoltar: () => void;
 }) {
   const { data: obra, isLoading, isError } = useObraGeral(obraId);
+  // E-mails só vêm da função de Administrador; o Coordenador não os vê.
+  const { pessoas: acessos } = usePessoasGerais(pessoa.administrador);
+  const emailDe = (id: string) => acessos.find((a) => a.id === id)?.email;
   const qc = useQueryClient();
   const { showToast } = useToast();
   const [tirar, setTirar] = useState<PessoaDaObra | null>(null);
@@ -40,7 +44,7 @@ export function PessoasDaObra({
 
   // O Administrador mexe em qualquer um; o Coordenador só em Membros (o banco também barra).
   const podeTirar = (p: PessoaDaObra) =>
-    pessoa.administrador || (p.papel === 'membro' && p.id !== pessoa.id);
+    p.id !== pessoa.id && (pessoa.administrador || p.papel === 'membro');
 
   async function confirmarTirar() {
     if (!tirar || tirando) return;
@@ -107,6 +111,9 @@ export function PessoasDaObra({
                       {p.id === pessoa.id ? ' (você)' : ''}
                     </span>
                     <span className={styles.meta}>{ROTULO[p.papel]}</span>
+                    {p.papel === 'membro' && emailDe(p.id) ? (
+                      <span className={styles.meta}>{emailDe(p.id)}</span>
+                    ) : null}
                   </span>
                   {podeTirar(p) ? <Icon name="seta" size={18} /> : null}
                 </>

@@ -62,10 +62,10 @@ async function carregar(): Promise<{ pessoas: PessoaGeral[]; convites: ConviteGe
 }
 
 /** Pessoas com acesso a Obras gerais e convites ainda não usados (só Administrador). */
-export function usePessoasGerais() {
+export function usePessoasGerais(habilitado = true) {
   const query = useQuery({
     queryKey: ['pessoas-gerais'],
-    enabled: Boolean(supabase),
+    enabled: Boolean(supabase) && habilitado,
     queryFn: carregar,
   });
   return {
