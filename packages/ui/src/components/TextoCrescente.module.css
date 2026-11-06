@@ -6,4 +6,8 @@
   overflow: hidden;
   line-height: 1.35;
   font-family: inherit;
+  /* Quebra entre palavras; só parte uma palavra que sozinha não cabe na linha. */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
 }

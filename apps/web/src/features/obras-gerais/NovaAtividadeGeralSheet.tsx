@@ -231,7 +231,7 @@ export function NovaAtividadeGeralSheet({
               </button>
             </div>
             {subitens.map((s, i) => (
-              <div key={i} className={styles.linha}>
+              <div key={i} className={styles.subItem}>
                 <TextoCrescente
                   className={styles.campo}
                   value={s.nome}
@@ -239,27 +239,29 @@ export function NovaAtividadeGeralSheet({
                   placeholder="Subitem"
                   onChange={(e) => mudarSub(i, { nome: e.target.value })}
                 />
-                <button
-                  type="button"
-                  className={styles.dataSub}
-                  aria-label={
-                    s.data
-                      ? `Data do subitem ${i + 1}: ${diaCurto(s.data)}`
-                      : `Data do subitem ${i + 1}`
-                  }
-                  onClick={() => setDataDoSub(i)}
-                >
-                  <Icon name="calendario" size={16} />
-                  {s.data ? diaCurto(s.data) : null}
-                </button>
-                <button
-                  type="button"
-                  className={styles.remover}
-                  aria-label={`Remover subitem ${i + 1}`}
-                  onClick={() => setSubitens((arr) => arr.filter((_, j) => j !== i))}
-                >
-                  <Icon name="close" size={20} />
-                </button>
+                <div className={styles.subAcoes}>
+                  <button
+                    type="button"
+                    className={styles.dataSub}
+                    aria-label={
+                      s.data
+                        ? `Data do subitem ${i + 1}: ${diaCurto(s.data)}`
+                        : `Data do subitem ${i + 1}`
+                    }
+                    onClick={() => setDataDoSub(i)}
+                  >
+                    <Icon name="calendario" size={16} />
+                    {s.data ? diaCurto(s.data) : 'Data'}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.remover}
+                    aria-label={`Remover subitem ${i + 1}`}
+                    onClick={() => setSubitens((arr) => arr.filter((_, j) => j !== i))}
+                  >
+                    <Icon name="close" size={20} />
+                  </button>
+                </div>
               </div>
             ))}
             {comSubitens ? (
