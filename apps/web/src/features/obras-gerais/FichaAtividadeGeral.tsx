@@ -26,6 +26,7 @@ import {
   definirDataPrevista,
   definirResponsavelAtividade,
   desfazerDataPrevista,
+  desfazerResponsavelAtividade,
 } from './planejamento';
 
 const NOTA_MEMBRO =
@@ -157,7 +158,7 @@ export function FichaAtividadeGeral({
     if (novo === antes) return;
     void planejar(
       () => definirResponsavelAtividade(a.id, novo),
-      () => definirResponsavelAtividade(a.id, antes),
+      () => desfazerResponsavelAtividade(a.id, antes),
       'Responsável alterado.',
     );
   }
