@@ -201,7 +201,7 @@ export function podePlanejarObraGeral(p: AcessoPessoa): boolean {
   return p.administrador || p.papelGeral === 'coordenador';
 }
 
-function filhosPorPai(atividades: AtividadeGeral[]): Map<string, AtividadeGeral[]> {
+export function filhosPorPai(atividades: AtividadeGeral[]): Map<string, AtividadeGeral[]> {
   const filhos = new Map<string, AtividadeGeral[]>();
   for (const a of [...atividades].sort((x, y) => x.ordem - y.ordem)) {
     if (a.pai_id === null) continue;
@@ -298,7 +298,7 @@ export interface EficienciaGeral {
  * subitens (o original de cada um, ou a data dele); sem subitem com data, a
  * data da própria atividade.
  */
-function prazoOriginalAtividadeGeral(
+export function prazoOriginalAtividadeGeral(
   a: AtividadeGeral,
   subitens: AtividadeGeral[],
 ): DataISO | null {

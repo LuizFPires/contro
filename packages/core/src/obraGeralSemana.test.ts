@@ -1,0 +1,103 @@
+import { describe, expect, it } from 'vitest';
+import { textoBoletimWhatsapp } from './boletim';
+import type { AtividadeGeral } from './obraGeral';
+import { montarBoletimGeral, providenciarAteGeral, semanaDaReuniaoGeral } from './obraGeralSemana';
+
+let n = 0;
+function ativ(p: Partial<AtividadeGeral>): AtividadeGeral {
+  n += 1;
+  return {
+    id: `a${n}`,
+    fase_id: 'f1',
+    pai_id: null,
+    ordem: n,
+    nome: `Atividade ${n}`,
+    data_prevista: null,
+    data_prevista_original: null,
+    replanejamentos: 0,
+    responsavel_id: null,
+    concluida_em: null,
+    avanco_pct: 0,
+    foto_conclusao_id: null,
+    prestador: null,
+    ...p,
+  };
+}
+
+// Reunião na quarta 04/11/2026: semana 02/11-06/11, passada 26/10-30/10.
+describe('semanaDaReuniaoGeral', () => {
+  const noPrazo = ativ({ data_prevista: '2026-10-28', concluida_em: '2026-10-28T15:00:00' });
+  const comAtraso = ativ({
+    data_prevista: '2026-10-29',
+    data_prevista_original: '2026-10-27',
+    concluida_em: '2026-11-02T10:00:00',
+  });
+  const aberta = ativ({ data_prevista: '2026-10-30' });
+  const daSemana = ativ({ data_prevista: '2026-11-05' });
+  const futura = ativ({ data_prevista: '2026-11-10' });
+  const semData = ativ({});
+  const filha = ativ({ pai_id: 'outra', data_prevista: '2026-10-28' });
+  const r = semanaDaReuniaoGeral({
+    atividades: [noPrazo, comAtraso, aberta, daSemana, futura, semData, filha],
+    dataReuniao: '2026-11-04',
+    hoje: '2026-11-04',
+  });
+
+  it('separa a semana passada', () => {
+    expect(r.passadaNoPrazo).toEqual([noPrazo]);
+    expect(r.passadaComAtraso).toEqual([comAtraso]);
+    expect(r.atrasadasAbertas).toEqual([aberta]);
+  });
+  it('lista esta semana e ignora subitens, futuras e sem data', () => {
+    expect(r.daSemana).toEqual([daSemana]);
+  });
+});
+
+describe('montarBoletimGeral', () => {
+  const atividades = [
+    ativ({ data_prevista: '2026-11-02', concluida_em: '2026-11-02T10:00:00' }),
+    ativ({ nome: 'Atrasada', data_prevista: '2026-11-03' }),
+    ativ({ nome: 'Sexta', data_prevista: '2026-11-06' }),
+    ativ({ data_prevista: '2026-11-12' }),
+  ];
+  const b = montarBoletimGeral({
+    obra: { nome: 'Loja Centro', cidade: 'Recife' },
+    atividades,
+    nomes: {},
+    hoje: '2026-11-04',
+    quemFazOQue: [],
+  });
+
+  it('calcula percentuais e listas', () => {
+    expect(b.semanaFmt).toBe('seg 02/11 a sex 06/11');
+    expect(b.realPct).toBe(0.25);
+    expect(b.previstoSextaPct).toBe(0.75);
+    expect(b.atrasos).toEqual(['Atrasada · era para ter 03/11']);
+    expect(b.concluir.map((c) => c.nome)).toEqual(['Atrasada', 'Sexta']);
+    expect(b.comecar).toEqual([]);
+    expect(b.ritmoAtrasado).toBe(false);
+  });
+  it('gera o texto de WhatsApp com o nome da obra', () => {
+    expect(textoBoletimWhatsapp(b, '2026-11-04')).toContain('LOJA CENTRO · RECIFE');
+  });
+  it('obra sem atividades não divide por zero', () => {
+    const v = montarBoletimGeral({
+      obra: { nome: 'X', cidade: null },
+      atividades: [],
+      nomes: {},
+      hoje: '2026-11-04',
+      quemFazOQue: [],
+    });
+    expect(v.realPct).toBe(0);
+    expect(v.ritmoTexto).toBe('');
+  });
+});
+
+describe('providenciarAteGeral', () => {
+  it('3 d.u. antes de uma segunda cai na quarta anterior', () => {
+    expect(providenciarAteGeral('2026-11-09', 3)).toBe('2026-11-04');
+  });
+  it('antecedência 0 é a própria data', () => {
+    expect(providenciarAteGeral('2026-11-09', 0)).toBe('2026-11-09');
+  });
+});
