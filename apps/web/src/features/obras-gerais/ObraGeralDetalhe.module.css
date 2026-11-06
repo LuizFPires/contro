@@ -152,3 +152,18 @@
   font-weight: 800;
   cursor: pointer;
 }
+
+/* Avatar do perfil (obra como aba): o mesmo do cabeçalho do Hoje. */
+.perfil {
+  flex-shrink: 0;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border-radius: 50%;
+  border: 0;
+  background: rgb(255 255 255 / 14%);
+  color: var(--contro-white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

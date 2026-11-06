@@ -4,7 +4,7 @@ import { Icon, Logo, Simbolo } from '@contro/ui';
 import { useLembrado } from '../../lib/useLembrado';
 import { ItemMenu, PerfilSheet } from '../perfil/PerfilSheet';
 import type { PessoaAtual } from '../perfil/usePerfil';
-import { obraDaAbaGeral } from './abaObraGeral';
+import { abaGeralDaSessao, guardarAbaGeral, obraDaAbaGeral } from './abaObraGeral';
 import { HojeGeral } from './HojeGeral';
 import { NavGeral, type AbaGeral } from './NavGeral';
 import { ObraGeralDetalhe } from './ObraGeralDetalhe';
@@ -36,7 +36,12 @@ export function ObrasGeraisCasca({
   onSair: () => void;
   onPessoas: () => void;
 }) {
-  const [aba, setAba] = useLembrado<AbaGeral>('obrasgerais:aba', 'hoje');
+  // Abre sempre no Hoje; a aba escolhida vale até o app fechar.
+  const [aba, setAbaEstado] = useState<AbaGeral>(abaGeralDaSessao);
+  const setAba = (a: AbaGeral) => {
+    guardarAbaGeral(a);
+    setAbaEstado(a);
+  };
   const [perfilAberto, setPerfilAberto] = useState(false);
   // Pessoas da obra (Coordenador e Administrador): a obra aberta nessa tela e o seletor de obra.
   const [pessoasObraId, setPessoasObraId] = useLembrado<string | null>('obrasgerais:pessoas', null);
@@ -64,7 +69,7 @@ export function ObrasGeraisCasca({
   const abrirAtividade = (obraId: string, atividadeId: string) => {
     setAtalho({ obraId, atividadeId });
     setObraAberta(obraId);
-    if (!admin) setAba('obra');
+    setAba('obra');
   };
   const lista = obras ?? [];
   const agendas = (resumo ?? []).map((o) => o.agenda);
@@ -80,7 +85,57 @@ export function ObrasGeraisCasca({
       onVoltar={() => setObraAberta(null)}
       onTrocarObra={setObraAberta}
       onAbrirPessoas={() => setPessoasObraId(id)}
+      onAbrirPerfil={admin ? undefined : () => setPerfilAberto(true)}
     />
+  );
+
+  // Gavetas de perfil e de escolha de obra: as mesmas no Hoje, na lista e na obra.
+  const folhas = (
+    <>
+      <TrocarObraSheet
+        aberto={escolhendo}
+        obras={lista}
+        atualId=""
+        papel="Coordenador"
+        onEscolher={(id) => {
+          setEscolhendo(false);
+          setPessoasObraId(id);
+        }}
+        onFechar={() => setEscolhendo(false)}
+      />
+
+      <PerfilSheet
+        aberto={perfilAberto}
+        onFechar={() => setPerfilAberto(false)}
+        pessoa={pessoa}
+        ambiente={ambiente}
+        disponiveis={disponiveis}
+        onTrocarAmbiente={onTrocarAmbiente}
+        itensDoAmbiente={
+          admin ? (
+            <ItemMenu
+              icon="pessoa"
+              rotulo="Pessoas e acessos"
+              onClick={() => {
+                setPerfilAberto(false);
+                onPessoas();
+              }}
+            />
+          ) : coordenador ? (
+            <ItemMenu
+              icon="pessoa"
+              rotulo="Pessoas da obra"
+              onClick={() => {
+                setPerfilAberto(false);
+                if (lista.length === 1) setPessoasObraId(lista[0]!.id);
+                else if (lista.length > 1) setEscolhendo(true);
+              }}
+            />
+          ) : null
+        }
+        onSair={onSair}
+      />
+    </>
   );
 
   if (pessoasObraId && podePessoasDaObra) {
@@ -93,8 +148,9 @@ export function ObrasGeraisCasca({
     );
   }
 
-  // Administrador: a obra abre em tela própria (sem o menu); o Voltar volta à aba.
-  if (admin && obraAberta) return detalhe(obraAberta, false);
+  // Administrador: na aba Obras, a obra abre em tela própria (sem o menu); o Voltar
+  // volta à lista. Fora dela, a obra lembrada espera o toque em Obras.
+  if (admin && aba === 'obra' && obraAberta) return detalhe(obraAberta, false);
 
   // Coordenador e Membro: a obra é a aba Obra (com uma só, sem Voltar).
   const obraDaAba = !admin && aba === 'obra' ? obraDaAbaGeral(lista, obraAberta) : null;
@@ -103,6 +159,7 @@ export function ObrasGeraisCasca({
       <div className={styles.screen}>
         <div className={styles.conteudo}>{detalhe(obraDaAba, lista.length <= 1)}</div>
         {nav}
+        {folhas}
       </div>
     );
   }
@@ -150,49 +207,7 @@ export function ObrasGeraisCasca({
 
       {nav}
 
-      <TrocarObraSheet
-        aberto={escolhendo}
-        obras={lista}
-        atualId=""
-        papel="Coordenador"
-        onEscolher={(id) => {
-          setEscolhendo(false);
-          setPessoasObraId(id);
-        }}
-        onFechar={() => setEscolhendo(false)}
-      />
-
-      <PerfilSheet
-        aberto={perfilAberto}
-        onFechar={() => setPerfilAberto(false)}
-        pessoa={pessoa}
-        ambiente={ambiente}
-        disponiveis={disponiveis}
-        onTrocarAmbiente={onTrocarAmbiente}
-        itensDoAmbiente={
-          admin ? (
-            <ItemMenu
-              icon="pessoa"
-              rotulo="Pessoas e acessos"
-              onClick={() => {
-                setPerfilAberto(false);
-                onPessoas();
-              }}
-            />
-          ) : coordenador ? (
-            <ItemMenu
-              icon="pessoa"
-              rotulo="Pessoas da obra"
-              onClick={() => {
-                setPerfilAberto(false);
-                if (lista.length === 1) setPessoasObraId(lista[0]!.id);
-                else if (lista.length > 1) setEscolhendo(true);
-              }}
-            />
-          ) : null
-        }
-        onSair={onSair}
-      />
+      {folhas}
     </div>
   );
 }

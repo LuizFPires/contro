@@ -34,6 +34,7 @@ export function ObraGeralDetalhe({
   semVoltar = false,
   abrirAtividadeId,
   onAtalhoUsado,
+  onAbrirPerfil,
 }: {
   id: string;
   pessoa: PessoaAtual;
@@ -43,6 +44,8 @@ export function ObraGeralDetalhe({
   /** Abre a ficha desta atividade ao montar (linha tocada no Hoje). */
   abrirAtividadeId?: string;
   onAtalhoUsado?: () => void;
+  /** Obra como aba: o avatar do perfil (Perfil, Sair, Pessoas da obra) fica no topo dela. */
+  onAbrirPerfil?: () => void;
   onTrocarObra: (id: string) => void;
   onAbrirPessoas: () => void;
 }) {
@@ -179,6 +182,16 @@ export function ObraGeralDetalhe({
               className={base.voltar}
               aria-label="Pessoas da obra"
               onClick={onAbrirPessoas}
+            >
+              <Icon name={onAbrirPerfil ? 'membros' : 'pessoa'} size={22} />
+            </button>
+          ) : null}
+          {onAbrirPerfil ? (
+            <button
+              type="button"
+              className={styles.perfil}
+              aria-label="Perfil e ajustes"
+              onClick={onAbrirPerfil}
             >
               <Icon name="pessoa" size={22} />
             </button>

@@ -9,6 +9,7 @@ import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
 import { useAmbiente } from './features/perfil/useAmbiente';
 import { ObrasGeraisCasca } from './features/obras-gerais/ObrasGeraisCasca';
+import { guardarAbaGeral } from './features/obras-gerais/abaObraGeral';
 import { PessoasAcessos } from './features/obras-gerais/PessoasAcessos';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
@@ -47,7 +48,7 @@ export function App() {
 
   // Aviso tocado: o ambiente do destino é ajustado quando o perfil carregar.
   const [avisoPendente, setAvisoPendente] = useState<Ambiente | null>(null);
-  // Cada entrada pelo aviso do Hoje geral remonta a casca para reler a aba lembrada.
+  // Cada entrada pelo aviso do Hoje geral remonta a casca para reler a aba da sessão.
   const [entradaGeral, setEntradaGeral] = useState(0);
 
   // Reunião escolhida na central (null = a que vem).
@@ -119,19 +120,18 @@ export function App() {
     window.history.replaceState(null, '', window.location.pathname);
   }, [setTela, setLogObra]);
 
-  // Aviso aberto estando em Obras gerais: vai para a Contorno sem perder o destino.
-  // Sem acesso à Contorno, ignora o link e fica em Obras gerais.
-  // Aviso das obras gerais: vai para Obras gerais, na aba Hoje (sem acesso, ignora).
+  // Aviso tocado, depois do perfil carregado: vai ao ambiente do destino.
+  // Aviso da Contorno: vai para a Contorno sem perder o destino (sem acesso, fica em
+  // Obras gerais). Aviso das obras gerais: vai para Obras gerais na aba Hoje, com a obra
+  // lembrada intacta (sem acesso, ignora o link).
   useEffect(() => {
     if (!avisoPendente || perfilCarregando || !pessoa) return;
     if (disponiveis.length === 0) return;
     setAvisoPendente(null);
     if (avisoPendente === 'geral') {
       if (!disponiveis.includes('geral')) return;
-      lembrar('obrasgerais:aba', 'hoje');
+      guardarAbaGeral('hoje');
       lembrar('obrasgerais:pessoas', null);
-      // O Administrador abre a obra fora das abas: fecha para mostrar o Hoje.
-      if (pessoa.administrador) lembrar('obrasgerais:obra', null);
       irPara('geral');
       setTela('inicio');
       setEntradaGeral((n) => n + 1);
@@ -195,6 +195,7 @@ export function App() {
   const voltar = () => setTela('inicio');
   const sair = () => {
     esquecerTelas();
+    guardarAbaGeral('hoje');
     void supabase?.auth.signOut();
   };
 
