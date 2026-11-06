@@ -36,7 +36,8 @@ revoke execute on function public.contro_prazo_atividade_geral(uuid, date) from 
 -- 3) Atividade atribuída e data mudada, na hora. Só obra geral, atividade de
 -- topo (o responsável é dela; subitem não tem responsável), não excluída e
 -- aberta. Nunca avisa quem fez a mudança (pessoa do auth.uid(); sem login,
--- avisa normalmente).
+-- avisa normalmente). Só avisa quem participa da obra ou é Administrador ativo
+-- (defesa em profundidade: as RPCs já validam o responsável).
 --   Atribuição: novo responsável não nulo e diferente do anterior (inclui criar
 --     já com responsável). "até" = prazo da atividade (regra do último subitem);
 --     sem prazo, sem o trecho " · até". Ao criar pelo adicionar_atividade_geral
@@ -69,8 +70,11 @@ begin
   if new.responsavel_id is not null
      and (tg_op = 'INSERT' or new.responsavel_id is distinct from old.responsavel_id)
      and new.responsavel_id is distinct from v_por then
-    select user_id into v_user from public.pessoa
-    where id = new.responsavel_id and ativo and deleted_at is null;
+    select user_id into v_user from public.pessoa p
+    where p.id = new.responsavel_id and p.ativo and p.deleted_at is null
+      and (p.administrador or exists (
+        select 1 from public.obra_participante op
+        where op.obra_id = new.obra_id and op.pessoa_id = p.id));
     if v_user is not null then
       v_prazo := public.contro_prazo_atividade_geral(new.id, new.data_prevista);
       insert into public.aviso_disparo (tipo, dia, user_id, titulo, corpo, url)
@@ -90,8 +94,11 @@ begin
      and new.replanejamentos >= old.replanejamentos
      and new.responsavel_id is not null
      and new.responsavel_id is distinct from v_por then
-    select user_id into v_user from public.pessoa
-    where id = new.responsavel_id and ativo and deleted_at is null;
+    select user_id into v_user from public.pessoa p
+    where p.id = new.responsavel_id and p.ativo and p.deleted_at is null
+      and (p.administrador or exists (
+        select 1 from public.obra_participante op
+        where op.obra_id = new.obra_id and op.pessoa_id = p.id));
     if v_user is not null then
       insert into public.aviso_disparo (tipo, dia, user_id, titulo, corpo, url)
       values ('atribuicao', (now() at time zone 'America/Sao_Paulo')::date, v_user,

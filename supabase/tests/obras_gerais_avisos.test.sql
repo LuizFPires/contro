@@ -3,7 +3,7 @@
 -- por pessoa (acoes_geral) e da equipe (equipe_geral, Coordenadores e
 -- Administradores) saem do gerar_avisos_gerais. A Contorno não muda.
 begin;
-select plan(39);
+select plan(40);
 
 -- Elenco: A administrador (e gestor da Contorno), C coordenador de G1 e G2,
 -- J membro de G1 e G2, L membro de G1, K equipe só da Contorno.
@@ -158,14 +158,22 @@ select is((select count(*)::int from aviso_disparo where corpo = 'Nova atividade
   and titulo = 'CONTRO · Avs G2' and user_id = (select user_id from ids where quem = 'J')), 1,
   'atividade criada com responsável avisa');
 
--- Sem login (auth.uid() nulo): avisa normalmente.
+-- Sem login (auth.uid() nulo): avisa normalmente. A é Administrador (vê G3).
 set local request.jwt.claims = '{}';
+update obra_atividade set responsavel_id = (select id from ids where quem = 'A')
+  where id = '00000000-0000-0000-0000-00000005a213';
+select is((select corpo from aviso_disparo where user_id = (select user_id from ids where quem = 'A')),
+  'Nova atividade para você: Atv 8 · até 05/01', 'sem login, avisa o responsável');
+-- Forçado sem as RPCs: responsável que não participa de G3 nem é Administrador
+-- não recebe aviso (nem de atribuição nem de data).
 update obra_atividade set responsavel_id = (select id from ids where quem = 'C')
   where id = '00000000-0000-0000-0000-00000005a213';
-select is((select corpo from aviso_disparo where user_id = (select user_id from ids where quem = 'C')),
-  'Nova atividade para você: Atv 8 · até 05/01', 'sem login, avisa o responsável');
+update obra_atividade set data_prevista = '2031-01-06' where id = '00000000-0000-0000-0000-00000005a213';
+update obra_atividade set data_prevista = '2031-01-05' where id = '00000000-0000-0000-0000-00000005a213';
+select is((select count(*)::int from aviso_disparo where user_id = (select user_id from ids where quem = 'C')), 0,
+  'quem não participa da obra nem é Administrador não recebe aviso');
 update obra_atividade set responsavel_id = null where id = '00000000-0000-0000-0000-00000005a213';
-delete from aviso_disparo where user_id = (select user_id from ids where quem = 'C');
+delete from aviso_disparo where user_id = (select user_id from ids where quem = 'A');
 
 -- gerar_avisos_gerais: quarta 08/01/2031. J: Atv 1 atrasada (07/01) e Atv 4
 -- hoje; Atv 5 vence 10/01 (subitem); Atv 2 sem responsável e sem data; Atv nova
@@ -182,7 +190,12 @@ select set_config('avs.n', gerar_avisos_gerais('2031-01-08 07:40-03')::text, tru
 select is(current_setting('avs.n')::int,
   (select count(*)::int from aviso_disparo where dia = '2031-01-08' and tipo in ('acoes_geral', 'equipe_geral')),
   'devolve quantos inseriu');
-select ok(current_setting('avs.n')::int >= 4, 'inseriu ao menos J, L, C e A');
+-- J e L (acoes_geral), C e A (equipe_geral) e cada outro Administrador ativo do
+-- seed (equipe_geral de todas as obras gerais).
+select is(current_setting('avs.n')::int,
+  4 + (select count(*)::int from pessoa where administrador and ativo and deleted_at is null
+       and user_id is not null and user_id not in (select user_id from ids)),
+  'destinatários exatos: J, L, C, A e os outros Administradores');
 select is(gerar_avisos_gerais('2031-01-08 08:45-03'), 0, 'rodar de novo no mesmo dia não duplica');
 
 select results_eq(
