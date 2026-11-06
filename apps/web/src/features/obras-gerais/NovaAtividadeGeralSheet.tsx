@@ -6,7 +6,7 @@ import {
   ROTULO_TIPO_PROVIDENCIA,
   type TipoProvidencia,
 } from '@contro/core';
-import { BottomSheet, Button, Icon, useToast } from '@contro/ui';
+import { BottomSheet, Button, Icon, TextoCrescente, useToast } from '@contro/ui';
 import { AvisoRascunho } from '../../components/AvisoRascunho';
 import { EscolherData } from '../../components/EscolherData';
 import { useRascunho } from '../../lib/useRascunho';
@@ -232,7 +232,7 @@ export function NovaAtividadeGeralSheet({
             </div>
             {subitens.map((s, i) => (
               <div key={i} className={styles.linha}>
-                <input
+                <TextoCrescente
                   className={styles.campo}
                   value={s.nome}
                   aria-label={`Nome do subitem ${i + 1}`}

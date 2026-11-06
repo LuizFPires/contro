@@ -13,7 +13,12 @@
   width: 100%;
   max-width: 560px;
   max-height: 90vh;
+  /* Altura da área visível (no iPhone, vh conta a tela toda). */
+  max-height: 90dvh;
   overflow-y: auto;
+  /* A rolagem fica na folha: no fim dela, o arrasto não passa para a tela de trás. */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   background: var(--contro-surface);
   border-radius: var(--contro-radius-modal) var(--contro-radius-modal) 0 0;
   box-shadow: var(--contro-shadow-sheet);
