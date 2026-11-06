@@ -34,7 +34,7 @@ export function rotuloAmbiente(a: Ambiente): string {
 }
 
 export function rotuloPapelGeral(p: PapelGeral): string {
-  return p === 'coordenador' ? 'Coordenador' : 'Membro';
+  return p === 'coordenador' ? 'Coordenador' : 'Equipe';
 }
 
 /** Criar obra geral e Pessoas e acessos de Obras gerais: só o administrador. */

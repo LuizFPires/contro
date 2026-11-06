@@ -82,7 +82,7 @@ describe('rótulos', () => {
     expect(rotuloAmbiente('contorno')).toBe('Contorno');
     expect(rotuloAmbiente('geral')).toBe('Obras gerais');
     expect(rotuloPapelGeral('coordenador')).toBe('Coordenador');
-    expect(rotuloPapelGeral('membro')).toBe('Membro');
+    expect(rotuloPapelGeral('membro')).toBe('Equipe');
   });
 });
 

@@ -12,7 +12,7 @@ function parecePtBrCurto(m: string): boolean {
 /** Traduz o erro das RPCs de acesso de Obras gerais para uma mensagem em pt-BR. */
 export function mensagemErroAcesso(error: unknown): string {
   const e = (error ?? {}) as { code?: string; message?: string };
-  if (e.code === '42501') return 'Só o Administrador pode dar acesso.';
+  if (e.code === '42501') return 'Só o Gestor pode dar acesso.';
   if (e.code === '22023') {
     const m = (e.message ?? '').trim();
     return parecePtBrCurto(m) ? m : 'Confira os dados: nome, e-mail, papel e obras.';

@@ -4,7 +4,7 @@ import { mensagemErroAcesso } from './mensagemErroAcesso';
 describe('mensagemErroAcesso', () => {
   it('42501 vira aviso de permissão', () => {
     expect(mensagemErroAcesso({ code: '42501', message: 'x' })).toBe(
-      'Só o Administrador pode dar acesso.',
+      'Só o Gestor pode dar acesso.',
     );
   });
   it('22023 mostra a mensagem curta em pt-BR do servidor ou um texto padrão', () => {

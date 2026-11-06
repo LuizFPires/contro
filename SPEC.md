@@ -303,7 +303,7 @@ Todas são idempotentes por `client_op_id` (uuid gerado no aparelho), para a fil
 - **Fotos:** bucket privado, com acesso por URL assinada de curta duração e caminho `obra_id/…`.
 
 **Obras gerais (05/11/2026, etapa 1):**
-- **Administrador** (só Luiz Felipe desde 06/11/2026; Rafael e Rodrigo passaram a Coordenador pela migration 20261106500000): vê todas as obras gerais, cria obra geral e define papel e obras de cada pessoa. Marcado por migration de dados; só muda por RPC.
+- **Administrador** (só Luiz Felipe desde 06/11/2026; Rafael e Rodrigo passaram a Coordenador pela migration 20261106500000): vê todas as obras gerais, cria obra geral e define papel e obras de cada pessoa. Marcado por migration de dados; só muda por RPC. Rótulo na tela: **Gestor**; o papel `membro` aparece como **Equipe** (`rotuloPapelGeral`).
 - **Coordenador** e **Membro** (`papel_geral`): veem só as obras em que estão em `obra_participante`. Nesta etapa só o Administrador dá acesso; as regras Coordenador x Membro nas ações e o Coordenador adicionando Membro vêm na etapa 2.
 - **Isolamento por RLS:** `contro_ve_obra(obra)` decide a leitura e a escrita de cada tabela de obra, incluindo Storage; obra da Contorno exige `contro_e_membro()` (que exige `acesso_contorno`). O gatilho `a_guarda_obra` impede que um item aponte para item de outra obra.
 - **Rotinas** (avisos, boletim, abrir/reabrir reunião) só olham a Contorno nesta etapa.

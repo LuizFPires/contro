@@ -37,7 +37,7 @@ export function PerfilSheet({
   const papel =
     ambiente === 'geral'
       ? pessoa.administrador
-        ? 'Administrador'
+        ? 'Gestor'
         : pessoa.papelGeral
           ? rotuloPapelGeral(pessoa.papelGeral)
           : ''
