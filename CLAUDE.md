@@ -91,6 +91,7 @@ pnpm lint && pnpm typecheck
 - Datas no formato "qua 21/10"; data completa "quinta, 03/12/2026".
 - Números e valores no padrão brasileiro (1.234,56).
 - Vocabulário: obra, unidade, fase, atividade, subitem, **lembrete/providência** (contratação, locação, compra), pendência, resolvido, tarefa, reunião, ata, boletim, inauguração, prestador.
+- Papéis na tela (06/11/2026): **Gestor** (nunca "Administrador") e **Equipe** (nunca "Membro"), nos dois ambientes; em Obras gerais o terceiro papel é **Coordenador**. No código e no banco os valores seguem dministrador e membro.
 
 ## Performance
 - Abrir uma obra deve levar < 1,5 s em 4G. Busque a obra inteira em uma consulta e calcule os derivados no cliente com o core.

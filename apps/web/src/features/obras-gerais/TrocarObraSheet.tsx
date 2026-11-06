@@ -18,7 +18,7 @@ export function TrocarObraSheet({
   aberto: boolean;
   obras: ObraDoSeletor[];
   atualId: string;
-  /** "Coordenador", "Membro" ou "Administrador". */
+  /** "Coordenador", "Equipe" ou "Gestor". */
   papel: string;
   onEscolher: (id: string) => void;
   onFechar: () => void;

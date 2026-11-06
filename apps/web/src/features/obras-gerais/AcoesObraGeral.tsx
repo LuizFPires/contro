@@ -81,7 +81,7 @@ export function AcoesObraGeral({
       (obraEditada?.pessoas ?? []).map((p) => ({
         id: p.id,
         nome: p.nome,
-        papel_texto: p.papel === 'administrador' ? 'Administrador' : rotuloPapelGeral(p.papel),
+        papel_texto: p.papel === 'administrador' ? 'Gestor' : rotuloPapelGeral(p.papel),
       })),
     [obraEditada],
   );

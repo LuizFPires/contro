@@ -9,7 +9,7 @@ import styles from './PessoasAcessos.module.css';
 
 const PAPEIS: { value: PapelGeral; label: string }[] = [
   { value: 'coordenador', label: 'Coordenador' },
-  { value: 'membro', label: 'Membro' },
+  { value: 'membro', label: 'Equipe' },
 ];
 
 /** Dar acesso a uma pessoa por e-mail; sem conta ainda, vira convite. */

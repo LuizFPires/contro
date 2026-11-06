@@ -223,7 +223,7 @@ export function ObrasGeraisCasca({
         aberto={escolhendo !== null}
         obras={lista}
         atualId=""
-        papel={admin ? 'Administrador' : 'Coordenador'}
+        papel={admin ? 'Gestor' : 'Coordenador'}
         onEscolher={(id) => {
           if (escolhendo === 'avisos') setAvisosObraId(id);
           else if (escolhendo === 'boletim') setBoletimConfigObraId(id);

@@ -11,7 +11,7 @@ import { usePessoasGerais } from './usePessoasGerais';
 import styles from './PessoasDaObra.module.css';
 
 const ROTULO: Record<PessoaDaObra['papel'], string> = {
-  administrador: 'Administrador',
+  administrador: 'Gestor',
   coordenador: rotuloPapelGeral('coordenador'),
   membro: rotuloPapelGeral('membro'),
 };
@@ -88,7 +88,7 @@ export function PessoasDaObra({
       </div>
       <div className={styles.cabecalho}>
         <h1 className={styles.titulo}>Pessoas da obra</h1>
-        <p className={styles.nota}>Administradores sempre veem</p>
+        <p className={styles.nota}>O Gestor sempre vê</p>
       </div>
 
       {isError ? (
@@ -142,7 +142,7 @@ export function PessoasDaObra({
             })}
           </ul>
           <div className={styles.rodape}>
-            <Button onClick={() => setAdicionando(true)}>Adicionar membro</Button>
+            <Button onClick={() => setAdicionando(true)}>Adicionar à equipe</Button>
           </div>
         </>
       )}

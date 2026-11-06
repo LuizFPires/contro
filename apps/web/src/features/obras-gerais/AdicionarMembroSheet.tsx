@@ -181,7 +181,7 @@ export function AdicionarMembroSheet({
         </p>
       ) : null}
       <Button disabled={ocupado} onClick={() => void convidar()}>
-        Adicionar como membro
+        Adicionar à equipe
       </Button>
     </BottomSheet>
   );

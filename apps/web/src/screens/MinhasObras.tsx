@@ -178,7 +178,7 @@ export function MinhasObras({
             type="button"
             className={styles.perfil}
             aria-label={
-              nMembros ? `Perfil e ajustes · ${nMembros} membros aguardando` : 'Perfil e ajustes'
+              nMembros ? `Perfil e ajustes · ${nMembros} da equipe aguardando` : 'Perfil e ajustes'
             }
             onClick={() => setPerfilAberto(true)}
           >

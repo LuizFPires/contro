@@ -24,7 +24,7 @@ export function AprovarMembros({ onVoltar }: { onVoltar: () => void }) {
         <span className={styles.titulo}>Pessoas e acessos</span>
       </div>
 
-      <div className={styles.acoes} role="tablist" aria-label="Status dos membros">
+      <div className={styles.acoes} role="tablist" aria-label="Status da equipe">
         {(['pendentes', 'ativos', 'inativos'] as const).map((a) => (
           <button
             type="button"
@@ -42,7 +42,7 @@ export function AprovarMembros({ onVoltar }: { onVoltar: () => void }) {
         todos.query.isLoading ? (
           <p>Carregando…</p>
         ) : todos.query.isError ? (
-          <p role="alert">Não foi possível carregar os membros.</p>
+          <p role="alert">Não foi possível carregar a equipe.</p>
         ) : (
           <ul className={styles.lista}>
             {(todos.query.data ?? [])
@@ -79,7 +79,7 @@ export function AprovarMembros({ onVoltar }: { onVoltar: () => void }) {
             {!(todos.query.data ?? []).some((m) =>
               aba === 'ativos' ? m.ativo : !m.ativo && m.desativado_em,
             ) ? (
-              <li className={styles.vazio}>Nenhum membro nesta lista.</li>
+              <li className={styles.vazio}>Ninguém da equipe nesta lista.</li>
             ) : null}
           </ul>
         )

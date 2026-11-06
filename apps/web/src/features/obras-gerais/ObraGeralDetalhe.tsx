@@ -190,10 +190,10 @@ export function ObraGeralDetalhe({
     papelGeral: pessoa.papelGeral,
   });
   const papel = pessoa.administrador
-    ? 'Administrador'
+    ? 'Gestor'
     : pessoa.papelGeral
       ? rotuloPapelGeral(pessoa.papelGeral)
-      : 'Membro';
+      : 'Equipe';
   const resumoDaObra = resumoObras?.find((o) => o.id === id);
   const eficiencia = resumoDaObra ? textoEficiencia(resumoDaObra.eficiencia) : null;
   const lista = obras ?? [];
