@@ -37,12 +37,11 @@ export function AcoesObraGeral({
     [resumo, obraIds],
   );
   const soUma = obraIds.length === 1;
-  const membro = !pessoa.administrador && pessoa.papelGeral !== 'coordenador';
-  // Membro abre no chip dele; o resto, em "Todos".
-  const [filtro, setFiltro] = useState<string>(membro ? pessoa.id : 'todos');
+  // Membro (em todas as obras mostradas) abre no chip dele; o resto, em "Todos".
+  const membro = obras.length > 0 && obras.every((o) => o.papel === 'membro');
+  const [escolhido, setFiltro] = useState<string | null>(null);
+  const filtro = escolhido ?? (membro ? pessoa.id : 'todos');
 
-  // O card da Contorno para "atividade" mostra fase e prestador na linha de detalhe; aqui o
-  // responsável ocupa o lugar do prestador.
   const lista = useMemo<AcaoObra[]>(
     () =>
       acoesVisiveis(
@@ -57,7 +56,7 @@ export function AcoesObraGeral({
                 obraNome: o.nome,
                 nome: a.texto,
                 faseNome: '',
-                prestador: a.responsavelNome ?? 'Sem responsável',
+                prestador: null,
                 prazo: a.prazo,
               },
             }),
@@ -153,8 +152,14 @@ export function AcoesObraGeral({
                 key={a.id}
                 acao={a}
                 hoje={hoje}
-                obra={soUma ? null : (nomeObra.get(a.obraId) ?? '')}
+                obra={null}
                 cardInteiro
+                meta={[
+                  soUma ? null : nomeObra.get(a.obraId),
+                  a.responsavelNome ?? 'Sem responsável',
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
                 esquerda={<MarcadorAcao feita={!a.aberta} />}
                 rotulo={`${a.texto}: abrir a atividade`}
                 onToque={() => onAbrirAtividade(a.obraId, a.id)}

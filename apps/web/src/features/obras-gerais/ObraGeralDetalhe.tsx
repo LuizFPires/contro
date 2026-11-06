@@ -39,6 +39,7 @@ export function ObraGeralDetalhe({
   onAtalhoUsado,
   onAbrirPerfil,
   onAbrirAcoes,
+  onFichaFechada,
 }: {
   id: string;
   pessoa: PessoaAtual;
@@ -52,6 +53,8 @@ export function ObraGeralDetalhe({
   onAbrirPerfil?: () => void;
   /** Abre a tela de ações da equipe desta obra. */
   onAbrirAcoes?: () => void;
+  /** A ficha aberta a partir das ações foi fechada: volta para elas. */
+  onFichaFechada?: () => void;
   onTrocarObra: (id: string) => void;
   onAbrirPessoas: () => void;
 }) {
@@ -295,7 +298,10 @@ export function ObraGeralDetalhe({
           obra={obra}
           atividadeId={fichaId}
           pessoa={pessoa}
-          onClose={() => setFichaId(null)}
+          onClose={() => {
+            setFichaId(null);
+            onFichaFechada?.();
+          }}
         />
       ) : null}
 

@@ -26,6 +26,10 @@ export function ObrasGeraisInicio({
   const { data: obras, isLoading, isError, refetch } = useObrasGerais();
   const { data: resumo } = useResumoObrasGerais();
   const porId = new Map((resumo ?? []).map((r) => [r.id, r]));
+  const eficienciaDe = (id: string) => {
+    const r = porId.get(id);
+    return r ? textoEficiencia(r.eficiencia) : null;
+  };
   const admin = podeGerirObrasGerais({
     administrador: pessoa.administrador,
     acessoContorno: pessoa.acessoContorno,
@@ -78,7 +82,7 @@ export function ObrasGeraisInicio({
                   <span className={styles.meta}>
                     {[
                       o.cidade,
-                      porId.has(o.id) ? textoEficiencia(porId.get(o.id)!.eficiencia) : null,
+                      eficienciaDe(o.id),
                       o.pessoas === 1 ? '1 pessoa' : `${o.pessoas} pessoas`,
                     ]
                       .filter(Boolean)

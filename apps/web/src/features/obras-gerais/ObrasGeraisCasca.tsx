@@ -49,12 +49,11 @@ export function ObrasGeraisCasca({
   const [escolhendo, setEscolhendo] = useState(false);
   // A obra aberta fica lembrada: ao voltar ao app, reabre nela.
   const [obraAberta, setObraAberta] = useLembrado<string | null>('obrasgerais:obra', null);
+  // Tela de ações da equipe (de uma obra ou de todas), só nesta sessão. `retornoAcoes` guarda de
+  // onde saiu ao abrir uma ficha: fechar a ficha volta para ela.
+  const [acoesAberta, setAcoesAberta] = useState<{ obraIds: string[] } | null>(null);
+  const [retornoAcoes, setRetornoAcoes] = useState<{ obraIds: string[] } | null>(null);
   // Linha tocada no Hoje: a obra abre na ficha dessa atividade (uma vez).
-  // Tela de ações da equipe (de uma obra ou de todas): fica lembrada como a obra aberta.
-  const [acoesAberta, setAcoesAberta] = useLembrado<{ obraIds: string[] } | null>(
-    'obrasgerais:acoes',
-    null,
-  );
   const [atalho, setAtalho] = useState<{ obraId: string; atividadeId: string } | null>(null);
   const { data: obras } = useObrasGerais();
   const {
@@ -93,6 +92,14 @@ export function ObrasGeraisCasca({
       onAbrirPessoas={() => setPessoasObraId(id)}
       onAbrirPerfil={admin ? undefined : () => setPerfilAberto(true)}
       onAbrirAcoes={() => setAcoesAberta({ obraIds: [id] })}
+      onFichaFechada={
+        retornoAcoes
+          ? () => {
+              setAcoesAberta(retornoAcoes);
+              setRetornoAcoes(null);
+            }
+          : undefined
+      }
     />
   );
 
@@ -152,6 +159,7 @@ export function ObrasGeraisCasca({
         pessoa={pessoa}
         onVoltar={() => setAcoesAberta(null)}
         onAbrirAtividade={(obraId, atividadeId) => {
+          setRetornoAcoes(acoesAberta);
           setAcoesAberta(null);
           abrirAtividade(obraId, atividadeId);
         }}
