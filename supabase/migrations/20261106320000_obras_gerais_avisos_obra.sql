@@ -503,13 +503,17 @@ begin
     join cfg on cfg.obra_id = a.obra_id
     where a.prazo <= v_hoje
   ),
-  -- Por responsável, de todas as obras gerais.
+  -- Por responsável, de todas as obras gerais que ele vê: participa da obra
+  -- ou é Administrador (defesa: a saída da obra já tira o responsável).
   minhas as (
     select a.pessoa_id,
       (count(*) filter (where a.prazo < v_hoje))::int as atrasadas,
       (count(*) filter (where a.prazo = v_hoje))::int as hoje
     from devidas a
-    where a.pessoa_id is not null
+    join public.pessoa pv on pv.id = a.pessoa_id
+    where pv.administrador or exists (
+      select 1 from public.obra_participante op
+      where op.obra_id = a.obra_id and op.pessoa_id = a.pessoa_id)
     group by a.pessoa_id
     having bool_or(a.agora)
   ),
