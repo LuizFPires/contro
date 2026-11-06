@@ -97,14 +97,15 @@ export function OrganizarObraGeral({
   return (
     <div className={styles.organizar}>
       <div className={styles.topo}>
-        <p className={styles.dica}>
-          Arraste pela alça <Icon name="arrastar" size={16} /> para mudar a ordem. Toque na fase
-          para ver as atividades dela.
-        </p>
+        <h2 className={styles.tituloTela}>Organizar</h2>
         <button type="button" className={styles.pronto} onClick={onPronto}>
           Pronto
         </button>
       </div>
+      <p className={styles.dica}>
+        Arraste pela alça <Icon name="arrastar" size={16} /> para mudar a ordem. Toque na fase para
+        ver as atividades dela.
+      </p>
       <DndContext sensors={sensores} collisionDetection={closestCenter} onDragEnd={soltarFase}>
         <SortableContext items={fases.map((f) => f.id)} strategy={verticalListSortingStrategy}>
           <ul className={styles.lista}>
