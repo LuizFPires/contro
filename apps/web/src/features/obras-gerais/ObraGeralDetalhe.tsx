@@ -17,6 +17,7 @@ import { useAvanco } from '../obras/useAvanco';
 import { useObraCampo } from '../obras/useObraCampo';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { FichaAtividadeGeral } from './FichaAtividadeGeral';
+import { NovaAtividadeGeralSheet } from './NovaAtividadeGeralSheet';
 import { NovaFaseSheet } from './NovaFaseSheet';
 import styles from './ObraGeralDetalhe.module.css';
 import { TrocarObraSheet } from './TrocarObraSheet';
@@ -43,7 +44,7 @@ export function ObraGeralDetalhe({
   const [faseAberta, setFaseAberta] = useLembrado<string | null>(`obrageral:${id}:fase`, null);
   // A ficha da atividade e a nova atividade abrem por estes estados (telas próprias).
   const [fichaId, setFichaId] = useLembrado<string | null>(`obrageral:${id}:ficha`, null);
-  const [, setNovaAtividadeFaseId] = useState<string | null>(null);
+  const [novaAtividadeFaseId, setNovaAtividadeFaseId] = useState<string | null>(null);
   const [trocando, setTrocando] = useState(false);
   const [novaFase, setNovaFase] = useState(false);
   const [anexandoId, setAnexandoId] = useState<string | null>(null);
@@ -203,6 +204,16 @@ export function ObraGeralDetalhe({
         onFechar={() => setNovaFase(false)}
         onCriada={setFaseAberta}
       />
+
+      {novaAtividadeFaseId ? (
+        <NovaAtividadeGeralSheet
+          key={novaAtividadeFaseId}
+          obra={obra}
+          faseId={novaAtividadeFaseId}
+          pessoa={pessoa}
+          onFechar={() => setNovaAtividadeFaseId(null)}
+        />
+      ) : null}
 
       {fichaId ? (
         <FichaAtividadeGeral
