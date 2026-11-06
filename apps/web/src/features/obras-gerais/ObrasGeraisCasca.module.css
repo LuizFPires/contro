@@ -1,4 +1,4 @@
-/* Casca das obras gerais: conteúdo da aba e o menu de baixo (Hoje · Obra/Obras). */
+/* Casca das obras gerais: conteúdo da aba e o menu de baixo (Hoje · Obra/Obras · Score · Log). */
 .screen {
   display: flex;
   flex-direction: column;
@@ -10,8 +10,4 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-}
-/* Dois itens no menu (o da Contorno tem quatro). */
-nav.nav {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }

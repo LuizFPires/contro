@@ -2,8 +2,12 @@
 // loadDadosLogScore) → itens e eventos no formato do core. Sem React, sem
 // regra de domínio: prazos de pendência e normalização de nome vêm do core.
 import {
+  itensEquipeObraGeral,
+  itensLogObraGeral,
   normalizarNome,
   prazoPendencia,
+  replanejamentosPorEventos,
+  type AtividadeGeral,
   type DataISO,
   type EventoBruto,
   type ItemEquipe,
@@ -99,6 +103,22 @@ export interface DadosLogScore {
   eventosTarefa: LinhaEventoTarefa[];
   eventosPendencia: LinhaEventoPendencia[];
   eventosAtividade: LinhaEventoAtividade[];
+  /** Obras gerais (sem cronograma): só no carregador de `'geral'`. */
+  geral?: DadosLogGeral;
+}
+
+/** Atividade de obra geral (topo e subitens, não excluídas) com a obra dela. */
+export type LinhaAtividadeGeralLog = AtividadeGeral & { obra_id: string };
+
+/**
+ * Parte própria das obras gerais: atividades com data prevista digitada (no lugar
+ * de `atividades` e `fimPrevisto`, que ficam vazios), prazos de pendência pela
+ * config de cada obra e o nome de cada pessoa por id.
+ */
+export interface DadosLogGeral {
+  atividades: LinhaAtividadeGeralLog[];
+  prazosPorObra: Record<string, PrazosPendencia>;
+  nomes: Record<string, string>;
 }
 
 /** Obras que entram no Log e no Score (ativas e concluídas), por id. */
@@ -115,8 +135,21 @@ function nomeResponsavelTarefa(t: LinhaTarefaLog): string | null {
   return vazio(n) ? null : n.trim();
 }
 
-function prazoDaPendencia(p: LinhaPendenciaLog, prazos: PrazosPendencia): DataISO {
+/** Prazo da pendência pela config da obra (obra geral) ou pela global (Contorno). */
+function prazoDaPendencia(p: LinhaPendenciaLog, d: DadosLogScore): DataISO {
+  const prazos = d.geral?.prazosPorObra[p.obra_id] ?? d.prazos;
   return prazoPendencia(p.criticidade, dataLocal(p.apontada_em), prazos);
+}
+
+/** Atividades gerais agrupadas pela obra. */
+function atividadesGeraisPorObra(g: DadosLogGeral): Map<string, AtividadeGeral[]> {
+  const m = new Map<string, AtividadeGeral[]>();
+  for (const { obra_id, ...a } of g.atividades) {
+    const lista = m.get(obra_id);
+    if (lista) lista.push(a);
+    else m.set(obra_id, [a]);
+  }
+  return m;
 }
 
 const pendenciaAberta = (p: LinhaPendenciaLog) => p.status === 'aberta';
@@ -148,7 +181,7 @@ export function itensDoLog(d: DadosLogScore): ItemLog[] {
   for (const p of d.pendencias) {
     const o = obras.get(p.obra_id);
     if (!o) continue;
-    const prazo = prazoDaPendencia(p, d.prazos);
+    const prazo = prazoDaPendencia(p, d);
     itens.push({
       origem: 'pendencia',
       id: p.id,
@@ -184,6 +217,21 @@ export function itensDoLog(d: DadosLogScore): ItemLog[] {
       criadaEm: o.inicio ?? null,
       excluida: false,
     });
+  }
+  if (d.geral) {
+    // Obra geral: atividades de topo com a data prevista como prazo (core).
+    const porObra = atividadesGeraisPorObra(d.geral);
+    for (const o of obras.values()) {
+      itens.push(
+        ...itensLogObraGeral({
+          obraId: o.id,
+          obraNome: o.nome,
+          atividades: porObra.get(o.id) ?? [],
+          nomes: d.geral.nomes,
+          criadaEm: o.inicio ?? null,
+        }),
+      );
+    }
   }
   return itens;
 }
@@ -246,10 +294,29 @@ export function eventosPorItem(eventos: { evento: EventoBruto }[]): Map<string, 
   return mapa;
 }
 
-/** Itens do score da equipe: tarefas e pendências com responsável. */
+type EventoReplanejamento = { id: string; itemId: string; tipo: string; depois: unknown };
+
+/**
+ * Itens do score da equipe: tarefas e pendências com responsável. Obras gerais
+ * (decisão 3 da etapa 5): também as atividades de topo com responsável, e o
+ * replanejamento conta pelos eventos `replanejada` não desfeitos da janela
+ * carregada, não pela coluna.
+ */
 export function itensEquipe(d: DadosLogScore): ItemEquipe[] {
   const obras = obrasValidas(d);
   const itens: ItemEquipe[] = [];
+  const replanTarefa = d.geral
+    ? replanejamentosPorEventos(
+        semRepetidos(d.eventosTarefa).map(
+          (e): EventoReplanejamento => ({
+            id: e.id,
+            itemId: e.tarefa_id,
+            tipo: e.tipo,
+            depois: e.depois,
+          }),
+        ),
+      )
+    : null;
   for (const t of d.tarefas) {
     const o = obras.get(t.obra_id);
     const nome = nomeResponsavelTarefa(t);
@@ -265,14 +332,14 @@ export function itensEquipe(d: DadosLogScore): ItemEquipe[] {
       prazo: t.prazo,
       prazoOriginal: t.prazo_original ?? t.prazo,
       concluidaEm: t.status === 'aberta' ? null : t.feita_em,
-      replanejamentos: t.replanejamentos,
+      replanejamentos: replanTarefa ? (replanTarefa[t.id] ?? 0) : t.replanejamentos,
       excluida: false,
     });
   }
   for (const p of d.pendencias) {
     const o = obras.get(p.obra_id);
     if (!o || !p.responsavel_id) continue;
-    const prazo = prazoDaPendencia(p, d.prazos);
+    const prazo = prazoDaPendencia(p, d);
     itens.push({
       id: p.id,
       origem: 'pendencia',
@@ -287,6 +354,31 @@ export function itensEquipe(d: DadosLogScore): ItemEquipe[] {
       replanejamentos: 0,
       excluida: false,
     });
+  }
+  if (d.geral) {
+    // Só os eventos das atividades carregadas (não excluídas), por obra; a carga
+    // já traz só os da janela.
+    const porObra = atividadesGeraisPorObra(d.geral);
+    const obraDaAtividade = new Map(d.geral.atividades.map((a) => [a.id, a.obra_id]));
+    const eventosPorObra = new Map<string, EventoReplanejamento[]>();
+    for (const e of semRepetidos(d.eventosAtividade)) {
+      const obraId = obraDaAtividade.get(e.atividade_id);
+      if (!obraId) continue;
+      const lista = eventosPorObra.get(obraId) ?? [];
+      lista.push({ id: e.id, itemId: e.atividade_id, tipo: e.tipo, depois: e.depois });
+      eventosPorObra.set(obraId, lista);
+    }
+    for (const o of obras.values()) {
+      itens.push(
+        ...itensEquipeObraGeral({
+          obraId: o.id,
+          obraNome: o.nome,
+          atividades: porObra.get(o.id) ?? [],
+          nomes: d.geral.nomes,
+          eventos: eventosPorObra.get(o.id) ?? [],
+        }),
+      );
+    }
   }
   return itens;
 }

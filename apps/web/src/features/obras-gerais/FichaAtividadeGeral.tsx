@@ -12,6 +12,7 @@ import {
 } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { EscolherData } from '../../components/EscolherData';
+import { VidaDoItem } from '../log/VidaDoItem';
 import { hojeISO } from '../obras/api';
 import { Camera } from '../obras/Camera';
 import fichaStyles from '../obras/FichaAtividade.module.css';
@@ -19,6 +20,7 @@ import { LinhaPara } from '../obras/LinhaPara';
 import linhaStyles from '../obras/LinhaPara.module.css';
 import { PendenciasAba } from '../obras/PendenciasAba';
 import { NovaProvidenciaSheet } from '../obras/ProvidenciasAba';
+import { CampoPrestador } from '../obras/CampoPrestador';
 import { RodapeAvanco } from '../obras/RodapeAvanco';
 import { TextoEditavel } from '../obras/TextoEditavel';
 import { useAvanco } from '../obras/useAvanco';
@@ -365,25 +367,24 @@ export function FichaAtividadeGeral({
           </div>
           {!planeja ? <p className={styles.nota}>{NOTA_MEMBRO}</p> : null}
 
-          <div className={styles.prestadorBloco}>
-            <span className={styles.rotulo}>Empresa ou prestador</span>
-            {planeja ? (
-              <TextoEditavel
-                key={a.id}
-                valor={a.prestador ?? ''}
-                rotulo="Editar empresa ou prestador"
-                onSalvar={(v) => campo.prestador.mutate({ id: a.id, prestador: v })}
-              >
-                <span className={a.prestador ? styles.infoValor : styles.vazioTxt}>
-                  {a.prestador ?? 'opcional'}
-                </span>
-              </TextoEditavel>
-            ) : (
+          {planeja ? (
+            <CampoPrestador
+              key={a.id}
+              atividadeId={a.id}
+              valor={a.prestador}
+              ambiente="geral"
+              rotulo="Empresa ou prestador"
+              placeholder="Opcional · nome de quem executa"
+              onSalvar={(v) => campo.prestador.mutate({ id: a.id, prestador: v })}
+            />
+          ) : (
+            <div className={styles.prestadorBloco}>
+              <span className={styles.rotulo}>Empresa ou prestador</span>
               <span className={a.prestador ? styles.infoValor : styles.vazioTxt}>
                 {a.prestador ?? 'opcional'}
               </span>
-            )}
-          </div>
+            </div>
+          )}
 
           {temSubitens || planeja ? (
             <section className={fichaStyles.secao}>
@@ -489,8 +490,11 @@ export function FichaAtividadeGeral({
               atividadeId={a.id}
               pessoas={obra.pessoas}
               podeAtribuir={planeja}
+              ambiente="geral"
             />
           </section>
+
+          <VidaDoItem itemId={a.id} ambiente="geral" />
 
           {concluida && a.semFoto ? (
             <div className={fichaStyles.semFoto}>

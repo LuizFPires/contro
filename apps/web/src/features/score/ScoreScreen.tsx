@@ -1,16 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   calcularScoreEquipe,
   calcularScorePrestadores,
   iniciais,
   rotuloFaixa,
+  type Ambiente,
   type IndicadoresEquipe,
   type IndicadoresPrestador,
   type Janela,
 } from '@contro/core';
 import { Icon } from '@contro/ui';
 import { useLembrado } from '../../lib/useLembrado';
-import { NavInferior, type ItemNav } from '../../screens/NavInferior';
 import { useScoreDados } from '../log/dadosLogScore';
 import { hojeISO } from '../obras/api';
 import { usePerfil } from '../perfil/usePerfil';
@@ -24,13 +24,25 @@ import styles from './ScoreScreen.module.css';
  * Score: como cada um entrega (protótipo Score e Log, 04/11/2026). Equipe
  * (tarefas e pendências por responsável) e Prestadores (atividades), janela de
  * 30 ou 90 dias; a própria pessoa aparece com "você"; abaixo de 5 itens fica
- * sem score. Tocar abre o detalhe.
+ * sem score. Tocar abre o detalhe. Obras gerais (`ambiente="geral"`): os itens das
+ * obras que a pessoa vê; o histórico só é gravado quando quem abre é Administrador.
  */
-export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
-  const { equipe, prestadores, carregando, erro } = useScoreDados();
+export function ScoreScreen({
+  ambiente = 'contorno',
+  menu,
+}: {
+  ambiente?: Ambiente;
+  /**
+   * Menu de baixo (Contorno: NavInferior; Obras gerais: NavGeral). `antesDeIr` fecha o
+   * detalhe aberto antes de trocar de tela (tocar em Score no detalhe volta à lista).
+   */
+  menu: (antesDeIr?: () => void) => ReactNode;
+}) {
+  const { equipe, prestadores, carregando, erro } = useScoreDados(ambiente);
   const { data: perfil } = usePerfil();
-  const [aba, setAba] = useLembrado<AbaScore>('score:aba', 'equipe');
-  const [janela, setJanela] = useLembrado<Janela>('score:janela', 90);
+  const prefixo = ambiente === 'contorno' ? '' : 'obrasgerais:';
+  const [aba, setAba] = useLembrado<AbaScore>(`${prefixo}score:aba`, 'equipe');
+  const [janela, setJanela] = useLembrado<Janela>(`${prefixo}score:janela`, 90);
   const [sel, setSel] = useState<string | null>(null);
   const hoje = hojeISO();
 
@@ -59,7 +71,7 @@ export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
           ],
     [carregando, erro, todas],
   );
-  useGravarScoreDiario(paraGravar, hoje);
+  useGravarScoreDiario(paraGravar, hoje, ambiente, perfil?.administrador ?? false);
   const eu = aba === 'equipe' ? perfil?.id : undefined;
 
   const linhaSel = sel ? linhas.find((l) => l.chave === sel) : undefined;
@@ -73,12 +85,10 @@ export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
         score30={s(30)}
         score90={s(90)}
         voce={linhaSel.chave === eu}
+        ambiente={ambiente}
         onJanela={setJanela}
         onVoltar={() => setSel(null)}
-        onNav={(item) => {
-          setSel(null);
-          onNav(item);
-        }}
+        menu={menu(() => setSel(null))}
       />
     );
   }
@@ -132,13 +142,17 @@ export function ScoreScreen({ onNav }: { onNav: (item: ItemNav) => void }) {
 
         {linhas.length ? (
           <p className={styles.nota}>
-            Todo mundo vê a classificação de todos. Toque num nome para ver os indicadores e as
-            ações que mais pesaram.
+            {ambiente === 'contorno'
+              ? 'Todo mundo vê a classificação de todos.'
+              : perfil?.administrador
+                ? 'Todas as obras gerais.'
+                : 'Você vê quem participa das suas obras.'}{' '}
+            Toque num nome para ver os indicadores e as ações que mais pesaram.
           </p>
         ) : null}
       </div>
 
-      <NavInferior ativo="score" onEscolher={onNav} />
+      {menu()}
     </div>
   );
 }

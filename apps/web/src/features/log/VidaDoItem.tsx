@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { vidaDoItem, type EventoBruto, type ItemLog } from '@contro/core';
+import { vidaDoItem, type Ambiente, type EventoBruto, type ItemLog } from '@contro/core';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from '../obras/api';
 import { useVidaDoItem } from './dadosLogScore';
@@ -18,14 +18,17 @@ export function LinhaDoTempo({
   item,
   eventos,
   semTitulo,
+  nomes,
 }: {
   item: ItemLog;
   eventos: EventoBruto[];
   semTitulo?: boolean;
+  /** Obras gerais: nome por id de pessoa (troca de responsável, de quem era). */
+  nomes?: Record<string, string>;
 }) {
   const vida = useMemo(
-    () => vidaDoItem(item, eventos, hojeISO(), formatarDataCurta),
-    [item, eventos],
+    () => vidaDoItem(item, eventos, hojeISO(), formatarDataCurta, nomes),
+    [item, eventos, nomes],
   );
   if (vida.passos.length === 0) return null;
   return (
@@ -55,10 +58,17 @@ export function LinhaDoTempo({
 /**
  * Bloco "Vida do item" nas fichas (tarefa, atividade, pendência): criada →
  * replanejada 1x (de → para, motivo) → … → concluída, e o resumo. Lê os
- * eventos dos últimos 90 dias (consulta do Log, em cache).
+ * eventos dos últimos 90 dias (consulta do Log do ambiente, em cache). Telas
+ * das obras gerais passam `ambiente="geral"`.
  */
-export function VidaDoItem({ itemId }: { itemId: string }) {
-  const { item, eventos } = useVidaDoItem(itemId);
+export function VidaDoItem({
+  itemId,
+  ambiente = 'contorno',
+}: {
+  itemId: string;
+  ambiente?: Ambiente;
+}) {
+  const { item, eventos, nomes } = useVidaDoItem(itemId, ambiente);
   if (!item) return null;
-  return <LinhaDoTempo item={item} eventos={eventos} />;
+  return <LinhaDoTempo item={item} eventos={eventos} nomes={nomes} />;
 }

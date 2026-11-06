@@ -1,8 +1,10 @@
 // Score diário: grava o score de hoje de cada nome (o último cálculo do dia vence)
 // e lê o histórico para o gráfico de evolução do detalhe. O cálculo é do core.
+// Por ambiente: em Obras gerais só o Administrador grava (visão de todas as obras
+// gerais), para o histórico não oscilar conforme quem abre; todos leem.
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { Janela, LinhaScore, RegistroScoreDia } from '@contro/core';
+import type { Ambiente, Janela, LinhaScore, RegistroScoreDia } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import type { AbaScore } from './scoreTela';
 
@@ -36,30 +38,59 @@ export function linhasDaAba(aba: AbaScore, porJanela: PorJanela): LinhaGravar[] 
   return [...m.values()].filter((g) => g.chave && g.nome);
 }
 
+/** Quem grava o histórico do ambiente: Contorno, todos; Obras gerais, só o Administrador. */
+export function gravaScoreDiario(ambiente: Ambiente, administrador: boolean): boolean {
+  return ambiente === 'contorno' || administrador;
+}
+
+/** Argumentos de gravar_score_diario (Contorno: os de sempre, sem o ambiente). */
+export function argsGravarScore(
+  linhas: LinhaGravar[],
+  ambiente: Ambiente,
+): { p_linhas: LinhaGravar[]; p_ambiente?: Ambiente } {
+  return ambiente === 'contorno'
+    ? { p_linhas: linhas }
+    : { p_linhas: linhas, p_ambiente: ambiente };
+}
+
 /**
  * Grava as linhas de hoje quando o Score termina de calcular. Não grava de novo
- * o mesmo conteúdo; falha (sem conexão) fica para a próxima abertura.
+ * o mesmo conteúdo; falha (sem conexão) fica para a próxima abertura. Obras
+ * gerais: só grava quando `administrador` (decisão 4 da etapa 5).
  */
-export function useGravarScoreDiario(linhas: LinhaGravar[] | null, hoje: string): void {
+export function useGravarScoreDiario(
+  linhas: LinhaGravar[] | null,
+  hoje: string,
+  ambiente: Ambiente = 'contorno',
+  administrador = false,
+): void {
   const ultimo = useRef<string>('');
   const seq = useRef(0);
+  const grava = gravaScoreDiario(ambiente, administrador);
   useEffect(() => {
-    if (!supabase || !linhas || linhas.length === 0) return;
-    const assinatura = `${hoje}|${JSON.stringify(linhas)}`;
+    if (!supabase || !grava || !linhas || linhas.length === 0) return;
+    const assinatura = `${ambiente}|${hoje}|${JSON.stringify(linhas)}`;
     if (assinatura === ultimo.current) return;
     ultimo.current = assinatura;
     const minha = ++seq.current;
-    void supabase.rpc('gravar_score_diario', { p_linhas: linhas }).then(({ error }) => {
-      // Só a gravação mais recente decide: se falhou, a próxima abertura tenta de novo.
-      if (error && minha === seq.current) ultimo.current = '';
-    });
-  }, [linhas, hoje]);
+    void supabase
+      .rpc('gravar_score_diario', argsGravarScore(linhas, ambiente))
+      .then(({ error }) => {
+        // Só a gravação mais recente decide: se falhou, a próxima abertura tenta de novo.
+        if (error && minha === seq.current) ultimo.current = '';
+      });
+  }, [linhas, hoje, ambiente, grava]);
 }
 
-/** Histórico de um nome (até 90 dias), para o gráfico. */
-export function useScoreHistorico(aba: AbaScore, chave: string, hoje: string) {
+/** Histórico de um nome (até 90 dias) no ambiente, para o gráfico. */
+export function useScoreHistorico(
+  aba: AbaScore,
+  chave: string,
+  hoje: string,
+  ambiente: Ambiente = 'contorno',
+) {
   return useQuery({
-    queryKey: ['score-diario', aba, chave, hoje],
+    queryKey: ['score-diario', ambiente, aba, chave, hoje],
     enabled: !!supabase,
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<RegistroScoreDia[]> => {
@@ -70,6 +101,7 @@ export function useScoreHistorico(aba: AbaScore, chave: string, hoje: string) {
       const { data, error } = await supabase
         .from('score_diario')
         .select('dia, score30, score90')
+        .eq('ambiente', ambiente)
         .eq('aba', aba)
         .eq('chave', chave)
         .gte('dia', desde)

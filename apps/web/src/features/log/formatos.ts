@@ -1,5 +1,6 @@
 // Instantes do Log no fuso do aparelho: dia (YYYY-MM-DD) e hora ("14:05").
 // A linha "vencida" vem só com a data (sem hora).
+import type { Ambiente } from '@contro/core';
 import { dataLocal } from '../obras/api';
 
 const SO_DATA = /^\d{4}-\d{2}-\d{2}$/;
@@ -14,4 +15,9 @@ export function horaDe(em: string): string | null {
   if (Number.isNaN(d.getTime())) return null;
   const p2 = (n: number) => String(n).padStart(2, '0');
   return `${p2(d.getHours())}:${p2(d.getMinutes())}`;
+}
+
+/** Chave lembrada de um filtro do Log: a da Contorno é a de sempre; Obras gerais, à parte. */
+export function chaveFiltroLog(ambiente: Ambiente, filtro: 'obra' | 'tipo' | 'eu'): string {
+  return ambiente === 'contorno' ? `log:${filtro}` : `obrasgerais:log:${filtro}`;
 }

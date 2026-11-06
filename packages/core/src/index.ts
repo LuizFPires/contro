@@ -55,3 +55,4 @@ export * from './whatsapp';
 export * from './ambiente';
 export * from './obraGeral';
 export * from './obraGeralSemana';
+export * from './obraGeralLog';

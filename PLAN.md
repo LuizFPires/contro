@@ -352,7 +352,7 @@ Primeira de 5 etapas de Obras gerais (obras que não são da Contorno, com pesso
 **Próximas etapas** (cada uma com plano próprio, escrito depois que a anterior entra na `main`):
 - ~~Etapa 3: menu de baixo, Hoje, Ações da equipe, avisos (push) e eficiência~~ → entregue (ver "Obras gerais · Etapa 3").
 - ~~Etapa 4: reunião, ata, pendências (Check list) e boletim por obra, com "+ lembrete de providência" e "+ nota" na nova atividade, e Reunião e avisos por obra~~ → entregue (ver "Obras gerais · Etapa 4"; "+ nota" saiu do escopo).
-- Etapa 5: Score e Log por participação, com os itens Score e Log no menu de baixo de Obras gerais; sugestões separadas por ambiente (nome livre de responsável e autocompletar de prestador).
+- ~~Etapa 5: Score e Log por participação, menu de baixo completo e sugestões separadas por ambiente~~ → entregue (ver "Obras gerais · Etapa 5").
 
 ---
 
@@ -399,7 +399,20 @@ Quarta de 5 etapas. Leva às Obras gerais o ciclo semanal da Contorno, por obra:
 - [x] 8. Web: boletim da obra geral, "Prontos para enviar" e boletim automático por obra.
 - [x] 9. Web: Ações da equipe completas (`acoesCompletasObraGeral` no core; resumo, bloco, tela de ações e Hoje com tarefas, pendências e providências; boletim com a mesma lista) e documentação.
 
-**Próximas etapas:** etapa 5: Score e Log por participação, com os itens Score e Log no menu de baixo de Obras gerais; sugestões por ambiente (nome livre de responsável e autocompletar de prestador).
+**Próximas etapas:** etapa 5, entregue (ver "Obras gerais · Etapa 5").
+
+---
+
+## Obras gerais · Etapa 5 · Score, Log, menu e sugestões por ambiente (06/11/2026)
+Última das 5 etapas: **Obras gerais está concluída.** Entrega o Score e o Log por participação, o menu de baixo completo (Hoje · Obra · Score · Log), a Vida do item nas fichas gerais e as sugestões de autocompletar separadas por ambiente, com nome livre de responsável em tarefa. Spec: `docs/superpowers/specs/2026-11-05-obras-gerais-design.md` · plano: `docs/superpowers/plans/2026-11-06-obras-gerais-5-score-log-sugestoes.md`.
+- [x] 1. Migration `20261106400000_obras_gerais_sugestoes.sql`: `sugestao.ambiente`, RLS por ambiente, `salvar_tarefa` com nome livre em obra geral e `excluir_sugestao_prestador(p_nome, p_ambiente)`, teste pgTAP.
+- [x] 2. Migration `20261106410000_obras_gerais_score_diario.sql`: histórico do Score por ambiente, teste pgTAP.
+- [x] 3. Core: Score e Log das obras gerais, com testes.
+- [x] 4. Web: dados do Log e do Score por ambiente e Vida do item.
+- [x] 5. Web: menu Hoje · Obra · Score · Log e telas na casca de Obras gerais.
+- [x] 6. Web: sugestões por ambiente (`useNomesSugeridos`, `CampoPrestador`), nome livre nas telas gerais, prestador com autocompletar na ficha da atividade geral e documentação.
+
+**Ficou adiado:** desativar só a Contorno de quem tem os dois ambientes; texto de cadastro do convidado; evento ao remover participação; confirmar em produção a infraestrutura dos avisos; testes de Administrador sem acesso à Contorno (Score e sugestões); a normalização de nomes de sugestão ainda casa sugestões apagadas (cópia literal, por ambiente); sem "+ nota" na nova atividade.
 
 ---
 
@@ -494,6 +507,18 @@ Registro do que mudou em relação ao PRD/SPEC durante a implementação (data �
 - 2026-11-06 · **Obras gerais · etapa 4 · quem faz o quê do boletim.** Usa a mesma lista das ações: tarefas e pendências abertas e, como na obra geral a atividade aberta com responsável é ação dessa pessoa, também ela e as providências dela; atividade e providência sem responsável ficam fora (o boletim já as mostra nos atrasos e na semana). A Contorno não muda (`quemFazOQueBoletim` continua igual; a conversão fica no `boletimDaObraGeral`).
 - 2026-11-06 · **Obras gerais · etapa 4 · tarefa ligada a subitem.** A web só vincula tarefa à atividade de topo (ficha); a regra de não repetir olha a atividade de topo · aceito.
 - 2026-11-06 · **Obras gerais · etapa 4 · saída da obra limpa tarefas e pendências.** Quem sai de uma obra geral também deixa as tarefas e as pendências abertas dela sem responsável (eventos `editada` e `responsavel_alterado`, motivo "saiu da obra"; migration `20261106340000_obras_gerais_saida_tarefas.sql`). O aviso aos Coordenadores e Administradores continua contando só atividades. Defesa: o `acoes_geral` só conta ações de obras de que a pessoa participa (ou de qualquer obra, para o Administrador).
+- 2026-11-06 · **Obras gerais · etapa 5 · sugestões por ambiente, não por obra.** Quem tem papel em Obras gerais vê as sugestões de Obras gerais (todas as obras gerais); a Contorno vê só as da Contorno. Excluir sugestão de prestador em Obras gerais = quem planeja alguma obra geral (Coordenador ou Administrador). As leituras filtram `.eq('ambiente', ambiente)` na web, porque o Administrador com os dois ambientes veria as listas misturadas · custo: nome de prestador repetido entre obras gerais aparece para todos elas.
+- 2026-11-06 · **Obras gerais · etapa 5 · nome livre só em tarefa.** Atividade e pendência continuam com pessoa da obra ou Administrador; o nome digitado vira sugestão de Obras gerais. Substitui a decisão da etapa 2 (sem nome livre) e a do prestador sem autocompletar.
+- 2026-11-06 · **Obras gerais · etapa 5 · Score.** Itens = atividades de topo com responsável (prazo = data prevista efetiva; original = `prazoOriginalAtividadeGeral`), tarefas e pendências com responsável, das obras que a pessoa vê. Replanejamento = eventos `replanejada` não desfeitos (sem `data_desfeita` apontando para eles) na janela; o contador da coluna não é usado.
+- 2026-11-06 · **Obras gerais · etapa 5 · histórico do Score.** Gravado só quando quem abre o Score é Administrador (visão de todas as obras gerais); Coordenador e Membro veem o gráfico dessa visão e o número atual da própria visão · custo: Coordenador e Membro não veem gráfico de prestadores.
+- 2026-11-06 · **Obras gerais · etapa 5 · Log.** As mesmas linhas da Contorno, com "concluiu" (e "responsável: X" quando outra pessoa concluiu), data alterada (de → para), mudança de data desfeita e responsável trocado. Sem "início ajustado".
+- 2026-11-06 · **Obras gerais · etapa 5 · menu.** Hoje · Obra (ou Obras) · Score · Log para todos em Obras gerais; Score e Log abrem na própria casca, com o mesmo menu.
+- 2026-11-06 · **Obras gerais · etapa 5 · replanejamento de subitem.** Conta no Score da atividade de topo (as datas dos subitens formam o prazo dela) · custo: nenhum.
+- 2026-11-06 · **Obras gerais · etapa 5 · rótulos do Log.** Em substantivo ("Data alterada", "Mudança de data desfeita", "Responsável trocado") com de → para no detalhe, no estilo dos rótulos atuais ("Replanejada") · custo: nenhum.
+- 2026-11-06 · **Obras gerais · etapa 5 · replanejamento de tarefa.** Em Obras gerais também conta por eventos (a decisão do Score vale para todos os itens) · custo: nenhum.
+- 2026-11-06 · **Obras gerais · etapa 5 · leitura do histórico geral.** Linhas gerais de `score_diario` legíveis pelo Administrador ou, nas chaves de equipe, por quem vê a pessoa (RLS de `pessoa`); prestadores e nomes livres só do Administrador (achado da revisão de segurança) · custo: Coordenador e Membro sem gráfico de prestadores.
+- 2026-11-06 · **Obras gerais · etapa 5 · execução em paralelo.** A revisão da tarefa 4 e as tarefas 5 e 6 rodaram em paralelo, com arquivos disjuntos · custo: risco pequeno de conflito.
+- 2026-11-06 · **Obras gerais · etapa 5 · adiado.** Sem teste de Administrador sem acesso à Contorno (Score e sugestões); a normalização de sugestão ainda casa sugestões apagadas (cópia literal, por ambiente).
 - 2026-11-05 · **"Aprovar membros" passa a se chamar "Pessoas e acessos"** (mesma função na Contorno).
 - 2026-11-05 · **Administradores marcados por migration de dados** (primeiro nome luiz, rafael ou rodrigo entre gestores); conferir em produção antes do merge.
 

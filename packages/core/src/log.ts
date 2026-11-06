@@ -19,7 +19,10 @@ export type TipoLinhaLog =
   | 'vencida'
   | 'excluida'
   | 'restaurada'
-  | 'apontada';
+  | 'apontada'
+  | 'data_alterada'
+  | 'data_desfeita'
+  | 'responsavel_trocado';
 export type OrigemLog = 'atividade' | 'tarefa' | 'pendencia' | 'providencia';
 export type CorLog = 'neutra' | 'ok' | 'atencao' | 'atraso';
 
@@ -77,6 +80,8 @@ export interface ItemLog {
   excluida: boolean;
   /** Tarefa ligada a uma providência: aparece no log como "providencia". */
   vinculoProvidencia?: boolean;
+  /** Atividade de obra geral: o prazo é a data prevista digitada, não o fim do cronograma. */
+  semCronograma?: boolean;
 }
 
 export interface EntradaLog {
@@ -84,6 +89,8 @@ export interface EntradaLog {
   eventos: { origem: OrigemLog; evento: EventoBruto }[];
   hoje: DataISO;
   formatarData: (d: DataISO) => string;
+  /** Nome por id de pessoa (obras gerais: responsável nas linhas de conclusão e de troca). */
+  nomes?: Record<string, string>;
 }
 
 /** Janela de carga do log, em dias corridos até hoje (limita as "vencidas"). */
@@ -102,6 +109,9 @@ const COR: Record<TipoLinhaLog, CorLog> = {
   excluida: 'neutra',
   restaurada: 'neutra',
   apontada: 'neutra',
+  data_alterada: 'neutra',
+  data_desfeita: 'neutra',
+  responsavel_trocado: 'neutra',
 };
 
 const ROTULO: Record<TipoLinhaLog, string> = {
@@ -117,6 +127,9 @@ const ROTULO: Record<TipoLinhaLog, string> = {
   excluida: 'Excluída',
   restaurada: 'Restaurada',
   apontada: 'Apontada',
+  data_alterada: 'Data alterada',
+  data_desfeita: 'Mudança de data desfeita',
+  responsavel_trocado: 'Responsável trocado',
 };
 
 /** Rótulo do tipo na linha do Log (a "vencida" por extenso). */
@@ -158,11 +171,34 @@ function diaVencida(item: ItemLog, hoje: DataISO): DataISO | null {
   return abertoNoDia ? dia : null;
 }
 
-/** "no prazo" ou "<n> d.u. depois do <referência>". */
+/** "no prazo" ou "<n> d.u. depois <referência>" (ex.: "do prazo"). */
 function atrasoTexto(referencia: DataISO | null, dia: DataISO, nome: string): string | null {
   if (!referencia) return null;
   const n = atrasoDU(referencia, dia);
-  return n > 0 ? `${n} d.u. depois do ${nome}` : 'no prazo';
+  return n > 0 ? `${n} d.u. depois ${nome}` : 'no prazo';
+}
+
+/** Ids dos eventos de data desfeitos (apontados pelo `evento_id` de um `data_desfeita`). */
+export function eventosDesfeitos(eventos: { tipo: string; depois: unknown }[]): Set<string> {
+  const ids = new Set<string>();
+  for (const ev of eventos) {
+    if (ev.tipo !== 'data_desfeita' || !ev.depois || typeof ev.depois !== 'object') continue;
+    const id = (ev.depois as Record<string, unknown>).evento_id;
+    if (typeof id === 'string') ids.add(id);
+  }
+  return ids;
+}
+
+/** "de X para Y", "para Y" ou o texto padrão. */
+function deParaData(
+  de: DataISO | null,
+  ate: DataISO | null,
+  formatarData: (d: DataISO) => string,
+  padrao: string,
+): string {
+  if (de && ate) return `de ${formatarData(de)} para ${formatarData(ate)}`;
+  if (ate) return `para ${formatarData(ate)}`;
+  return padrao;
 }
 
 function juntar(partes: (string | null)[]): string {
@@ -185,11 +221,15 @@ function passosDoItem(
   item: ItemLog,
   eventos: EventoBruto[],
   formatarData: (d: DataISO) => string,
+  nomes: Record<string, string> = {},
 ): Passo[] {
   const ordenados = [...eventos].sort((a, b) => instante(a.em) - instante(b.em));
   const passos: Passo[] = [];
+  const desfeitos = eventosDesfeitos(eventos);
   let vezes = 0;
   const para = item.responsavelNome ? `para ${nomeCurto(item.responsavelNome)}` : '';
+  const nomeDe = (id: unknown): string | null =>
+    typeof id === 'string' && nomes[id] ? nomeCurto(nomes[id]) || null : null;
   for (const ev of ordenados) {
     const dia = diaLocal(ev.em);
     const antes = ev.antes ?? {};
@@ -200,7 +240,10 @@ function passosDoItem(
           passos.push({ tipo: 'atribuida', base: para, evento: ev });
           break;
         }
-        const prazo = data(depois.prazo) ?? (item.origem === 'tarefa' ? item.prazoOriginal : null);
+        const prazo =
+          data(depois.prazo) ??
+          data(depois.data_prevista) ??
+          (item.origem === 'tarefa' ? item.prazoOriginal : null);
         passos.push({
           tipo: 'criada',
           base: prazo ? `prazo ${formatarData(prazo)}` : '',
@@ -219,17 +262,44 @@ function passosDoItem(
         passos.push({ tipo: 'atribuida', base: para || 'responsável alterado', evento: ev });
         break;
       case 'replanejada': {
-        vezes += 1;
-        const de = data(antes.prazo);
-        const ate = data(depois.prazo);
+        // Desfeita (obra geral): continua no log, mas não conta como vez.
+        const desfeita = desfeitos.has(ev.id);
+        if (!desfeita) vezes += 1;
+        const de = data(antes.prazo) ?? data(antes.data);
+        const ate = data(depois.prazo) ?? data(depois.data);
         const motivo = texto(depois.motivo);
         passos.push({
           tipo: 'replanejada',
-          vez: vezes,
+          vez: desfeita ? undefined : vezes,
           base: de && ate ? `de ${formatarData(de)} para ${formatarData(ate)}` : 'prazo alterado',
-          extra: motivo ? `"${motivo}"` : null,
+          extra: juntar([motivo ? `"${motivo}"` : null, desfeita ? 'desfeita' : null]) || null,
           evento: ev,
         });
+        break;
+      }
+      case 'data_definida':
+        passos.push({
+          tipo: 'data_alterada',
+          base: deParaData(data(antes.data), data(depois.data), formatarData, 'data alterada'),
+          evento: ev,
+        });
+        break;
+      case 'data_desfeita': {
+        const volta = data(depois.data);
+        passos.push({
+          tipo: 'data_desfeita',
+          base: volta ? `voltou para ${formatarData(volta)}` : 'voltou para sem data',
+          evento: ev,
+        });
+        break;
+      }
+      case 'responsavel': {
+        const de = nomeDe(antes.responsavel_id);
+        const novo = nomeDe(depois.responsavel_id);
+        let base: string;
+        if (novo) base = de ? `de ${de} para ${novo}` : `para ${novo}`;
+        else base = depois.responsavel_id ? 'responsável alterado' : 'sem responsável';
+        passos.push({ tipo: 'responsavel_trocado', base, evento: ev });
         break;
       }
       case 'inicio_ajustado': {
@@ -253,18 +323,25 @@ function passosDoItem(
       }
       case 'concluida':
         if (item.origem === 'atividade') {
+          // Quem concluiu não era o responsável (obra geral): diz de quem era.
+          const dono = depois.responsavel_id !== ev.por ? nomeDe(depois.responsavel_id) : null;
           passos.push({
             tipo: 'concluida',
             base: juntar([
-              atrasoTexto(item.prazo, dia, 'fim previsto'),
+              atrasoTexto(
+                item.prazo,
+                dia,
+                item.semCronograma ? 'da data prevista' : 'do fim previsto',
+              ),
               depois.foto_id ? 'com foto' : null,
+              dono ? `responsável: ${dono}` : null,
             ]),
             evento: ev,
           });
         } else {
           passos.push({
             tipo: 'concluida',
-            base: atrasoTexto(item.prazoOriginal ?? item.prazo, dia, 'prazo') ?? '',
+            base: atrasoTexto(item.prazoOriginal ?? item.prazo, dia, 'do prazo') ?? '',
             evento: ev,
           });
         }
@@ -272,7 +349,7 @@ function passosDoItem(
       case 'resolvida':
         passos.push({
           tipo: 'resolvida',
-          base: atrasoTexto(item.prazo, dia, 'prazo') ?? '',
+          base: atrasoTexto(item.prazo, dia, 'do prazo') ?? '',
           evento: ev,
         });
         break;
@@ -320,7 +397,7 @@ export function montarLog(e: EntradaLog): LinhaLog[] {
   const linhas: LinhaLog[] = [];
   for (const item of e.itens) {
     const chave = `${item.origem === 'providencia' ? 'tarefa' : item.origem}:${item.id}`;
-    for (const p of passosDoItem(item, porItem.get(chave) ?? [], e.formatarData)) {
+    for (const p of passosDoItem(item, porItem.get(chave) ?? [], e.formatarData, e.nomes)) {
       linhas.push({
         id: p.evento.id,
         em: p.evento.em,
@@ -422,9 +499,10 @@ export function vidaDoItem(
   eventos: EventoBruto[],
   hoje: DataISO,
   formatarData: (d: DataISO) => string,
+  nomes?: Record<string, string>,
 ): { passos: PassoVida[]; resumo: string } {
   const doItem = eventos.filter((ev) => ev.itemId === item.id);
-  const passos: PassoVida[] = passosDoItem(item, doItem, formatarData).map((p) => ({
+  const passos: PassoVida[] = passosDoItem(item, doItem, formatarData, nomes).map((p) => ({
     em: p.evento.em,
     rotulo: p.vez ? `${ROTULO[p.tipo]} ${p.vez}x` : ROTULO[p.tipo],
     detalhe: juntar([p.base, p.extra ?? null]),
@@ -457,8 +535,9 @@ export function vidaDoItem(
   const fim = item.concluidaEm ? diaLocal(item.concluidaEm) : hoje;
   const prazoOriginal = item.prazoOriginal ?? item.prazo;
   const alem = prazoOriginal ? atrasoDU(prazoOriginal, fim) : 0;
+  const desfeitos = eventosDesfeitos(doItem);
   const replanejamentos = doItem.filter(
-    (ev) => ev.tipo === 'replanejada' || ev.tipo === 'inicio_ajustado',
+    (ev) => (ev.tipo === 'replanejada' || ev.tipo === 'inicio_ajustado') && !desfeitos.has(ev.id),
   ).length;
   const ordenados = [...doItem].sort((a, b) => instante(a.em) - instante(b.em));
   // Nascimento: o evento de criação; fora da janela, a data de criação do item;

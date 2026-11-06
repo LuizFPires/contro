@@ -393,7 +393,7 @@ export function AcoesObraGeral({
           aberto={editando !== null}
           tarefa={editando}
           pessoas={pessoasDaObra}
-          nomeLivre={false}
+          ambiente="geral"
           pendente={acoes.salvar.isPending}
           onFechar={() => setEditando(null)}
           onSalvar={salvar}

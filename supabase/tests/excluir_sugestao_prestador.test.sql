@@ -16,11 +16,13 @@ begin
  perform set_config('request.jwt.claim.sub',u::text,true);
  n := public.contro_nome_prestador('QA João excluir 7419');
  insert into public.sugestao(tipo,texto) values ('prestador','QA Joao excluir 7419'),('local','QA João excluir 7419');
+ insert into public.sugestao(ambiente,tipo,texto) values ('geral','prestador','QA João excluir 7419');
  perform public.excluir_sugestao_prestador(' qa JOAO excluir 7419 ');
- if exists(select 1 from public.sugestao where tipo='prestador' and public.contro_chave_prestador(texto)=public.contro_chave_prestador(n) and deleted_at is null) then raise exception 'Variações não excluídas'; end if;
+ if exists(select 1 from public.sugestao where ambiente='contorno' and tipo='prestador' and public.contro_chave_prestador(texto)=public.contro_chave_prestador(n) and deleted_at is null) then raise exception 'Variações não excluídas'; end if;
  if not exists(select 1 from public.sugestao where tipo='local' and texto=n and deleted_at is null) then raise exception 'Outro tipo alterado'; end if;
+ if not exists(select 1 from public.sugestao where ambiente='geral' and tipo='prestador' and texto=n and deleted_at is null) then raise exception 'Outro ambiente alterado'; end if;
  perform public.contro_nome_prestador('QA Joao excluir 7419');
- if exists(select 1 from public.sugestao where tipo='prestador' and public.contro_chave_prestador(texto)=public.contro_chave_prestador(n) and deleted_at is null) then raise exception 'Sugestão reapareceu'; end if;
+ if exists(select 1 from public.sugestao where ambiente='contorno' and tipo='prestador' and public.contro_chave_prestador(texto)=public.contro_chave_prestador(n) and deleted_at is null) then raise exception 'Sugestão reapareceu'; end if;
  perform set_config('request.jwt.claim.sub','',true);
  begin
    perform public.excluir_sugestao_prestador(n);
@@ -29,6 +31,6 @@ begin
  end;
 end $$;
 
-select pass('Exclusão normalizada e persistente');
+select pass('Exclusão normalizada, persistente e só no ambiente pedido');
 select * from finish();
 rollback;

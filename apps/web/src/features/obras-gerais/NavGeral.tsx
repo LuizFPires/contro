@@ -1,13 +1,12 @@
 import type { AgendaObra } from '@contro/core';
 import { Icon, type IconName } from '@contro/ui';
 import styles from '../../screens/NavInferior.module.css';
-import casca from './ObrasGeraisCasca.module.css';
 
-export type AbaGeral = 'hoje' | 'obra';
+export type AbaGeral = 'hoje' | 'obra' | 'score' | 'log';
 
 /**
- * Menu inferior das obras gerais: Hoje e Obra (Coordenador e Membro) ou Obras
- * (Administrador). Mesmo visual e mesma regra de selo do menu da Contorno: o selo do
+ * Menu inferior das obras gerais: Hoje · Obra (Coordenador e Membro) ou Obras
+ * (Administrador) · Score · Log. Mesmo visual e mesma regra de selo do menu da Contorno: o selo do
  * Hoje soma atrasados e para hoje das obras, vermelho só quando há atraso.
  */
 export function NavGeral({
@@ -24,11 +23,13 @@ export function NavGeral({
   const itens: { id: AbaGeral; rotulo: string; icone: IconName }[] = [
     { id: 'hoje', rotulo: 'Hoje', icone: 'calendario' },
     { id: 'obra', rotulo: administrador ? 'Obras' : 'Obra', icone: 'obras' },
+    { id: 'score', rotulo: 'Score', icone: 'score' },
+    { id: 'log', rotulo: 'Log', icone: 'relogio' },
   ];
   const nAtrasos = agendas.reduce((s, a) => s + a.atrasados.length, 0);
   const nHoje = agendas.reduce((s, a) => s + a.atrasados.length + a.hoje.length, 0);
   return (
-    <nav className={`${styles.nav} ${casca.nav}`} aria-label="Menu principal">
+    <nav className={styles.nav} aria-label="Menu principal">
       {itens.map((it) => (
         <button
           key={it.id}
