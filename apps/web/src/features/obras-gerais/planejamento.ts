@@ -143,3 +143,13 @@ export async function convidarMembroObra(
 export async function removerDaObra(obraId: string, pessoaId: string): Promise<void> {
   await chamar('remover_da_obra', { p_obra_id: obraId, p_pessoa_id: pessoaId });
 }
+
+/** Nova ordem das fases da obra (lista completa, na ordem desejada). */
+export async function reordenarFasesGeral(obraId: string, ids: string[]): Promise<void> {
+  await chamar('reordenar_fases_geral', { p_obra_id: obraId, p_ids: ids });
+}
+
+/** Nova ordem das atividades de uma fase (só as de topo; subitens não entram). */
+export async function reordenarAtividadesGeral(faseId: string, ids: string[]): Promise<void> {
+  await chamar('reordenar_atividades_geral', { p_fase_id: faseId, p_ids: ids });
+}
