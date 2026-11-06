@@ -6,7 +6,6 @@ import {
   naObraEm,
   providenciaAtrasada,
   providenciarAte,
-  PASSOS_AVANCO,
 } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
@@ -28,6 +27,7 @@ import { useAvanco } from './useAvanco';
 import { useObraCampo } from './useObraCampo';
 import { useObraTarefas } from './useObraTarefas';
 import { QuemCuida } from './QuemCuida';
+import { RodapeAvanco } from './RodapeAvanco';
 import { useQuemCuida } from './useQuemCuida';
 import styles from './FichaAtividade.module.css';
 
@@ -516,43 +516,13 @@ export function FichaAtividade({
             </button>
           </div>
         ) : podeConcluir ? (
-          // Opção D do protótipo: avanço e concluir num lugar só, no rodapé fixo.
-          // 25 · 50 · 75 · Pronta (vai e volta; o passo marcado volta um) e a Foto
-          // ao lado do Pronta, para concluir com foto.
-          <div
-            className={`${styles.rodapeConcluir} ${styles.rodapeAvanco}`}
-            role="group"
-            aria-label="Avanço da atividade"
-          >
-            {PASSOS_AVANCO.map((v) => {
-              const marcado = v <= a.avanco_pct;
-              return (
-                <button
-                  key={v}
-                  type="button"
-                  className={`${styles.passo} ${marcado ? styles.passoOn : ''} ${
-                    v === a.avanco_pct ? styles.passoAtual : ''
-                  }`}
-                  aria-pressed={marcado}
-                  disabled={avanco.pendente}
-                  onClick={() => avanco.card(a.id, v)}
-                >
-                  {marcado ? <Icon name="checkGrosso" size={14} strokeWidth={3} /> : null}
-                  {v === 100 ? 'Pronta' : `${v}%`}
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              className={styles.passoFoto}
-              aria-label="Concluir com foto"
-              disabled={conclusao.pendente}
-              onClick={() => setCamera('concluir')}
-            >
-              <Icon name="camera" size={20} strokeWidth={2} />
-              Foto
-            </button>
-          </div>
+          <RodapeAvanco
+            avancoPct={a.avanco_pct}
+            desabilitado={conclusao.pendente}
+            onPasso={(v) => avanco.card(a.id, v)}
+            onPronta={() => avanco.card(a.id, 100)}
+            onFoto={() => setCamera('concluir')}
+          />
         ) : null}
       </BottomSheet>
 

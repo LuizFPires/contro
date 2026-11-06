@@ -1,7 +1,13 @@
 import type { ObraCompleta } from './detalhe';
 
+/** O que a numeração lê: serve para a obra Contorno e para a obra geral. */
+export type ObraNumeravel = {
+  fases: Pick<ObraCompleta['fases'][number], 'id' | 'ordem'>[];
+  atividades: Pick<ObraCompleta['atividades'][number], 'id' | 'pai_id' | 'fase_id' | 'ordem'>[];
+};
+
 /** Número de cada atividade de topo da obra (#1, #2…): fase a fase, na ordem (igual ao modelo). */
-export function numeracaoObra(obra: ObraCompleta): Map<string, number> {
+export function numeracaoObra(obra: ObraNumeravel): Map<string, number> {
   const ordemFase = new Map(obra.fases.map((f) => [f.id, f.ordem]));
   const topo = obra.atividades
     .filter((a) => !a.pai_id)

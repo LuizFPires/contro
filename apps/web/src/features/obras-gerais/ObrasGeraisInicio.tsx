@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { podeGerirObrasGerais, rotuloAmbiente, type Ambiente } from '@contro/core';
 import { Icon, Logo, Simbolo } from '@contro/ui';
+import { useLembrado } from '../../lib/useLembrado';
 import { ItemMenu, PerfilSheet } from '../perfil/PerfilSheet';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { NovaObraGeralSheet } from './NovaObraGeralSheet';
+import { ObraGeralDetalhe } from './ObraGeralDetalhe';
+import { PessoasDaObra } from './PessoasDaObra';
+import { TrocarObraSheet } from './TrocarObraSheet';
 import { useObrasGerais } from './useObrasGerais';
 import styles from './ObrasGeraisInicio.module.css';
 
@@ -28,12 +32,43 @@ export function ObrasGeraisInicio({
 }) {
   const [perfilAberto, setPerfilAberto] = useState(false);
   const [nova, setNova] = useState(false);
+  // Pessoas da obra (Coordenador e Administrador): a obra aberta nessa tela e o seletor de obra.
+  const [pessoasObraId, setPessoasObraId] = useLembrado<string | null>('obrasgerais:pessoas', null);
+  const [escolhendo, setEscolhendo] = useState(false);
+  // A obra aberta fica lembrada: ao voltar ao app, reabre nela.
+  const [obraAberta, setObraAberta] = useLembrado<string | null>('obrasgerais:obra', null);
   const { data: obras, isLoading, isError, refetch } = useObrasGerais();
   const admin = podeGerirObrasGerais({
     administrador: pessoa.administrador,
     acessoContorno: pessoa.acessoContorno,
     papelGeral: pessoa.papelGeral,
   });
+  const coordenador = !pessoa.administrador && pessoa.papelGeral === 'coordenador';
+  const podePessoasDaObra = pessoa.administrador || coordenador;
+  // Chave lembrada de quem já não tem o papel: limpa.
+  useEffect(() => {
+    if (pessoasObraId && !podePessoasDaObra) setPessoasObraId(null);
+  }, [pessoasObraId, podePessoasDaObra, setPessoasObraId]);
+  if (pessoasObraId && podePessoasDaObra) {
+    return (
+      <PessoasDaObra
+        obraId={pessoasObraId}
+        pessoa={pessoa}
+        onVoltar={() => setPessoasObraId(null)}
+      />
+    );
+  }
+  if (obraAberta) {
+    return (
+      <ObraGeralDetalhe
+        id={obraAberta}
+        pessoa={pessoa}
+        onVoltar={() => setObraAberta(null)}
+        onTrocarObra={setObraAberta}
+        onAbrirPessoas={() => setPessoasObraId(obraAberta)}
+      />
+    );
+  }
   return (
     <div className={styles.screen}>
       <header className={styles.cabecalho}>
@@ -80,12 +115,17 @@ export function ObrasGeraisInicio({
       ) : obras && obras.length > 0 ? (
         <ul className={styles.lista}>
           {obras.map((o) => (
-            <li key={o.id} className={styles.card}>
-              <span className={styles.nome}>{o.nome}</span>
-              <span className={styles.meta}>
-                {o.cidade ? `${o.cidade} · ` : ''}
-                {o.pessoas === 1 ? '1 pessoa' : `${o.pessoas} pessoas`}
-              </span>
+            <li key={o.id}>
+              <button type="button" className={styles.card} onClick={() => setObraAberta(o.id)}>
+                <span className={styles.cardTexto}>
+                  <span className={styles.nome}>{o.nome}</span>
+                  <span className={styles.meta}>
+                    {o.cidade ? `${o.cidade} · ` : ''}
+                    {o.pessoas === 1 ? '1 pessoa' : `${o.pessoas} pessoas`}
+                  </span>
+                </span>
+                <Icon name="seta" size={20} />
+              </button>
             </li>
           ))}
         </ul>
@@ -98,6 +138,18 @@ export function ObrasGeraisInicio({
       )}
 
       {admin ? <NovaObraGeralSheet aberto={nova} onFechar={() => setNova(false)} /> : null}
+
+      <TrocarObraSheet
+        aberto={escolhendo}
+        obras={obras ?? []}
+        atualId=""
+        papel="Coordenador"
+        onEscolher={(id) => {
+          setEscolhendo(false);
+          setPessoasObraId(id);
+        }}
+        onFechar={() => setEscolhendo(false)}
+      />
 
       <PerfilSheet
         aberto={perfilAberto}
@@ -114,6 +166,17 @@ export function ObrasGeraisInicio({
               onClick={() => {
                 setPerfilAberto(false);
                 onPessoas();
+              }}
+            />
+          ) : coordenador ? (
+            <ItemMenu
+              icon="pessoa"
+              rotulo="Pessoas da obra"
+              onClick={() => {
+                setPerfilAberto(false);
+                const lista = obras ?? [];
+                if (lista.length === 1) setPessoasObraId(lista[0]!.id);
+                else if (lista.length > 1) setEscolhendo(true);
               }}
             />
           ) : null

@@ -17,5 +17,6 @@ export function mensagemErroAcesso(error: unknown): string {
     const m = (e.message ?? '').trim();
     return parecePtBrCurto(m) ? m : 'Confira os dados: nome, e-mail, papel e obras.';
   }
+  if (e.code === '23503') return 'Esse item não existe mais.';
   return PADRAO;
 }

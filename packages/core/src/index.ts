@@ -53,3 +53,4 @@ export * from './loteFotos';
 export * from './preparo';
 export * from './whatsapp';
 export * from './ambiente';
+export * from './obraGeral';

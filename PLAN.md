@@ -350,10 +350,27 @@ Primeira de 5 etapas de Obras gerais (obras que não são da Contorno, com pesso
 - [x] 9. Documentação: PRD, SPEC, PLAN e CLAUDE.
 
 **Próximas etapas** (cada uma com plano próprio, escrito depois que a anterior entra na `main`):
-- Etapa 2: obra geral por dentro (fases, atividades, subitens, ficha, calendário, conclusão, Log), regras Coordenador x Membro e menu com seletor de obra.
-- Etapa 3: Hoje, Ações da equipe, avisos (push) e eficiência em Obras gerais.
-- Etapa 4: reunião, ata, pendências e boletim por obra.
-- Etapa 5: Score e Log por participação; sugestões separadas por ambiente.
+- Etapa 3: menu de baixo com seletor de obra, Hoje, Ações da equipe, avisos (push) e eficiência em Obras gerais.
+- Etapa 4: reunião, ata, pendências e boletim por obra, com "+ lembrete de providência" e "+ nota" na nova atividade.
+- Etapa 5: Score e Log por participação; sugestões separadas por ambiente (nome livre de responsável e autocompletar de prestador).
+
+---
+
+## Obras gerais · Etapa 2 · a obra geral por dentro (06/11/2026)
+Segunda de 5 etapas. Entrega a obra geral por dentro: trilha de fases e atividades com data prevista, subitens, ficha, quem planeja × Membro e Pessoas da obra. Spec: `docs/superpowers/specs/2026-11-05-obras-gerais-design.md` · plano: `docs/superpowers/plans/2026-11-06-obras-gerais-2-obra-por-dentro.md`.
+- [x] 1. Core: `obraGeral.ts` (trilha, status, resumo, atalhos de data, `podePlanejarObraGeral`) e testes.
+- [x] 2. Migration `20261106100000_obras_gerais_planejamento.sql`: colunas de data e responsável, `contro_planeja_obra`, RLS de planejamento, trigger de proteção e RPCs de planejamento.
+- [x] 3. Migration `20261106110000_obras_gerais_campo.sql`: RPCs de campo para quem participa da obra.
+- [x] 4. Migration `20261106120000_obras_gerais_pessoas_da_obra.sql`: adicionar, convidar e remover pessoas da obra.
+- [x] 5. Web: carregar a obra geral (`useObraGeral`) e separar o rodapé de avanço.
+- [x] 6. Web: `ObraGeralDetalhe` com trilha, fases e troca de obra.
+- [x] 7. Web: `FichaAtividadeGeral` e edição de subitem.
+- [x] 8. Web: `NovaAtividadeGeralSheet` com data prevista e subitens.
+- [x] 9. Web: `PessoasDaObra` para o Coordenador.
+- [x] 10. Documentação: PRD, SPEC, PLAN e CLAUDE.
+- [x] 11. Correção: excluir subitem na ficha da Contorno (migration `20261106130000_excluir_subitem.sql`).
+
+**Próximas etapas:** etapas 3 a 5, listadas em "Obras gerais · Etapa 1".
 
 ---
 
@@ -395,11 +412,31 @@ Registro do que mudou em relação ao PRD/SPEC durante a implementação (data �
 - 2026-11-05 · **Obras gerais · dar acesso.** Dar acesso a quem estava pendente, desativado ou recusado na Contorno entra só em Obras gerais; não devolve a Contorno.
 - 2026-11-05 · **Obras gerais · convite por e-mail.** `convite_geral` é usado no cadastro: a pessoa entra direto, sem aprovação.
 - 2026-11-05 · **Obras gerais · navegação.** Sem tela de pouso: o app abre no último ambiente e o primeiro acesso é na Contorno; seletor de ambiente de 44 px; nome do ambiente em branco 55% no cabeçalho preto.
-- 2026-11-05 · **Obras gerais · desativar.** Desativar alguém na Contorno (`definir_membro_ativo`) também tira o acesso às Obras gerais, porque `ativo` vale para os dois ambientes; tratar na etapa 2 (desativar só a Contorno quando a pessoa tem papel geral). Hoje ninguém tem os dois.
-- 2026-11-05 · **Obras gerais · RLS por papel.** Na etapa 2, as regras de Coordenador × Membro precisam valer também na RLS das tabelas (hoje quem participa de uma obra geral pode escrever direto nela pela API).
+- 2026-11-05 · **Obras gerais · desativar.** Desativar alguém na Contorno (`definir_membro_ativo`) também tira o acesso às Obras gerais, porque `ativo` vale para os dois ambientes; continua em aberto (desativar só a Contorno quando a pessoa tem papel geral). Hoje ninguém tem os dois.
+- 2026-11-05 · **Obras gerais · RLS por papel.** (Resolvida em 06/11/2026: ver "RLS por papel nas tabelas de planejamento" abaixo.)
 - 2026-11-05 · **Obras gerais · nomes antigos.** Quem passa a ser só de Obras gerais deixa de aparecer pelo nome nos registros antigos da Contorno (`pessoa_sel` exige `acesso_contorno`).
-- 2026-11-05 · **Obras gerais · convite.** O convite por e-mail depende da confirmação de e-mail ativa no Supabase de produção; quem chega por convite ainda vê o texto de cadastro "aguarde a liberação do gestor" (ajustar na etapa 2).
-- 2026-11-05 · **Obras gerais · participações.** Participações em obra geral são apagadas de fato ao tirar o acesso (sem histórico); avaliar evento na etapa 2.
+- 2026-11-05 · **Obras gerais · convite.** O convite por e-mail depende da confirmação de e-mail ativa no Supabase de produção; quem chega por convite ainda vê o texto de cadastro "aguarde a liberação do gestor" (continua em aberto: ajustar o texto de cadastro do convidado).
+- 2026-11-05 · **Obras gerais · participações.** Participações em obra geral são apagadas de fato ao tirar o acesso (sem histórico); continua em aberto avaliar um evento.
+- 2026-11-06 · **Obras gerais · etapa 2 · menu de baixo.** O menu de baixo das Obras gerais foi da etapa 2 para a 3, porque Hoje, Score e Log ainda não existem lá · se errado, a etapa 3 entrega o menu de qualquer forma.
+- 2026-11-06 · **Obras gerais · responsável.** Só pessoa da obra ou Administrador, sem nome livre · o nome livre depende das sugestões por ambiente (etapa 5).
+- 2026-11-06 · **Obras gerais · prestador.** Em obra geral o prestador não usa nem alimenta `sugestao` · evita nome da Contorno em Obras gerais e vice-versa; sem autocompletar até a etapa 5.
+- 2026-11-06 · **Obras gerais · nova atividade.** "+ lembrete de providência" e "+ nota" ficaram para a etapa 4 · providências e Check list da obra geral entram lá; até lá o Coordenador não cria providência.
+- 2026-11-06 · **Obras gerais · RLS por papel nas tabelas de planejamento.** Fecha a pendência da etapa 1: `contro_planeja_obra` (Administrador ou Coordenador participante) governa a escrita; o Membro só escreve por RPCs de campo. Isso também resolve o bloqueio de quem é só de Obras gerais em `contro_nome_prestador` e nas checagens de entrada. `mapa_alvo_id` não existe mais (removida em 20261026160000), então não entra na guarda; o vínculo real `obra_mapa_libera` já é checado.
+- 2026-11-06 · **Obras gerais · saída da obra.** Quem sai da obra deixa as atividades sem responsável (gatilho `obra_participante_sai`); saída de obra apagada não limpa, para não quebrar `definir_acesso_geral`. `contro_troca_participacoes` remove só as obras que saíram.
+- 2026-11-06 · **Obras gerais · Administradores visíveis.** Quem tem papel geral vê os Administradores ativos pelo nome, para poder escolhê-los como responsável · custo: o Membro vê o nome dos 3 Administradores.
+- 2026-11-06 · **Obras gerais · protege o planejamento.** O trigger `obra_atividade_protege_planejamento` só deixa data prevista, original, replanejamentos e responsável mudarem por RPC · a escrita direta apagaria o rastro do replanejamento.
+- 2026-11-06 · **Obras gerais · data nula.** ~~`definir_data_prevista` e `editar_subitem_geral` aceitam data nula~~ · substituída na revisão final (ver "não dá para tirar a data" abaixo).
+- 2026-11-06 · **Obras gerais · excluir subitem.** Em obra geral, por `excluir_subitem_geral`/`restaurar_subitem_geral` (quem planeja). Excluir ou restaurar atividade de obra apagada passa a dar 42501 (`contro_planeja_obra` exige obra não apagada); sem uso na UI.
+- 2026-11-06 · **Obras gerais · Coordenador não põe Coordenador.** Adicionar ou convidar para a obra dá 42501 se o alvo é Coordenador e quem pede não é Administrador · só o Administrador torna alguém Coordenador; custo: o Administrador liga Coordenadores às obras.
+- 2026-11-06 · **Obras gerais · convidar conta pendente.** Conta pendente nunca aprovada vira ativa só em Obras gerais; desativada ou recusada dá 22023 e o Administrador usa Pessoas e acessos.
+- 2026-11-06 · **Obras gerais · e-mail dos membros.** Só o Administrador vê (via `listar_pessoas_gerais`); a pessoa não tem coluna de e-mail e o Coordenador não enxerga e-mails.
+- 2026-11-06 · **Obras gerais · Pessoas da obra.** Também abre pelo ícone de pessoas no cabeçalho da obra, para quem planeja.
+- 2026-11-06 · **Correção na Contorno · excluir subitem.** Excluir subitem na ficha da atividade falhava ("Não foi possível excluir o item.") porque `excluir_atividade_obra` recusava subitem. Agora `excluir_atividade_obra` e `restaurar_atividade_obra` aceitam o id de um subitem · pedido do usuário em 06/11/2026.
+- 2026-11-06 · **Obras gerais · Desfazer da data volta exatamente.** `desfazer_data_prevista(evento)` restaura data, original e replanejamentos guardados no `antes` do evento, sem contar replanejamento (antes, o Desfazer chamava `definir_data_prevista` com a data antiga e contava um replanejamento a mais) · só quem planeja, o próprio evento, até 10 min e o último evento de data do item.
+- 2026-11-06 · **Obras gerais · não dá para tirar a data de item aberto.** Data nula em atividade ou subitem aberto que já tem data dá 22023 ("use Desfazer") · tirar a data e pôr outra contornaria o contador de replanejamentos. Item sem data: no-op; item concluído: troca sem contar.
+- 2026-11-06 · **Obras gerais · replanejamento do Score (etapa 3).** Mudar a data de item concluído não conta replanejamento (só `data_definida`), e o Desfazer não apaga o evento `replanejada` · o Score da etapa 3 contará o replanejamento pelos eventos (`replanejada` menos os desfeitos por `data_desfeita`), não só pela coluna.
+- 2026-11-06 · **Obras gerais · funções de planejamento da Contorno recusam obra geral.** `adicionar_atividade_obra`, `ajustar_inicio`, `adicionar_mapa_obra`, `atualizar_prazos_atividades`, `atualizar_prazos_providencias`, `aplicar_plano_recuperacao` e `fixar_entrega_original` dão 23505 em obra geral · eram liberadas só por `contro_e_membro()`, então quem tem a Contorno e é Membro de uma obra geral planejava por elas. `gerar_obra` (cria obra Contorno nova), `concluir_tarefa` e `reabrir_tarefa` (campo, tarefas da reunião) ficaram de fora. Mapa de coleta (`obra_mapa_libera`, `mapa_proposta`) passa a usar `contro_planeja_obra` na RLS de escrita.
+- 2026-11-06 · **Obras gerais · pendências em aberto.** Seguem abertas: desativar na Contorno tira as Obras gerais; texto de cadastro do convidado; participação apagada sem histórico; devolver a Contorno a quem é só de Obras gerais.
 - 2026-11-05 · **"Aprovar membros" passa a se chamar "Pessoas e acessos"** (mesma função na Contorno).
 - 2026-11-05 · **Administradores marcados por migration de dados** (primeiro nome luiz, rafael ou rodrigo entre gestores); conferir em produção antes do merge.
 
