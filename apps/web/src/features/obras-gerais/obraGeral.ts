@@ -26,7 +26,13 @@ export interface ObraGeral {
 }
 
 interface LinhaParticipante {
-  pessoa: { id: string; nome: string; papel_geral: 'coordenador' | 'membro' | null } | null;
+  pessoa: {
+    id: string;
+    nome: string;
+    papel_geral: 'coordenador' | 'membro' | null;
+    ativo: boolean;
+    deleted_at: string | null;
+  } | null;
 }
 
 /** Une participantes e Administradores: quem é os dois sai como administrador. */
@@ -36,7 +42,8 @@ function montarPessoas(
 ): PessoaDaObra[] {
   const porId = new Map<string, PessoaDaObra>();
   for (const { pessoa } of participantes) {
-    if (!pessoa) continue;
+    // Só pessoas ativas: quem foi desativado ou apagado não aparece nem vira responsável.
+    if (!pessoa || !pessoa.ativo || pessoa.deleted_at) continue;
     porId.set(pessoa.id, {
       id: pessoa.id,
       nome: pessoa.nome,
@@ -54,7 +61,10 @@ function montarPessoas(
   return [...porId.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 }
 
-/** Obra geral inteira em uma rodada de consultas (sem N+1). `null` se não existe ou não é visível. */
+/**
+ * Obra geral inteira em uma rodada de consultas (sem N+1). `null` se não existe ou não é
+ * visível; erro de consulta (p. ex. sem conexão) lança, para a tela não tomar como "não existe".
+ */
 export async function carregarObraGeral(id: string): Promise<ObraGeral | null> {
   if (!supabase) return null;
   const [oRes, fRes, aRes, partRes, admRes, pRes] = await Promise.all([
@@ -75,7 +85,10 @@ export async function carregarObraGeral(id: string): Promise<ObraGeral | null> {
       .eq('obra_id', id)
       .is('deleted_at', null)
       .order('ordem'),
-    supabase.from('obra_participante').select('pessoa(id,nome,papel_geral)').eq('obra_id', id),
+    supabase
+      .from('obra_participante')
+      .select('pessoa(id,nome,papel_geral,ativo,deleted_at)')
+      .eq('obra_id', id),
     supabase
       .from('pessoa')
       .select('id,nome')
@@ -91,6 +104,9 @@ export async function carregarObraGeral(id: string): Promise<ObraGeral | null> {
       .is('deleted_at', null)
       .eq('obra_id', id),
   ]);
+
+  const falha = [oRes, fRes, aRes, partRes, admRes, pRes].find((r) => r.error)?.error;
+  if (falha) throw new Error(falha.message);
 
   const o = oRes.data as { id: string; nome: string; cidade: string | null } | null;
   if (!o) return null;

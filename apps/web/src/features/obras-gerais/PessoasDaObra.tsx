@@ -61,8 +61,9 @@ export function PessoasDaObra({
     setTirando(false);
     setTirar(null);
     atualizar();
+    // O Desfazer põe a pessoa de volta na obra, mas não devolve os responsáveis.
     showToast({
-      message: `${alvo.nome} saiu da obra`,
+      message: `${alvo.nome} saiu da obra. As atividades abertas dele ficaram sem responsável.`,
       onUndo: () =>
         void adicionarMembroObra(obraId, alvo.id)
           .then(atualizar)

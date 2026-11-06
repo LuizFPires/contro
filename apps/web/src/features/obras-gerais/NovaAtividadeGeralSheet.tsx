@@ -97,7 +97,8 @@ export function NovaAtividadeGeralSheet({
         faseId,
         nome: nomeLimpo,
         responsavelId: quem,
-        dataPrevista: comSubitens ? null : data || null,
+        // Chave ligada mas todo subitem vazio: vale o "Para quando" digitado.
+        dataPrevista: subs.length > 0 ? null : data || null,
         subitens: subs,
       });
       rascunho.limpar();

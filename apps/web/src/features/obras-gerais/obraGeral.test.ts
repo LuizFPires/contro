@@ -1,11 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ tabelas: {} as Record<string, unknown> }));
+const mocks = vi.hoisted(() => ({
+  tabelas: {} as Record<string, unknown>,
+  erros: {} as Record<string, { message: string }>,
+}));
 
 /** Cadeia do query builder: cada filtro devolve a própria cadeia; await e maybeSingle resolvem. */
 vi.mock('../../lib/supabase', () => {
   const cadeia = (tabela: string) => {
-    const resultado = () => ({ data: mocks.tabelas[tabela] ?? null, error: null });
+    const resultado = () => ({
+      data: mocks.tabelas[tabela] ?? null,
+      error: mocks.erros[tabela] ?? null,
+    });
     const c: Record<string, unknown> = {};
     for (const m of ['select', 'eq', 'is', 'order']) c[m] = () => c;
     c.maybeSingle = () => Promise.resolve(resultado());
@@ -28,9 +34,25 @@ beforeEach(() => {
     obra_fase: [{ id: 'f1', ordem: 1, titulo: 'Estrutura' }],
     obra_atividade: [],
     obra_participante: [
-      { pessoa: { id: 'p1', nome: 'Bia', papel_geral: 'coordenador' } },
-      { pessoa: { id: 'p2', nome: 'Caio', papel_geral: 'membro' } },
-      { pessoa: { id: 'a1', nome: 'Ana', papel_geral: 'coordenador' } },
+      {
+        pessoa: {
+          id: 'p1',
+          nome: 'Bia',
+          papel_geral: 'coordenador',
+          ativo: true,
+          deleted_at: null,
+        },
+      },
+      { pessoa: { id: 'p2', nome: 'Caio', papel_geral: 'membro', ativo: true, deleted_at: null } },
+      {
+        pessoa: {
+          id: 'a1',
+          nome: 'Ana',
+          papel_geral: 'coordenador',
+          ativo: true,
+          deleted_at: null,
+        },
+      },
     ],
     pessoa: [
       { id: 'a1', nome: 'Ana' },
@@ -38,6 +60,7 @@ beforeEach(() => {
     ],
     obra_providencia: [],
   };
+  mocks.erros = {};
 });
 
 describe('carregarObraGeral', () => {
@@ -64,6 +87,37 @@ describe('carregarObraGeral', () => {
   it('marca as fases como não preliminares', async () => {
     const o = await carregarObraGeral('o1');
     expect(o?.fases).toEqual([{ id: 'f1', ordem: 1, titulo: 'Estrutura', preliminar: false }]);
+  });
+
+  it('deixa de fora participante desativado ou apagado', async () => {
+    mocks.tabelas.obra_participante = [
+      {
+        pessoa: {
+          id: 'p1',
+          nome: 'Bia',
+          papel_geral: 'coordenador',
+          ativo: true,
+          deleted_at: null,
+        },
+      },
+      { pessoa: { id: 'p3', nome: 'Edu', papel_geral: 'membro', ativo: false, deleted_at: null } },
+      {
+        pessoa: {
+          id: 'p4',
+          nome: 'Fabi',
+          papel_geral: 'membro',
+          ativo: true,
+          deleted_at: '2026-11-01T00:00:00Z',
+        },
+      },
+    ];
+    const o = await carregarObraGeral('o1');
+    expect(o?.pessoas.map((p) => p.id).sort()).toEqual(['a1', 'a2', 'p1']);
+  });
+
+  it('erro de consulta lança em vez de devolver null', async () => {
+    mocks.erros.obra_atividade = { message: 'Failed to fetch' };
+    await expect(carregarObraGeral('o1')).rejects.toThrow('Failed to fetch');
   });
 
   it('obra inexistente devolve null', async () => {
