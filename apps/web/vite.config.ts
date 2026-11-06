@@ -32,9 +32,9 @@ export default defineConfig({
       injectRegister: false,
       includeAssets: ['icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'],
       manifest: {
-        name: 'CONTRO · obras da contorno',
+        name: 'CONTRO',
         short_name: 'CONTRO',
-        description: 'Planeje e acompanhe as obras das unidades Contorno do Corpo.',
+        description: 'Planeje e acompanhe as obras.',
         lang: 'pt-BR',
         start_url: '/',
         scope: '/',
