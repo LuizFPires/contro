@@ -121,24 +121,31 @@ export function ObrasGeraisCasca({
     setBoletimConfigObraId,
   ]);
 
-  const abrirAtividade = (obraId: string, atividadeId: string) => {
-    setAtalho({ obraId, atividadeId });
+  // Abrir a ficha ou a pendência fecha as telas que ficam por cima da obra (reunião, lista
+  // das reuniões, boletim): sem isso o card tocado nas ações da ata voltava para a reunião.
+  const irParaObra = (obraId: string) => {
+    setReuniaoAberta(null);
+    setReunioesAberta(null);
+    setBoletimObraId(null);
     setObraAberta(obraId);
     setAba('obra');
   };
+  const abrirAtividade = (obraId: string, atividadeId: string) => {
+    setAtalho({ obraId, atividadeId });
+    irParaObra(obraId);
+  };
   const abrirPendencia = (obraId: string, pendenciaId: string) => {
     setAtalho({ obraId, pendenciaId });
-    setObraAberta(obraId);
-    setAba('obra');
+    irParaObra(obraId);
   };
   // Volta às ações de onde a ficha ou a pendência foi aberta.
   const voltarAsAcoes = (r: TelaAcoes) => {
     setAcoesAberta(r);
     setRetornoAcoes(null);
   };
-  const abrirAcoes = (obraIds: string[]) => {
+  const abrirAcoes = (obraIds: string[], filtro?: string) => {
     setRetornoHoje(null);
-    setAcoesAberta({ obraIds, abaAnterior: aba, obraAnterior: obraAberta });
+    setAcoesAberta({ obraIds, filtro, abaAnterior: aba, obraAnterior: obraAberta });
   };
   const voltarAoHoje = (r: { obraAnterior: string | null }) => {
     setRetornoHoje(null);
@@ -319,7 +326,7 @@ export function ObrasGeraisCasca({
           setReunioesAberta([obraId]);
           setReuniaoAberta(null);
         }}
-        onMinhas={() => abrirAcoes([obraId])}
+        onMinhas={() => abrirAcoes([obraId], pessoa.id)}
       />
     );
   }
