@@ -3,7 +3,7 @@
 -- Administrador e o Coordenador participante; Membro não planeja. A Contorno
 -- não muda (membro escreve direto e exclui atividade como hoje).
 begin;
-select plan(89);
+select plan(88);
 
 -- Elenco: M equipe Contorno, A administrador (fora de G), C coordenador de G,
 -- J membro de G, C2 coordenador de G2 (não participa de G).
@@ -139,7 +139,8 @@ select is(
   row('2026-11-18'::date, '2026-11-16'::date, 1)::text, 'segunda data: 1 replanejamento e original a primeira');
 select is(
   (select row(antes, depois)::text from obra_atividade_evento where atividade_id = '00000000-0000-0000-0000-00000002f212' and tipo = 'replanejada'),
-  row('{"data": "2026-11-16"}'::jsonb, '{"data": "2026-11-18", "motivo": "Chuva"}'::jsonb)::text,
+  row('{"data": "2026-11-16", "data_prevista_original": null, "replanejamentos": 0}'::jsonb,
+      '{"data": "2026-11-18", "motivo": "Chuva"}'::jsonb)::text,
   'evento replanejada com antes e depois (motivo aparado)');
 select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f212', '2026-11-23') $$, 'terceira data');
 select is(
@@ -197,20 +198,17 @@ select is(
   row('2026-11-17'::date, 0, array['criada', 'data_definida'])::text,
   'nome igual nao grava editada; primeira data nao replaneja');
 
--- Data nula: volta a "sem data", grava data_definida e nunca replaneja
-select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f222', null) $$, 'definir data nula');
+-- Data nula em item aberto com data: recusada (o Desfazer usa desfazer_data_prevista)
+select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f222', null) $$,
+  '22023', 'Não dá para tirar a data; use Desfazer', 'definir data nula em item aberto com data e recusado');
 select is(
   (select row(data_prevista, data_prevista_original, replanejamentos)::text from obra_atividade where id = '00000000-0000-0000-0000-00000002f222'),
-  row(null::date, null::date, 0)::text, 'data nula limpa a data sem replanejar');
-select is(
-  (select row(antes, depois)::text from obra_atividade_evento
-   where atividade_id = '00000000-0000-0000-0000-00000002f222' and tipo = 'data_definida' and depois -> 'data' = 'null'::jsonb),
-  row('{"data": "2026-11-17"}'::jsonb, '{"data": null}'::jsonb)::text, 'data nula grava data_definida com depois {data: null}');
-select lives_ok($$ select editar_subitem_geral('00000000-0000-0000-0000-00000002f221', 'Forma e escora', null) $$,
-  'editar subitem com data nula');
+  row('2026-11-17'::date, null::date, 0)::text, 'data recusada fica como estava');
+select throws_ok($$ select editar_subitem_geral('00000000-0000-0000-0000-00000002f221', 'Forma e escora', null) $$,
+  '22023', 'Não dá para tirar a data; use Desfazer', 'editar subitem com data nula e recusado');
 select is(
   (select row(data_prevista, replanejamentos)::text from obra_atividade where id = '00000000-0000-0000-0000-00000002f221'),
-  row(null::date, 1)::text, 'editar com data nula limpa sem somar replanejamento');
+  row('2026-11-13'::date, 1)::text, 'subitem fica com a data e o contador');
 
 -- Escrita direta não mexe no planejamento (o rastro fica nas RPCs)
 select throws_ok($$ update obra_atividade set replanejamentos = 0 where id = '00000000-0000-0000-0000-00000002f212' $$,

@@ -127,45 +127,56 @@ $$;
 revoke execute on function contro_valida_responsavel_geral(uuid, uuid) from public, anon, authenticated;
 
 -- Regra da data prevista (interna; já validado o acesso e o item).
--- Mesma data: nada. Item aberto que já tinha data e recebe outra: replaneja
--- (guarda a original só na primeira vez). Sem data antes, data nula (volta a
--- "sem data", p. ex. o Desfazer da primeira data) ou item concluído: só troca
--- a data e grava data_definida, sem contar replanejamento.
+-- Mesma data: nada (devolve null). Item aberto que já tinha data e recebe
+-- outra: replaneja (guarda a original só na primeira vez). Item aberto com data
+-- não volta a "sem data" (22023: o Desfazer usa desfazer_data_prevista). Sem
+-- data antes, ou item concluído: só troca a data e grava data_definida, sem
+-- contar replanejamento. O evento guarda em `antes` a data, a original e o
+-- contador, para o Desfazer voltar exatamente; devolve o id do evento. O `em`
+-- usa clock_timestamp() para ordenar eventos da mesma transação.
 create or replace function contro_aplica_data_prevista(p_atividade_id uuid, p_data date, p_motivo text)
-returns void
+returns uuid
 language plpgsql
 security definer
 set search_path = ''
 as $$
 declare
-  v_antiga date;
-  v_concluida timestamptz;
+  v_atv public.obra_atividade%rowtype;
   v_pessoa uuid;
+  v_evento uuid;
+  v_antes jsonb;
   v_motivo text := nullif(btrim(coalesce(p_motivo, '')), '');
 begin
-  select data_prevista, concluida_em into v_antiga, v_concluida
-  from public.obra_atividade where id = p_atividade_id for update;
-  if p_data is not distinct from v_antiga then
-    return;
+  select * into v_atv from public.obra_atividade where id = p_atividade_id for update;
+  if p_data is not distinct from v_atv.data_prevista then
+    return null;
+  end if;
+  if p_data is null and v_atv.concluida_em is null then
+    raise exception 'Não dá para tirar a data; use Desfazer' using errcode = '22023';
   end if;
   select id into v_pessoa from public.pessoa where user_id = auth.uid() and deleted_at is null;
-  if v_concluida is null and v_antiga is not null and p_data is not null then
+  v_antes := jsonb_build_object(
+    'data', v_atv.data_prevista,
+    'data_prevista_original', v_atv.data_prevista_original,
+    'replanejamentos', v_atv.replanejamentos);
+  if v_atv.concluida_em is null and v_atv.data_prevista is not null then
     update public.obra_atividade set
       data_prevista = p_data,
-      data_prevista_original = coalesce(data_prevista_original, v_antiga),
+      data_prevista_original = coalesce(data_prevista_original, v_atv.data_prevista),
       replanejamentos = replanejamentos + 1
     where id = p_atividade_id;
-    insert into public.obra_atividade_evento (atividade_id, tipo, por, antes, depois)
-    values (p_atividade_id, 'replanejada', v_pessoa,
-      jsonb_build_object('data', v_antiga),
-      jsonb_strip_nulls(jsonb_build_object('data', p_data, 'motivo', v_motivo)));
+    insert into public.obra_atividade_evento (atividade_id, tipo, por, em, antes, depois)
+    values (p_atividade_id, 'replanejada', v_pessoa, clock_timestamp(), v_antes,
+      jsonb_strip_nulls(jsonb_build_object('data', p_data, 'motivo', v_motivo)))
+    returning id into v_evento;
   else
     update public.obra_atividade set data_prevista = p_data where id = p_atividade_id;
-    insert into public.obra_atividade_evento (atividade_id, tipo, por, antes, depois)
-    values (p_atividade_id, 'data_definida', v_pessoa,
-      case when v_antiga is not null then jsonb_build_object('data', v_antiga) end,
-      jsonb_build_object('data', p_data));
+    insert into public.obra_atividade_evento (atividade_id, tipo, por, em, antes, depois)
+    values (p_atividade_id, 'data_definida', v_pessoa, clock_timestamp(), v_antes,
+      jsonb_build_object('data', p_data))
+    returning id into v_evento;
   end if;
+  return v_evento;
 end;
 $$;
 revoke execute on function contro_aplica_data_prevista(uuid, date, text) from public, anon, authenticated;
@@ -314,8 +325,9 @@ begin
 end;
 $$;
 
+-- Devolve o id do evento da data (null quando a data não mudou), para o Desfazer.
 create or replace function editar_subitem_geral(p_subitem_id uuid, p_nome text, p_data_prevista date)
-returns void
+returns uuid
 language plpgsql
 security definer
 set search_path = ''
@@ -350,12 +362,13 @@ begin
     values (p_subitem_id, 'editada', v_pessoa,
       jsonb_build_object('nome', v_sub.nome), jsonb_build_object('nome', v_nome));
   end if;
-  perform public.contro_aplica_data_prevista(p_subitem_id, p_data_prevista, null);
+  return public.contro_aplica_data_prevista(p_subitem_id, p_data_prevista, null);
 end;
 $$;
 
+-- Devolve o id do evento da data (null quando nada mudou), para o Desfazer.
 create or replace function definir_data_prevista(p_atividade_id uuid, p_data date, p_motivo text default null)
-returns void
+returns uuid
 language plpgsql
 security definer
 set search_path = ''
@@ -370,7 +383,58 @@ begin
     raise exception 'Atividade inválida' using errcode = '23503';
   end if;
   perform public.contro_exige_planejar_geral(v_obra);
-  perform public.contro_aplica_data_prevista(p_atividade_id, p_data, p_motivo);
+  return public.contro_aplica_data_prevista(p_atividade_id, p_data, p_motivo);
+end;
+$$;
+
+-- Desfazer da data (toast de 5 s): volta a data, a original e o contador
+-- exatamente como estavam, sem contar replanejamento. Só quem planeja, só o
+-- próprio evento, até 10 min depois e só o último evento de data do item.
+create or replace function desfazer_data_prevista(p_evento_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_ev public.obra_atividade_evento%rowtype;
+  v_atv public.obra_atividade%rowtype;
+  v_pessoa uuid;
+begin
+  if not public.contro_tem_acesso() then
+    raise exception 'Sem acesso' using errcode = '42501';
+  end if;
+  select * into v_ev from public.obra_atividade_evento where id = p_evento_id;
+  if not found then
+    raise exception 'Não dá mais para desfazer' using errcode = '22023';
+  end if;
+  select * into v_atv from public.obra_atividade where id = v_ev.atividade_id for update;
+  perform public.contro_exige_planejar_geral(v_atv.obra_id);
+  select id into v_pessoa from public.pessoa where user_id = auth.uid() and deleted_at is null;
+  if v_ev.tipo not in ('replanejada', 'data_definida')
+     or v_ev.por is distinct from v_pessoa
+     or v_ev.em < now() - interval '10 minutes'
+     or not (coalesce(v_ev.antes, '{}'::jsonb) ? 'replanejamentos')
+     or exists (
+       select 1 from public.obra_atividade_evento e
+       where e.atividade_id = v_ev.atividade_id and e.id <> v_ev.id
+         and e.tipo in ('replanejada', 'data_definida', 'data_desfeita')
+         and e.em >= v_ev.em
+     ) then
+    raise exception 'Não dá mais para desfazer' using errcode = '22023';
+  end if;
+  update public.obra_atividade set
+    data_prevista = (v_ev.antes ->> 'data')::date,
+    data_prevista_original = (v_ev.antes ->> 'data_prevista_original')::date,
+    replanejamentos = (v_ev.antes ->> 'replanejamentos')::int
+  where id = v_atv.id;
+  insert into public.obra_atividade_evento (atividade_id, tipo, por, em, antes, depois)
+  values (v_atv.id, 'data_desfeita', v_pessoa, clock_timestamp(),
+    jsonb_build_object(
+      'data', v_atv.data_prevista,
+      'data_prevista_original', v_atv.data_prevista_original,
+      'replanejamentos', v_atv.replanejamentos),
+    v_ev.antes || jsonb_build_object('evento_id', v_ev.id));
 end;
 $$;
 
@@ -480,12 +544,14 @@ revoke execute on function adicionar_atividade_geral(uuid, uuid, text, uuid, dat
 revoke execute on function adicionar_subitem_geral(uuid, text, date, uuid) from public, anon;
 revoke execute on function editar_subitem_geral(uuid, text, date) from public, anon;
 revoke execute on function definir_data_prevista(uuid, date, text) from public, anon;
+revoke execute on function desfazer_data_prevista(uuid) from public, anon;
 revoke execute on function definir_responsavel_atividade(uuid, uuid) from public, anon;
 grant execute on function adicionar_fase_geral(uuid, text, uuid) to authenticated;
 grant execute on function adicionar_atividade_geral(uuid, uuid, text, uuid, date, jsonb, uuid) to authenticated;
 grant execute on function adicionar_subitem_geral(uuid, text, date, uuid) to authenticated;
 grant execute on function editar_subitem_geral(uuid, text, date) to authenticated;
 grant execute on function definir_data_prevista(uuid, date, text) to authenticated;
+grant execute on function desfazer_data_prevista(uuid) to authenticated;
 grant execute on function definir_responsavel_atividade(uuid, uuid) to authenticated;
 
 -- 5) Excluir e restaurar (cópia de 20261027140000): muda só a entrada —
