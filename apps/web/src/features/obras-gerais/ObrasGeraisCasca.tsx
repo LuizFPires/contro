@@ -11,6 +11,9 @@ import { NavGeral, type AbaGeral } from './NavGeral';
 import { ObraGeralDetalhe } from './ObraGeralDetalhe';
 import { ObrasGeraisInicio } from './ObrasGeraisInicio';
 import { PessoasDaObra } from './PessoasDaObra';
+import { ConfigAvisosObraScreen } from './reuniao/ConfigAvisosObraScreen';
+import { ReuniaoGeralScreen } from './reuniao/ReuniaoGeralScreen';
+import { ReunioesGeraisScreen } from './reuniao/ReunioesGeraisScreen';
 import { TrocarObraSheet } from './TrocarObraSheet';
 import { useObrasGerais } from './useObrasGerais';
 import { useResumoObrasGerais } from './useResumoObrasGerais';
@@ -54,7 +57,17 @@ export function ObrasGeraisCasca({
   const [perfilAberto, setPerfilAberto] = useState(false);
   // Pessoas da obra (Coordenador e Administrador): a obra aberta nessa tela e o seletor de obra.
   const [pessoasObraId, setPessoasObraId] = useLembrado<string | null>('obrasgerais:pessoas', null);
-  const [escolhendo, setEscolhendo] = useState(false);
+  // Seletor de obra do perfil: para Pessoas da obra ou para Reunião e avisos.
+  const [escolhendo, setEscolhendo] = useState<'pessoas' | 'avisos' | null>(null);
+  // Reunião e avisos da obra (Coordenador e Administrador).
+  const [avisosObraId, setAvisosObraId] = useLembrado<string | null>('obrasgerais:avisos', null);
+  // Reunião da obra aberta (o aviso de reunião abre direto nela) e a lista das reuniões
+  // (Administrador: todas as obras; da reunião: só a obra dela).
+  const [reuniaoAberta, setReuniaoAberta] = useLembrado<{
+    obraId: string;
+    data: string | null;
+  } | null>('obrasgerais:reuniao', null);
+  const [reunioesAberta, setReunioesAberta] = useState<string[] | null>(null);
   // A obra aberta fica lembrada: ao voltar ao app, reabre nela.
   const [obraAberta, setObraAberta] = useLembrado<string | null>('obrasgerais:obra', null);
   // Tela de ações da equipe (de uma obra ou de todas), só nesta sessão, com a aba e a obra de
@@ -80,7 +93,8 @@ export function ObrasGeraisCasca({
   // Chave lembrada de quem já não tem o papel: limpa.
   useEffect(() => {
     if (pessoasObraId && !podePessoasDaObra) setPessoasObraId(null);
-  }, [pessoasObraId, podePessoasDaObra, setPessoasObraId]);
+    if (avisosObraId && !podePessoasDaObra) setAvisosObraId(null);
+  }, [pessoasObraId, avisosObraId, podePessoasDaObra, setPessoasObraId, setAvisosObraId]);
 
   const abrirAtividade = (obraId: string, atividadeId: string) => {
     setAtalho({ obraId, atividadeId });
@@ -120,6 +134,7 @@ export function ObrasGeraisCasca({
       onAbrirPessoas={() => setPessoasObraId(id)}
       onAbrirPerfil={admin ? undefined : () => setPerfilAberto(true)}
       onAbrirAcoes={() => abrirAcoes([id])}
+      onAbrirReuniao={() => setReuniaoAberta({ obraId: id, data: null })}
       onFichaFechada={
         retornoAcoes
           ? () => {
@@ -137,15 +152,16 @@ export function ObrasGeraisCasca({
   const folhas = (
     <>
       <TrocarObraSheet
-        aberto={escolhendo}
+        aberto={escolhendo !== null}
         obras={lista}
         atualId=""
-        papel="Coordenador"
+        papel={admin ? 'Administrador' : 'Coordenador'}
         onEscolher={(id) => {
-          setEscolhendo(false);
-          setPessoasObraId(id);
+          if (escolhendo === 'avisos') setAvisosObraId(id);
+          else setPessoasObraId(id);
+          setEscolhendo(null);
         }}
-        onFechar={() => setEscolhendo(false)}
+        onFechar={() => setEscolhendo(null)}
       />
 
       <PerfilSheet
@@ -156,25 +172,38 @@ export function ObrasGeraisCasca({
         disponiveis={disponiveis}
         onTrocarAmbiente={onTrocarAmbiente}
         itensDoAmbiente={
-          admin ? (
-            <ItemMenu
-              icon="pessoa"
-              rotulo="Pessoas e acessos"
-              onClick={() => {
-                setPerfilAberto(false);
-                onPessoas();
-              }}
-            />
-          ) : coordenador ? (
-            <ItemMenu
-              icon="pessoa"
-              rotulo="Pessoas da obra"
-              onClick={() => {
-                setPerfilAberto(false);
-                if (lista.length === 1) setPessoasObraId(lista[0]!.id);
-                else if (lista.length > 1) setEscolhendo(true);
-              }}
-            />
+          admin || coordenador ? (
+            <>
+              <ItemMenu
+                icon="calendario"
+                rotulo="Reunião e avisos"
+                onClick={() => {
+                  setPerfilAberto(false);
+                  if (lista.length === 1) setAvisosObraId(lista[0]!.id);
+                  else if (lista.length > 1) setEscolhendo('avisos');
+                }}
+              />
+              {admin ? (
+                <ItemMenu
+                  icon="pessoa"
+                  rotulo="Pessoas e acessos"
+                  onClick={() => {
+                    setPerfilAberto(false);
+                    onPessoas();
+                  }}
+                />
+              ) : (
+                <ItemMenu
+                  icon="pessoa"
+                  rotulo="Pessoas da obra"
+                  onClick={() => {
+                    setPerfilAberto(false);
+                    if (lista.length === 1) setPessoasObraId(lista[0]!.id);
+                    else if (lista.length > 1) setEscolhendo('pessoas');
+                  }}
+                />
+              )}
+            </>
           ) : null
         }
         onSair={onSair}
@@ -199,6 +228,45 @@ export function ObrasGeraisCasca({
           setAcoesAberta(null);
           abrirAtividade(obraId, atividadeId);
         }}
+      />
+    );
+  }
+
+  if (reuniaoAberta) {
+    const { obraId } = reuniaoAberta;
+    return (
+      <ReuniaoGeralScreen
+        key={`${obraId}:${reuniaoAberta.data ?? 'proxima'}`}
+        obraId={obraId}
+        data={reuniaoAberta.data}
+        pessoa={pessoa}
+        onVoltar={() => setReuniaoAberta(null)}
+        onReunioes={() => {
+          setReunioesAberta([obraId]);
+          setReuniaoAberta(null);
+        }}
+        onMinhas={() => abrirAcoes([obraId])}
+      />
+    );
+  }
+
+  if (reunioesAberta) {
+    return (
+      <ReunioesGeraisScreen
+        obras={lista.filter((o) => reunioesAberta.includes(o.id))}
+        onVoltar={() => setReunioesAberta(null)}
+        onAbrir={(obraId, data) => setReuniaoAberta({ obraId, data })}
+      />
+    );
+  }
+
+  const obraAvisos = avisosObraId ? lista.find((o) => o.id === avisosObraId) : undefined;
+  if (avisosObraId && podePessoasDaObra) {
+    return (
+      <ConfigAvisosObraScreen
+        obraId={avisosObraId}
+        obraNome={obraAvisos?.nome ?? ''}
+        onVoltar={() => setAvisosObraId(null)}
       />
     );
   }
@@ -274,7 +342,12 @@ export function ObrasGeraisCasca({
           </div>
         )
       ) : (
-        <ObrasGeraisInicio pessoa={pessoa} onAbrirObra={setObraAberta} onAbrirAcoes={abrirAcoes} />
+        <ObrasGeraisInicio
+          pessoa={pessoa}
+          onAbrirObra={setObraAberta}
+          onAbrirAcoes={abrirAcoes}
+          onAbrirReunioes={() => setReunioesAberta(lista.map((o) => o.id))}
+        />
       )}
 
       {nav}

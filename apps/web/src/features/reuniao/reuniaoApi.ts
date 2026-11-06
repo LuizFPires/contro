@@ -328,7 +328,13 @@ export async function loadReuniao(data: string, criar = true): Promise<ReuniaoCo
   if (criar) {
     id = await abrirReuniao(data);
   } else {
-    const { data: r } = await supabase.from('reuniao').select('id').eq('data', data).maybeSingle();
+    // Só a reunião da Contorno (obra_id nulo): a de obra geral na mesma data é outra.
+    const { data: r } = await supabase
+      .from('reuniao')
+      .select('id')
+      .eq('data', data)
+      .is('obra_id', null)
+      .maybeSingle();
     if (!r) return null;
     id = (r as { id: string }).id;
   }

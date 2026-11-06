@@ -26,6 +26,8 @@ async function listarReunioes(antesDe: string): Promise<ReuniaoLista[]> {
   const { data, error } = await supabase
     .from('reuniao')
     .select('id,data,hora,status,reuniao_obra(count)')
+    // Só as da Contorno (obra_id nulo); as de obra geral ficam nas Obras gerais.
+    .is('obra_id', null)
     .lt('data', antesDe)
     .order('data', { ascending: false })
     .limit(30);

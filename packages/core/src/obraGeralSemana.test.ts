@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { textoBoletimWhatsapp } from './boletim';
 import type { AtividadeGeral } from './obraGeral';
 import {
+  entraNaCobrancaGeral,
   montarBoletimGeral,
   providenciarAteGeral,
   semanaDaReuniaoGeral,
@@ -169,5 +170,36 @@ describe('situacaoProvidenciaGeral', () => {
     expect(situacaoProvidenciaGeral({ ...base, prazoAtividade: null, hoje: '2026-11-20' })).toEqual(
       { ate: null, atrasada: false, venceHoje: false },
     );
+  });
+});
+
+// Reunião de qua 04/11/2026; a anterior foi qua 28/10.
+describe('entraNaCobrancaGeral', () => {
+  const atual = 'Reunião qua 04/11';
+  const t = (p: { origem?: string | null; concluido?: boolean; feitaEm?: string | null }) => ({
+    origem: p.origem ?? null,
+    concluido: p.concluido ?? false,
+    feitaEm: p.feitaEm ?? null,
+  });
+
+  it('cobra toda tarefa aberta da obra, venha ou não de reunião', () => {
+    expect(entraNaCobrancaGeral(t({}), atual, '2026-11-04')).toBe(true);
+    expect(entraNaCobrancaGeral(t({ origem: 'Reunião qua 28/10' }), atual, '2026-11-04')).toBe(
+      true,
+    );
+  });
+
+  it('não cobra a ação criada nesta reunião', () => {
+    expect(entraNaCobrancaGeral(t({ origem: atual }), atual, '2026-11-04')).toBe(false);
+  });
+
+  it('mantém a feita depois da reunião anterior e tira a feita antes', () => {
+    expect(
+      entraNaCobrancaGeral(t({ concluido: true, feitaEm: '2026-11-02' }), atual, '2026-11-04'),
+    ).toBe(true);
+    expect(
+      entraNaCobrancaGeral(t({ concluido: true, feitaEm: '2026-10-28' }), atual, '2026-11-04'),
+    ).toBe(false);
+    expect(entraNaCobrancaGeral(t({ concluido: true }), atual, '2026-11-04')).toBe(false);
   });
 });

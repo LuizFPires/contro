@@ -147,3 +147,20 @@ export function situacaoProvidenciaGeral(e: {
   const aberta = e.status === 'pendente' && !e.atividadeConcluida && ate !== null;
   return { ate, atrasada: aberta && ate! < e.hoje, venceHoje: aberta && ate === e.hoje };
 }
+
+/**
+ * Cobrança da reunião da obra geral (decisão 2): toda tarefa aberta da obra, venha ou não
+ * de uma reunião, menos as criadas nesta; as feitas desde a reunião anterior (7 dias antes)
+ * continuam na pauta para a resposta. As feitas antes disso já foram cobradas.
+ */
+export function entraNaCobrancaGeral(
+  t: { origem: string | null; concluido: boolean; feitaEm: string | null },
+  origemAtual: string,
+  dataReuniao: DataISO,
+): boolean {
+  if (t.origem === origemAtual) return false;
+  if (!t.concluido) return true;
+  if (!t.feitaEm) return false;
+  // Feita no dia da reunião anterior já foi cobrada lá.
+  return t.feitaEm.slice(0, 10) > somaDias(dataReuniao, -7);
+}

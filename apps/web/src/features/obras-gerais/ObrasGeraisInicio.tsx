@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { podeGerirObrasGerais, textoEficiencia } from '@contro/core';
+import { podeGerirObrasGerais, reuniaoQueVem, textoEficiencia } from '@contro/core';
 import { Icon, Simbolo } from '@contro/ui';
 import type { PessoaAtual } from '../perfil/usePerfil';
+import { hojeISO } from '../obras/api';
 import { BlocoAcoesGeral } from './BlocoAcoesGeral';
+import { BlocoReuniaoGeral, BlocosObraGeral } from './reuniao/BlocoReuniaoGeral';
+import { useAgendasObrasGerais } from './reuniao/useConfigAvisosObra';
 import { NovaObraGeralSheet } from './NovaObraGeralSheet';
 import { useObrasGerais } from './useObrasGerais';
 import { useResumoObrasGerais } from './useResumoObrasGerais';
@@ -16,15 +19,25 @@ export function ObrasGeraisInicio({
   pessoa,
   onAbrirObra,
   onAbrirAcoes,
+  onAbrirReunioes,
 }: {
   pessoa: PessoaAtual;
   onAbrirObra: (id: string) => void;
   /** Administrador: abre as ações de todas as obras gerais juntas. */
   onAbrirAcoes?: (obraIds: string[]) => void;
+  /** Administrador: abre as reuniões das obras gerais (uma por obra). */
+  onAbrirReunioes?: () => void;
 }) {
   const [nova, setNova] = useState(false);
   const { data: obras, isLoading, isError, refetch } = useObrasGerais();
   const { data: resumo } = useResumoObrasGerais();
+  const agendas = useAgendasObrasGerais(
+    pessoa.administrador && onAbrirReunioes ? (obras ?? []).map((o) => o.id) : [],
+  );
+  // A próxima reunião entre as obras (a mais cedo, pela data e pela hora).
+  const proxima = [...(agendas.data?.values() ?? [])]
+    .map((a) => ({ data: reuniaoQueVem(hojeISO(), a.reuniaoDia), hora: a.reuniaoHora }))
+    .sort((a, b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora))[0];
   const porId = new Map((resumo ?? []).map((r) => [r.id, r]));
   const eficienciaDe = (id: string) => {
     const r = porId.get(id);
@@ -54,12 +67,17 @@ export function ObrasGeraisInicio({
 
       {pessoa.administrador && onAbrirAcoes && resumo && resumo.length > 0 ? (
         <div className={styles.blocoAcoes}>
-          <BlocoAcoesGeral
-            acoes={resumo.flatMap((r) => r.acoes)}
-            pessoaId={pessoa.id}
-            soDaPessoa={false}
-            onAbrir={() => onAbrirAcoes(resumo.map((r) => r.id))}
-          />
+          <BlocosObraGeral>
+            {onAbrirReunioes ? (
+              <BlocoReuniaoGeral proxima={proxima ?? null} onAbrir={onAbrirReunioes} />
+            ) : null}
+            <BlocoAcoesGeral
+              acoes={resumo.flatMap((r) => r.acoes)}
+              pessoaId={pessoa.id}
+              soDaPessoa={false}
+              onAbrir={() => onAbrirAcoes(resumo.map((r) => r.id))}
+            />
+          </BlocosObraGeral>
         </div>
       ) : null}
 

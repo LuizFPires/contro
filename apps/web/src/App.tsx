@@ -100,8 +100,21 @@ export function App() {
   useEffect(() => {
     const ir = new URLSearchParams(window.location.search).get('ir');
     if (!ir) return;
+    // Aviso de reunião de obra geral: abre a reunião da obra (a que vem).
+    if (ir === 'geral-reuniao') {
+      const obra = new URLSearchParams(window.location.search).get('obra');
+      if (obra) {
+        lembrar('obrasgerais:reuniao', { obraId: obra, data: null });
+        lembrar('obrasgerais:avisos', null);
+      }
+      setAvisoPendente('geral');
+      window.history.replaceState(null, '', window.location.pathname);
+      return;
+    }
     // Avisos das obras gerais: abrem o Hoje de Obras gerais.
     if (ir === 'geral-hoje') {
+      lembrar('obrasgerais:reuniao', null);
+      lembrar('obrasgerais:avisos', null);
       setAvisoPendente('geral');
       window.history.replaceState(null, '', window.location.pathname);
       return;
@@ -129,7 +142,10 @@ export function App() {
     if (disponiveis.length === 0) return;
     setAvisoPendente(null);
     if (avisoPendente === 'geral') {
-      if (!disponiveis.includes('geral')) return;
+      if (!disponiveis.includes('geral')) {
+        lembrar('obrasgerais:reuniao', null);
+        return;
+      }
       guardarAbaGeral('hoje');
       lembrar('obrasgerais:pessoas', null);
       irPara('geral');

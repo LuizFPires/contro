@@ -972,11 +972,11 @@ const ROTULO_PROV: Record<string, string> = {
   compra: 'COMPRAR',
 };
 
-function Etiqueta({ texto, escura }: { texto: string; escura?: boolean }) {
+export function Etiqueta({ texto, escura }: { texto: string; escura?: boolean }) {
   return <span className={escura ? styles.etiquetaEscura : styles.etiqueta}>{texto}</span>;
 }
 
-function NaAta({ texto }: { texto: string }) {
+export function NaAta({ texto }: { texto: string }) {
   return (
     <div className={styles.naAta}>
       <Icon name="documento" size={15} />
@@ -985,7 +985,7 @@ function NaAta({ texto }: { texto: string }) {
   );
 }
 
-function Atraso({ texto }: { texto: string }) {
+export function Atraso({ texto }: { texto: string }) {
   return (
     <span className={styles.atraso}>
       <Icon name="relogio" size={14} strokeWidth={2.4} />
@@ -995,7 +995,7 @@ function Atraso({ texto }: { texto: string }) {
 }
 
 /** Os dois botões da seção; o marcado mostra ícone (estado nunca só por cor). */
-function Botoes({
+export function Botoes({
   secao,
   resposta,
   fechada,
@@ -1043,7 +1043,7 @@ function Botoes({
   );
 }
 
-function ProvLinha({
+export function ProvLinha({
   t,
   fechada,
   onEditar,
@@ -1071,7 +1071,7 @@ function ProvLinha({
   );
 }
 
-function BlocoPrevia({ titulo, linhas }: { titulo: string; linhas: LinhaAta[] }) {
+export function BlocoPrevia({ titulo, linhas }: { titulo: string; linhas: LinhaAta[] }) {
   if (linhas.length === 0) return null;
   return (
     <div className={styles.previaBloco}>

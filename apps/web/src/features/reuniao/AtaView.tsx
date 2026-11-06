@@ -5,7 +5,7 @@ import { formatarDataCompleta } from '../../lib/datas';
 import { pdfServiceConfigurado } from '../../lib/env';
 import { baixarPdf } from '../../lib/pdf';
 import { usePerfil } from '../perfil/usePerfil';
-import { montarAta } from './ataDados';
+import { montarAta, type AtaCompleta } from './ataDados';
 import type { ReuniaoCompleta } from './reuniaoApi';
 import { hojeISO } from '../obras/api';
 import styles from './AtaView.module.css';
@@ -23,9 +23,12 @@ export function AtaView({
   onVoltar,
   onMinhas,
   baixarAoAbrir = false,
+  ataPronta,
 }: {
   baixarAoAbrir?: boolean;
   reuniao: ReuniaoCompleta;
+  /** Ata já montada (obra geral, que não tem cronograma); sem ela, a da Contorno. */
+  ataPronta?: AtaCompleta;
   onVoltar: () => void;
   onMinhas: () => void;
 }) {
@@ -38,7 +41,7 @@ export function AtaView({
 
   const dataFmt = formatarDataCompleta(reuniao.data);
   const horaFmt = horaCurta(reuniao.hora);
-  const ata = useMemo(() => montarAta(reuniao), [reuniao]);
+  const ata = useMemo(() => ataPronta ?? montarAta(reuniao), [ataPronta, reuniao]);
   const totais = textosTotais(ata.totais);
   const wa = `https://wa.me/?text=${encodeURIComponent(
     textoAtaWhatsapp(dataFmt, horaFmt, ata.obras, ata.pessoas, hojeISO()),

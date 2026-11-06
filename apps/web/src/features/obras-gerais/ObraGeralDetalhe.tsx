@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   classificarPendencias,
   podePlanejarObraGeral,
+  reuniaoQueVem,
   resumoObraGeral,
   textoEficiencia,
   rotuloPapelGeral,
@@ -21,6 +22,8 @@ import { useObraCampo } from '../obras/useObraCampo';
 import { useObraPendencias } from '../obras/useObraPendencias';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { BlocoAcoesGeral } from './BlocoAcoesGeral';
+import { BlocoReuniaoGeral, BlocosObraGeral } from './reuniao/BlocoReuniaoGeral';
+import { useConfigAvisosObra } from './reuniao/useConfigAvisosObra';
 import { FichaAtividadeGeral } from './FichaAtividadeGeral';
 import { NovaAtividadeGeralSheet } from './NovaAtividadeGeralSheet';
 import { NovaFaseSheet } from './NovaFaseSheet';
@@ -44,6 +47,7 @@ export function ObraGeralDetalhe({
   onAtalhoUsado,
   onAbrirPerfil,
   onAbrirAcoes,
+  onAbrirReuniao,
   onFichaFechada,
 }: {
   id: string;
@@ -58,6 +62,8 @@ export function ObraGeralDetalhe({
   onAbrirPerfil?: () => void;
   /** Abre a tela de ações da equipe desta obra. */
   onAbrirAcoes?: () => void;
+  /** Abre a reunião da obra (pauta e atas). */
+  onAbrirReuniao?: () => void;
   /** A ficha aberta a partir das ações foi fechada: volta para elas. */
   onFichaFechada?: () => void;
   onTrocarObra: (id: string) => void;
@@ -68,6 +74,7 @@ export function ObraGeralDetalhe({
   const { data: resumoObras } = useResumoObrasGerais();
   const campo = useObraCampo(id);
   const pendencias = useObraPendencias(id);
+  const agenda = useConfigAvisosObra(id);
   const { showToast } = useToast();
   const [secao, setSecao] = useLembrado<SecaoObra>(`obrageral:${id}:secao`, 'fases');
   const [faseAberta, setFaseAberta] = useLembrado<string | null>(`obrageral:${id}:fase`, null);
@@ -259,14 +266,31 @@ export function ObraGeralDetalhe({
         </div>
       ) : (
         <div className={base.conteudo}>
-          {resumoDaObra && onAbrirAcoes ? (
+          {(resumoDaObra && onAbrirAcoes) || onAbrirReuniao ? (
             <div className={styles.blocoAcoes}>
-              <BlocoAcoesGeral
-                acoes={resumoDaObra.acoes}
-                pessoaId={pessoa.id}
-                soDaPessoa={resumoDaObra.papel === 'membro'}
-                onAbrir={onAbrirAcoes}
-              />
+              <BlocosObraGeral>
+                {onAbrirReuniao ? (
+                  <BlocoReuniaoGeral
+                    proxima={
+                      agenda.query.isSuccess
+                        ? {
+                            data: reuniaoQueVem(hojeISO(), agenda.config.reuniaoDia),
+                            hora: agenda.config.reuniaoHora,
+                          }
+                        : null
+                    }
+                    onAbrir={onAbrirReuniao}
+                  />
+                ) : null}
+                {resumoDaObra && onAbrirAcoes ? (
+                  <BlocoAcoesGeral
+                    acoes={resumoDaObra.acoes}
+                    pessoaId={pessoa.id}
+                    soDaPessoa={resumoDaObra.papel === 'membro'}
+                    onAbrir={onAbrirAcoes}
+                  />
+                ) : null}
+              </BlocosObraGeral>
             </div>
           ) : null}
           <div className={base.mapa}>
