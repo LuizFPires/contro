@@ -16,6 +16,7 @@ import type { AoConcluir } from '../obras/useConcluirAtividade';
 import { useAvanco } from '../obras/useAvanco';
 import { useObraCampo } from '../obras/useObraCampo';
 import type { PessoaAtual } from '../perfil/usePerfil';
+import { FichaAtividadeGeral } from './FichaAtividadeGeral';
 import { NovaFaseSheet } from './NovaFaseSheet';
 import styles from './ObraGeralDetalhe.module.css';
 import { TrocarObraSheet } from './TrocarObraSheet';
@@ -41,7 +42,7 @@ export function ObraGeralDetalhe({
   const { showToast } = useToast();
   const [faseAberta, setFaseAberta] = useLembrado<string | null>(`obrageral:${id}:fase`, null);
   // A ficha da atividade e a nova atividade abrem por estes estados (telas próprias).
-  const [, setFichaId] = useLembrado<string | null>(`obrageral:${id}:ficha`, null);
+  const [fichaId, setFichaId] = useLembrado<string | null>(`obrageral:${id}:ficha`, null);
   const [, setNovaAtividadeFaseId] = useState<string | null>(null);
   const [trocando, setTrocando] = useState(false);
   const [novaFase, setNovaFase] = useState(false);
@@ -202,6 +203,15 @@ export function ObraGeralDetalhe({
         onFechar={() => setNovaFase(false)}
         onCriada={setFaseAberta}
       />
+
+      {fichaId ? (
+        <FichaAtividadeGeral
+          obra={obra}
+          atividadeId={fichaId}
+          pessoa={pessoa}
+          onClose={() => setFichaId(null)}
+        />
+      ) : null}
 
       {anexando ? (
         <Camera

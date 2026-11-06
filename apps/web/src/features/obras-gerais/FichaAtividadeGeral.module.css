@@ -1,0 +1,155 @@
+/* Acrescenta à ficha da Contorno (FichaAtividade.module.css, reaproveitado) só o que é da obra geral. */
+.fase {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  color: #464646;
+}
+.linhaInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgb(24 24 24 / 6%);
+}
+.infoTexto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.infoValor {
+  font-size: 16px;
+  font-weight: 800;
+}
+.infoNota {
+  font-size: 13px;
+  color: #464646;
+}
+.venceHoje {
+  color: var(--contro-attention);
+}
+.atrasada {
+  color: var(--contro-late);
+}
+.vazioTxt {
+  font-size: 16px;
+  color: #696969;
+}
+.acaoLinha {
+  min-height: var(--contro-touch);
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.nota {
+  margin: 0;
+  font-size: 13px;
+  color: #464646;
+}
+.prestadorBloco {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgb(24 24 24 / 6%);
+}
+.rotulo {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #696969;
+}
+.subTexto,
+.subTextoFixo {
+  flex-grow: 1;
+  min-width: 0;
+  min-height: var(--contro-touch);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+}
+.subTexto {
+  cursor: pointer;
+}
+.subData {
+  font-size: 13px;
+  color: #696969;
+}
+.mais {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--contro-touch);
+  border-radius: 12px;
+  border: 1.5px dashed rgb(24 24 24 / 35%);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chipPessoa {
+  min-height: var(--contro-touch);
+  padding: 0 16px;
+  border-radius: 99px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.chipOn {
+  background: var(--contro-turquoise);
+  border-color: var(--contro-turquoise);
+}
+.sheetCorpo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.erro {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+.excluirSub {
+  min-height: var(--contro-touch);
+  border-radius: 12px;
+  border: 1.5px solid rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
