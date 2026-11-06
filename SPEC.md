@@ -309,6 +309,16 @@ Todas são idempotentes por `client_op_id` (uuid gerado no aparelho), para a fil
 - **Rotinas** (avisos, boletim, abrir/reabrir reunião) só olham a Contorno nesta etapa.
 - Dar acesso a quem estava pendente, desativado ou recusado na Contorno vale só para Obras gerais.
 
+**Obras gerais · etapa 2 (06/11/2026), a obra geral por dentro:**
+- **Colunas novas de `obra_atividade`:** `data_prevista`, `data_prevista_original`, `replanejamentos` (int, padrão 0) e `responsavel_id` (pessoa). O trigger `obra_atividade_protege_planejamento` faz essas colunas só mudarem pelas RPCs (a escrita direta apagaria o rastro do replanejamento).
+- **`contro_planeja_obra(obra)`:** na obra geral é Administrador ou Coordenador participante; na Contorno continua igual a ver a obra. A RLS de escrita das tabelas de planejamento usa essa função; o Membro escreve só pelas RPCs de campo. Helpers internos (sem `execute` para `authenticated`): `contro_exige_planejar_geral`, `contro_valida_responsavel_geral`, `contro_aplica_data_prevista`.
+- **RPCs de planejamento** (migration `20261106100000`; idempotentes por `p_id` / `client_op_id`): `adicionar_fase_geral`, `adicionar_atividade_geral`, `adicionar_subitem_geral`, `editar_subitem_geral`, `definir_data_prevista`, `definir_responsavel_atividade`, `excluir_subitem_geral`, `restaurar_subitem_geral` e `excluir_atividade_obra`/`restaurar_atividade_obra` recriadas. Data nula limpa a data (evento `data_definida`, sem replanejamento).
+- **RPCs de campo** (migration `20261106110000`, com acesso pela participação na obra, para qualquer papel): `concluir_atividade`, `desfazer_conclusao`, `anexar_foto_conclusao`, `definir_avanco`, `marcar_subitem`, `marcar_providencia`. Resolvem o que antes bloqueava quem era só de Obras gerais (nome de prestador, checagens de entrada).
+- **Pessoas da obra** (migration `20261106120000`): `adicionar_membro_obra`, `convidar_membro_obra` e `remover_da_obra`. O Coordenador só põe Membro (Coordenador só por Administrador, 42501). Convidar conta pendente nunca aprovada a torna ativa só em Obras gerais; desativada ou recusada dá 22023 (o Administrador resolve em Pessoas e acessos). O gatilho `obra_participante_sai` tira o responsável das atividades de quem saiu (saída de obra apagada não limpa). `contro_troca_participacoes` remove só as obras que saíram.
+- **Eventos de atividade:** `data_definida` (primeira data, ou limpar), `replanejada` (mudança de data, com motivo), `responsavel` e `concluida.responsavel_id` (o dono da atividade na hora da conclusão).
+- **Excluir subitem (migration `20261106130000`):** `excluir_atividade_obra` e `restaurar_atividade_obra` aceitam o id de um subitem; corrige a ficha da Contorno, que falhava ao excluir subitem ("Não foi possível excluir o item.").
+- **E-mail dos membros:** só o Administrador o recebe (`listar_pessoas_gerais`).
+
 ## 8. Boletim e ata
 
 ### 8.1 Texto do WhatsApp (gerado por `core/boletim.ts`)
@@ -390,7 +400,8 @@ A faixa lateral de cada obra é **cinza escuro #4A4A4A**.
 /modelos/:id              modelo: fases, atividades e assistente de 5 passos (só gestor)
 /modelos/:id/tabela       visão desktop complementar (tabela + Gantt)
 ```
-Ambientes (etapa 1 de Obras gerais): sem rota nova; o `App` guarda a tela e o ambiente atual (`useAmbiente`: último usado, primeiro acesso na Contorno). No ambiente Obras gerais a tela inicial é `ObrasGeraisInicio` (cards das obras, "+" só para Administrador) e a tela `pessoas-gerais` é "Pessoas e acessos" (só Administrador). Abrir a obra geral por dentro é da etapa 2.
+Ambientes (etapa 1 de Obras gerais): sem rota nova; o `App` guarda a tela e o ambiente atual (`useAmbiente`: último usado, primeiro acesso na Contorno). No ambiente Obras gerais a tela inicial é `ObrasGeraisInicio` (cards das obras, "+" só para Administrador) e a tela `pessoas-gerais` é "Pessoas e acessos" (só Administrador).
+Etapa 2: a obra geral por dentro é aberta por `ObrasGeraisInicio` (sem rota nova; a obra aberta fica lembrada). Core em `packages/core/src/obraGeral.ts` (`diaCurto`, `prazoAtividadeGeral`, `statusAtividadeGeral`, `trilhaObraGeral`, `resumoObraGeral`, `atalhosDataPrevista`, `podePlanejarObraGeral`). Telas em `apps/web/src/features/obras-gerais/`: `ObraGeralDetalhe` (trilha, fases, troca de obra, rodapé de avanço), `FichaAtividadeGeral` (conclusão, avanço, subitens, data, responsável, prestador, excluir), `NovaAtividadeGeralSheet` (nome, data, responsável, subitens), `EditarSubitemSheet`, `EscolherResponsavel`, `NovaFaseSheet`, `TrocarObraSheet`, `PessoasDaObra` e `AdicionarMembroSheet`. A obra vem inteira por `useObraGeral` (chave `['obra', id]`); as ações usam as RPCs de planejamento e de campo, e o planejamento só aparece para quem `podePlanejarObraGeral`.
 
 ### 10.2 Componentes-chave
 `FaseTrilha`, `AtividadeItem`, `FichaAtividade` (bottom sheet, com subitens e "Ajustar início"), `AutocompleteNome` (sugestões de pessoa e prestador), `LembreteItem`, `PendenciaDeck` (swipe com limiar de 100 px, rotação dx/22 e botões equivalentes), `ListaPendencias`, `AdiarSheet`, `CameraGhost` (overlay do antes com 40% de opacidade), `Gantt`, `Inauguracao`, `BoletimView`, `ReuniaoObraCard`, `TarefaItem`, `TarefaSheet`, `Toast` com ação "Desfazer" (5 s).
