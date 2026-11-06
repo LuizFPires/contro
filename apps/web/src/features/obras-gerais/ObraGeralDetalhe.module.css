@@ -126,3 +126,29 @@
   font-size: 13px;
   color: var(--contro-muted);
 }
+
+/* Carga falhou sem dados em cache. */
+.erro {
+  margin: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+}
+.erro p {
+  margin: 0;
+}
+.tentar {
+  min-height: var(--contro-touch);
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--contro-black);
+  background: transparent;
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}

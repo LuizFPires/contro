@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { Ambiente } from '@contro/core';
 import { esquecerTelas, lembrar, useLembrado } from './lib/useLembrado';
 import { useQueryClient } from '@tanstack/react-query';
 import { PullToRefresh } from './components/PullToRefresh';
@@ -7,7 +8,7 @@ import { verificarAtualizacao } from './lib/pwa';
 import { useSession } from './auth/useSession';
 import { usePerfil } from './features/perfil/usePerfil';
 import { useAmbiente } from './features/perfil/useAmbiente';
-import { ObrasGeraisInicio } from './features/obras-gerais/ObrasGeraisInicio';
+import { ObrasGeraisCasca } from './features/obras-gerais/ObrasGeraisCasca';
 import { PessoasAcessos } from './features/obras-gerais/PessoasAcessos';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
@@ -44,7 +45,10 @@ export function App() {
     irPara,
   } = useAmbiente(pessoa, voltarAoInicio);
 
-  const [avisoPendente, setAvisoPendente] = useState(false);
+  // Aviso tocado: o ambiente do destino é ajustado quando o perfil carregar.
+  const [avisoPendente, setAvisoPendente] = useState<Ambiente | null>(null);
+  // Cada entrada pelo aviso do Hoje geral remonta a casca para reler a aba lembrada.
+  const [entradaGeral, setEntradaGeral] = useState(0);
 
   // Reunião escolhida na central (null = a que vem).
   const [reuniaoData, setReuniaoData] = useState<string | null>(null);
@@ -95,6 +99,12 @@ export function App() {
   useEffect(() => {
     const ir = new URLSearchParams(window.location.search).get('ir');
     if (!ir) return;
+    // Avisos das obras gerais: abrem o Hoje de Obras gerais.
+    if (ir === 'geral-hoje') {
+      setAvisoPendente('geral');
+      window.history.replaceState(null, '', window.location.pathname);
+      return;
+    }
     // Aviso não vem de uma obra: o Log abre em todas as obras.
     setLogObra(null);
     if (ir === 'log') {
@@ -105,16 +115,28 @@ export function App() {
       setTela(ir);
     else if (ir === 'hoje') setTela('inicio');
     // Os avisos são da Contorno: o ambiente é ajustado quando o perfil carregar.
-    setAvisoPendente(true);
+    setAvisoPendente('contorno');
     window.history.replaceState(null, '', window.location.pathname);
   }, [setTela, setLogObra]);
 
   // Aviso aberto estando em Obras gerais: vai para a Contorno sem perder o destino.
   // Sem acesso à Contorno, ignora o link e fica em Obras gerais.
+  // Aviso das obras gerais: vai para Obras gerais, na aba Hoje (sem acesso, ignora).
   useEffect(() => {
     if (!avisoPendente || perfilCarregando || !pessoa) return;
     if (disponiveis.length === 0) return;
-    setAvisoPendente(false);
+    setAvisoPendente(null);
+    if (avisoPendente === 'geral') {
+      if (!disponiveis.includes('geral')) return;
+      lembrar('obrasgerais:aba', 'hoje');
+      lembrar('obrasgerais:pessoas', null);
+      // O Administrador abre a obra fora das abas: fecha para mostrar o Hoje.
+      if (pessoa.administrador) lembrar('obrasgerais:obra', null);
+      irPara('geral');
+      setTela('inicio');
+      setEntradaGeral((n) => n + 1);
+      return;
+    }
     if (disponiveis.includes('contorno')) irPara('contorno');
     else setTela('inicio');
   }, [avisoPendente, perfilCarregando, pessoa, disponiveis, irPara, setTela]);
@@ -190,7 +212,8 @@ export function App() {
           {tela === 'pessoas-gerais' && pessoa.administrador ? (
             <PessoasAcessos onVoltar={voltar} />
           ) : (
-            <ObrasGeraisInicio
+            <ObrasGeraisCasca
+              key={entradaGeral}
               pessoa={pessoa}
               ambiente={ambiente}
               disponiveis={disponiveis}

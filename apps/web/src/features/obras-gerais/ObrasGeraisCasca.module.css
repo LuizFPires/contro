@@ -1,0 +1,17 @@
+/* Casca das obras gerais: conteúdo da aba e o menu de baixo (Hoje · Obra/Obras). */
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--contro-bg-app);
+}
+/* A obra aberta como aba ocupa a altura e deixa o menu no pé. */
+.conteudo {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+/* Dois itens no menu (o da Contorno tem quatro). */
+nav.nav {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}

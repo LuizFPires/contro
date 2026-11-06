@@ -31,14 +31,22 @@ export function ObraGeralDetalhe({
   onVoltar,
   onTrocarObra,
   onAbrirPessoas,
+  semVoltar = false,
+  abrirAtividadeId,
+  onAtalhoUsado,
 }: {
   id: string;
   pessoa: PessoaAtual;
   onVoltar: () => void;
+  /** Obra como aba (Coordenador ou Membro com uma obra só): sem a seta de voltar. */
+  semVoltar?: boolean;
+  /** Abre a ficha desta atividade ao montar (linha tocada no Hoje). */
+  abrirAtividadeId?: string;
+  onAtalhoUsado?: () => void;
   onTrocarObra: (id: string) => void;
   onAbrirPessoas: () => void;
 }) {
-  const { data: obra, isLoading } = useObraGeral(id);
+  const { data: obra, isLoading, isError, refetch } = useObraGeral(id);
   const { data: obras } = useObrasGerais();
   const campo = useObraCampo(id);
   const { showToast } = useToast();
@@ -49,6 +57,11 @@ export function ObraGeralDetalhe({
   const [trocando, setTrocando] = useState(false);
   const [novaFase, setNovaFase] = useState(false);
   const [anexandoId, setAnexandoId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!abrirAtividadeId) return;
+    setFichaId(abrirAtividadeId);
+    onAtalhoUsado?.();
+  }, [abrirAtividadeId, onAtalhoUsado, setFichaId]);
 
   const aoConcluir: AoConcluir = (r, det) => {
     showToast({
@@ -79,7 +92,7 @@ export function ObraGeralDetalhe({
     if (!isLoading && obra === null) onVoltar();
   }, [isLoading, obra, onVoltar]);
 
-  const voltar = (
+  const voltar = semVoltar ? null : (
     <button
       type="button"
       className={base.voltar}
@@ -89,6 +102,23 @@ export function ObraGeralDetalhe({
       <Icon name="chevronLeft" size={22} />
     </button>
   );
+
+  // Falhou sem nada em cache: avisa e deixa tentar de novo.
+  if (isError && !obra) {
+    return (
+      <div className={base.screen}>
+        <header className={base.cabecalho}>
+          <div className={base.topo}>{voltar}</div>
+        </header>
+        <div className={styles.erro}>
+          <p>Sem conexão. Tente de novo.</p>
+          <button type="button" className={styles.tentar} onClick={() => void refetch()}>
+            Tentar de novo
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading || !obra) {
     return (
