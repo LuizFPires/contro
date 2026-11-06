@@ -58,4 +58,51 @@ describe('boletimDaObraGeral', () => {
     expect(d.quemFazOQue[0]!.pessoa).toBe('Ana');
     expect(d.quemFazOQue[0]!.itens.map((i) => i.texto)).toEqual(['Comprar tinta']);
   });
+  it('põe a atividade aberta com responsável e a providência dela em quem faz o quê', () => {
+    const d = boletimDaObraGeral({
+      obra: { id: 'o1', nome: 'Sede', cidade: null },
+      atividades: [
+        atividade({ id: 'a1', nome: 'Pintura', responsavel_id: 'p1' }),
+        // Sem responsável: fica fora do quem faz o quê.
+        atividade({ id: 'a2', nome: 'Forro' }),
+        // Com tarefa vinculada aberta: conta uma vez, pela tarefa.
+        atividade({ id: 'a3', nome: 'Piso', responsavel_id: 'p1' }),
+        // Concluída: fora.
+        atividade({
+          id: 'a4',
+          nome: 'Demolição',
+          responsavel_id: 'p1',
+          concluida_em: '2026-11-03T12:00:00Z',
+        }),
+      ],
+      nomes: { p1: 'Bia Lima' },
+      tarefas: [
+        tarefa({
+          texto: 'Atividade: Piso',
+          responsavel_id: 'p1',
+          responsavelNome: 'Bia L',
+          vinculo_tipo: 'atividade',
+          vinculo_id: 'a3',
+        }),
+      ],
+      pendencias: [],
+      providencias: [
+        {
+          id: 'pv1',
+          atividade_id: 'a1',
+          tipo: 'compra',
+          descricao: 'Tinta',
+          status: 'pendente',
+          providenciar_ate: '2026-11-02',
+        },
+      ],
+      hoje: '2026-11-06',
+    });
+    expect(d.quemFazOQue.map((g) => g.pessoa)).toEqual(['Bia Lima']);
+    expect(d.quemFazOQue[0]!.itens.map((i) => i.texto).sort()).toEqual([
+      'Atividade: Piso',
+      'Compra: Tinta',
+      'Pintura',
+    ]);
+  });
 });

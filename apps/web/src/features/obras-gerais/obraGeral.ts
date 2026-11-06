@@ -2,8 +2,11 @@ import { nomeCurto, type AtividadeGeral, type FaseGeralEntrada } from '@contro/c
 import { supabase } from '../../lib/supabase';
 import type { ObraProv } from '../obras/detalhe';
 
-/** Lembrete de contratação, locação ou compra: os mesmos campos que a obra Contorno lê. */
-export type ProvidenciaGeral = ObraProv;
+/**
+ * Lembrete de contratação, locação ou compra: os mesmos campos que a obra Contorno lê, mais
+ * o prazo gravado pelo banco (data prevista da atividade menos a antecedência).
+ */
+export type ProvidenciaGeral = ObraProv & { providenciar_ate?: string | null };
 
 export interface PessoaDaObra {
   id: string;
@@ -98,7 +101,7 @@ export async function carregarObraGeral(id: string): Promise<ObraGeral | null> {
     supabase
       .from('obra_providencia')
       .select(
-        'id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du,na_obra_em,manual,feito_em,' +
+        'id,atividade_id,tipo,descricao,status,antecedencia_du,duracao_du,na_obra_em,manual,feito_em,providenciar_ate,' +
           'feito:pessoa!feito_por(nome)',
       )
       .is('deleted_at', null)

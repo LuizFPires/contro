@@ -44,6 +44,7 @@ export function ObraGeralDetalhe({
   onAbrirPessoas,
   semVoltar = false,
   abrirAtividadeId,
+  abrirPendenciaId,
   onAtalhoUsado,
   onAbrirPerfil,
   onAbrirAcoes,
@@ -58,6 +59,8 @@ export function ObraGeralDetalhe({
   semVoltar?: boolean;
   /** Abre a ficha desta atividade ao montar (linha tocada no Hoje). */
   abrirAtividadeId?: string;
+  /** Abre o Check list com esta pendência em destaque (card tocado nas ações). */
+  abrirPendenciaId?: string;
   onAtalhoUsado?: () => void;
   /** Obra como aba: o avatar do perfil (Perfil, Sair, Pessoas da obra) fica no topo dela. */
   onAbrirPerfil?: () => void;
@@ -93,6 +96,12 @@ export function ObraGeralDetalhe({
     setFichaId(abrirAtividadeId);
     onAtalhoUsado?.();
   }, [abrirAtividadeId, onAtalhoUsado, setFichaId, setSecao]);
+  // A pendência: o Check list a destaca e avisa quando aplicou (onAtalhoUsado).
+  useEffect(() => {
+    if (!abrirPendenciaId) return;
+    setFichaId(null);
+    setSecao('checklist');
+  }, [abrirPendenciaId, setFichaId, setSecao]);
   const pendAbertas = useMemo(
     () => classificarPendencias(pendencias.query.data ?? []).pendentes.length,
     [pendencias.query.data],
@@ -276,7 +285,13 @@ export function ObraGeralDetalhe({
 
       {secao === 'checklist' ? (
         <div className={base.conteudo}>
-          <PendenciasAba obra={obra} pessoas={obra.pessoas} podeAtribuir={planeja} />
+          <PendenciasAba
+            obra={obra}
+            pessoas={obra.pessoas}
+            podeAtribuir={planeja}
+            focoId={abrirPendenciaId}
+            onFocoAplicado={onAtalhoUsado}
+          />
         </div>
       ) : (
         <div className={base.conteudo}>

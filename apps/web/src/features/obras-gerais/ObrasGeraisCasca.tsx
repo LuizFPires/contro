@@ -87,8 +87,13 @@ export function ObrasGeraisCasca({
   const [retornoAcoes, setRetornoAcoes] = useState<TelaAcoes | null>(null);
   // Linha tocada no Hoje: fechar a ficha ou voltar da obra volta ao Hoje (e à obra lembrada).
   const [retornoHoje, setRetornoHoje] = useState<{ obraAnterior: string | null } | null>(null);
-  // Linha tocada no Hoje: a obra abre na ficha dessa atividade (uma vez).
-  const [atalho, setAtalho] = useState<{ obraId: string; atividadeId: string } | null>(null);
+  // Linha tocada no Hoje (ou card nas ações): a obra abre na ficha dessa atividade ou no
+  // Check list com a pendência (uma vez).
+  const [atalho, setAtalho] = useState<{
+    obraId: string;
+    atividadeId?: string;
+    pendenciaId?: string;
+  } | null>(null);
   const { data: obras } = useObrasGerais();
   const {
     data: resumo,
@@ -121,6 +126,16 @@ export function ObrasGeraisCasca({
     setObraAberta(obraId);
     setAba('obra');
   };
+  const abrirPendencia = (obraId: string, pendenciaId: string) => {
+    setAtalho({ obraId, pendenciaId });
+    setObraAberta(obraId);
+    setAba('obra');
+  };
+  // Volta às ações de onde a ficha ou a pendência foi aberta.
+  const voltarAsAcoes = (r: TelaAcoes) => {
+    setAcoesAberta(r);
+    setRetornoAcoes(null);
+  };
   const abrirAcoes = (obraIds: string[]) => {
     setRetornoHoje(null);
     setAcoesAberta({ obraIds, abaAnterior: aba, obraAnterior: obraAberta });
@@ -148,8 +163,15 @@ export function ObrasGeraisCasca({
       pessoa={pessoa}
       semVoltar={semVoltar}
       abrirAtividadeId={atalho?.obraId === id ? atalho.atividadeId : undefined}
+      abrirPendenciaId={atalho?.obraId === id ? atalho.pendenciaId : undefined}
       onAtalhoUsado={() => setAtalho(null)}
-      onVoltar={retornoHoje ? () => voltarAoHoje(retornoHoje) : () => setObraAberta(null)}
+      onVoltar={
+        retornoAcoes
+          ? () => voltarAsAcoes(retornoAcoes)
+          : retornoHoje
+            ? () => voltarAoHoje(retornoHoje)
+            : () => setObraAberta(null)
+      }
       onTrocarObra={setObraAberta}
       onAbrirPessoas={() => setPessoasObraId(id)}
       onAbrirPerfil={admin ? undefined : () => setPerfilAberto(true)}
@@ -158,10 +180,7 @@ export function ObrasGeraisCasca({
       onAbrirBoletim={() => setBoletimObraId(id)}
       onFichaFechada={
         retornoAcoes
-          ? () => {
-              setAcoesAberta(retornoAcoes);
-              setRetornoAcoes(null);
-            }
+          ? () => voltarAsAcoes(retornoAcoes)
           : retornoHoje
             ? () => voltarAoHoje(retornoHoje)
             : undefined
@@ -260,6 +279,11 @@ export function ObrasGeraisCasca({
           setRetornoAcoes({ ...acoesAberta, filtro });
           setAcoesAberta(null);
           abrirAtividade(obraId, atividadeId);
+        }}
+        onAbrirPendencia={(obraId, pendenciaId, filtro) => {
+          setRetornoAcoes({ ...acoesAberta, filtro });
+          setAcoesAberta(null);
+          abrirPendencia(obraId, pendenciaId);
         }}
       />
     );
@@ -389,6 +413,7 @@ export function ObrasGeraisCasca({
               setRetornoHoje({ obraAnterior: obraAberta });
               abrirAtividade(obraId, atividadeId);
             }}
+            onAbrirAcoes={(obraId) => abrirAcoes([obraId])}
           />
         ) : (
           <div className={inicio.vazio}>

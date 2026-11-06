@@ -34,6 +34,7 @@ export function BoletimGeralScreen({ obraId, onVoltar }: { obraId: string; onVol
             nomes: Object.fromEntries(obra.pessoas.map((p) => [p.id, p.nome])),
             tarefas,
             pendencias,
+            providencias: obra.providencias,
             prazosPendencia: prazos,
             hoje: hojeISO(),
           })
