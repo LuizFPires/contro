@@ -48,6 +48,36 @@ describe('semanaDaReuniaoGeral', () => {
     expect(r.passadaComAtraso).toEqual([comAtraso]);
     expect(r.atrasadasAbertas).toEqual([aberta]);
   });
+  it('cobra abertas atrasadas de semanas antigas e ignora as de antes ainda no prazo', () => {
+    const antiga = ativ({ data_prevista: '2026-10-21' });
+    const x = semanaDaReuniaoGeral({
+      atividades: [antiga, aberta, daSemana],
+      dataReuniao: '2026-11-04',
+      hoje: '2026-11-04',
+    });
+    expect(x.atrasadasAbertas).toEqual([antiga, aberta]);
+    expect(x.passadaNoPrazo).toEqual([]);
+  });
+  it('deriva o prazo dos subitens', () => {
+    const pai = ativ({ data_prevista: '2026-10-20' });
+    const sub = ativ({ pai_id: pai.id, data_prevista: '2026-11-05' });
+    const x = semanaDaReuniaoGeral({
+      atividades: [pai, sub],
+      dataReuniao: '2026-11-04',
+      hoje: '2026-11-04',
+    });
+    expect(x.daSemana).toEqual([pai]);
+    expect(x.atrasadasAbertas).toEqual([]);
+  });
+  it('reunião no sábado usa a semana que termina nele', () => {
+    const x = semanaDaReuniaoGeral({
+      atividades: [daSemana, aberta],
+      dataReuniao: '2026-11-07',
+      hoje: '2026-11-07',
+    });
+    expect(x.daSemana).toEqual([daSemana]);
+    expect(x.atrasadasAbertas).toEqual([aberta]);
+  });
   it('lista esta semana e ignora subitens, futuras e sem data', () => {
     expect(r.daSemana).toEqual([daSemana]);
   });

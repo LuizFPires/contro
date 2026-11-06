@@ -7,7 +7,6 @@ import {
   filhosPorPai,
   prazoAtividadeGeral,
   prazoOriginalAtividadeGeral,
-  statusAtividadeGeral,
   textoEficiencia,
   type AtividadeGeral,
 } from './obraGeral';
@@ -62,14 +61,15 @@ export function semanaDaReuniaoGeral(e: {
     if (!prazo) continue;
     prazos.set(a.id, prazo);
     if (prazo >= segunda && prazo <= sexta) r.daSemana.push(a);
-    if (prazo < passadaSeg || prazo > passadaSex) continue;
-    if (a.concluida_em !== null) {
-      const original = prazoOriginalAtividadeGeral(a, subs) ?? prazo;
-      const noPrazo = atrasoDU(original, diaLocal(a.concluida_em)) === 0;
-      (noPrazo ? r.passadaNoPrazo : r.passadaComAtraso).push(a);
-    } else if (atrasoDU(prazo, e.hoje) > 0) {
-      r.atrasadasAbertas.push(a);
+    if (a.concluida_em === null) {
+      // Toda aberta atrasada de antes da semana da reunião entra na cobrança.
+      if (prazo < segunda && atrasoDU(prazo, e.hoje) > 0) r.atrasadasAbertas.push(a);
+      continue;
     }
+    if (prazo < passadaSeg || prazo > passadaSex) continue;
+    const original = prazoOriginalAtividadeGeral(a, subs) ?? prazo;
+    const noPrazo = atrasoDU(original, diaLocal(a.concluida_em)) === 0;
+    (noPrazo ? r.passadaNoPrazo : r.passadaComAtraso).push(a);
   }
   const porPrazo = (a: AtividadeGeral, b: AtividadeGeral) =>
     (prazos.get(a.id) ?? '').localeCompare(prazos.get(b.id) ?? '') || a.ordem - b.ordem;
@@ -103,7 +103,7 @@ export function montarBoletimGeral(e: {
   for (const a of topo) {
     const prazo = prazoDe(a);
     if (a.concluida_em !== null || !prazo) continue;
-    if (statusAtividadeGeral(null, prazo, e.hoje) === 'atrasada') {
+    if (atrasoDU(prazo, e.hoje) > 0) {
       atrasos.push(`${a.nome} · era para ${diaCurto(prazo)}`);
     }
     if (prazo >= segunda && prazo <= sexta) {
