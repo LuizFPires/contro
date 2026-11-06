@@ -3,7 +3,7 @@
   display: block;
   font-size: 13px;
   font-weight: 800;
-  color: #464646;
+  color: rgb(24 24 24 / 80%);
 }
 .linhaInfo {
   display: flex;
@@ -26,7 +26,7 @@
 }
 .infoNota {
   font-size: 13px;
-  color: #464646;
+  color: rgb(24 24 24 / 80%);
 }
 .venceHoje {
   color: var(--contro-attention);
@@ -36,7 +36,7 @@
 }
 .vazioTxt {
   font-size: 16px;
-  color: #696969;
+  color: rgb(24 24 24 / 72%);
 }
 .acaoLinha {
   min-height: var(--contro-touch);
@@ -54,7 +54,7 @@
 .nota {
   margin: 0;
   font-size: 13px;
-  color: #464646;
+  color: rgb(24 24 24 / 80%);
 }
 .prestadorBloco {
   display: flex;
@@ -71,7 +71,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #696969;
+  color: rgb(24 24 24 / 72%);
 }
 .subTexto,
 .subTextoFixo {
@@ -94,7 +94,7 @@
 }
 .subData {
   font-size: 13px;
-  color: #696969;
+  color: rgb(24 24 24 / 72%);
 }
 .mais {
   display: flex;
@@ -150,6 +150,28 @@
   color: var(--contro-black);
   font: inherit;
   font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tagHoje {
+  background: var(--contro-attention);
+  color: var(--contro-white);
+}
+.faseVoltar {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--contro-touch);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgb(24 24 24 / 80%);
+  font: inherit;
+  font-size: 13px;
   font-weight: 800;
   cursor: pointer;
 }

@@ -93,12 +93,18 @@ export function FichaAtividadeGeral({
     : null;
 
   const status = concluida
-    ? { txt: a.semFoto ? 'Concluída · sem foto' : 'Concluída', cls: fichaStyles.tagConcluida }
+    ? {
+        txt: a.semFoto ? 'Concluída · sem foto' : 'Concluída',
+        cls: fichaStyles.tagConcluida,
+        icone: 'checkGrosso' as const,
+      }
     : a.status === 'atrasada'
-      ? { txt: 'Atrasada', cls: fichaStyles.tagAtrasada }
-      : a.avancoPct > 0
-        ? { txt: `Em andamento · ${a.avancoPct}%`, cls: fichaStyles.tagLiberada }
-        : { txt: 'Aberta', cls: fichaStyles.tagPlanejada };
+      ? { txt: 'Atrasada', cls: fichaStyles.tagAtrasada, icone: 'alert' as const }
+      : a.status === 'vence_hoje'
+        ? { txt: 'Vence hoje', cls: styles.tagHoje, icone: 'relogio' as const }
+        : a.avancoPct > 0
+          ? { txt: `Em andamento · ${a.avancoPct}%`, cls: fichaStyles.tagLiberada, icone: null }
+          : { txt: 'Aberta', cls: fichaStyles.tagPlanejada, icone: null };
 
   const atualizar = () => qc.invalidateQueries({ queryKey: ['obra', obra.id] });
   const avisarErro = (e: unknown) =>
@@ -153,9 +159,20 @@ export function FichaAtividadeGeral({
         <div className={fichaStyles.ficha}>
           <div className={fichaStyles.topo}>
             <div className={fichaStyles.topoTexto}>
-              <span className={styles.fase}>{`‹ ${fase}`}</span>
+              <button
+                type="button"
+                className={styles.faseVoltar}
+                aria-label={`Voltar para ${fase}`}
+                onClick={onClose}
+              >
+                <Icon name="chevronLeft" size={16} strokeWidth={2.4} />
+                {fase}
+              </button>
               <div>
-                <span className={`${fichaStyles.tag} ${status.cls}`}>{status.txt}</span>
+                <span className={`${fichaStyles.tag} ${styles.tag} ${status.cls}`}>
+                  {status.icone ? <Icon name={status.icone} size={12} strokeWidth={2.6} /> : null}
+                  {status.txt}
+                </span>
               </div>
               {planeja ? (
                 <TextoEditavel
