@@ -177,7 +177,7 @@ describe('providenciaParaAcao', () => {
       origem: 'providencia',
       id: 'pv1',
       obraId: 'o1',
-      texto: 'Compra: Cabos',
+      texto: 'Comprar Cabos',
       prazo: '2026-11-03',
       aberta: true,
       responsavelId: null,

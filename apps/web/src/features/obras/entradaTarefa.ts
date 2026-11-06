@@ -1,3 +1,4 @@
+import { normalizarTextoProvidencia } from '@contro/core';
 import type { EntradaTarefa } from './campo';
 import type { TarefaObra } from './tarefasObra';
 
@@ -35,7 +36,7 @@ export function entradaDaFolha(f: FormTarefa, tarefa: TarefaObra | null): Entrad
   const outro = f.responsavelId === OUTRO;
   return {
     id: tarefa?.id ?? null,
-    texto: f.texto.trim(),
+    texto: normalizarTextoProvidencia(f.texto.trim()),
     responsavelId: outro ? null : f.responsavelId || null,
     responsavelNome: outro ? f.nomeDigitado.trim() || null : null,
     prazo: f.prazo,
@@ -52,7 +53,7 @@ export function entradaAtribuicao(
   e: Pick<EntradaTarefa, 'texto' | 'responsavelId' | 'responsavelNome' | 'prazo'>,
 ): EntradaTarefa {
   return {
-    texto: e.texto,
+    texto: normalizarTextoProvidencia(e.texto),
     responsavelId: e.responsavelId,
     responsavelNome: e.responsavelId ? null : e.responsavelNome?.trim() || null,
     prazo: e.prazo,

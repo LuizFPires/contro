@@ -138,6 +138,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - Rodapé fixo em toda atividade aberta (protótipo, opção D, 28/10/2026): **25% · 50% · 75% · Pronta · Foto** numa linha. Os passos vão e voltam livremente (tocar no marcado volta um), **Pronta** conclui na hora sem foto (com Desfazer) e **Foto** conclui com foto. Avançar e concluir ficam só aqui (saíram o "Marcar como resolvida" e os cards do topo); concluída sem foto, "Anexar foto". Concluída (com ou sem foto): **"Voltar para pendente"**, para qualquer pessoa da equipe, com Desfazer (que conclui de novo com a mesma foto).
 
 ### 5.6 Providências (lembretes de contratação, locação e compra)
+- **Texto padronizado (05/11/2026):** ações e lembretes usam **Comprar**, **Alugar** e **Contratar**, sem dois-pontos entre verbo e descrição, em todos os fluxos e documentos. Os títulos antigos salvos são convertidos com auditoria, preservando descrição, prazo, responsável, estado e vínculos; itens distintos não são unidos.
 - Cada lembrete tem só: **tipo**, **o que providenciar**, **data em que precisa estar na obra** (padrão: início da atividade, editável) e **situação** (A providenciar ou Providenciado).
 - **Não tem valor nem fornecedor.** Isso fica em outro sistema (decisão do usuário).
 - "Providenciar até" = início da atividade menos a antecedência do modelo, em dias úteis.
@@ -176,6 +177,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - **PDF** A4 bem formatado no padrão CONTRO, para levar à reunião.
 
 ### 5.10 Reunião semanal (dia e horário do gestor; padrão segunda, 16h)
+- **Preparativo por pessoa (05/11/2026):** A4 paisagem, em três colunas: Atrasadas (antes da data da reunião), Vencendo no dia da reunião e Próximos 15 dias **corridos** após a reunião. Ordenar por vencimento crescente, com divisória entre até 5 dias e de 6 a 15 dias; omitir itens posteriores a 15 dias e ajustar os totais. Itens sem prazo ficam identificados à parte. Mostrar `(#N)` da atividade de origem, com a mesma numeração da obra, após o texto; providências usam a atividade à qual pertencem. Tarefas avulsas não recebem um número inventado.
 - **Reunião e avisos** (gestor, menu do perfil; 28/10/2026): escolhe o **dia** (seg a sex) e o **horário** da reunião e os avisos por push:
   - lembretes da reunião, para todos: **no dia, de manhã** (07:00, 08:00 ou 09:00) e **antes de começar** (30 min, 1 hora ou 2 horas);
   - avisos do dia, seg a sex (**Ações do dia**, 04/11/2026): **ações do dia** (07:30; cada pessoa com login recebe as suas atrasadas e as que vencem hoje; o gestor recebe só o resumo da **equipe inteira**; sem nada a cobrar, não há push) e **providências para começar** (todos ou só gestores; vem desligado). Cada aviso liga/desliga e tem horário. Tocar abre **Minhas ações** (pessoa) ou **Tarefas da equipe** (gestor).

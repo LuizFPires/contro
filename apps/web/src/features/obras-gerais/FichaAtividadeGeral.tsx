@@ -4,7 +4,7 @@ import {
   atalhosDataPrevista,
   diaCurto,
   podePlanejarObraGeral,
-  ROTULO_TIPO_PROVIDENCIA,
+  VERBO_PROVIDENCIA,
   situacaoProvidenciaGeral,
   trilhaObraGeral,
   type SubitemGeral,
@@ -441,7 +441,7 @@ export function FichaAtividadeGeral({
                   {provs.map(({ p, feito, ate, atrasada, venceHoje }) => (
                     <LinhaPara
                       key={p.id}
-                      tipo={ROTULO_TIPO_PROVIDENCIA[p.tipo]}
+                      tipo={VERBO_PROVIDENCIA[p.tipo]}
                       nome={p.descricao}
                       feito={feito}
                       atrasado={atrasada}
@@ -458,7 +458,7 @@ export function FichaAtividadeGeral({
                           `até ${diaCurto(ate)}`
                         )
                       }
-                      onAlternar={() => alternarProv(p.id, !feito, ROTULO_TIPO_PROVIDENCIA[p.tipo])}
+                      onAlternar={() => alternarProv(p.id, !feito, p.descricao)}
                       onMais={planeja ? () => setProvMenuId(p.id) : undefined}
                     />
                   ))}
@@ -470,14 +470,14 @@ export function FichaAtividadeGeral({
               )}
               {planeja && !concluida ? (
                 <div className={fichaStyles.novos}>
-                  {(Object.keys(ROTULO_TIPO_PROVIDENCIA) as TipoProvidencia[]).map((t) => (
+                  {(Object.keys(VERBO_PROVIDENCIA) as TipoProvidencia[]).map((t) => (
                     <button
                       key={t}
                       type="button"
                       className={fichaStyles.novo}
                       onClick={() => setNovoTipo(t)}
                     >
-                      + {ROTULO_TIPO_PROVIDENCIA[t]}
+                      + {VERBO_PROVIDENCIA[t]}
                     </button>
                   ))}
                 </div>
@@ -545,7 +545,7 @@ export function FichaAtividadeGeral({
       <BottomSheet open={Boolean(provMenu)} onClose={() => setProvMenuId(null)}>
         {provMenu ? (
           <div className={linhaStyles.detalhe}>
-            <span className={linhaStyles.detTipo}>{ROTULO_TIPO_PROVIDENCIA[provMenu.tipo]}</span>
+            <span className={linhaStyles.detTipo}>{VERBO_PROVIDENCIA[provMenu.tipo]}</span>
             <h3 className={fichaStyles.provDesc}>{provMenu.descricao}</h3>
             <span className={linhaStyles.detTexto}>
               Providenciar {provMenu.antecedencia_du} dias úteis antes da data prevista

@@ -25,6 +25,7 @@ import { supabase } from './lib/supabase';
 import { Login } from './screens/Login';
 import { NovaSenha } from './screens/NovaSenha';
 import { AguardandoAprovacao } from './screens/AguardandoAprovacao';
+import { FalhaPerfil } from './screens/FalhaPerfil';
 import { MinhasObras, type AbrirObra, type DestinoInicio } from './screens/MinhasObras';
 import { TarefasScreen } from './features/obras/TarefasScreen';
 import { MinhasAcoesScreen } from './features/obras/MinhasAcoesScreen';
@@ -34,7 +35,13 @@ import { NavInferior, type ItemNav } from './screens/NavInferior';
 
 export function App() {
   const { carregando, session, recovery, fecharRecovery } = useSession();
-  const { data: pessoa, isLoading: perfilCarregando } = usePerfil();
+  const {
+    data: pessoa,
+    isLoading: perfilCarregando,
+    isError: perfilErro,
+    isFetching: perfilBuscando,
+    refetch: recarregarPerfil,
+  } = usePerfil();
   const qc = useQueryClient();
   usePush(Boolean(session && pessoa?.ativo), session?.user.id);
   // Lembrada: ao voltar ao app (ou à guia), continua na mesma tela.
@@ -227,9 +234,13 @@ export function App() {
     return <div className="app-placeholder">Carregando…</div>;
   }
 
-  // Logado, mas ainda não aprovado pelo gestor (ou sem pessoa).
-  if (pessoa?.ativo !== true) {
-    return <AguardandoAprovacao nome={pessoa?.nome} />;
+  if (perfilErro || !pessoa) {
+    return <FalhaPerfil tentando={perfilBuscando} onTentar={() => void recarregarPerfil()} />;
+  }
+
+  // Só um perfil carregado e explicitamente inativo está aguardando aprovação.
+  if (!pessoa.ativo) {
+    return <AguardandoAprovacao nome={pessoa.nome} />;
   }
 
   const ehGestor = pessoa.perfil === 'gestor';

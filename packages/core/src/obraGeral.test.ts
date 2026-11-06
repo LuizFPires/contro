@@ -529,7 +529,7 @@ describe('acoesCompletasObraGeral', () => {
       ['providencia', 'pv1', '2026-11-02', 'Carlos Lima'],
     ]);
     // Providência de subitem: dono e atividade a abrir são os da atividade de topo.
-    expect(r[3]).toMatchObject({ texto: 'Compra: Tinta', responsavelId: 'c', atividadeId: 'a1' });
+    expect(r[3]).toMatchObject({ texto: 'Comprar Tinta', responsavelId: 'c', atividadeId: 'a1' });
     expect(r[0]!.atividadeId).toBe('a1');
   });
 

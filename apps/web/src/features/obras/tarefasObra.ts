@@ -1,4 +1,4 @@
-import { nomeCurto } from '@contro/core';
+import { nomeCurto, normalizarTextoProvidencia } from '@contro/core';
 import type { StatusTarefa } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
@@ -68,7 +68,7 @@ export function tarefaDaLinha(l: LinhaTarefa): TarefaObra {
   return {
     id: l.id,
     obra_id: l.obra_id,
-    texto: l.texto,
+    texto: normalizarTextoProvidencia(l.texto),
     responsavel_id: l.responsavel_id,
     responsavelNome: nomeCurto(l.responsavel?.nome ?? l.responsavel_nome) || null,
     responsavelNomeBruto: l.responsavel_nome,

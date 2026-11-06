@@ -198,7 +198,7 @@ describe('carregarResumoObrasGerais · ações completas', () => {
     ]);
     const f = r[1]!;
     expect(f.prazosPendencia).toEqual({ alta: 2, media: 4, baixa: 6 });
-    expect(f.agenda.hoje.map((i) => i.nome)).toEqual(['Compra: Placas']);
+    expect(f.agenda.hoje.map((i) => i.nome)).toEqual(['Comprar Placas']);
     expect(mocks.rpc).toHaveBeenCalledTimes(1);
     expect(mocks.rpc).toHaveBeenCalledWith('config_avisos_da_obra', { p_obra_id: 'o2' });
   });

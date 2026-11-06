@@ -1,3 +1,4 @@
+import { normalizarTextoProvidencia } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 
 export async function marcarSubitem(
@@ -402,7 +403,7 @@ export function argsSalvarTarefa(
   return {
     p_id: t.id ?? null,
     p_obra_id: obraId,
-    p_texto: t.texto,
+    p_texto: normalizarTextoProvidencia(t.texto),
     p_responsavel_id: t.responsavelId,
     p_prazo: t.prazo,
     p_vinculo_tipo: t.vinculoTipo ?? null,

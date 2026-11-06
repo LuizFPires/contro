@@ -3,6 +3,7 @@ import {
   classificarSemana,
   providenciaAtrasada,
   ritmoTexto,
+  textoProvidencia,
   type AtividadeSemana,
   type BoletimDados,
 } from '@contro/core';
@@ -12,12 +13,6 @@ import type { ObraCompleta } from './detalhe';
 import { quemFazOQueBoletim } from './boletimAcoes';
 import { useAcoesDasObras } from './useAcoesDasObras';
 import { BoletimTela } from './BoletimTela';
-
-const TIPO: Record<string, string> = {
-  contratacao: 'Contratação',
-  locacao: 'Locação',
-  compra: 'Compra',
-};
 
 function semanaFmt(): string {
   // Tudo em UTC, consistente com hojeISO()/formatarDataCurta (evita deslocar o dia à noite).
@@ -79,7 +74,7 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
             antecedenciaDu: p.antecedencia_du,
           })
         ) {
-          atrasos.push(`${TIPO[p.tipo]}: ${p.descricao}`);
+          atrasos.push(textoProvidencia(p.tipo, p.descricao));
         }
       }
     }

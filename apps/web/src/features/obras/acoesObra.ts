@@ -58,7 +58,7 @@ export function pendenciaParaAcao(p: PendenciaObra, prazos: PrazosPendencia): Ac
   };
 }
 
-/** Providência sem dono vira ação aberta, sem responsável ("Compra: Cabos"). */
+/** Providência sem dono vira ação aberta, sem responsável ("Comprar Cabos"). */
 export function providenciaParaAcao(p: ProvidenciaSemDono): AcaoObra {
   const { id, obraId, tipo, descricao, prazo } = p;
   return {

@@ -4,7 +4,8 @@
 import { addDU, diaUtilAPartir, type DataISO } from './calendar';
 import type { Criticidade } from './pendencias';
 import { nomeCurto } from './nomes';
-import { ROTULO_TIPO_PROVIDENCIA, type TipoProvidencia } from './trilha';
+import type { TipoProvidencia } from './trilha';
+import { textoProvidencia } from './textoProvidencia';
 
 export type OrigemAcao = 'tarefa' | 'pendencia' | 'providencia' | 'atividade';
 export type EstadoAcao = 'atrasada' | 'hoje' | 'proxima' | 'concluida';
@@ -31,13 +32,13 @@ export interface ProvidenciaBase {
   prazo: DataISO;
 }
 
-/** Providência aberta vira ação sem responsável; o texto leva o tipo ("Compra: Tinta"). */
+/** Providência aberta vira ação sem responsável ("Comprar Tinta"). */
 export function providenciaParaAcaoBase(p: ProvidenciaBase): Acao {
   return {
     origem: 'providencia',
     id: p.id,
     obraId: p.obraId,
-    texto: `${ROTULO_TIPO_PROVIDENCIA[p.tipo]}: ${p.descricao}`,
+    texto: textoProvidencia(p.tipo, p.descricao),
     prazo: p.prazo,
     aberta: true,
     responsavelId: null,

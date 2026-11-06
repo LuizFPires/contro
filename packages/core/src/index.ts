@@ -6,6 +6,7 @@ export * from './calendar';
 export * from './schedule';
 export * from './obra';
 export * from './providencias';
+export * from './textoProvidencia';
 export * from './atividadesAcoes';
 export * from './pendencias';
 export * from './indicadores';

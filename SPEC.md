@@ -126,7 +126,7 @@ reuniao_resposta(reuniao_id, obra_id, secao, item_id, resposta, respondido_por, 
 ```
 
 **Ações (04/11/2026, `packages/core/src/acoes.ts`):** tarefa e pendência (com ou sem responsável) viram `Acao` (tipo, obra, responsável, prazo, concluída em). `prazoPendencia(criticidade, apontadaEm, config)` = `addDU(diaUtilAPartir(apontadaEm), n)` com n = 2 (alta), 4 (média), 6 (baixa) dias úteis (`config_avisos.pend_*_du`). `estadoAcao(acao, hoje)` → atrasada | hoje | proxima | concluida; `classificarAcoes(acoes, hoje, { proximosDU = PROXIMOS_DU (5) })` → `{atrasadas, hoje, proximas, depois, concluidas}` (`proximas`: abertas com `hoje < prazo <= addDU(hoje, proximosDU)`; `depois`: abertas além da janela, nunca exibidas) (a janela de 30 dias das pendências resolvidas não é do core: fica no web, em `acoesVisiveis` de `acoesObra.ts`); `resumoAcoesDia` (contagem por pessoa) e `resumoEquipeDia` (por responsável, ordenado); textos `textoAvisoAcoes`, `textoAvisoEquipe` (≤ 120 caracteres) e `textoResumoSecoes` ("N nos próximos 5 dias"). `agendaDia.ts` ganha o item de tipo `'acao'`. O web só adapta (`acoesObra.ts`, `useAcoesDasObras`, `usePendenciasDasObras`) e não recalcula.
-**Providências como ações (04/11/2026):** `OrigemAcao` inclui `'providencia'` e `providenciaParaAcaoBase` (`acoes.ts`) monta a ação (texto "Contratação: …", sem responsável, prazo = providenciar até). A regra de quais providências viram ação está no core, em `packages/core/src/providencias.ts`: `providenciasSemDono` (pendente, atividade aberta, obra ativa, sem tarefa vinculada aberta; atividades do pré-obra ficam de fora), `semTarefaAberta` (tira as que já têm tarefa aberta no cache otimista) e `prazosParaGravar` (prazos a gravar em `providenciar_ate`); o web (`api.ts`, `useAcoesDasObras`, `acoesObra.ts`) só importa. A lista Hoje nunca mostra a mesma providência duas vezes: sem dono, ela entra como item de providência (não em `agenda.acoes`); com tarefa vinculada aberta, a agenda esconde o item de providência e só a tarefa da pessoa aparece. Os contadores "Ações da equipe" da tela inicial (`acoesAbertas`, `acoesAtrasadas`, `acoesHoje` de `ObraResumo`) somam as `providenciasSemDono` à parte.
+**Providências como ações (04/11/2026):** `OrigemAcao` inclui `'providencia'` e `providenciaParaAcaoBase` (`acoes.ts`) monta a ação (texto "Contratar …", sem responsável, prazo = providenciar até). A regra de quais providências viram ação está no core, em `packages/core/src/providencias.ts`: `providenciasSemDono` (pendente, atividade aberta, obra ativa, sem tarefa vinculada aberta; atividades do pré-obra ficam de fora), `semTarefaAberta` (tira as que já têm tarefa aberta no cache otimista) e `prazosParaGravar` (prazos a gravar em `providenciar_ate`); o web (`api.ts`, `useAcoesDasObras`, `acoesObra.ts`) só importa. A lista Hoje nunca mostra a mesma providência duas vezes: sem dono, ela entra como item de providência (não em `agenda.acoes`); com tarefa vinculada aberta, a agenda esconde o item de providência e só a tarefa da pessoa aparece. Os contadores "Ações da equipe" da tela inicial (`acoesAbertas`, `acoesAtrasadas`, `acoesHoje` de `ObraResumo`) somam as `providenciasSemDono` à parte.
 
 **Atividades como ações (04/11/2026):** `OrigemAcao` inclui `'atividade'` e `atividadeParaAcaoBase` (`acoes.ts`; texto "Atividade: <nome>"). Módulo `packages/core/src/atividadesAcoes.ts`: `atividadesSemDono(atividades, fases, cron, tarefasAbertas, obraId, obraNome)` (topo, não concluída, com fim previsto — da obra ou do pré-obra —, sem tarefa vinculada aberta; o pré-obra entra desde 04/11/2026, `listarObras` junta `cron` e `cronogramaPreObra`), `semTarefaAbertaAtividade` (cache otimista) e `prazosParaGravarAtividades` (valores de `fim_previsto_calc` a gravar). `agendaDia.ts`: a entrada de atividade tem `comTarefa?`; com tarefa vinculada aberta esconde os itens concluir/começar/em andamento (os lembretes dela continuam). `ObraResumo.atividadesSemDono` soma nos contadores "Ações da equipe". Hoje esconde a atividade que tem **qualquer** tarefa vinculada aberta (inclusive de ata). O prazo da tarefa atribuída não acompanha o fim previsto se o cronograma mudar (replanejar a tarefa segue a regra 8). `concluir_atividade` fecha as tarefas vinculadas abertas (com evento `concluida`); `desfazer_conclusao` não mexe em tarefas: o cliente reabre. O Desfazer de Tarefas/Minhas ações reabre a atividade e depois a tarefa; o Desfazer da obra/ficha (`useObraCampo.desfazer`) enfileira `desfazer_conclusao` e um `reabrir_tarefa` por tarefa que a conclusão fechou (as guardadas no concluir ou, sem elas, as feitas da atividade nos últimos 5 minutos, `tarefasFechadasPelaAtividade`). O contador "abertas na equipe" da tela inicial conta só atrasadas, hoje e próximos 5 d.u. (`contarAcoesNaJanela`).
 
@@ -196,6 +196,7 @@ fase concluída / em execução / planejada / com atraso (se tem atividade atras
 ```
 
 ### 4.4 Providências (lembretes)
+Textos em `core/textoProvidencia.ts`: `textoProvidencia(tipo, descricao)` usa Comprar/Alugar/Contratar, sem dois-pontos. `normalizarTextoProvidencia` converte apenas prefixos antigos reconhecidos, preservando texto livre e dois-pontos internos. Migration `20261105210000_padronizar_textos_providencias`: atualiza títulos de tarefas existentes (inclusive feitas/excluídas), registra antes/depois e instala trigger para clientes antigos e operações offline. Mantém RLS, IDs, vínculos e prazos.
 ```
 limite(p)      = ES(atividade) − antecedencia_du
 comecar(p)     = providenciarAte(p) − duracao_du   (core: comecarProvidencia; o Hoje avisa de comecar até o prazo)
@@ -229,6 +230,7 @@ motivo(a) = "falta providenciar" (lembrete pendente) | nada
 ```
 
 ### 4.7 Atribuições ("Quem faz o quê")
+**Preparativo por pessoa (05/11/2026):** `preparoPorPessoa(obras, dataReuniao)` filtra tarefas até reunião +15 dias corridos antes de contar. `colunasPreparoPessoa` separa antes, no dia, +1..+5 e +6..+15, ordenadas por data ISO; a UI imprime as duas últimas faixas na terceira coluna, com divisória. Itens sem prazo continuam visíveis à parte. `numerosPorVinculo(obra)` reutiliza `numeracaoObra` e resolve atividades, subitens e providências; `montarPreparo` acrescenta `(#N)` sem confundir itens de atividades diferentes. O PDF por pessoa usa tabela A4 paisagem com cabeçalhos repetidos nas páginas seguintes.
 Fontes, nesta ordem:
 1. Tarefas da obra (todas as origens), com situação.
 2. Engenheiro da obra:
@@ -236,8 +238,8 @@ Fontes, nesta ordem:
    - "Garantir conclusão: X (prestador)" para cada atividade em `concluir_semana`;
    - "Mobilizar início: X" para cada atividade em `comecar_semana`.
 3. Compras:
-   - "Destravar <tipo>: X" para cada providência atrasada;
-   - "<Contratar|Alugar|Comprar>: X (na obra dd/mm)" para cada providência da semana.
+   - "<Contratar|Alugar|Comprar> X" para cada providência atrasada;
+   - "<Contratar|Alugar|Comprar> X (na obra dd/mm)" para cada providência da semana.
    - Fica de fora a providência que já tem tarefa vinculada.
 
 Agrupar por pessoa (pela função em `papel_texto`: engenheiro, compras, gestão, demais). Ordenar abertas por prazo e deixar as concluídas no fim. Vencida e aberta = vermelho.

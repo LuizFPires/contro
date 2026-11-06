@@ -6,6 +6,7 @@
 // chegam já formatadas pela UI. O WhatsApp segue o padrão de whatsapp.ts.
 import type { DataISO } from './calendar';
 import { SEPARADOR, bolinha, cabecalhoObra, secao } from './whatsapp';
+import { textoProvidencia } from './textoProvidencia';
 
 /** Onde o item está na pauta (uma atividade pode estar em duas seções). */
 export type SecaoResposta =
@@ -116,12 +117,6 @@ export function contarRespondidos(respostas: (RespostaReuniao | null)[]): {
 }
 
 // ---------- Montagem da ata ----------
-
-const VERBO_PROVIDENCIA: Record<string, string> = {
-  contratacao: 'Contratar',
-  locacao: 'Alugar',
-  compra: 'Comprar',
-};
 
 export interface ItemPautaAta {
   id: string;
@@ -260,7 +255,7 @@ export function montarObraAta(e: ObraAtaEntrada): ObraAta {
     }
     if (it.secao === 'semana_providencia') {
       const naObra = it.naObraEmFmt ? ` (na obra ${it.naObraEmFmt})` : '';
-      const base = `${VERBO_PROVIDENCIA[it.tipoProvidencia ?? 'compra']} ${it.nome}${naObra}`;
+      const base = `${textoProvidencia(it.tipoProvidencia ?? 'compra', it.nome)}${naObra}`;
       if (!r)
         providencias.push(
           linha(`${base} · sem resposta`, { semResposta: true, data: it.data ?? null }),
