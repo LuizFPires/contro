@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  acoesDaObraGeral,
+  agendaObraGeral,
+  detalheItemGeral,
+  eficienciaObraGeral,
+  textoAcoesBloco,
+  textoEficiencia,
   atalhosDataPrevista,
   diaCurto,
   podePlanejarObraGeral,
@@ -20,6 +26,7 @@ function ativ(p: Partial<AtividadeGeral> & { id: string }): AtividadeGeral {
     ordem: 1,
     nome: p.id,
     data_prevista: null,
+    data_prevista_original: null,
     replanejamentos: 0,
     responsavel_id: null,
     concluida_em: null,
@@ -223,5 +230,192 @@ describe('podePlanejarObraGeral', () => {
     expect(
       podePlanejarObraGeral({ administrador: false, acessoContorno: false, papelGeral: 'membro' }),
     ).toBe(false);
+  });
+});
+
+describe('agendaObraGeral', () => {
+  const nomes = { c: 'Carlos', p: 'Paula' };
+  const agenda = (atividades: AtividadeGeral[]) =>
+    agendaObraGeral({ atividades, hoje, pessoaId: 'p', nomes });
+
+  it('separa atrasadas e as de hoje, com os textos de linha', () => {
+    const r = agenda([
+      ativ({ id: 'a1', data_prevista: '2026-11-04', responsavel_id: 'c' }),
+      ativ({ id: 'a2', data_prevista: hoje, responsavel_id: 'p' }),
+      ativ({ id: 'a3', data_prevista: hoje }),
+    ]);
+    expect(r.atrasados).toHaveLength(1);
+    expect(r.atrasados[0]).toMatchObject({
+      tipo: 'concluir',
+      chave: 'geral:a1',
+      nome: 'a1',
+      data: '2026-11-04',
+      atraso: true,
+      pessoa: 'Carlos',
+    });
+    expect(detalheItemGeral(r.atrasados[0])).toBe('Carlos · devia terminar qua 04/11');
+    expect(r.hoje.map((i) => detalheItemGeral(i))).toEqual([
+      'Você · previsto concluir hoje',
+      'Sem responsável · previsto concluir hoje',
+    ]);
+  });
+
+  it('deixa de fora sem data, concluídas, futuras e subitens', () => {
+    const r = agenda([
+      ativ({ id: 'a1' }),
+      ativ({ id: 'a2', data_prevista: '2026-11-04', concluida_em: '2026-11-04T10:00:00Z' }),
+      ativ({ id: 'a3', data_prevista: '2026-11-10' }),
+      ativ({ id: 'a4', pai_id: 'a2', data_prevista: '2026-11-01' }),
+    ]);
+    expect(r.atrasados).toEqual([]);
+    expect(r.hoje).toEqual([]);
+  });
+
+  it('usa o último subitem como prazo e ordena atrasados por prazo e nome', () => {
+    const r = agenda([
+      ativ({ id: 'b', nome: 'B', data_prevista: '2026-11-03' }),
+      ativ({ id: 'a', nome: 'A', data_prevista: '2026-11-03' }),
+      ativ({ id: 'p', nome: 'Pai', data_prevista: '2026-11-20' }),
+      ativ({ id: 's1', pai_id: 'p', data_prevista: '2026-11-02' }),
+      ativ({ id: 's2', pai_id: 'p', data_prevista: '2026-11-01' }),
+    ]);
+    expect(r.atrasados.map((i) => i.nome)).toEqual(['Pai', 'A', 'B']);
+    expect(r.atrasados[0].data).toBe('2026-11-02');
+  });
+});
+
+describe('acoesDaObraGeral', () => {
+  it('vira uma ação por atividade de topo com prazo', () => {
+    const r = acoesDaObraGeral(
+      [
+        ativ({ id: 'a1', data_prevista: '2026-11-04', responsavel_id: 'c' }),
+        ativ({ id: 'a2', data_prevista: '2026-11-06', concluida_em: '2026-11-05T12:00:00Z' }),
+        ativ({ id: 'a3' }),
+        ativ({ id: 's1', pai_id: 'a1', data_prevista: '2026-11-09' }),
+      ],
+      'o1',
+      'Obra',
+      { c: 'Carlos' },
+    );
+    expect(r).toEqual([
+      {
+        origem: 'atividade',
+        id: 'a1',
+        obraId: 'o1',
+        texto: 'a1',
+        prazo: '2026-11-09',
+        aberta: true,
+        responsavelId: 'c',
+        responsavelNome: 'Carlos',
+        concluidaEm: null,
+      },
+      {
+        origem: 'atividade',
+        id: 'a2',
+        obraId: 'o1',
+        texto: 'a2',
+        prazo: '2026-11-06',
+        aberta: false,
+        responsavelId: null,
+        responsavelNome: null,
+        concluidaEm: '2026-11-05T12:00:00Z',
+      },
+    ]);
+  });
+});
+
+describe('eficienciaObraGeral', () => {
+  const concl = (id: string, prazo: string, em: string, extra?: Partial<AtividadeGeral>) =>
+    ativ({ id, data_prevista: prazo, concluida_em: em, ...extra });
+
+  it('conta concluídas no prazo e abertas atrasadas', () => {
+    const r = eficienciaObraGeral(
+      [
+        concl('a', '2026-11-02', '2026-11-02T10:00:00'),
+        concl('b', '2026-11-03', '2026-11-02T10:00:00'),
+        concl('c', '2026-11-02', '2026-11-04T10:00:00'),
+        ativ({ id: 'd', data_prevista: '2026-11-03' }),
+        ativ({ id: 'e', data_prevista: '2026-11-09' }),
+      ],
+      hoje,
+    );
+    expect(r).toEqual({ noPrazo: 2, total: 4, pct: 50 });
+    expect(textoEficiencia(r)).toBe('50% no prazo');
+  });
+
+  it('usa o prazo original: replanejada concluída depois da original fica fora', () => {
+    const r = eficienciaObraGeral(
+      [
+        concl('a', '2026-11-04', '2026-11-04T10:00:00', {
+          data_prevista_original: '2026-11-02',
+        }),
+      ],
+      hoje,
+    );
+    expect(r).toEqual({ noPrazo: 0, total: 1, pct: 0 });
+  });
+
+  it('sem nada vencido nem concluído não há porcentagem', () => {
+    const r = eficienciaObraGeral(
+      [ativ({ id: 'a', data_prevista: '2026-11-09' }), ativ({ id: 'b' })],
+      hoje,
+    );
+    expect(r).toEqual({ noPrazo: 0, total: 0, pct: null });
+    expect(textoEficiencia(r)).toBeNull();
+  });
+});
+
+describe('textoAcoesBloco', () => {
+  const ac = (id: string, prazo: string, resp: string | null, aberta = true) => ({
+    origem: 'atividade' as const,
+    id,
+    obraId: 'o1',
+    texto: id,
+    prazo,
+    aberta,
+    responsavelId: resp,
+    responsavelNome: null,
+  });
+  const lista = [
+    ac('1', '2026-11-04', 'p'),
+    ac('2', hoje, 'p'),
+    ac('3', hoje, 'x'),
+    ac('4', '2026-11-09', 'x'),
+    ac('5', '2026-11-01', 'x', false),
+  ];
+
+  it('modo equipe', () => {
+    expect(textoAcoesBloco(lista, hoje, 'p', false)).toEqual({
+      principal: '4 abertas na obra',
+      detalhe: '1 atrasada',
+      atrasadas: 1,
+    });
+  });
+  it('modo da pessoa, com atrasadas e vencendo hoje', () => {
+    expect(textoAcoesBloco(lista, hoje, 'p', true)).toEqual({
+      principal: '2 suas abertas',
+      detalhe: '1 atrasada',
+      atrasadas: 1,
+    });
+  });
+  it('singular, plural e vence hoje', () => {
+    expect(textoAcoesBloco([ac('2', hoje, 'p')], hoje, 'p', true)).toEqual({
+      principal: '1 sua aberta',
+      detalhe: '1 vence hoje',
+      atrasadas: 0,
+    });
+    expect(textoAcoesBloco([ac('2', hoje, 'p'), ac('3', hoje, 'p')], hoje, 'p', true).detalhe).toBe(
+      '2 vencem hoje',
+    );
+    expect(
+      textoAcoesBloco([ac('1', '2026-11-01', 'p'), ac('2', '2026-11-02', 'p')], hoje, 'p', false),
+    ).toMatchObject({ principal: '2 abertas na obra', detalhe: '2 atrasadas' });
+  });
+  it('sem nada a destacar não há detalhe', () => {
+    expect(textoAcoesBloco([ac('4', '2026-11-09', 'p')], hoje, 'p', true)).toEqual({
+      principal: '1 sua aberta',
+      detalhe: null,
+      atrasadas: 0,
+    });
   });
 });

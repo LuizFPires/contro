@@ -1,6 +1,8 @@
 import type { AcessoPessoa } from './ambiente';
 import { addDU, type DataISO } from './calendar';
-import { atrasoDU } from './datas';
+import type { Acao } from './acoes';
+import type { AgendaObra, ItemDia } from './agendaDia';
+import { atrasoDU, diaLocal } from './datas';
 
 // Obra geral: a data prevista é digitada pelo coordenador, sem cálculo de cronograma.
 
@@ -11,6 +13,8 @@ export interface AtividadeGeral {
   ordem: number;
   nome: string;
   data_prevista: DataISO | null;
+  /** Primeira data prevista; fica fixa nos replanejamentos. */
+  data_prevista_original: DataISO | null;
   replanejamentos: number;
   responsavel_id: string | null;
   concluida_em: string | null;
@@ -195,4 +199,146 @@ export function atalhosDataPrevista(hoje: DataISO): { valor: DataISO; rotulo: st
 /** Só esconde e mostra botões; quem decide de verdade é o banco (contro_planeja_obra). */
 export function podePlanejarObraGeral(p: AcessoPessoa): boolean {
   return p.administrador || p.papelGeral === 'coordenador';
+}
+
+function filhosPorPai(atividades: AtividadeGeral[]): Map<string, AtividadeGeral[]> {
+  const filhos = new Map<string, AtividadeGeral[]>();
+  for (const a of [...atividades].sort((x, y) => x.ordem - y.ordem)) {
+    if (a.pai_id === null) continue;
+    filhos.set(a.pai_id, [...(filhos.get(a.pai_id) ?? []), a]);
+  }
+  return filhos;
+}
+
+function quemGeral(
+  responsavelId: string | null,
+  pessoaId: string | null,
+  nomes: Record<string, string>,
+): string {
+  if (responsavelId !== null && responsavelId === pessoaId) return 'Você';
+  return (responsavelId ? nomes[responsavelId] : undefined) ?? 'Sem responsável';
+}
+
+/** "Hoje" da obra geral: atividades de topo abertas, com prazo, atrasadas ou para hoje. */
+export function agendaObraGeral(e: {
+  atividades: AtividadeGeral[];
+  hoje: DataISO;
+  pessoaId: string | null;
+  nomes: Record<string, string>;
+}): AgendaObra {
+  const filhos = filhosPorPai(e.atividades);
+  const atrasados: ItemDia[] = [];
+  const hoje: ItemDia[] = [];
+  for (const a of e.atividades) {
+    if (a.pai_id !== null || a.concluida_em !== null) continue;
+    const prazo = prazoAtividadeGeral(a, filhos.get(a.id) ?? []);
+    if (!prazo) continue;
+    const status = statusAtividadeGeral(null, prazo, e.hoje);
+    if (status !== 'atrasada' && status !== 'vence_hoje') continue;
+    const item: ItemDia = {
+      chave: `geral:${a.id}`,
+      tipo: 'concluir',
+      nome: a.nome,
+      data: prazo,
+      atraso: status === 'atrasada',
+      pessoa: quemGeral(a.responsavel_id, e.pessoaId, e.nomes),
+    };
+    (item.atraso ? atrasados : hoje).push(item);
+  }
+  atrasados.sort((x, y) => x.data.localeCompare(y.data) || x.nome.localeCompare(y.nome, 'pt-BR'));
+  hoje.sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR'));
+  return { atrasados, hoje };
+}
+
+/** Texto de linha do Hoje para atividade de obra geral. */
+export function detalheItemGeral(i: ItemDia): string {
+  const quem = i.pessoa ?? 'Sem responsável';
+  return i.atraso
+    ? `${quem} · devia terminar ${diaCurto(i.data)}`
+    : `${quem} · previsto concluir hoje`;
+}
+
+/** Uma ação por atividade de topo com prazo (sem prazo, fica fora: `Acao.prazo` é obrigatório). */
+export function acoesDaObraGeral(
+  atividades: AtividadeGeral[],
+  obraId: string,
+  obraNome: string,
+  nomes: Record<string, string>,
+): Acao[] {
+  void obraNome;
+  const filhos = filhosPorPai(atividades);
+  const acoes: Acao[] = [];
+  for (const a of atividades) {
+    if (a.pai_id !== null) continue;
+    const prazo = prazoAtividadeGeral(a, filhos.get(a.id) ?? []);
+    if (!prazo) continue;
+    acoes.push({
+      origem: 'atividade',
+      id: a.id,
+      obraId,
+      texto: a.nome,
+      prazo,
+      aberta: a.concluida_em === null,
+      responsavelId: a.responsavel_id,
+      responsavelNome: a.responsavel_id ? (nomes[a.responsavel_id] ?? null) : null,
+      concluidaEm: a.concluida_em,
+    });
+  }
+  return acoes;
+}
+
+export interface EficienciaGeral {
+  noPrazo: number;
+  total: number;
+  pct: number | null;
+}
+
+/** Concluídas contra o prazo original e abertas já atrasadas. */
+export function eficienciaObraGeral(atividades: AtividadeGeral[], hoje: DataISO): EficienciaGeral {
+  const filhos = filhosPorPai(atividades);
+  let noPrazo = 0;
+  let total = 0;
+  for (const a of atividades) {
+    if (a.pai_id !== null) continue;
+    if (a.concluida_em !== null) {
+      const original =
+        a.data_prevista_original ??
+        a.data_prevista ??
+        prazoAtividadeGeral(a, filhos.get(a.id) ?? []);
+      if (!original) continue;
+      total += 1;
+      if (atrasoDU(original, diaLocal(a.concluida_em)) === 0) noPrazo += 1;
+    } else {
+      const prazo = prazoAtividadeGeral(a, filhos.get(a.id) ?? []);
+      if (prazo && atrasoDU(prazo, hoje) > 0) total += 1;
+    }
+  }
+  return { noPrazo, total, pct: total === 0 ? null : Math.round((100 * noPrazo) / total) };
+}
+
+export function textoEficiencia(e: EficienciaGeral): string | null {
+  return e.pct === null ? null : `${e.pct}% no prazo`;
+}
+
+/** Bloco "Ações da equipe" da obra: visão da obra (coordenador) ou só da pessoa (membro). */
+export function textoAcoesBloco(
+  acoes: Acao[],
+  hoje: DataISO,
+  pessoaId: string | null,
+  soDaPessoa: boolean,
+): { principal: string; detalhe: string | null; atrasadas: number } {
+  const abertas = acoes.filter(
+    (a) => a.aberta && (!soDaPessoa || (pessoaId !== null && a.responsavelId === pessoaId)),
+  );
+  const atrasadas = abertas.filter((a) => atrasoDU(a.prazo, hoje) > 0).length;
+  const vencemHoje = abertas.filter((a) => a.prazo === hoje).length;
+  const n = abertas.length;
+  const principal = soDaPessoa
+    ? `${n} ${n === 1 ? 'sua aberta' : 'suas abertas'}`
+    : `${n} ${n === 1 ? 'aberta' : 'abertas'} na obra`;
+  let detalhe: string | null = null;
+  if (atrasadas > 0) detalhe = `${atrasadas} ${atrasadas === 1 ? 'atrasada' : 'atrasadas'}`;
+  else if (soDaPessoa && vencemHoje > 0)
+    detalhe = `${vencemHoje} ${vencemHoje === 1 ? 'vence' : 'vencem'} hoje`;
+  return { principal, detalhe, atrasadas };
 }
