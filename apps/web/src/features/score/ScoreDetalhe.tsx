@@ -1,11 +1,12 @@
+import type { ReactNode } from 'react';
 import {
   tendencia,
+  type Ambiente,
   type IndicadoresEquipe,
   type IndicadoresPrestador,
   type Janela,
 } from '@contro/core';
 import { Icon } from '@contro/ui';
-import { NavInferior, type ItemNav } from '../../screens/NavInferior';
 import { hojeISO } from '../obras/api';
 import { EvolucaoScore } from './EvolucaoScore';
 import { decimal, du, pct } from './formato';
@@ -102,9 +103,10 @@ export function ScoreDetalhe({
   score30,
   score90,
   voce,
+  ambiente = 'contorno',
   onJanela,
   onVoltar,
-  onNav,
+  menu,
 }: {
   linha: LinhaQualquer;
   aba: AbaScore;
@@ -112,12 +114,14 @@ export function ScoreDetalhe({
   score30: number | null;
   score90: number | null;
   voce: boolean;
+  ambiente?: Ambiente;
   onJanela: (j: Janela) => void;
   onVoltar: () => void;
-  onNav: (item: ItemNav) => void;
+  /** Menu de baixo, o mesmo da lista do Score. */
+  menu: ReactNode;
 }) {
   const hoje = hojeISO();
-  const { data: historico = [] } = useScoreHistorico(aba, l.chave, hoje);
+  const { data: historico = [] } = useScoreHistorico(aba, l.chave, hoje, ambiente);
   const t = tendencia(score30, score90);
   const kpis = aba === 'equipe' ? kpisEquipe(l) : kpisPrestador(l);
   const unidade = aba === 'equipe' ? 'ações' : 'atividades';
@@ -210,7 +214,7 @@ export function ScoreDetalhe({
         )}
       </div>
 
-      <NavInferior ativo="score" onEscolher={onNav} />
+      {menu}
     </div>
   );
 }

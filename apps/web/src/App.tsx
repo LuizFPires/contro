@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Ambiente } from '@contro/core';
 import { esquecerTelas, lembrar, useLembrado } from './lib/useLembrado';
 import { useQueryClient } from '@tanstack/react-query';
@@ -10,6 +10,8 @@ import { usePerfil } from './features/perfil/usePerfil';
 import { useAmbiente } from './features/perfil/useAmbiente';
 import { ObrasGeraisCasca } from './features/obras-gerais/ObrasGeraisCasca';
 import { guardarAbaGeral } from './features/obras-gerais/abaObraGeral';
+import type { AbaGeral } from './features/obras-gerais/NavGeral';
+import { chaveFiltroLog } from './features/log/formatos';
 import { PessoasAcessos } from './features/obras-gerais/PessoasAcessos';
 import { ModelosScreen } from './features/modelos/ModelosScreen';
 import { SyncIndicator } from './features/offline/SyncIndicator';
@@ -28,7 +30,7 @@ import { TarefasScreen } from './features/obras/TarefasScreen';
 import { MinhasAcoesScreen } from './features/obras/MinhasAcoesScreen';
 import { LogScreen } from './features/log/LogScreen';
 import { ScoreScreen } from './features/score/ScoreScreen';
-import type { ItemNav } from './screens/NavInferior';
+import { NavInferior, type ItemNav } from './screens/NavInferior';
 
 export function App() {
   const { carregando, session, recovery, fecharRecovery } = useSession();
@@ -48,6 +50,8 @@ export function App() {
 
   // Aviso tocado: o ambiente do destino é ajustado quando o perfil carregar.
   const [avisoPendente, setAvisoPendente] = useState<Ambiente | null>(null);
+  // Aba das obras gerais que o aviso abre (?ir=geral-score | geral-log; senão o Hoje).
+  const abaGeralDoAviso = useRef<AbaGeral>('hoje');
   // Cada entrada pelo aviso do Hoje geral remonta a casca para reler a aba da sessão.
   const [entradaGeral, setEntradaGeral] = useState(0);
 
@@ -124,12 +128,16 @@ export function App() {
       window.history.replaceState(null, '', window.location.pathname);
       return;
     }
-    // Avisos das obras gerais: abrem o Hoje de Obras gerais.
-    if (ir === 'geral-hoje') {
+    // Avisos das obras gerais: abrem o Hoje (ou o Score, ou o Log) de Obras gerais.
+    if (ir === 'geral-hoje' || ir === 'geral-score' || ir === 'geral-log') {
       lembrar('obrasgerais:reuniao', null);
       lembrar('obrasgerais:avisos', null);
       lembrar('obrasgerais:boletim', null);
       lembrar('obrasgerais:boletimConfig', null);
+      // O Log aberto por aviso começa em todas as obras, como na Contorno.
+      if (ir === 'geral-log') lembrar(chaveFiltroLog('geral', 'obra'), null);
+      abaGeralDoAviso.current =
+        ir === 'geral-score' ? 'score' : ir === 'geral-log' ? 'log' : 'hoje';
       setAvisoPendente('geral');
       window.history.replaceState(null, '', window.location.pathname);
       return;
@@ -150,8 +158,8 @@ export function App() {
 
   // Aviso tocado, depois do perfil carregado: vai ao ambiente do destino.
   // Aviso da Contorno: vai para a Contorno sem perder o destino (sem acesso, fica em
-  // Obras gerais). Aviso das obras gerais: vai para Obras gerais na aba Hoje, com a obra
-  // lembrada intacta (sem acesso, ignora o link).
+  // Obras gerais). Aviso das obras gerais: vai para Obras gerais na aba do aviso (Hoje,
+  // Score ou Log), com a obra lembrada intacta (sem acesso, ignora o link).
   useEffect(() => {
     if (!avisoPendente || perfilCarregando || !pessoa) return;
     if (disponiveis.length === 0) return;
@@ -162,7 +170,8 @@ export function App() {
         lembrar('obrasgerais:boletim', null);
         return;
       }
-      guardarAbaGeral('hoje');
+      guardarAbaGeral(abaGeralDoAviso.current);
+      abaGeralDoAviso.current = 'hoje';
       lembrar('obrasgerais:pessoas', null);
       irPara('geral');
       setTela('inicio');
@@ -294,12 +303,22 @@ export function App() {
             onAbrirPendencia={abrirPendencia('minhas')}
           />
         ) : tela === 'score' ? (
-          <ScoreScreen onNav={irNav} />
+          <ScoreScreen
+            menu={(antesDeIr) => (
+              <NavInferior
+                ativo="score"
+                onEscolher={(item) => {
+                  antesDeIr?.();
+                  irNav(item);
+                }}
+              />
+            )}
+          />
         ) : tela === 'log' ? (
           <LogScreen
             key={`${logObra ?? 'todas'}:${logEntrada}`}
             obraInicial={logObra}
-            onNav={irNav}
+            menu={<NavInferior ativo="log" onEscolher={irNav} />}
             onVoltar={
               logObra
                 ? () => {

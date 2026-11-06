@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { rotuloAmbiente, type Ambiente } from '@contro/core';
 import { Icon, Logo, Simbolo } from '@contro/ui';
-import { useLembrado } from '../../lib/useLembrado';
+import { lembrar, useLembrado } from '../../lib/useLembrado';
+import { chaveFiltroLog } from '../log/formatos';
+import { LogScreen } from '../log/LogScreen';
+import { ScoreScreen } from '../score/ScoreScreen';
 import { ItemMenu, PerfilSheet } from '../perfil/PerfilSheet';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { abaGeralDaSessao, guardarAbaGeral, obraDaAbaGeral } from './abaObraGeral';
@@ -32,9 +35,11 @@ interface TelaAcoes {
 }
 
 /**
- * Casca das obras gerais: cabeçalho (marca, ambiente, perfil), a aba (Hoje ou
- * Obra/Obras) e o menu de baixo. Abre no Hoje. O Administrador vê a lista em Obras e
- * abre a obra em tela própria; Coordenador e Membro têm a obra como aba.
+ * Casca das obras gerais: cabeçalho (marca, ambiente, perfil), a aba (Hoje,
+ * Obra/Obras, Score ou Log) e o menu de baixo. Abre no Hoje. Score e Log abrem aqui,
+ * com o mesmo menu, e mostram só as obras gerais que a pessoa vê. O Administrador vê
+ * a lista em Obras e abre a obra em tela própria; Coordenador e Membro têm a obra como
+ * aba.
  */
 export function ObrasGeraisCasca({
   pessoa,
@@ -152,17 +157,33 @@ export function ObrasGeraisCasca({
     setObraAberta(r.obraAnterior);
     setAba('hoje');
   };
-  // Tocar numa aba do menu esquece de onde a tela veio.
+  // Tocar numa aba do menu esquece de onde a tela veio. O Log pelo menu começa em
+  // todas as obras (como na Contorno); a remontagem relê o filtro lembrado.
+  const [logEntrada, setLogEntrada] = useState(0);
   const escolherAba = (a: AbaGeral) => {
     setRetornoAcoes(null);
     setRetornoHoje(null);
+    if (a === 'log') {
+      lembrar(chaveFiltroLog('geral', 'obra'), null);
+      setLogEntrada((n) => n + 1);
+    }
     setAba(a);
   };
   const lista = obras ?? [];
   const agendas = (resumo ?? []).map((o) => o.agenda);
-  const nav = (
-    <NavGeral ativo={aba} administrador={admin} agendas={agendas} onEscolher={escolherAba} />
+  // `antesDeIr`: o detalhe do Score fecha antes de trocar de aba.
+  const navCom = (antesDeIr?: () => void) => (
+    <NavGeral
+      ativo={aba}
+      administrador={admin}
+      agendas={agendas}
+      onEscolher={(a) => {
+        antesDeIr?.();
+        escolherAba(a);
+      }}
+    />
   );
+  const nav = navCom();
 
   const detalhe = (id: string, semVoltar: boolean) => (
     <ObraGeralDetalhe
@@ -361,6 +382,10 @@ export function ObrasGeraisCasca({
       />
     );
   }
+
+  // Score e Log: telas próprias com o menu (antes da obra aberta, que é da aba Obra).
+  if (aba === 'score') return <ScoreScreen ambiente="geral" menu={navCom} />;
+  if (aba === 'log') return <LogScreen key={logEntrada} ambiente="geral" menu={nav} />;
 
   // Administrador: na aba Obras, a obra abre em tela própria (sem o menu); o Voltar
   // volta à lista. Fora dela, a obra lembrada espera o toque em Obras.
