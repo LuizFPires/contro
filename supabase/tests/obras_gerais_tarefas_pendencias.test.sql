@@ -1,11 +1,11 @@
 -- Obras gerais · Etapa 4: tarefas e pendências na obra geral. Tarefa: criar,
 -- editar, atribuir, excluir e restaurar = quem planeja (Coordenador,
 -- Administrador); concluir, reabrir e informar avanço = qualquer participante.
--- Responsável = pessoa da obra ou Administrador, sem nome livre. Pendência:
+-- Responsável = pessoa da obra, Administrador ou nome livre (etapa 5). Pendência:
 -- tudo para qualquer participante, menos atribuir (quem planeja). Quem não
 -- participa leva 42501. A Contorno continua igual.
 begin;
-select plan(74);
+select plan(75);
 
 -- Elenco: K equipe Contorno, A administrador (fora de G), C coordenador de G,
 -- J membro de G, X membro só de G2.
@@ -69,11 +69,14 @@ select is(
 select throws_ok($$ select salvar_tarefa(null, '00000000-0000-0000-0000-00000034f002',
     'Fora', (select id from ids where quem = 'X'), '2026-11-20') $$,
   '22023', null, 'responsável de fora da obra → 22023');
-select throws_ok($$ select salvar_tarefa(null, '00000000-0000-0000-0000-00000034f002',
-    'Nome livre', null, '2026-11-20', p_responsavel_nome => 'Zé Pedreiro') $$,
-  '22023', null, 'nome livre em obra geral → 22023');
-select is((select count(*)::int from tarefa where obra_id = '00000000-0000-0000-0000-00000034f002'), 3,
-  'só as três tarefas válidas existem');
+select is(
+  salvar_tarefa('00000000-0000-0000-0000-00000034f404', '00000000-0000-0000-0000-00000034f002',
+    'Nome livre', null, '2026-11-20', p_responsavel_nome => 'Zé Pedreiro'),
+  '00000000-0000-0000-0000-00000034f404'::uuid, 'nome livre em obra geral é aceito (etapa 5)');
+select is((select responsavel_nome from tarefa where id = '00000000-0000-0000-0000-00000034f404'), 'Zé Pedreiro',
+  'obra geral: nome livre gravado');
+select is((select count(*)::int from tarefa where obra_id = '00000000-0000-0000-0000-00000034f002'), 4,
+  'só as quatro tarefas válidas existem');
 select is(
   salvar_tarefa('00000000-0000-0000-0000-00000034f401', '00000000-0000-0000-0000-00000034f002',
     'Comprar cimento CP-II', (select id from ids where quem = 'C'), '2026-11-24', p_motivo => 'fornecedor'),

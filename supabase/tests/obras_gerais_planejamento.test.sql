@@ -3,7 +3,7 @@
 -- Administrador e o Coordenador participante; Membro não planeja. A Contorno
 -- não muda (membro escreve direto e exclui atividade como hoje).
 begin;
-select plan(88);
+select plan(89);
 
 -- Elenco: M equipe Contorno, A administrador (fora de G), C coordenador de G,
 -- J membro de G, C2 coordenador de G2 (não participa de G).
@@ -247,7 +247,7 @@ select throws_ok($$ select definir_responsavel_atividade('00000000-0000-0000-000
 select lives_ok($$ select definir_responsavel_atividade('00000000-0000-0000-0000-00000002f211', null) $$, 'null tira o responsavel');
 select is((select responsavel_id from obra_atividade where id = '00000000-0000-0000-0000-00000002f211'), null, 'sem responsavel');
 
--- Prestador em obra geral: só aparado, sem sugestao
+-- Prestador em obra geral: aparado e gravado nas sugestões gerais (etapa 5)
 update obra_atividade set prestador = '  Concreteira   Alfa ' where id = '00000000-0000-0000-0000-00000002f211';
 select is((select prestador from obra_atividade where id = '00000000-0000-0000-0000-00000002f211'), 'Concreteira Alfa',
   'prestador em obra geral aparado e com espacos unicos');
@@ -298,8 +298,10 @@ select lives_ok($$ select excluir_atividade_obra('00000000-0000-0000-0000-000000
 update obra_atividade set prestador = '  Concreteira   Alfa ' where id = '00000000-0000-0000-0000-00000002f201';
 
 reset role;
-select is((select usos from sugestao where tipo = 'prestador' and texto = 'Concreteira Alfa'), 1,
-  'prestador da Contorno cria a sugestao com 1 uso (a obra geral nao criou)');
+select is((select usos from sugestao where ambiente = 'contorno' and tipo = 'prestador' and texto = 'Concreteira Alfa'), 1,
+  'prestador da Contorno cria a sugestao da Contorno com 1 uso (a obra geral nao conta)');
+select is((select usos from sugestao where ambiente = 'geral' and tipo = 'prestador' and texto = 'Concreteira Alfa'), 1,
+  'prestador da obra geral cria a sugestao geral com 1 uso');
 
 select * from finish();
 rollback;
