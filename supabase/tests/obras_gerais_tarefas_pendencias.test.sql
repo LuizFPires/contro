@@ -5,7 +5,7 @@
 -- tudo para qualquer participante, menos atribuir (quem planeja). Quem não
 -- participa leva 42501. A Contorno continua igual.
 begin;
-select plan(65);
+select plan(74);
 
 -- Elenco: K equipe Contorno, A administrador (fora de G), C coordenador de G,
 -- J membro de G, X membro só de G2.
@@ -137,6 +137,13 @@ select lives_ok($$ select reabrir_pendencia('00000000-0000-0000-0000-00000034f50
 select is((select status from pendencia where id = '00000000-0000-0000-0000-00000034f501'), 'aberta', 'pendência aberta de novo');
 select lives_ok($$ select excluir_pendencia('00000000-0000-0000-0000-00000034f501') $$, 'Membro exclui pendência');
 select lives_ok($$ select restaurar_pendencia('00000000-0000-0000-0000-00000034f501') $$, 'Membro restaura pendência');
+select lives_ok($$ select adiar_pendencia('00000000-0000-0000-0000-00000034f501', current_date + 7, 'sem material') $$,
+  'Membro adia pendência');
+select is((select adiada_ate from pendencia where id = '00000000-0000-0000-0000-00000034f501'), current_date + 7,
+  'pendência adiada');
+select lives_ok($$ select trazer_pendencia('00000000-0000-0000-0000-00000034f501') $$, 'Membro traz pendência de volta');
+select is((select adiada_ate from pendencia where id = '00000000-0000-0000-0000-00000034f501'), null,
+  'pendência trazida de volta');
 
 -- C atribui pendência: responsável da obra ou Administrador
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000034d3","role":"authenticated"}';
@@ -185,6 +192,10 @@ select throws_ok($$ select excluir_pendencia('00000000-0000-0000-0000-00000034f5
   '42501', null, 'Contorno: não exclui pendência de G');
 select throws_ok($$ select restaurar_pendencia('00000000-0000-0000-0000-00000034f501') $$,
   '42501', null, 'Contorno: não restaura pendência de G');
+select throws_ok($$ select adiar_pendencia('00000000-0000-0000-0000-00000034f501', current_date + 7, 'x') $$,
+  '42501', null, 'Contorno: não adia pendência de G');
+select throws_ok($$ select trazer_pendencia('00000000-0000-0000-0000-00000034f501') $$,
+  '42501', null, 'Contorno: não traz pendência de G');
 select throws_ok($$ select atribuir_pendencia('00000000-0000-0000-0000-00000034f501', (select id from ids where quem = 'J')) $$,
   '42501', null, 'Contorno: não atribui pendência de G');
 
@@ -208,6 +219,12 @@ select is(
   '00000000-0000-0000-0000-00000034f511'::uuid, 'Contorno: membro aponta pendência');
 select lives_ok($$ select atribuir_pendencia('00000000-0000-0000-0000-00000034f511', (select id from ids where quem = 'X')) $$,
   'Contorno: membro atribui pendência a qualquer pessoa ativa, como hoje');
+select lives_ok($$ select adiar_pendencia('00000000-0000-0000-0000-00000034f511', current_date + 3, 'chuva') $$,
+  'Contorno: membro adia pendência');
+select lives_ok($$ select trazer_pendencia('00000000-0000-0000-0000-00000034f511') $$,
+  'Contorno: membro traz pendência de volta');
+select is((select adiada_ate from pendencia where id = '00000000-0000-0000-0000-00000034f511'), null,
+  'Contorno: pendência trazida de volta');
 select lives_ok($$ select resolver_pendencia('00000000-0000-0000-0000-00000034f511', '00000000-0000-0000-0000-00000034f304') $$,
   'Contorno: membro resolve pendência');
 

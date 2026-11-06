@@ -12,7 +12,7 @@
 -- Decisões 3–4 do plano da etapa 4:
 --   tarefa: salvar (criar/editar/atribuir), excluir e restaurar = quem planeja;
 --           concluir, reabrir e informar avanço = qualquer participante.
---   pendência: apontar, resolver, editar, reabrir, excluir e restaurar =
+--   pendência: apontar, resolver, editar, reabrir, adiar, trazer, excluir e restaurar =
 --           qualquer participante; atribuir responsável = quem planeja.
 -- Na Contorno, contro_ve_obra = contro_planeja_obra = contro_e_membro() (com a
 -- obra não apagada): comportamento igual.
@@ -27,6 +27,7 @@
 --   editar_pendencia, excluir_pendencia, restaurar_pendencia
 --                                 20261028120000_editar_excluir_pendencia.sql
 --   reabrir_pendencia             20261028140000_reabrir_pendencia_fechada.sql
+--   adiar_pendencia, trazer_pendencia  20261024340000_pendencias_idempotente.sql
 --   atribuir_pendencia            20261103160000_responsavel_checklist.sql
 --   notificar_atribuicao_tarefa   20261103110000_notificar_atribuicao_tarefa.sql
 -- Os grants permanecem, pois as assinaturas não mudam.
@@ -569,6 +570,78 @@ begin
   end if;
   insert into public.pendencia_evento (pendencia_id, tipo, por)
   values (p_id, 'restaurada', public.contro_pessoa_atual());
+end;
+$$;
+
+create or replace function adiar_pendencia(
+  p_id uuid,
+  p_data date,
+  p_motivo text,
+  p_client_op_id uuid default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare v_pessoa uuid; v_status text; v_obra uuid;
+begin
+  if not public.contro_tem_acesso() then
+    raise exception 'Apenas membros' using errcode = '42501';
+  end if;
+  if not public.contro_op_nova(p_client_op_id) then return; end if;
+  select status, obra_id into v_status, v_obra from public.pendencia where id = p_id and deleted_at is null;
+  if v_status is null then
+    raise exception 'Pendência inválida' using errcode = '23503';
+  end if;
+  if not public.contro_ve_obra(v_obra) then
+    raise exception 'sem acesso a esta obra' using errcode = '42501';
+  end if;
+  if v_status <> 'aberta' then
+    raise exception 'Só adia pendência aberta' using errcode = '42501';
+  end if;
+  if p_data is null or p_data <= current_date then
+    raise exception 'Data de retorno deve ser futura' using errcode = '23514';
+  end if;
+  v_pessoa := public.contro_pessoa_atual();
+  update public.pendencia
+  set adiada_ate = p_data, motivo_adiamento = p_motivo
+  where id = p_id;
+  insert into public.pendencia_evento (pendencia_id, tipo, por, dados)
+  values (p_id, 'adiada', v_pessoa, jsonb_build_object('adiada_ate', p_data, 'motivo', p_motivo));
+end;
+$$;
+
+create or replace function trazer_pendencia(p_id uuid, p_client_op_id uuid default null)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare v_pessoa uuid; v_obra uuid; v_status text; v_topo numeric;
+begin
+  if not public.contro_tem_acesso() then
+    raise exception 'Apenas membros' using errcode = '42501';
+  end if;
+  if not public.contro_op_nova(p_client_op_id) then return; end if;
+  select obra_id, status into v_obra, v_status
+  from public.pendencia where id = p_id and deleted_at is null;
+  if v_obra is null then
+    raise exception 'Pendência inválida' using errcode = '23503';
+  end if;
+  if not public.contro_ve_obra(v_obra) then
+    raise exception 'sem acesso a esta obra' using errcode = '42501';
+  end if;
+  if v_status <> 'aberta' then
+    raise exception 'Só traz pendência aberta' using errcode = '42501';
+  end if;
+  v_pessoa := public.contro_pessoa_atual();
+  select coalesce(min(ordem_fila), 0) - 1 into v_topo from public.pendencia where obra_id = v_obra;
+  update public.pendencia
+  set adiada_ate = null, motivo_adiamento = null, ordem_fila = v_topo
+  where id = p_id;
+  insert into public.pendencia_evento (pendencia_id, tipo, por)
+  values (p_id, 'trazida', v_pessoa);
 end;
 $$;
 
