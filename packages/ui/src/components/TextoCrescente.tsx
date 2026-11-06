@@ -30,11 +30,27 @@ export function TextoCrescente({
   const campoId = id ?? autoId;
   const ref = useRef<HTMLTextAreaElement>(null);
 
+  // Altura = conteúdo + bordas (com box-sizing border-box, só o scrollHeight cortava a
+  // última linha). Recalcula quando o texto muda e quando a largura muda (gaveta
+  // abrindo, giro da tela), porque a quebra de linha depende da largura.
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${el.scrollHeight}px`;
+    let largura = -1;
+    const ajustar = () => {
+      el.style.height = 'auto';
+      const bordas = el.offsetHeight - el.clientHeight;
+      el.style.height = `${el.scrollHeight + bordas}px`;
+    };
+    ajustar();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      if (el.clientWidth === largura) return;
+      largura = el.clientWidth;
+      ajustar();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [value]);
 
   const campo = (

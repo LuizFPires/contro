@@ -18,7 +18,6 @@ import { Camera } from '../obras/Camera';
 import fichaStyles from '../obras/FichaAtividade.module.css';
 import { LinhaPara } from '../obras/LinhaPara';
 import linhaStyles from '../obras/LinhaPara.module.css';
-import { PendenciasAba } from '../obras/PendenciasAba';
 import { NovaProvidenciaSheet } from '../obras/ProvidenciasAba';
 import { CampoPrestador } from '../obras/CampoPrestador';
 import { RodapeAvanco } from '../obras/RodapeAvanco';
@@ -482,17 +481,8 @@ export function FichaAtividadeGeral({
             </section>
           ) : null}
 
-          <section className={fichaStyles.secao}>
-            <h3 className={fichaStyles.rotulo}>Pendências da atividade</h3>
-            <PendenciasAba
-              key={a.id}
-              obra={obra}
-              atividadeId={a.id}
-              pessoas={obra.pessoas}
-              podeAtribuir={planeja}
-              ambiente="geral"
-            />
-          </section>
+          {/* Sem "Pendências da atividade" na ficha (06/11/2026): muita informação numa
+              tela só. As pendências ficam na aba Check list da obra. */}
 
           <VidaDoItem itemId={a.id} ambiente="geral" />
 

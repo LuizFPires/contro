@@ -144,3 +144,15 @@
   flex: 0 0 72px;
   text-align: center;
 }
+
+/* Subitem: o texto ocupa a largura toda; data e remover ficam embaixo, à direita. */
+.subItem {
+  display: grid;
+  gap: 6px;
+}
+.subAcoes {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
