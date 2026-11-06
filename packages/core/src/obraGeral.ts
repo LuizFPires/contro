@@ -4,7 +4,8 @@ import { PRAZOS_PENDENCIA_PADRAO, prazoPendencia, type Acao, type PrazosPendenci
 import type { AgendaObra, ItemDia } from './agendaDia';
 import { atrasoDU, diaLocal } from './datas';
 import type { Criticidade } from './pendencias';
-import { ROTULO_TIPO_PROVIDENCIA, type TipoProvidencia } from './trilha';
+import type { TipoProvidencia } from './trilha';
+import { textoProvidencia, normalizarTextoProvidencia } from './textoProvidencia';
 
 // Obra geral: a data prevista é digitada pelo coordenador, sem cálculo de cronograma.
 
@@ -382,7 +383,7 @@ export function acoesCompletasObraGeral(e: {
       origem: 'tarefa',
       id: t.id,
       obraId: e.obraId,
-      texto: t.texto,
+      texto: normalizarTextoProvidencia(t.texto),
       prazo: t.prazo,
       aberta: t.status === 'aberta',
       responsavelId: t.responsavel_id,
@@ -419,7 +420,7 @@ export function acoesCompletasObraGeral(e: {
       origem: 'providencia',
       id: p.id,
       obraId: e.obraId,
-      texto: `${ROTULO_TIPO_PROVIDENCIA[p.tipo]}: ${p.descricao}`,
+      texto: textoProvidencia(p.tipo, p.descricao),
       prazo: p.providenciar_ate,
       aberta: true,
       responsavelId: topo.responsavel_id,

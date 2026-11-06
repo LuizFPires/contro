@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { VERBO_PROVIDENCIA } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { AvisoRascunho } from '../../components/AvisoRascunho';
 import { formatarDataCurta } from '../../lib/datas';
@@ -18,9 +19,9 @@ import styles from './ProvidenciasAba.module.css';
 
 type Tipo = 'contratacao' | 'locacao' | 'compra';
 const TIPOS: { tipo: Tipo; rotulo: string }[] = [
-  { tipo: 'contratacao', rotulo: 'Contratação' },
-  { tipo: 'locacao', rotulo: 'Locação' },
-  { tipo: 'compra', rotulo: 'Compra' },
+  { tipo: 'contratacao', rotulo: VERBO_PROVIDENCIA.contratacao },
+  { tipo: 'locacao', rotulo: VERBO_PROVIDENCIA.locacao },
+  { tipo: 'compra', rotulo: VERBO_PROVIDENCIA.compra },
 ];
 
 /** Antecedência sugerida do lembrete da obra geral: uma semana de dias úteis. */
@@ -359,7 +360,7 @@ export function NovaProvidenciaSheet({
   return (
     <BottomSheet open={tipoInicial !== null} onClose={onFechar}>
       <div className={styles.form}>
-        <h2 className={styles.formTitulo}>Nova {rotulo.toLowerCase()}</h2>
+        <h2 className={styles.formTitulo}>{rotulo}</h2>
         {recuperado ? (
           <AvisoRascunho
             onDescartar={() => {

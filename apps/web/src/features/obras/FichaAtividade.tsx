@@ -6,6 +6,7 @@ import {
   naObraEm,
   providenciaAtrasada,
   providenciarAte,
+  VERBO_PROVIDENCIA,
 } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
@@ -32,11 +33,7 @@ import { useQuemCuida } from './useQuemCuida';
 import styles from './FichaAtividade.module.css';
 
 type Tipo = 'contratacao' | 'locacao' | 'compra';
-const TIPO_ROTULO: Record<Tipo, string> = {
-  contratacao: 'Contratação',
-  locacao: 'Locação',
-  compra: 'Compra',
-};
+const TIPO_ROTULO = VERBO_PROVIDENCIA;
 
 /** Ficha da atividade (protótipo · FICHA DA ATIVIDADE). */
 /** Data local (YYYY-MM-DD) de um instante salvo pelo servidor. */
@@ -348,7 +345,7 @@ export function FichaAtividade({
                           ? `Atrasado · era até ${formatarDataCurta(ate)}`
                           : `até ${formatarDataCurta(ate)}${p.duracao_du ? ` · começar ${formatarDataCurta(comecar)}` : ''}`
                     }
-                    onAlternar={() => alternarProv(p.id, !feito, TIPO_ROTULO[p.tipo])}
+                    onAlternar={() => alternarProv(p.id, !feito, p.descricao)}
                     onMais={() => setDetalheProvId(p.id)}
                   />
                 ))}
@@ -558,7 +555,7 @@ export function FichaAtividade({
               type="button"
               className={linhaStyles.acao}
               onClick={() => {
-                alternarProv(provDet.p.id, !provDet.feito, TIPO_ROTULO[provDet.p.tipo]);
+                alternarProv(provDet.p.id, !provDet.feito, provDet.p.descricao);
                 setDetalheProvId(null);
               }}
             >

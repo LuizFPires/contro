@@ -12,6 +12,8 @@ apps/pdf-service/out
 coverage
 playwright-report
 test-results
+output
+.superpowers
 *.log
 
 # Arquivos locais de teste e credenciais

@@ -29,35 +29,40 @@ interface LinhaPessoa {
   coordenador_contorno: boolean | null;
 }
 
+/** Falhas de rede/autenticação não significam cadastro pendente de aprovação. */
+export async function carregarPerfil(): Promise<PessoaAtual | null> {
+  if (!supabase) return null;
+  const { data: userData, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
+  const user = userData.user;
+  if (!user) return null;
+  const { data, error } = await supabase
+    .from('pessoa')
+    .select(
+      'id, perfil, nome, ativo, administrador, acesso_contorno, papel_geral, coordenador_contorno',
+    )
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (error) throw error;
+  const p = data as LinhaPessoa | null;
+  if (!p) return null;
+  return {
+    id: p.id,
+    perfil: p.perfil,
+    nome: p.nome,
+    ativo: p.ativo,
+    administrador: p.administrador === true,
+    acessoContorno: p.acesso_contorno !== false,
+    papelGeral: p.papel_geral ?? null,
+    coordenadorContorno: p.coordenador_contorno === true,
+  };
+}
+
 /** Perfil/nome da pessoa logada. ativo=false → aguardando aprovação do gestor. */
 export function usePerfil() {
   return useQuery<PessoaAtual | null>({
     queryKey: ['perfil'],
     enabled: Boolean(supabase),
-    queryFn: async () => {
-      if (!supabase) return null;
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData.user;
-      if (!user) return null;
-      const { data } = await supabase
-        .from('pessoa')
-        .select(
-          'id, perfil, nome, ativo, administrador, acesso_contorno, papel_geral, coordenador_contorno',
-        )
-        .eq('user_id', user.id)
-        .maybeSingle();
-      const p = data as LinhaPessoa | null;
-      if (!p) return null;
-      return {
-        id: p.id,
-        perfil: p.perfil,
-        nome: p.nome,
-        ativo: p.ativo,
-        administrador: p.administrador === true,
-        acessoContorno: p.acesso_contorno !== false,
-        papelGeral: p.papel_geral ?? null,
-        coordenadorContorno: p.coordenador_contorno === true,
-      };
-    },
+    queryFn: carregarPerfil,
   });
 }

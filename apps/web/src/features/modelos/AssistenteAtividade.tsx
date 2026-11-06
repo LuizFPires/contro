@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react';
-import { durSubitens, previaAtividadeModelo, type AtividadeEntrada } from '@contro/core';
+import {
+  durSubitens,
+  previaAtividadeModelo,
+  textoProvidencia,
+  VERBO_PROVIDENCIA,
+  type AtividadeEntrada,
+} from '@contro/core';
 import { Icon } from '@contro/ui';
 import type { ModeloCompleto } from './detalhe';
 import type { AtividadeEditada } from './edicao';
@@ -20,11 +26,7 @@ interface Prov {
   duracao_du: number;
 }
 
-const TIPO_ROTULO: Record<Tipo, string> = {
-  contratacao: 'Contratação',
-  locacao: 'Locação',
-  compra: 'Compra',
-};
+const TIPO_ROTULO = VERBO_PROVIDENCIA;
 const TIPO_EXEMPLO: Record<Tipo, string> = {
   contratacao: 'Ex.: eletricista',
   locacao: 'Ex.: plataforma elevatória',
@@ -749,9 +751,7 @@ export function AssistenteAtividade({
               {
                 rot: 'Providências',
                 val: provs.length
-                  ? provs
-                      .map((p) => `${TIPO_ROTULO[p.tipo]}${p.descricao ? `: ${p.descricao}` : ''}`)
-                      .join(' · ')
+                  ? provs.map((p) => textoProvidencia(p.tipo, p.descricao)).join(' · ')
                   : 'nenhuma',
                 ir: 4,
               },

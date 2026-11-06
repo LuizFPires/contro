@@ -13,6 +13,7 @@ import {
   semanaDaReuniaoGeral,
   situacaoProvidenciaGeral,
   textoEficiencia,
+  textoProvidencia,
   totaisAta,
   trilhaObraGeral,
   type AtividadeGeral,
@@ -25,7 +26,6 @@ import {
 import { formatarDataCurta } from '../../../lib/datas';
 import { dataLocal } from '../../obras/api';
 import {
-  VERBO_PROV,
   acoesDaObra,
   origemDa,
   respostaCobranca,
@@ -127,7 +127,7 @@ export function montarPautaGeral(r: ReuniaoGeral, hoje: DataISO): PautaGeral {
         : `providenciar até ${formatarDataCurta(ate)}`,
       prestador: null,
       atraso: atrasada ? `Atrasado · era até ${formatarDataCurta(ate)}` : null,
-      sugestao: `${VERBO_PROV[p.tipo]} ${p.descricao}`,
+      sugestao: textoProvidencia(p.tipo, p.descricao),
       tipoProvidencia: p.tipo,
       naObraEm: p.na_obra_em,
       data: ate,

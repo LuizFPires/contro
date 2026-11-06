@@ -31,8 +31,8 @@ describe('derivarAtribuicoes', () => {
     expect(textos).toContain('Recuperar atraso: Contrapiso');
     expect(textos).toContain('Garantir conclusão: Pintura (Cores SA)');
     expect(textos).toContain('Mobilizar início: Forro');
-    expect(textos).toContain('Destravar Compra: Porcelanato');
-    expect(textos).toContain('Contratar: Pintor (na obra qua 28/10)');
+    expect(textos).toContain('Comprar Porcelanato');
+    expect(textos).toContain('Contratar Pintor (na obra qua 28/10)');
     // a atividade atrasada (fim 20/10 < hoje 24/10) é vermelha
     expect(itens.find((i) => i.texto.startsWith('Recuperar'))?.atrasado).toBe(true);
   });

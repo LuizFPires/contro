@@ -101,7 +101,7 @@ describe('boletimDaObraGeral', () => {
     expect(d.quemFazOQue.map((g) => g.pessoa)).toEqual(['Bia Lima']);
     expect(d.quemFazOQue[0]!.itens.map((i) => i.texto).sort()).toEqual([
       'Atividade: Piso',
-      'Compra: Tinta',
+      'Comprar Tinta',
       'Pintura',
     ]);
   });

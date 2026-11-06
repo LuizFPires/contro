@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { textoProvidencia } from '@contro/core';
 import { Button, Card, Icon, useToast } from '@contro/ui';
 import { AssistenteAtividade } from './AssistenteAtividade';
 import { numeracao } from './numeracao';
@@ -6,12 +7,6 @@ import { Gantt } from './Gantt';
 import { useModeloCompleto, useSalvarAtividade } from './useModeloDetalhe';
 import { useEdicaoModelo } from './useEdicaoModelo';
 import styles from './ModeloEditor.module.css';
-
-const TIPO_ROTULO: Record<string, string> = {
-  contratacao: 'Contratação',
-  locacao: 'Locação',
-  compra: 'Compra',
-};
 
 export function ModeloEditor({ id, onVoltar }: { id: string; onVoltar: () => void }) {
   const { data: modelo, isLoading } = useModeloCompleto(id);
@@ -225,9 +220,7 @@ export function ModeloEditor({ id, onVoltar }: { id: string; onVoltar: () => voi
                             {a.providencias.length === 0
                               ? '—'
                               : a.providencias.map((pr) => (
-                                  <div key={pr.id}>
-                                    {TIPO_ROTULO[pr.tipo]}: {pr.descricao}
-                                  </div>
+                                  <div key={pr.id}>{textoProvidencia(pr.tipo, pr.descricao)}</div>
                                 ))}
                           </td>
                           <td>

@@ -2,6 +2,7 @@
 // derivados do engenheiro (atrasos e semana) e de compras (providências). Texto
 // no core (regra 1). Datas chegam já formatadas pela UI.
 import type { DataISO } from './calendar';
+import { normalizarTextoProvidencia, textoProvidencia } from './textoProvidencia';
 
 export type Origem = 'tarefa' | 'engenheiro' | 'compras';
 
@@ -13,17 +14,6 @@ export interface ItemAtribuicao {
   concluido: boolean;
   origem: Origem;
 }
-
-const VERBO_COMPRA: Record<string, string> = {
-  contratacao: 'Contratar',
-  locacao: 'Alugar',
-  compra: 'Comprar',
-};
-const TIPO_ROTULO: Record<string, string> = {
-  contratacao: 'Contratação',
-  locacao: 'Locação',
-  compra: 'Compra',
-};
 
 export interface EntradaAtribuicoes {
   /** Tarefas já resolvidas pela UI (nome do responsável, situação). */
@@ -42,7 +32,7 @@ export interface EntradaAtribuicoes {
   concluirSemana: { nome: string; prestador: string | null; fimPrevisto: DataISO }[];
   /** comecar_semana: "Mobilizar início". */
   comecarSemana: { nome: string; inicioPrevisto: DataISO }[];
-  /** Providências atrasadas: "Destravar <tipo>". */
+  /** Providências atrasadas usam o mesmo verbo das demais. */
   providenciasAtrasadas: { tipo: string; descricao: string }[];
   /** Providências da semana: "<Contratar|Alugar|Comprar> (na obra <data>)". */
   providenciarSemana: { tipo: string; descricao: string; naObraEmFmt: string | null }[];
@@ -53,7 +43,7 @@ export function derivarAtribuicoes(e: EntradaAtribuicoes, hoje: DataISO): ItemAt
   const itens: ItemAtribuicao[] = [];
 
   for (const t of e.tarefas) {
-    itens.push({ ...t, origem: 'tarefa' });
+    itens.push({ ...t, texto: normalizarTextoProvidencia(t.texto), origem: 'tarefa' });
   }
 
   if (e.engenheiroNome) {
@@ -92,7 +82,7 @@ export function derivarAtribuicoes(e: EntradaAtribuicoes, hoje: DataISO): ItemAt
   if (e.comprasNome) {
     for (const p of e.providenciasAtrasadas) {
       itens.push({
-        texto: `Destravar ${TIPO_ROTULO[p.tipo] ?? p.tipo}: ${p.descricao}`,
+        texto: textoProvidencia(p.tipo, p.descricao),
         pessoa: e.comprasNome,
         prazo: null,
         atrasado: true,
@@ -101,9 +91,8 @@ export function derivarAtribuicoes(e: EntradaAtribuicoes, hoje: DataISO): ItemAt
       });
     }
     for (const p of e.providenciarSemana) {
-      const verbo = VERBO_COMPRA[p.tipo] ?? 'Providenciar';
       itens.push({
-        texto: `${verbo}: ${p.descricao}${p.naObraEmFmt ? ` (na obra ${p.naObraEmFmt})` : ''}`,
+        texto: `${textoProvidencia(p.tipo, p.descricao)}${p.naObraEmFmt ? ` (na obra ${p.naObraEmFmt})` : ''}`,
         pessoa: e.comprasNome,
         prazo: null,
         atrasado: false,

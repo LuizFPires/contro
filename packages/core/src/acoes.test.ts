@@ -270,7 +270,7 @@ describe('providenciaParaAcaoBase', () => {
       origem: 'providencia',
       id: 'p1',
       obraId: 'o1',
-      texto: 'Contratação: Pinturas',
+      texto: 'Contratar Pinturas',
       prazo: '2026-10-26',
       aberta: true,
       responsavelId: null,
@@ -278,8 +278,8 @@ describe('providenciaParaAcaoBase', () => {
     }));
 
   it('rótulos de locação e compra', () => {
-    expect(providenciaParaAcaoBase({ ...base, tipo: 'locacao' }).texto).toBe('Locação: Pinturas');
-    expect(providenciaParaAcaoBase({ ...base, tipo: 'compra' }).texto).toBe('Compra: Pinturas');
+    expect(providenciaParaAcaoBase({ ...base, tipo: 'locacao' }).texto).toBe('Alugar Pinturas');
+    expect(providenciaParaAcaoBase({ ...base, tipo: 'compra' }).texto).toBe('Comprar Pinturas');
   });
 
   it('atrasada cai em "Sem responsável" no resumo, sem citar isso no aviso', () => {

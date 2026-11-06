@@ -4,14 +4,10 @@ import {
   naObraEm,
   providenciaAtrasada,
   providenciarAte,
+  textoProvidencia,
+  VERBO_PROVIDENCIA,
 } from '@contro/core';
 import type { ObraCompleta } from './detalhe';
-
-const TIPO: Record<string, string> = {
-  contratacao: 'Contratação',
-  locacao: 'Locação',
-  compra: 'Compra',
-};
 
 export interface ItemProvidencia {
   id: string;
@@ -68,7 +64,7 @@ export function classificarProvidencias(
       if (p.status === 'feito') {
         feitas.push({
           id: p.id,
-          tipoTxt: TIPO[p.tipo],
+          tipoTxt: VERBO_PROVIDENCIA[p.tipo],
           descricao: p.descricao,
           atividade: nomePorId.get(a.id) ?? '',
           feitoEm: p.feito_em,
@@ -87,9 +83,9 @@ export function classificarProvidencias(
       const item: ItemProvidencia = {
         id: p.id,
         tipo: p.tipo,
-        tipoTxt: TIPO[p.tipo],
+        tipoTxt: VERBO_PROVIDENCIA[p.tipo],
         descricao: p.descricao,
-        rotulo: `${TIPO[p.tipo]}: ${p.descricao}`,
+        rotulo: textoProvidencia(p.tipo, p.descricao),
         atividade: nomePorId.get(a.id) ?? '',
         providenciarAte: providenciarAte(obra.inicio, es, p.antecedencia_du),
         naObra: naObraEm(obra.inicio, es, p.na_obra_em),

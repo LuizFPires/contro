@@ -17,3 +17,16 @@ export function numeracaoObra(obra: ObraNumeravel): Map<string, number> {
     );
   return new Map(topo.map((a, i) => [a.id, i + 1]));
 }
+
+/** Reusa a numeração visível na obra; subitens e providências apontam para a atividade mãe. */
+export function numerosPorVinculo(obra: ObraCompleta): Record<string, number> {
+  const numeros = numeracaoObra(obra);
+  const saida: Record<string, number> = {};
+  for (const a of obra.atividades) {
+    const numero = numeros.get(a.pai_id ?? a.id);
+    if (numero == null) continue;
+    saida[a.id] = numero;
+    for (const p of a.providencias) saida[p.id] = numero;
+  }
+  return saida;
+}

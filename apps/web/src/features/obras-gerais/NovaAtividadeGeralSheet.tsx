@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   atalhosDataPrevista,
   diaCurto,
-  ROTULO_TIPO_PROVIDENCIA,
+  VERBO_PROVIDENCIA,
   type TipoProvidencia,
 } from '@contro/core';
 import { BottomSheet, Button, Icon, TextoCrescente, useToast } from '@contro/ui';
@@ -40,7 +40,7 @@ interface Rascunho {
   lembretes?: LinhaLembrete[];
 }
 
-const TIPOS = Object.keys(ROTULO_TIPO_PROVIDENCIA) as TipoProvidencia[];
+const TIPOS = Object.keys(VERBO_PROVIDENCIA) as TipoProvidencia[];
 
 const limpar = (s: string) => s.trim().replace(/\s+/g, ' ');
 
@@ -304,7 +304,7 @@ export function NovaAtividadeGeralSheet({
                     className={`${provStyles.tipoBtn} ${l.tipo === t ? provStyles.tipoAtivo : ''}`}
                     onClick={() => mudarLembrete(i, { tipo: t })}
                   >
-                    {ROTULO_TIPO_PROVIDENCIA[t]}
+                    {VERBO_PROVIDENCIA[t]}
                   </button>
                 ))}
               </div>

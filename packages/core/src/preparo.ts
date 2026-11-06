@@ -6,6 +6,7 @@
 // Datas chegam já formatadas pela UI. O WhatsApp usa o padrão de whatsapp.ts.
 import type { DataISO } from './calendar';
 import { LEGENDA_PRAZOS, SEPARADOR, bolinha, cabecalhoObra, secao } from './whatsapp';
+import { normalizarTextoProvidencia } from './textoProvidencia';
 
 export type FormatoPreparo = 'tabela' | 'folha' | 'pessoa' | 'contratado';
 
@@ -15,7 +16,7 @@ export const FORMATOS_PREPARO: { id: FormatoPreparo; titulo: string; desc: strin
     titulo: 'Por obra',
     desc: 'paisagem · uma linha por obra (como o resumo da ata)',
   },
-  { id: 'pessoa', titulo: 'Por pessoa', desc: 'retrato · o que cada um vai ser cobrado' },
+  { id: 'pessoa', titulo: 'Por pessoa', desc: 'paisagem · atrasadas, no dia e próximos 15 dias' },
   {
     id: 'contratado',
     titulo: 'Por contratado',
@@ -88,7 +89,7 @@ export const BLOCOS_FOLHA: {
   },
 ];
 
-/** Ordem fixa dos formatos marcados (tabela primeiro: é a única em paisagem). */
+/** Ordem fixa dos formatos marcados (por obra e por pessoa em paisagem). */
 export function formatosEmOrdem(marcados: FormatoPreparo[]): FormatoPreparo[] {
   return FORMATOS_PREPARO.map((f) => f.id).filter((id) => marcados.includes(id));
 }
@@ -113,9 +114,44 @@ export function totaisPreparo(obras: ObraPreparo[]): TotaisPreparo {
   };
 }
 
+export interface ItemPessoaPreparo extends ItemPreparo {
+  data: DataISO | null;
+}
+
 export interface PessoaPreparo {
   pessoa: string;
-  itens: { texto: string; prazo: string; atraso: boolean }[];
+  itens: ItemPessoaPreparo[];
+}
+
+/** Janela do preparativo em dias CORRIDOS, a partir da data da reunião. */
+export function limitesPreparo(dataReuniao: DataISO): { cinco: DataISO; quinze: DataISO } {
+  const deslocar = (dias: number) => {
+    const d = new Date(`${dataReuniao}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + dias);
+    return d.toISOString().slice(0, 10);
+  };
+  return { cinco: deslocar(5), quinze: deslocar(15) };
+}
+
+export function colunasPreparoPessoa(itens: ItemPessoaPreparo[], dataReuniao: DataISO) {
+  const limites = limitesPreparo(dataReuniao);
+  const ordenados = [...itens].sort(
+    (a, b) =>
+      (a.data ?? '9999').localeCompare(b.data ?? '9999') || a.texto.localeCompare(b.texto, 'pt-BR'),
+  );
+  return {
+    atrasadas: ordenados.filter((i) => i.data && i.data < dataReuniao),
+    noDia: ordenados.filter((i) => i.data === dataReuniao),
+    ateCinco: ordenados.filter((i) => i.data && i.data > dataReuniao && i.data <= limites.cinco),
+    aposCinco: ordenados.filter(
+      (i) => i.data && i.data > limites.cinco && i.data <= limites.quinze,
+    ),
+    semPrazo: ordenados.filter((i) => !i.data),
+  };
+}
+
+export function textoComNumeroAtividade(texto: string, numero?: number): string {
+  return numero == null ? texto : `${texto} (#${numero})`;
 }
 
 /**
@@ -123,35 +159,41 @@ export interface PessoaPreparo {
  * atrasadas primeiro. "Sem responsável" vai por último. As providências da
  * pauta ainda não têm dono: viram o bloco `semDono`, para decidir na reunião.
  */
-export function preparoPorPessoa(obras: ObraPreparo[]): {
+export function preparoPorPessoa(
+  obras: ObraPreparo[],
+  dataReuniao: DataISO,
+): {
   pessoas: PessoaPreparo[];
-  semDono: { texto: string; prazo: string; atraso: boolean }[];
+  semDono: ItemPessoaPreparo[];
 } {
+  const { quinze } = limitesPreparo(dataReuniao);
+  const incluir = (i: ItemPreparo) => !i.data || i.data <= quinze;
+  const item = (i: ItemPreparo, obra: string): ItemPessoaPreparo => ({
+    texto: `${normalizarTextoProvidencia(i.texto)} (${obra})`,
+    prazo: i.prazo,
+    atraso: Boolean(i.data && i.data < dataReuniao),
+    data: i.data ?? null,
+  });
   const mapa = new Map<string, PessoaPreparo['itens']>();
   for (const o of obras) {
     for (const c of o.cobranca) {
+      if (!incluir(c)) continue;
       const l = mapa.get(c.pessoa) ?? [];
-      l.push({ texto: `${c.texto} (${o.nome})`, prazo: c.prazo, atraso: c.atraso });
+      l.push(item(c, o.nome));
       mapa.set(c.pessoa, l);
     }
   }
   const pessoas = [...mapa.entries()]
     .map(([pessoa, itens]) => ({
       pessoa,
-      itens: [...itens].sort((a, b) => Number(b.atraso) - Number(a.atraso)),
+      itens: [...itens].sort((a, b) => (a.data ?? '9999').localeCompare(b.data ?? '9999')),
     }))
     .sort((a, b) => {
       if (a.pessoa === 'Sem responsável') return 1;
       if (b.pessoa === 'Sem responsável') return -1;
       return a.pessoa.localeCompare(b.pessoa, 'pt-BR');
     });
-  const semDono = obras.flatMap((o) =>
-    o.providencias.map((p) => ({
-      texto: `${p.texto} (${o.nome})`,
-      prazo: p.prazo,
-      atraso: p.atraso,
-    })),
-  );
+  const semDono = obras.flatMap((o) => o.providencias.filter(incluir).map((p) => item(p, o.nome)));
   return { pessoas, semDono };
 }
 

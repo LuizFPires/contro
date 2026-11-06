@@ -12,6 +12,7 @@ it('inclui tarefas da própria reunião e separa responsáveis com nomes complet
       {
         obraId: 'obra1',
         nome: 'Obra Centro',
+        numerosPorVinculo: { prov1: 25 },
         pct: 0,
         ritmoDias: 0,
         passadaConcluir: [],
@@ -67,9 +68,9 @@ it('inclui tarefas da própria reunião e separa responsáveis com nomes complet
     },
   ] as ReuniaoCompleta['tarefas'];
   expect(montarPreparo(r)[0].cobranca.some((t) => t.texto === 'Comprar tubos')).toBe(false);
-  const { pessoas, semDono } = preparoPorPessoa(montarPreparo(r, true));
+  const { pessoas, semDono } = preparoPorPessoa(montarPreparo(r, true), r.data);
   expect(pessoas.map((p) => p.pessoa)).toEqual(['Ana Silva', 'Bruno Lima']);
-  expect(pessoas[0].itens[0].texto).toBe('Comprar tubos (Obra Centro)');
+  expect(pessoas[0].itens[0].texto).toBe('Comprar tubos (#25) (Obra Centro)');
   expect(pessoas[1].itens[0].texto).toBe('Conferir medição (Obra Centro)');
   expect(semDono).toEqual([]);
 });

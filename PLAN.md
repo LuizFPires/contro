@@ -446,6 +446,8 @@ Quarta de 5 etapas. Leva às Obras gerais o ciclo semanal da Contorno, por obra:
 ---
 
 ## Decisões
+
+- [x] **05/11/2026 · Providências e preparativo:** padronizar Comprar/Alugar/Contratar sem dois-pontos em ações, lembretes e documentos; converter títulos salvos com auditoria e proteger envios offline antigos. Preparativo por pessoa em três colunas por vencimento relativo à reunião, limite de 15 dias corridos, divisória aos 5 dias e referência `(#N)` da atividade da obra. A investigação dos dois itens de cimento da Sagrada Família confirmou providências distintas de Alvenarias e de Contrapiso; não unir os registros.
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
 - 2026-11-05 · **Obras gerais, etapa 1 · isolamento.** Leitura e escrita por obra via RLS com `contro_ve_obra(obra)` e gatilho `a_guarda_obra` (itens só apontam para itens da mesma obra); rotinas (avisos, boletim, abrir/reabrir reunião) só olham a Contorno nesta etapa.
