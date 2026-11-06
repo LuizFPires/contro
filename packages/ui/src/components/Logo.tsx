@@ -60,7 +60,7 @@ export function Logo({ on = 'branco', height = 28, className }: LogoProps) {
       src={on === 'preto' ? logoEscuro : logoClaro}
       height={height}
       className={className}
-      alt="CONTRO · obras da contorno"
+      alt="CONTRO"
       style={{ display: 'block', height, width: 'auto' }}
     />
   );

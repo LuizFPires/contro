@@ -22,6 +22,7 @@ import { useObraCampo } from '../obras/useObraCampo';
 import { useObraPendencias } from '../obras/useObraPendencias';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { BlocoAcoesGeral } from './BlocoAcoesGeral';
+import { EditarObraGeralSheet } from './EditarObraGeralSheet';
 import { BlocoReuniaoGeral, BlocosObraGeral } from './reuniao/BlocoReuniaoGeral';
 import { useConfigAvisosObra } from './reuniao/useConfigAvisosObra';
 import { FichaAtividadeGeral } from './FichaAtividadeGeral';
@@ -88,6 +89,7 @@ export function ObraGeralDetalhe({
   const [fichaId, setFichaId] = useLembrado<string | null>(`obrageral:${id}:ficha`, null);
   const [novaAtividadeFaseId, setNovaAtividadeFaseId] = useState<string | null>(null);
   const [trocando, setTrocando] = useState(false);
+  const [editando, setEditando] = useState(false);
   const [novaFase, setNovaFase] = useState(false);
   const [anexandoId, setAnexandoId] = useState<string | null>(null);
   useEffect(() => {
@@ -228,6 +230,17 @@ export function ObraGeralDetalhe({
               {[resumoObraGeral(fases), eficiencia].filter(Boolean).join(' · ')}
             </div>
           </div>
+          {planeja ? (
+            <button
+              type="button"
+              className={base.voltar}
+              aria-label="Editar obra"
+              title="Editar obra"
+              onClick={() => setEditando(true)}
+            >
+              <Icon name="editar" size={20} />
+            </button>
+          ) : null}
           {planeja ? (
             <button
               type="button"
@@ -382,6 +395,10 @@ export function ObraGeralDetalhe({
         }}
         onFechar={() => setTrocando(false)}
       />
+
+      {planeja ? (
+        <EditarObraGeralSheet aberto={editando} obra={obra} onFechar={() => setEditando(false)} />
+      ) : null}
 
       <NovaFaseSheet
         aberto={novaFase}

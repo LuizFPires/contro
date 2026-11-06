@@ -303,6 +303,7 @@ Todas são idempotentes por `client_op_id` (uuid gerado no aparelho), para a fil
 - **Fotos:** bucket privado, com acesso por URL assinada de curta duração e caminho `obra_id/…`.
 
 **Obras gerais (05/11/2026, etapa 1):**
+- **Editar obra geral** (06/11/2026): `editar_obra_geral(p_obra_id, p_nome, p_cidade)`, security definer, exige `contro_coordena_obra` (Gestor em qualquer obra geral, Coordenador nas dele); nome 1–80, cidade até 60 (vazia = null).
 - **Coordenador da Contorno** (06/11/2026): perfil `gestor` com `pessoa.coordenador_contorno = true` (só muda por migration/função). Plenos poderes na Contorno; em `definir_membro_ativo` só desliga ou religa quem é da Equipe (`podeDesligarNaContorno` no core). Hoje: Matheus.
 - **Administrador** (só Luiz Felipe desde 06/11/2026; Rafael e Rodrigo passaram a Coordenador pela migration 20261106500000): vê todas as obras gerais, cria obra geral e define papel e obras de cada pessoa. Marcado por migration de dados; só muda por RPC. Rótulo na tela: **Gestor**; o papel `membro` aparece como **Equipe** (`rotuloPapelGeral`).
 - **Coordenador** e **Membro** (`papel_geral`): veem só as obras em que estão em `obra_participante`. Nesta etapa só o Administrador dá acesso; as regras Coordenador x Membro nas ações e o Coordenador adicionando Membro vêm na etapa 2.

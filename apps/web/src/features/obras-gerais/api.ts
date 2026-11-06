@@ -45,3 +45,14 @@ export async function criarObraGeral(nome: string, cidade: string, id: string): 
   if (error) throw error;
   return data as string;
 }
+
+/** Edita nome e cidade (Gestor em qualquer obra geral; Coordenador nas dele). */
+export async function editarObraGeral(id: string, nome: string, cidade: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { error } = await supabase.rpc('editar_obra_geral', {
+    p_obra_id: id,
+    p_nome: nome,
+    p_cidade: cidade,
+  });
+  if (error) throw error;
+}
