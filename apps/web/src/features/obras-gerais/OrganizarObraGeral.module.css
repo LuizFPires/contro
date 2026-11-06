@@ -1,17 +1,25 @@
 .organizar {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  padding: 16px 16px 24px;
 }
 
 .topo {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.dica {
-  flex: 1;
+.tituloTela {
   margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.dica {
+  margin: 0;
+  line-height: 1.45;
   font-size: 13px;
   font-weight: 600;
   color: rgb(24 24 24 / 70%);

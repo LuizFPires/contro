@@ -318,7 +318,7 @@ export function ObraGeralDetalhe({
         </div>
       ) : (
         <div className={base.conteudo}>
-          {(resumoDaObra && onAbrirAcoes) || onAbrirReuniao ? (
+          {!organizando && ((resumoDaObra && onAbrirAcoes) || onAbrirReuniao) ? (
             <div className={styles.blocoAcoes}>
               <BlocosObraGeral>
                 {onAbrirReuniao ? (
