@@ -62,7 +62,9 @@ export interface NotaAvaliacao {
   naoConformes: number;
 }
 
-export function notaAvaliacao(itens: ItemSituacao[] & Pick<ItemAvaliacao, 'pontos'>[]): NotaAvaliacao {
+export function notaAvaliacao(
+  itens: ItemSituacao[] & Pick<ItemAvaliacao, 'pontos'>[],
+): NotaAvaliacao {
   let total = 0;
   let perdidos = 0;
   let responderam = 0;
@@ -92,10 +94,10 @@ export function formatarNota(pct: number): string {
   return `${pct.toFixed(1).replace('.', ',')}%`;
 }
 
-export interface ResumoSecao {
+export interface ResumoSecao<T extends ItemAvaliacao = ItemAvaliacao> {
   ordem: number;
   nome: string;
-  itens: ItemAvaliacao[];
+  itens: T[];
   respondidos: number;
   naoConformes: number;
   /** Aproveitamento do que já foi respondido; null se nada foi. */
@@ -103,8 +105,8 @@ export interface ResumoSecao {
   status: string;
 }
 
-export function resumoSecoes(itens: ItemAvaliacao[]): ResumoSecao[] {
-  const mapa = new Map<number, ItemAvaliacao[]>();
+export function resumoSecoes<T extends ItemAvaliacao>(itens: T[]): ResumoSecao<T>[] {
+  const mapa = new Map<number, T[]>();
   for (const it of itens) {
     const lista = mapa.get(it.secaoOrdem);
     if (lista) lista.push(it);
@@ -182,7 +184,8 @@ export function previaNovaRevisao(itens: ItemSituacao[]): PreviaRevisao {
   const r: PreviaRevisao = { aReconfirmar: 0, pendentes: 0, mantidos: 0, aAvaliar: 0 };
   for (const it of itens) {
     if (it.pendenciaStatus !== null && it.pendenciaStatus !== 'fechada') r.pendentes += 1;
-    else if (it.resultado === 'nao_conforme' && it.pendenciaStatus === 'fechada') r.aReconfirmar += 1;
+    else if (it.resultado === 'nao_conforme' && it.pendenciaStatus === 'fechada')
+      r.aReconfirmar += 1;
     else if (it.resultado === 'conforme') r.mantidos += 1;
     else r.aAvaliar += 1;
   }

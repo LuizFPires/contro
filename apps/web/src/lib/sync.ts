@@ -28,6 +28,7 @@ import {
   type EntradaTarefa,
   type NovaPendencia,
 } from '../features/obras/campo';
+import { marcarItem, naoConforme, restaurarNc } from '../features/avaliacao/avaliacaoApi';
 import { removerFotoLocal, subirFotoLocal } from '../features/obras/foto';
 import { supabase } from './supabase';
 import { db, type OpDB } from './db';
@@ -98,6 +99,23 @@ const DISPATCH: Record<string, Handler> = {
     await resolverPendencia(p.id as string, fotoId, opId);
     await removerFotoLocal(p.fotoLocalId as string);
   },
+  marcar_avaliacao_item: (p, opId) =>
+    marcarItem(p.itemId as string, (p.resultado as 'conforme' | null) ?? null, opId),
+  restaurar_nc_avaliacao: (p, opId) =>
+    restaurarNc(p.itemId as string, p.pendenciaId as string, opId),
+  // Foto opcional só na reabertura; pendência nova exige foto (o servidor valida).
+  avaliacao_nao_conforme: async (p, opId) => {
+    const local = (p.fotoLocalId as string | null) ?? null;
+    const fotoId = local ? await subirFotoLocal(local) : null;
+    await naoConforme(
+      p.itemId as string,
+      p.pendenciaId as string,
+      p.dados as { titulo: string | null; local: string | null; criticidade: string },
+      fotoId,
+      opId,
+    );
+    if (local) await removerFotoLocal(local);
+  },
   apontar_pendencia: async (p, opId) => {
     const fotoId = await subirFotoLocal(p.fotoLocalId as string); // foto do antes (retomada)
     await apontarPendencia(
@@ -135,6 +153,7 @@ function invalidar(payload: Record<string, unknown>) {
     qc.invalidateQueries({ queryKey: ['obras'] });
     qc.invalidateQueries({ queryKey: ['tarefas', obraId] });
     qc.invalidateQueries({ queryKey: ['pendencias', obraId] });
+    qc.invalidateQueries({ queryKey: ['avaliacao', obraId] });
     qc.invalidateQueries({ queryKey: ['propostas-mapa', obraId] });
     qc.invalidateQueries({ queryKey: ['reuniao'] });
     qc.invalidateQueries({ queryKey: ['sugestao', 'prestador'] });

@@ -18,6 +18,7 @@ import type { ObraFase } from './detalhe';
 import { ehFaseMapa } from './listaAtividades';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
+import { AvaliacaoAba } from '../avaliacao/AvaliacaoAba';
 import { BoletimView } from './BoletimView';
 import { fixarEntregaOriginal } from './campo';
 import { CelebracaoFase, type CelebracaoFaseDados } from './CelebracaoFase';
@@ -38,7 +39,13 @@ import { montarTrilha } from './trilhaObra';
 import styles from './ObraDetalhe.module.css';
 import { useLembrado } from '../../lib/useLembrado';
 
-export type AbaObra = 'fases' | 'pendencias' | 'providencias' | 'cronograma' | 'boletim';
+export type AbaObra =
+  | 'fases'
+  | 'pendencias'
+  | 'providencias'
+  | 'cronograma'
+  | 'avaliacao'
+  | 'boletim';
 
 const ABAS: { key: Exclude<AbaObra, 'boletim'>; label: string; icon: IconName }[] = [
   { key: 'fases', label: 'Fases', icon: 'fases' },
@@ -46,6 +53,8 @@ const ABAS: { key: Exclude<AbaObra, 'boletim'>; label: string; icon: IconName }[
   { key: 'cronograma', label: 'Cronograma', icon: 'cronograma' },
   // Pendências de qualidade, com o nome "Check list" (pedido do usuário).
   { key: 'pendencias', label: 'Check list', icon: 'pendencias' },
+  // Pré-avaliação de entrega: esta tela é só das obras da Contorno.
+  { key: 'avaliacao', label: 'Avaliação', icon: 'score' },
 ];
 
 export function ObraDetalhe({
@@ -103,6 +112,8 @@ export function ObraDetalhe({
     setFichaAtvId(abrirAtividadeId);
     onAtalhoUsado?.();
   }, [abrirAtividadeId, onAtalhoUsado, setAba, setFichaAtvId]);
+  // "Ver pendência" da pré-avaliação: abre o Check list já nela.
+  const [focoAvaliacao, setFocoAvaliacao] = useState<string | undefined>();
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
   const [planoAberto, setPlanoAberto] = useState(Boolean(abrirPlano));
   // Mapa de coleta: "+ Quem foi contratado" abre o campo (opcional, depois do check).
@@ -413,7 +424,23 @@ export function ObraDetalhe({
           </div>
         ) : null}
         {aba === 'pendencias' ? (
-          <PendenciasAba obra={obra} focoId={abrirPendenciaId} onFocoAplicado={onAtalhoUsado} />
+          <PendenciasAba
+            obra={obra}
+            focoId={abrirPendenciaId ?? focoAvaliacao}
+            onFocoAplicado={() => {
+              setFocoAvaliacao(undefined);
+              onAtalhoUsado?.();
+            }}
+          />
+        ) : null}
+        {aba === 'avaliacao' ? (
+          <AvaliacaoAba
+            obraId={obra.id}
+            onVerPendencia={(pendenciaId) => {
+              setFocoAvaliacao(pendenciaId);
+              setAba('pendencias');
+            }}
+          />
         ) : null}
         {aba === 'providencias' ? <ProvidenciasAba obra={obra} /> : null}
         {aba === 'cronograma' ? <GanttAba obra={obra} onAbrir={setFichaAtvId} /> : null}

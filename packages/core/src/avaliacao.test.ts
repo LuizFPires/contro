@@ -149,7 +149,12 @@ describe('revisões', () => {
     const ok = { resultado: 'conforme' as const };
     const c = compararRevisoes(
       [item({ id: 'a', ...nc }), item({ id: 'b', ...ok }), item({ id: 'c', ...nc })],
-      [item({ id: 'a', ...ok }), item({ id: 'b', ...nc }), item({ id: 'c', ...nc }), item({ id: 'd', ...nc })],
+      [
+        item({ id: 'a', ...ok }),
+        item({ id: 'b', ...nc }),
+        item({ id: 'c', ...nc }),
+        item({ id: 'd', ...nc }),
+      ],
     );
     expect(c.melhorou.map((i) => i.id)).toEqual(['a']);
     expect(c.piorou.map((i) => i.id)).toEqual(['b', 'd']);
