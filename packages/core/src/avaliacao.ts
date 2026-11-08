@@ -57,7 +57,7 @@ export interface NotaAvaliacao {
   total: number;
   perdidos: number;
   obtidos: number;
-  /** Nota projetada (0 a 100): o que ainda falta avaliar conta como conforme. */
+  /** Nota (0 a 100): começa em 0 e só soma o que já foi aprovado. */
   pct: number;
   respondidos: number;
   quantidade: number;
@@ -69,11 +69,13 @@ export function notaAvaliacao(
 ): NotaAvaliacao {
   let total = 0;
   let perdidos = 0;
+  let obtidos = 0;
   let responderam = 0;
   let naoConformes = 0;
   for (const it of itens) {
     const s = situacaoItem(it);
     total += it.pontos;
+    if (s === 'conforme' || s === 'resolvido') obtidos += it.pontos;
     if (s === 'nao_conforme') {
       perdidos += it.pontos;
       naoConformes += 1;
@@ -83,8 +85,8 @@ export function notaAvaliacao(
   return {
     total,
     perdidos,
-    obtidos: total - perdidos,
-    pct: total ? ((total - perdidos) / total) * 100 : 0,
+    obtidos,
+    pct: total ? (obtidos / total) * 100 : 0,
     respondidos: responderam,
     quantidade: itens.length,
     naoConformes,

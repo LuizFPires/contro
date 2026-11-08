@@ -188,7 +188,7 @@ export function AvaliacaoAba({
             </div>
             <div className={styles.notaPequena}>
               <b>{formatarNota(notaAvaliacao(aberta.itens).pct)}</b>
-              <span>projeção geral</span>
+              <span>nota geral</span>
             </div>
           </div>
           {secao.itens.map((it) => (
@@ -345,8 +345,8 @@ export function AvaliacaoAba({
         <div className={styles.cartaoVazio}>
           <h2 className={styles.titulo}>Pré-avaliação da entrega</h2>
           <p className={styles.dica}>
-            Passe ponto a ponto pelos itens que a Contorno vai avaliar e veja a nota projetada antes
-            da entrega.
+            Passe ponto a ponto pelos itens que a Contorno vai avaliar e veja a nota antes da
+            entrega.
           </p>
           <button
             type="button"

@@ -164,7 +164,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - **Lista:** 103 itens em 11 ambientes, 10 pontos cada (1.030 pontos), a mesma conta da Contorno. O **Gestor** edita a lista em "Itens da avaliação"; a mudança vale da próxima revisão em diante.
 - **Marcar:** cada item é **Ok** ou **Não**, um por um. Não existe "Não se aplica" nem "marcar todos".
 - **Não** exige a **foto do antes** e cria uma pendência no Check list (o que está errado, local = ambiente, criticidade), que segue o fluxo normal. Foto do depois resolve a pendência e a nota sobe. Tirar o Não retira a pendência, com Desfazer.
-- **Nota projetada:** o que falta avaliar conta como conforme; só as pendências abertas tiram ponto. A visão **Tirando ponto** lista, das altas para as baixas, quanto a nota sobe ao resolver cada item.
+- **Nota:** cada revisão começa em 0% e soma os itens aprovados (Ok ou resolvidos); o que falta avaliar, a reconfirmar ou com pendência aberta não soma. Com tudo respondido, é a conta da Contorno. A visão **Tirando ponto** lista, das altas para as baixas, quanto a nota sobe ao resolver cada item.
 - **Revisões:** a primeira avalia tudo. Só uma fica aberta por vez e só fecha com todos os itens respondidos; fechada, não muda (Desfazer logo ao fechar). A nova revisão parte da anterior: **pendência aberta** segue tirando ponto, **resolvido** fica a reconfirmar, **conforme** é mantido; ou "Refazer" zera os conformes. Item que volta a dar problema **reabre a mesma pendência**.
 - **Histórico:** nota de cada revisão, data, quem fez (quem fechou; aberta, quem abriu) e a comparação Melhorou, Piorou e Continua pendente. A nota oficial da Contorno pode ser lançada para comparar com a projeção.
 

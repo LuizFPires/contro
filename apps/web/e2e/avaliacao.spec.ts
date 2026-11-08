@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { login } from './util';
 
-test('pré-avaliação: aba da obra, nota projetada e Não exige foto', async ({ page }) => {
+test('pré-avaliação: aba da obra, nota começa em zero e Não exige foto', async ({ page }) => {
   await login(page);
   await page.getByRole('button', { name: 'Obras', exact: true }).click();
   await page.getByRole('button', { name: 'Nova obra' }).click();
@@ -13,7 +13,8 @@ test('pré-avaliação: aba da obra, nota projetada e Não exige foto', async ({
   await page.getByRole('button', { name: 'Avaliação', exact: true }).click();
   await page.getByRole('button', { name: 'Começar a 1ª revisão' }).click();
   await expect(page.getByText('0 de 103 itens')).toBeVisible();
-  await expect(page.getByText('1.030 de 1.030 pts')).toBeVisible();
+  await expect(page.getByText('0 de 1.030 pts')).toBeVisible();
+  await expect(page.getByText('0,0%')).toBeVisible();
 
   await page.getByRole('button', { name: /Recepção/ }).click();
   await page.getByRole('button', { name: 'Catracas: conforme' }).click();

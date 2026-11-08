@@ -74,12 +74,15 @@ describe('notaAvaliacao', () => {
     expect(n.pct).toBeCloseTo(94.17, 2);
     expect(n.naoConformes).toBe(6);
   });
-  it('o que falta avaliar conta como conforme, e resolvido não tira ponto', () => {
+  it('começa em 0% e só soma o que foi aprovado', () => {
+    expect(notaAvaliacao([item({ id: 'a' }), item({ id: 'b', reconfirmar: true })]).pct).toBe(0);
+  });
+  it('o que falta avaliar não soma, e resolvido conta como aprovado', () => {
     const n = notaAvaliacao([
       item({ id: 'a' }),
       item({ id: 'b', resultado: 'nao_conforme', pendenciaStatus: 'fechada' }),
     ]);
-    expect(n.pct).toBe(100);
+    expect(n.pct).toBe(50);
     expect(n.respondidos).toBe(1);
   });
   it('lista vazia não divide por zero', () => {
