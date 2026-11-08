@@ -34,6 +34,8 @@ Thumbs.db
 coverage/
 playwright-report/
 test-results/
+.playwright-mcp/
+/output/
 
 # Material de referência (não faz parte do produto)
 exemplos de projetos/
