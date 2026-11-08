@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   compararRevisoes,
-  evolucaoPontos,
+  evolucaoNota,
+  formatarEvolucao,
   itemCongelado,
   faltamParaFechar,
   formatarNota,
@@ -52,9 +53,12 @@ describe('situacaoItem', () => {
     const ok = item({ id: 'b', resultado: 'conforme', pendenciaStatus: 'aberta' });
     expect(situacaoItem(itemCongelado(nc))).toBe('nao_conforme');
     expect(situacaoItem(itemCongelado(ok))).toBe('conforme');
-    expect(evolucaoPontos([itemCongelado(nc)], [item({ id: 'a', resultado: 'conforme' })])).toBe(
-      10,
-    );
+    expect(evolucaoNota([itemCongelado(nc)], [item({ id: 'a', resultado: 'conforme' })])).toBe(100);
+  });
+  it('formata a variação com sinal', () => {
+    expect(formatarEvolucao(5.83)).toBe('+5,8%');
+    expect(formatarEvolucao(-1)).toBe('−1,0%');
+    expect(formatarEvolucao(0)).toBe('0,0%');
   });
   it('conforme', () => {
     expect(situacaoItem(item({ id: 'a', resultado: 'conforme' }))).toBe('conforme');
