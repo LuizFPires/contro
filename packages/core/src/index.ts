@@ -59,3 +59,4 @@ export * from './ambiente';
 export * from './obraGeral';
 export * from './obraGeralSemana';
 export * from './obraGeralLog';
+export * from './avaliacao';
