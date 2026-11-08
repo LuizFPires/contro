@@ -51,4 +51,8 @@ body,
   .app-shell {
     display: block;
   }
+  /* A folha aberta fixa o body (trava do fundo); fixo, ele imprime só a 1ª página. */
+  body {
+    position: static !important;
+  }
 }
