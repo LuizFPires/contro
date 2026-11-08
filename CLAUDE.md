@@ -14,7 +14,7 @@ Cada obra nasce de um **modelo de obra** escolhido entre os modelos salvos (ex.:
 
 O app tem ainda o ambiente **Obras gerais** (obras que não são das unidades Contorno do Corpo, com acesso por obra), entregue nas 5 etapas: ambientes e acesso, a obra por dentro, Hoje e avisos, reunião e boletim por obra, e Score, Log e sugestões por ambiente (ver PLAN.md).
 
-Nas obras da Contorno há ainda a **Pré-avaliação da entrega** (aba Avaliação): prova interna em revisões sucessivas, com nota projetada; "Não" exige foto do antes e vira pendência do Check list (ver PRD §5.7-A).
+Nas obras da Contorno há ainda a **Pré-avaliação da entrega** (aba Avaliação): prova interna em revisões sucessivas, com nota que começa em 0%; "Não" exige foto do antes e vira pendência do Check list (ver PRD §5.7-A).
 
 A **maquete 3D da obra** é uma melhoria futura (E1) em avaliação: **não implemente** nada dela sem pedido explícito do usuário.
 
