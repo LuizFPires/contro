@@ -13,7 +13,6 @@ test('pré-avaliação: aba da obra, nota começa em zero e Não exige foto', as
   await page.getByRole('button', { name: 'Avaliação', exact: true }).click();
   await page.getByRole('button', { name: 'Começar a 1ª revisão' }).click();
   await expect(page.getByText('0 de 103 itens')).toBeVisible();
-  await expect(page.getByText('0 de 1.030 pts')).toBeVisible();
   await expect(page.getByText('0,0%')).toBeVisible();
 
   await page.getByRole('button', { name: /Recepção/ }).click();

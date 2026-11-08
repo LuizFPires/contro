@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import {
   compararRevisoes,
-  evolucaoPontos,
+  evolucaoNota,
+  formatarEvolucao,
   faltamParaFechar,
   formatarNota,
   notaAoResolver,
@@ -31,8 +32,6 @@ type Tela =
 
 const ROT_CRIT: Record<string, string> = { alta: 'Alta', media: 'Média', baixa: 'Baixa' };
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
-const pts = (n: number) => n.toLocaleString('pt-BR');
-
 /** Pré-avaliação de entrega: prova interna antes da avaliação da Contorno. */
 export function AvaliacaoAba({
   obraId,
@@ -222,8 +221,6 @@ export function AvaliacaoAba({
           <div className={styles.heroiNota}>
             <b>{formatarNota(nota.pct)}</b>
             <span>
-              {pts(nota.obtidos)} de {pts(nota.total)} pts
-              <br />
               {nota.respondidos} de {nota.quantidade} itens
             </span>
           </div>
@@ -302,7 +299,6 @@ export function AvaliacaoAba({
                       {p.codigo ? ` · item ${p.codigo}` : ''}
                     </span>
                   </div>
-                  <b>−{p.pontos} pts</b>
                 </div>
                 <div className={styles.perdaStatus}>
                   <Icon name="pendencias" size={16} />
@@ -412,7 +408,7 @@ function Historico({
   const primeira = fechadas[fechadas.length - 1];
   const notaUltima = ultima ? notaAvaliacao(ultima.itens) : null;
   const ganho =
-    ultima && primeira && ultima !== primeira ? evolucaoPontos(primeira.itens, ultima.itens) : null;
+    ultima && primeira && ultima !== primeira ? evolucaoNota(primeira.itens, ultima.itens) : null;
 
   return (
     <div className={styles.tela}>
@@ -425,8 +421,7 @@ function Historico({
             <b>{formatarNota(notaUltima.pct)}</b>
             {ganho !== null ? (
               <span>
-                {ganho >= 0 ? '+' : '−'}
-                {pts(Math.abs(ganho))} pontos
+                {formatarEvolucao(ganho)}
                 <br />
                 desde a 1ª revisão
               </span>
@@ -480,8 +475,8 @@ function Historico({
         <h3 className={styles.subtitulo}>Avaliação oficial da Contorno</h3>
         {oficial ? (
           <p className={styles.dica}>
-            Contorno: <b>{formatarNota(pctOficial(oficial.pontos, oficial.total))}</b> (
-            {pts(oficial.pontos)} de {pts(oficial.total)}) em {formatarDataCurta(oficial.data)}
+            Contorno: <b>{formatarNota(pctOficial(oficial.pontos, oficial.total))}</b> em{' '}
+            {formatarDataCurta(oficial.data)}
             {notaUltima ? (
               <>
                 <br />
@@ -556,8 +551,7 @@ function Comparacao({
             <span>
               antes {formatarNota(notaAvaliacao(anterior.itens).pct)}
               <br />
-              {c.ganhoPontos > 0 ? '+' : c.ganhoPontos < 0 ? '−' : ''}
-              {pts(Math.abs(c.ganhoPontos))} pontos
+              {formatarEvolucao(evolucaoNota(anterior.itens, atual.itens))}
             </span>
           ) : null}
         </div>

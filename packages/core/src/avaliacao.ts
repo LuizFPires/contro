@@ -236,12 +236,18 @@ export function itemCongelado<T extends ItemSituacao>(item: T): T {
   return { ...item, pendenciaStatus: item.resultado === 'nao_conforme' ? 'aberta' : null };
 }
 
-/** Pontos ganhos entre duas revisões (negativo = perdeu). */
-export function evolucaoPontos(
+/** Variação da nota entre duas revisões, em pontos percentuais (negativo = caiu). */
+export function evolucaoNota(
   primeira: Parameters<typeof notaAvaliacao>[0],
   ultima: Parameters<typeof notaAvaliacao>[0],
 ): number {
-  return notaAvaliacao(ultima).obtidos - notaAvaliacao(primeira).obtidos;
+  return notaAvaliacao(ultima).pct - notaAvaliacao(primeira).pct;
+}
+
+/** Variação com sinal ("+5,8%", "−1,0%", "0,0%"). */
+export function formatarEvolucao(variacao: number): string {
+  const sinal = variacao > 0 ? '+' : variacao < 0 ? '−' : '';
+  return `${sinal}${formatarNota(Math.abs(variacao))}`;
 }
 
 /** Nota oficial da Contorno, nos mesmos termos da projeção. */

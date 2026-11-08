@@ -161,7 +161,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 
 ### 5.7-A Pré-avaliação da entrega (08/11/2026, só obras da Contorno)
 - Prova interna, ponto a ponto, antes da avaliação de entrega da Contorno do Corpo. Fica na aba **Avaliação**, depois do Check list; Obras gerais não têm.
-- **Lista:** 103 itens em 11 ambientes, 10 pontos cada (1.030 pontos), a mesma conta da Contorno. O **Gestor** edita a lista em "Itens da avaliação"; a mudança vale da próxima revisão em diante.
+- **Lista:** 103 itens em 11 ambientes, todos com o mesmo peso (10 pontos cada, a mesma conta da Contorno). A tela mostra só a porcentagem e a contagem de itens, sem pontos. O **Gestor** edita a lista em "Itens da avaliação"; a mudança vale da próxima revisão em diante.
 - **Marcar:** cada item é **Ok** ou **Não**, um por um. Não existe "Não se aplica" nem "marcar todos".
 - **Não** exige a **foto do antes** e cria uma pendência no Check list (o que está errado, local = ambiente, criticidade), que segue o fluxo normal. Foto do depois resolve a pendência e a nota sobe. Tirar o Não retira a pendência, com Desfazer.
 - **Nota:** cada revisão começa em 0% e soma os itens aprovados (Ok ou resolvidos); o que falta avaliar, a reconfirmar ou com pendência aberta não soma. Com tudo respondido, é a conta da Contorno. A visão **Tirando ponto** lista, das altas para as baixas, quanto a nota sobe ao resolver cada item.
