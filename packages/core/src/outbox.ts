@@ -21,12 +21,27 @@ export function backoffMs(tentativas: number): number {
   return Math.min(2000 * 2 ** (tentativas - 1), BACKOFF_MAX);
 }
 
-/** Próxima op a enviar: a mais antiga que está pendente/erro e já pode tentar. */
-export function proximaOp<T extends OpFila>(ops: T[], agora: number): T | null {
-  const prontas = ops
-    .filter((o) => (o.status === 'pendente' || o.status === 'erro') && o.proximaEm <= agora)
+/**
+ * Próxima op a enviar: a mais antiga que está pendente/erro e já pode tentar.
+ * Com `chave`, ops de mesma chave saem em ordem: uma em backoff segura as seguintes
+ * (o Desfazer de um item não pode passar na frente da ação que ele desfaz).
+ */
+export function proximaOp<T extends OpFila>(
+  ops: T[],
+  agora: number,
+  chave?: (op: T) => string | null,
+): T | null {
+  const fila = ops
+    .filter((o) => o.status === 'pendente' || o.status === 'erro')
     .sort((a, b) => a.criadoEm - b.criadoEm);
-  return prontas[0] ?? null;
+  const presas = new Set<string>();
+  for (const o of fila) {
+    const k = chave?.(o) ?? null;
+    if (k && presas.has(k)) continue;
+    if (o.proximaEm <= agora) return o;
+    if (k) presas.add(k);
+  }
+  return null;
 }
 
 /** Quantas ações ainda aguardam sinal (para o indicador discreto). */

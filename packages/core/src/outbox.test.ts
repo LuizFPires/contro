@@ -38,6 +38,16 @@ describe('proximaOp', () => {
     ];
     expect(proximaOp(ops, 100)?.id).toBe('b');
   });
+  it('com chave, op em backoff segura as seguintes da mesma chave', () => {
+    const ops = [
+      op({ id: 'acao', status: 'erro', criadoEm: 1, proximaEm: 999 }),
+      op({ id: 'desfazer', criadoEm: 2 }),
+      op({ id: 'outro', criadoEm: 3 }),
+    ];
+    const chave = (o: OpFila) => (o.id === 'outro' ? 'item2' : 'item1');
+    expect(proximaOp(ops, 100, chave)?.id).toBe('outro');
+    expect(proximaOp(ops, 1000, chave)?.id).toBe('acao');
+  });
   it('null quando nada está pronto', () => {
     expect(proximaOp([op({ status: 'rejeitada' })], 100)).toBeNull();
     expect(proximaOp([op({ status: 'erro', proximaEm: 999 })], 100)).toBeNull();

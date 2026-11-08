@@ -92,6 +92,16 @@ pendencia(id, obra_id, atividade_id null, titulo, local, criticidade: 'alta'|'me
 pendencia_evento(id, pendencia_id, tipo: 'apontada'|'adiada'|'trazida'|'resolvida'|'aprovada'|'reaberta', por, em, dados jsonb)
 ```
 
+### 3.4-A Pré-avaliação da entrega (só obras `contorno`)
+```
+avaliacao_modelo_item(id, secao_ordem, secao, ordem, codigo, nome, pontos, deleted_at)   -- lista; escrita só perfil gestor
+avaliacao_revisao(id, obra_id, numero, status: 'aberta'|'fechada', criada_por, created_at, fechada_por, fechada_em)   -- 1 aberta por obra
+avaliacao_item(id, revisao_id, obra_id, modelo_item_id, secao_ordem, secao, ordem, codigo, nome, pontos,
+               resultado: null|'conforme'|'nao_conforme', reconfirmar, pendencia_id, respondido_por, respondido_em)   -- cópia por revisão
+avaliacao_oficial(id, obra_id, data, pontos, total, lancada_por)
+```
+Leitura por RLS (`contro_avaliacao_acesso`). Revisões e itens só se gravam pelas RPCs `abrir_avaliacao_revisao`, `marcar_avaliacao_item`, `avaliacao_nao_conforme`, `restaurar_nc_avaliacao`, `fechar_avaliacao_revisao` e `reabrir_avaliacao_revisao`. As três de marcar são idempotentes (`client_op_id`) e vão pela fila offline; abrir e fechar revisão exigem conexão. Situação, nota e comparação ficam em `core/avaliacao.ts`, a partir do item e do status da pendência ligada.
+
 ### 3.5 Fotos
 ```
 foto(id, obra_id, storage_path, largura, altura, tirada_em, tirada_por, lat null, lng null, sha256)

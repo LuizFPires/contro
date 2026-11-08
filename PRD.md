@@ -148,7 +148,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - **Providência sem responsável (04/11/2026)** aparece em Tarefas da equipe (chip "Sem responsável") e conta nas ações da equipe, com prazo = "providenciar até". O gestor atribui quem cuida pela folha "Atribuir providência", que cria a tarefa vinculada ao lembrete; a pessoa recebe o aviso de tarefa atribuída. O lembrete em si não ganha campo novo (continua sem valor e fornecedor). A lista Hoje nunca mostra a mesma providência duas vezes: sem dono, aparece como providência; atribuída, só como tarefa da pessoa.
 
 ### 5.7 Check list (pendências de qualidade)
-- Na obra, a aba se chama **Check list** e fica depois de Cronograma (abas: Fases, Providências, Cronograma, Check list). Um botão **"i"** explica como funciona.
+- Na obra, a aba se chama **Check list** e fica depois de Cronograma (abas: Fases, Providências, Cronograma, Check list, Avaliação). Um botão **"i"** explica como funciona.
 - Duas abas, com as contagens: **Pendências | Resolvidos** (28/10/2026: sem fila e sem adiar).
 - **Pendências:** em **Fotos** ou em **Lista**; a troca é um botão com texto na linha do contador ("Ver em lista" / "Ver em fotos"). Fotos: uma foto por vez (foto do antes, criticidade, local, atividade e quem apontou), das **altas para as baixas**, com "1 de N".
   - Deslizar para a **esquerda**, ou o botão "Resolvida", abre a câmera com a **foto do antes em transparência** (ghost) para alinhar a foto de depois. A pendência vai direto para Resolvidos (sem vistoria).
@@ -158,6 +158,15 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - **Resolvidos:** lista compacta (antes e depois em miniatura, "Resolvido hoje · quem"), da mais recente; tocar abre o card com **antes e depois lado a lado**.
 - Em qualquer item, "⋯" tem **Ver antes e depois**, **Editar pendência** (o que, local, criticidade, atividade) e **Apagar pendência** (exclusão lógica, com Desfazer); o resolvido tem também **"Voltar para pendente"**, e quem reabre escolhe **manter ou tirar a foto do depois**. Foto errada: apagar e apontar de novo. Tocar numa foto abre **antes e depois em tela cheia, com zoom** (dois dedos ou toque duplo). A Nova pendência sempre abre vazia.
 - **Apontar** (29/10/2026): o ícone de câmera abre **Tirar fotos** (a câmera fica aberta e tira várias seguidas, com as miniaturas e "Pronto · N") ou **Da galeria** (várias de uma vez). **Uma pendência por foto.** Na lista, cada foto recebe o que é (obrigatório), local, criticidade e atividade; a foto nova herda local, criticidade e atividade da anterior. Com 2 ou mais fotos, **"Para todas as fotos"** preenche local, criticidade e atividade de uma vez. **Apontar** grava as prontas (com Desfazer) e mantém na lista as que faltam descrever; descartar a lista pede confirmação. A atividade (opcional) se escolhe por **busca** (parte do nome, sem acento, ou o número #N) numa lista agrupada por fase.
+
+### 5.7-A Pré-avaliação da entrega (08/11/2026, só obras da Contorno)
+- Prova interna, ponto a ponto, antes da avaliação de entrega da Contorno do Corpo. Fica na aba **Avaliação**, depois do Check list; Obras gerais não têm.
+- **Lista:** 103 itens em 11 ambientes, 10 pontos cada (1.030 pontos), a mesma conta da Contorno. O **Gestor** edita a lista em "Itens da avaliação"; a mudança vale da próxima revisão em diante.
+- **Marcar:** cada item é **Ok** ou **Não**, um por um. Não existe "Não se aplica" nem "marcar todos".
+- **Não** exige a **foto do antes** e cria uma pendência no Check list (o que está errado, local = ambiente, criticidade), que segue o fluxo normal. Foto do depois resolve a pendência e a nota sobe. Tirar o Não retira a pendência, com Desfazer.
+- **Nota projetada:** o que falta avaliar conta como conforme; só as pendências abertas tiram ponto. A visão **Tirando ponto** lista, das altas para as baixas, quanto a nota sobe ao resolver cada item.
+- **Revisões:** a primeira avalia tudo. Só uma fica aberta por vez e só fecha com todos os itens respondidos; fechada, não muda (Desfazer logo ao fechar). A nova revisão parte da anterior: **pendência aberta** segue tirando ponto, **resolvido** fica a reconfirmar, **conforme** é mantido; ou "Refazer" zera os conformes. Item que volta a dar problema **reabre a mesma pendência**.
+- **Histórico:** nota de cada revisão, data, quem fez (quem fechou; aberta, quem abriu) e a comparação Melhorou, Piorou e Continua pendente. A nota oficial da Contorno pode ser lançada para comparar com a projeção.
 
 ### 5.8 Cronograma
 - Gantt simplificado por fase, com a linha de hoje. Cores: concluída (turquesa), a executar (preto) e atrasada (vermelho).

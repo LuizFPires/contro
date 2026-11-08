@@ -445,8 +445,19 @@ Quarta de 5 etapas. Leva às Obras gerais o ciclo semanal da Contorno, por obra:
 
 ---
 
+## Pré-avaliação da entrega (08/11/2026)
+
+- [x] Tabelas, RLS, RPCs e lista dos 103 itens (`20261108100000_pre_avaliacao_entrega.sql`), com teste pgTAP.
+- [x] Situação, nota projetada e comparação de revisões em `core/avaliacao.ts`, com testes.
+- [x] Aba Avaliação: ambientes, Tirando ponto, Não com foto do antes virando pendência, revisões, histórico com quem fez, nota oficial e itens editáveis pelo Gestor.
+
+**Aceite:** com 6 não conformes em 103 itens, a nota é 94,17% (igual ao PDF da Contorno); Não sem foto não cria pendência; item resolvido que volta a dar problema reabre a mesma pendência; obra geral não tem a aba nem acesso pelas RPCs.
+
+---
+
 ## Decisões
 
+- [x] **08/11/2026 · Pré-avaliação da entrega:** protótipo D aprovado pelo usuário. Sem "Não se aplica" e sem "marcar restantes"; os 6 documentos marcados como N/A no PDF da Prime São Bento ficaram fora da lista (base 1.030, como a Contorno). Lista editável pelo Gestor (recomendação aceita ao seguir sem objeção). "Não" exige foto do antes. Desvios do protótipo: o Não tem o botão "Criar pendência" (a pendência e a nota mudam ao criar, não ao tocar em Não); ao reabrir a mesma pendência mantém-se a foto do antes original e sai a do depois (o fluxo existente de "Voltar para pendente"), sem nova foto; abrir e fechar revisão exigem conexão, porque a cópia dos itens é feita no servidor. Reabrir pede confirmação, pois tira a foto do depois. Item resolvido antes de a revisão fechar já fica Conforme nela (a foto do depois foi a prova) e não volta a reconfirmar; só o resolvido depois do fechamento é reconfirmado. A fila offline passou a manter a ordem por item (`proximaOp` com chave), para o Desfazer não passar na frente da ação.
 - [x] **05/11/2026 · Providências e preparativo:** padronizar Comprar/Alugar/Contratar sem dois-pontos em ações, lembretes e documentos; converter títulos salvos com auditoria e proteger envios offline antigos. Preparativo por pessoa em três colunas por vencimento relativo à reunião, limite de 15 dias corridos, divisória aos 5 dias e referência `(#N)` da atividade da obra. A investigação dos dois itens de cimento da Sagrada Família confirmou providências distintas de Alvenarias e de Contrapiso; não unir os registros.
 Registro do que mudou em relação ao PRD/SPEC durante a implementação (data · decisão · motivo · quem).
 
