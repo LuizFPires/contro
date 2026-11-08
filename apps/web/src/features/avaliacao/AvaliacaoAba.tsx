@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   compararRevisoes,
+  evolucaoPontos,
   faltamParaFechar,
   formatarNota,
   notaAoResolver,
@@ -51,6 +52,9 @@ export function AvaliacaoAba({
   const aberta = aval.revisoes.find((r) => r.aberta) ?? null;
   const ultimaFechada = aval.revisoes.find((r) => !r.aberta) ?? null;
 
+  if (aval.semConexao) {
+    return <p className={styles.vazio}>A avaliação precisa de conexão para abrir.</p>;
+  }
   if (aval.carregando) return <p className={styles.vazio}>Carregando a avaliação…</p>;
   if (aval.erro) return <p className={styles.vazio}>Não foi possível carregar a avaliação.</p>;
 
@@ -408,9 +412,7 @@ function Historico({
   const primeira = fechadas[fechadas.length - 1];
   const notaUltima = ultima ? notaAvaliacao(ultima.itens) : null;
   const ganho =
-    ultima && primeira && ultima !== primeira
-      ? notaAvaliacao(ultima.itens).obtidos - notaAvaliacao(primeira.itens).obtidos
-      : null;
+    ultima && primeira && ultima !== primeira ? evolucaoPontos(primeira.itens, ultima.itens) : null;
 
   return (
     <div className={styles.tela}>
@@ -611,13 +613,13 @@ function LancarSheet({
           label="Pontos obtidos"
           inputMode="numeric"
           value={pontos}
-          onChange={(e) => setPontos(e.target.value)}
+          onChange={(e) => setPontos(e.target.value.replace(/\D/g, ''))}
         />
         <Input
           label="Total de pontos"
           inputMode="numeric"
           value={total}
-          onChange={(e) => setTotal(e.target.value)}
+          onChange={(e) => setTotal(e.target.value.replace(/\D/g, ''))}
         />
         <Button
           full

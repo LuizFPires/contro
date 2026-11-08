@@ -200,7 +200,11 @@ export async function drenar(): Promise<void> {
     for (const o of orfas) await db.outbox.update(o.id, { userId: uid });
     for (;;) {
       const ops = (await db.outbox.toArray()).filter((o) => o.userId === uid);
-      const op = proximaOp(ops, Date.now());
+      const op = proximaOp(
+        ops,
+        Date.now(),
+        (o) => (o.payload as { itemId?: string } | null)?.itemId ?? null,
+      );
       if (!op) break;
       const handler = DISPATCH[op.tipo];
       if (!handler) {

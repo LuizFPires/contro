@@ -27,6 +27,7 @@ export function ItemLinha({
   const [crit, setCrit] = useState<Crit>('media');
   const [foto, setFoto] = useState<{ file: File; url: string } | null>(null);
   const [camera, setCamera] = useState(false);
+  const [confirmaReabrir, setConfirmaReabrir] = useState(false);
   const situacao = situacaoItem(item);
   const conforme = situacao === 'conforme' || situacao === 'resolvido';
   const naoConforme = situacao === 'nao_conforme';
@@ -46,6 +47,7 @@ export function ItemLinha({
 
   function tocarOk() {
     limparForm();
+    setConfirmaReabrir(false);
     if (naoConforme) {
       const pendencia = aval.pendencias.find((p) => p.id === item.pendenciaId);
       aval.marcar.mutate({ item, resultado: 'conforme' });
@@ -60,17 +62,22 @@ export function ItemLinha({
 
   function tocarNao() {
     if (naoConforme) return;
-    // Já resolvida antes e voltou a dar problema: reabre a mesma pendência.
+    // Já resolvida antes: reabrir tira a foto do depois, então pede confirmação.
     if (item.pendenciaId && item.pendenciaStatus === 'fechada') {
-      aval.marcarNaoConforme.mutate({
-        item,
-        file: null,
-        dados: { titulo: null, local: null, criticidade: 'media' },
-      });
-      showToast({ message: 'Pendência reaberta no Check list' });
+      setConfirmaReabrir((v) => !v);
       return;
     }
     setFormAberto((v) => !v);
+  }
+
+  function reabrir() {
+    setConfirmaReabrir(false);
+    aval.marcarNaoConforme.mutate({
+      item,
+      file: null,
+      dados: { titulo: null, local: null, criticidade: 'media' },
+    });
+    showToast({ message: 'Pendência reaberta no Check list' });
   }
 
   function criar() {
@@ -124,13 +131,31 @@ export function ItemLinha({
           type="button"
           aria-label={`${item.nome}: não conforme`}
           aria-pressed={naoConforme}
-          className={`${styles.op} ${naoConforme || formAberto ? styles.opNao : ''}`}
+          className={`${styles.op} ${naoConforme || formAberto || confirmaReabrir ? styles.opNao : ''}`}
           onClick={tocarNao}
         >
           <Icon name="close" size={18} />
           Não
         </button>
       </div>
+
+      {confirmaReabrir ? (
+        <div className={styles.form}>
+          <p className={styles.dica}>
+            Voltou a dar problema? A pendência volta para o Check list e perde a foto do depois.
+          </p>
+          <button type="button" className={styles.primario} onClick={reabrir}>
+            Reabrir pendência
+          </button>
+          <button
+            type="button"
+            className={styles.terciarioLargo}
+            onClick={() => setConfirmaReabrir(false)}
+          >
+            Cancelar
+          </button>
+        </div>
+      ) : null}
 
       {formAberto ? (
         <div className={styles.form}>

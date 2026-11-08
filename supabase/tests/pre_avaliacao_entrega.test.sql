@@ -3,7 +3,7 @@
 -- Requer o seed de homologação (Modelo 1 + unidades Contorno).
 
 begin;
-select plan(21);
+select plan(22);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000a0e1', 'equipe@preaval.contro'),
@@ -95,6 +95,14 @@ select is((select resultado from avaliacao_item where id = (select i3 from ctx2)
 select avaliacao_nao_conforme((select i2 from ctx2), gen_random_uuid());
 select is((select status from pendencia where id = '00000000-0000-0000-0000-00000000a0b1'), 'aberta', 'voltou a dar problema: reabre a mesma pendência');
 select is((select pendencia_id from avaliacao_item where id = (select i2 from ctx2)), '00000000-0000-0000-0000-00000000a0b1'::uuid, 'item segue ligado à mesma pendência');
+
+-- Pendência aberta com item sem resposta (reaberta no Check list): ao fechar, tira ponto.
+set local role postgres;
+update avaliacao_item set resultado = null, reconfirmar = true where id = (select i2 from ctx2);
+update avaliacao_item set resultado = 'conforme' where revisao_id = (select rev from ctx2) and resultado is null and id <> (select i2 from ctx2);
+set local role authenticated;
+select fechar_avaliacao_revisao((select rev from ctx2));
+select is((select resultado from avaliacao_item where id = (select i2 from ctx2)), 'nao_conforme', 'fechar respeita a pendência aberta');
 
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000a0e2","role":"authenticated"}';
 select lives_ok($$ insert into avaliacao_modelo_item (secao_ordem, secao, ordem, nome) values (11, 'Documentação e segurança', 99, 'ART extra') $$,

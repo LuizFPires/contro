@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   compararRevisoes,
+  evolucaoPontos,
+  itemCongelado,
   faltamParaFechar,
   formatarNota,
   notaAoResolver,
@@ -39,6 +41,20 @@ describe('situacaoItem', () => {
     expect(situacaoItem(item({ ...nc, pendenciaStatus: 'aberta' }))).toBe('nao_conforme');
     expect(situacaoItem(item({ ...nc, pendenciaStatus: 'fechada' }))).toBe('resolvido');
     expect(situacaoItem(item(nc))).toBe('a_avaliar');
+  });
+  it('pendência reaberta no Check list volta a tirar ponto', () => {
+    expect(situacaoItem(item({ id: 'a', reconfirmar: true, pendenciaStatus: 'aberta' }))).toBe(
+      'nao_conforme',
+    );
+  });
+  it('revisão fechada ignora o que aconteceu depois com a pendência', () => {
+    const nc = item({ id: 'a', resultado: 'nao_conforme', pendenciaStatus: 'fechada' });
+    const ok = item({ id: 'b', resultado: 'conforme', pendenciaStatus: 'aberta' });
+    expect(situacaoItem(itemCongelado(nc))).toBe('nao_conforme');
+    expect(situacaoItem(itemCongelado(ok))).toBe('conforme');
+    expect(evolucaoPontos([itemCongelado(nc)], [item({ id: 'a', resultado: 'conforme' })])).toBe(
+      10,
+    );
   });
   it('conforme', () => {
     expect(situacaoItem(item({ id: 'a', resultado: 'conforme' }))).toBe('conforme');

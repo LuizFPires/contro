@@ -123,6 +123,21 @@ create policy avaliacao_oficial_sel on avaliacao_oficial for select to authentic
 create policy avaliacao_oficial_ins on avaliacao_oficial for insert to authenticated
   with check (contro_avaliacao_acesso(obra_id));
 
+-- Quem lançou a nota oficial vem da sessão, nunca do cliente.
+create or replace function contro_avaliacao_oficial_autor()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  new.lancada_por := public.contro_pessoa_atual();
+  return new;
+end;
+$$;
+create trigger avaliacao_oficial_autor before insert on avaliacao_oficial
+  for each row execute function contro_avaliacao_oficial_autor();
+
 -- Abre a próxima revisão a partir da última fechada.
 --   pendência aberta             -> segue não conforme
 --   não conforme já resolvido    -> a reconfirmar
@@ -186,18 +201,20 @@ set search_path = ''
 as $$
 declare
   v_item public.avaliacao_item;
+  v_revisao uuid;
 begin
-  select * into v_item from public.avaliacao_item where id = p_item_id for update;
-  if v_item.id is null then
+  select revisao_id into v_revisao from public.avaliacao_item where id = p_item_id;
+  if v_revisao is null then
     raise exception 'Item inválido' using errcode = '23503';
   end if;
+  -- Trava a revisão antes do item (mesma ordem de fechar): marcar e fechar não se cruzam.
+  perform 1 from public.avaliacao_revisao where id = v_revisao and status = 'aberta' for share;
+  if not found then
+    raise exception 'Revisão fechada não muda' using errcode = '42501';
+  end if;
+  select * into v_item from public.avaliacao_item where id = p_item_id for update;
   if not public.contro_avaliacao_acesso(v_item.obra_id) then
     raise exception 'sem acesso a esta obra' using errcode = '42501';
-  end if;
-  if not exists (
-    select 1 from public.avaliacao_revisao where id = v_item.revisao_id and status = 'aberta'
-  ) then
-    raise exception 'Revisão fechada não muda' using errcode = '42501';
   end if;
   return v_item;
 end;
@@ -346,6 +363,13 @@ begin
   if v_status <> 'aberta' then
     raise exception 'Revisão já fechada' using errcode = '42501';
   end if;
+  -- Pendência reaberta direto no Check list volta a tirar ponto.
+  update public.avaliacao_item i
+  set resultado = 'nao_conforme', reconfirmar = false
+  from public.pendencia p
+  where i.revisao_id = p_revisao_id and p.id = i.pendencia_id
+    and p.deleted_at is null and p.status <> 'fechada'
+    and i.resultado is distinct from 'nao_conforme';
   if exists (
     select 1 from public.avaliacao_item i
     left join public.pendencia p on p.id = i.pendencia_id and p.deleted_at is null

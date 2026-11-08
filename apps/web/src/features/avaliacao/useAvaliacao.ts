@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { topoFila, type ItemAvaliacao } from '@contro/core';
+import { itemCongelado, topoFila, type ItemAvaliacao } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { enfileirar } from '../../lib/sync';
 import { guardarFotoLocal } from '../obras/foto';
@@ -73,13 +73,7 @@ function montarRevisao(
     aberta,
     data: dataBrasil(r.fechada_em ?? r.created_at),
     quem: (aberta ? r.criador?.nome : r.fechador?.nome) ?? null,
-    // Revisão fechada não muda: o não conforme dela segue tirando ponto no histórico.
-    itens: aberta
-      ? agora
-      : agora.map((i) => ({
-          ...i,
-          pendenciaStatus: i.resultado === 'nao_conforme' ? 'aberta' : null,
-        })),
+    itens: aberta ? agora : agora.map(itemCongelado),
     itensAgora: agora,
   };
 }
@@ -221,13 +215,24 @@ export function useAvaliacao(obraId: string) {
   });
 
   const atualizar = () => qc.invalidateQueries({ queryKey: chave });
+  // Precisam de conexão: sem sinal, falham na hora (não ficam pausadas para depois).
   const abrir = useMutation({
+    networkMode: 'always',
     mutationFn: (refazer: boolean) => abrirRevisao(obraId, refazer),
     onSuccess: atualizar,
   });
-  const fechar = useMutation({ mutationFn: fecharRevisao, onSuccess: atualizar });
-  const reabrir = useMutation({ mutationFn: reabrirRevisao, onSuccess: atualizar });
+  const fechar = useMutation({
+    networkMode: 'always',
+    mutationFn: fecharRevisao,
+    onSuccess: atualizar,
+  });
+  const reabrir = useMutation({
+    networkMode: 'always',
+    mutationFn: reabrirRevisao,
+    onSuccess: atualizar,
+  });
   const oficial = useMutation({
+    networkMode: 'always',
     mutationFn: (v: { data: string; pontos: number; total: number }) => lancarOficial(obraId, v),
     onSuccess: atualizar,
   });
@@ -236,6 +241,8 @@ export function useAvaliacao(obraId: string) {
     revisoes,
     oficial: query.data?.oficial ?? null,
     carregando: query.isLoading || pendencias.query.isLoading,
+    // Sem sinal e sem nada guardado: não dá para dizer que nunca houve avaliação.
+    semConexao: query.data === undefined && query.fetchStatus === 'paused',
     erro: query.isError,
     pendencias: listaPend ?? [],
     marcar,

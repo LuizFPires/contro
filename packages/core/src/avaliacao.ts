@@ -33,6 +33,8 @@ type ItemSituacao = Pick<ItemAvaliacao, 'resultado' | 'reconfirmar' | 'pendencia
 
 /** Situação real do item, olhando a pendência do Check list. */
 export function situacaoItem(item: ItemSituacao): SituacaoItem {
+  // Pendência ligada e aberta tira ponto, mesmo reaberta direto no Check list.
+  if (item.pendenciaStatus !== null && item.pendenciaStatus !== 'fechada') return 'nao_conforme';
   if (item.resultado === 'conforme') return 'conforme';
   if (item.resultado === 'nao_conforme') {
     if (item.pendenciaStatus === null) return 'a_avaliar'; // pendência apagada
@@ -225,6 +227,19 @@ export function compararRevisoes<T extends ItemComparavel>(
     }
   }
   return { melhorou, piorou, continua, ganhoPontos };
+}
+
+/** Revisão fechada não muda: o não conforme dela segue tirando ponto no histórico. */
+export function itemCongelado<T extends ItemSituacao>(item: T): T {
+  return { ...item, pendenciaStatus: item.resultado === 'nao_conforme' ? 'aberta' : null };
+}
+
+/** Pontos ganhos entre duas revisões (negativo = perdeu). */
+export function evolucaoPontos(
+  primeira: Parameters<typeof notaAvaliacao>[0],
+  ultima: Parameters<typeof notaAvaliacao>[0],
+): number {
+  return notaAvaliacao(ultima).obtidos - notaAvaliacao(primeira).obtidos;
 }
 
 /** Nota oficial da Contorno, nos mesmos termos da projeção. */
