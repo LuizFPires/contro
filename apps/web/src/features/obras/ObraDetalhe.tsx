@@ -3,6 +3,7 @@ import {
   classificarPendencias,
   diasUteisRestantes,
   podeApagarObra,
+  prazosTarefaPorProvidencia,
   previsaoEntrega,
   ritmoTexto,
   type FaseTrilha,
@@ -35,6 +36,7 @@ import { useObraCampo } from './useObraCampo';
 import { useAvanco } from './useAvanco';
 import { AnelAvanco } from './AnelAvanco';
 import { useObraPendencias } from './useObraPendencias';
+import { useObraTarefas } from './useObraTarefas';
 import { montarTrilha } from './trilhaObra';
 import styles from './ObraDetalhe.module.css';
 import { useLembrado } from '../../lib/useLembrado';
@@ -89,6 +91,7 @@ export function ObraDetalhe({
 }) {
   const { data: obra, isLoading } = useObraDetalhe(id);
   const pendencias = useObraPendencias(id);
+  const { query: tarefasQ } = useObraTarefas(id);
   const { showToast } = useToast();
   const campo = useObraCampo(id);
   // Aba, fase aberta e ficha aberta ficam lembradas por obra (volta ao mesmo lugar).
@@ -157,8 +160,12 @@ export function ObraDetalhe({
   }, [isLoading, obra, onVoltar]);
 
   const provAtrasadas = useMemo(
-    () => (obra ? classificarProvidencias(obra, hojeISO()).atrasadas.length : 0),
-    [obra],
+    () =>
+      obra
+        ? classificarProvidencias(obra, hojeISO(), prazosTarefaPorProvidencia(tarefasQ.data ?? []))
+            .atrasadas.length
+        : 0,
+    [obra, tarefasQ.data],
   );
   const pendAbertas = useMemo(
     () => classificarPendencias(pendencias.query.data ?? []).pendentes.length,

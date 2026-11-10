@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   comecarProvidencia,
+  deslocarDU,
   diaMes,
   duEntre,
   naObraEm,
+  prazosTarefaPorProvidencia,
+  prazoVigenteProvidencia,
   providenciaAtrasada,
   providenciarAte,
   VERBO_PROVIDENCIA,
@@ -91,8 +94,15 @@ export function FichaAtividade({
     // Sem atividade bloqueada: toda atividade aberta pode ser concluída (os
     // subitens abertos são marcados junto, no servidor).
     const podeConcluir = !a.concluida_em;
+    // Prazo da tarefa vinculada ("Quem cuida · até") vale no lugar do cronograma.
+    const prazosTarefa = prazosTarefaPorProvidencia(tarefasQ.data ?? []);
     const provs = a.providencias.map((p) => {
       const feito = p.status === 'feito';
+      const prazoTarefa = prazosTarefa.get(p.id);
+      const vigente = prazoVigenteProvidencia(
+        providenciarAte(obra.inicio, es, p.antecedencia_du),
+        prazoTarefa,
+      );
       return {
         p,
         feito,
@@ -103,9 +113,14 @@ export function FichaAtividade({
           decorridos,
           esAtividade: es,
           antecedenciaDu: p.antecedencia_du,
+          replanejada: prazoTarefa ? { prazo: prazoTarefa, hoje } : null,
         }),
-        ate: providenciarAte(obra.inicio, es, p.antecedencia_du),
-        comecar: comecarProvidencia(obra.inicio, es, p.antecedencia_du, p.duracao_du ?? 0),
+        ate: vigente.ate,
+        /** Prazo do cronograma quando a tarefa o replanejou. */
+        original: vigente.original,
+        comecar: vigente.original
+          ? deslocarDU(vigente.ate, -Math.max(p.duracao_du ?? 0, 0))
+          : comecarProvidencia(obra.inicio, es, p.antecedencia_du, p.duracao_du ?? 0),
         naObra: naObraEm(obra.inicio, es, p.na_obra_em),
       };
     });
@@ -119,7 +134,7 @@ export function FichaAtividade({
       podeConcluir,
       provs,
     };
-  }, [obra, atividadeId]);
+  }, [obra, atividadeId, tarefasQ.data]);
 
   if (!dados) return <BottomSheet open={false} onClose={onClose} children={null} />;
   const { a, est, cron, subitens, dependePreds, libera } = dados;
@@ -546,7 +561,7 @@ export function FichaAtividade({
             <span className={provDet.atrasada ? linhaStyles.detAtraso : linhaStyles.detTexto}>
               {provDet.feito
                 ? `Providenciado${provDet.p.feito_por_nome ? ` por ${provDet.p.feito_por_nome}` : ''}${provDet.p.feito_em ? ` em ${formatarDataCurta(dataLocal(provDet.p.feito_em))}` : ''}`
-                : `${provDet.atrasada ? 'ATRASADO · ' : ''}Providenciar até ${formatarDataCurta(provDet.ate)} (${provDet.p.antecedencia_du} dias úteis antes)${provDet.p.duracao_du ? ` · leva ${provDet.p.duracao_du} d, começar ${formatarDataCurta(provDet.comecar)}` : ''}`}
+                : `${provDet.atrasada ? 'ATRASADO · ' : ''}Providenciar até ${formatarDataCurta(provDet.ate)} ${provDet.original ? `· replanejado (era ${formatarDataCurta(provDet.original)})` : `(${provDet.p.antecedencia_du} dias úteis antes)`}${provDet.p.duracao_du ? ` · leva ${provDet.p.duracao_du} d, começar ${formatarDataCurta(provDet.comecar)}` : ''}`}
             </span>
             <button
               type="button"

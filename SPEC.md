@@ -214,6 +214,7 @@ providenciar_ate(p) = addDU(obra.inicio, max(limite, 0))
 na_obra_em(p)  = p.na_obra_em ?? inicio_previsto(atividade)
 atrasada(p)    = status='pendente' && atividade não concluída && obra iniciada && decorridos > max(limite, 0)   -- "até sex" ainda vale na sexta (26/10/2026)
 ```
+**Replanejada (10/11/2026):** com tarefa aberta vinculada (`vinculo_tipo='providencia'`), o prazo da tarefa ("Quem cuida · até") é o prazo vigente e vale no lugar de `providenciar_ate`: `atrasada(p) = pendente && atividade não concluída && hoje > tarefa.prazo`; na semana se `tarefa.prazo < addDU(hoje, 5)`. Core: `providenciaAtrasada({ ..., replanejada: { prazo, hoje } })`, `prazoVigenteProvidencia` (prazo e o original do cronograma, para "replanejado (era dd/mm)") e `prazosTarefaPorProvidencia(tarefas)`. Vale na aba Providências, no selo da aba, na ficha, no boletim e na reunião (com a data da reunião como hoje).
 
 ### 4.5 Indicadores
 ```

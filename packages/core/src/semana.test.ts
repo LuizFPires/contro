@@ -70,4 +70,12 @@ describe('providenciarNaSemana', () => {
   it('exclui já feita', () => {
     expect(providenciarNaSemana({ ...base, status: 'feito', decorridos: 5 })).toBe(false);
   });
+  it('replanejada: vale o prazo da tarefa (na semana se vence nos próximos 5 d.u.)', () => {
+    // Atrasada pelo cronograma (decorridos 20 > limite 9), mas a tarefa vence depois.
+    const rep = (prazo: string) =>
+      providenciarNaSemana({ ...base, decorridos: 20, replanejada: { prazo, hoje: '2026-11-10' } });
+    expect(rep('2026-11-16')).toBe(true); // ter 10/11 + 5 d.u. = ter 17/11
+    expect(rep('2026-11-17')).toBe(false);
+    expect(rep('2026-11-09')).toBe(false); // vencida: é atraso, não "na semana"
+  });
 });

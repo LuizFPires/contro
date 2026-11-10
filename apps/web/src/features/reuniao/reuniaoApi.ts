@@ -1,6 +1,7 @@
 import { carregarPropostas, type PropostaMapa } from '../obras/propostasMapaApi';
 import {
   classificarSemana,
+  prazosTarefaPorProvidencia,
   providenciaAtrasada,
   providenciarNaSemana,
   tarefaAtrasada,
@@ -189,6 +190,8 @@ function derivarObra(
   obra: ObraCompleta,
   observacoes: string,
   dataReuniao: string,
+  /** Prazo da tarefa aberta vinculada a cada providência (vale no lugar do cronograma). */
+  prazosTarefa: ReadonlyMap<string, string>,
 ): ReuniaoObraDados {
   // As semanas da pauta são as da data da reunião, não as de hoje: a ata
   // fechada não pode mudar quando é aberta dias depois.
@@ -260,6 +263,9 @@ function derivarObra(
         decorridos: dec,
         esAtividade: es,
         antecedenciaDu: p.antecedencia_du,
+        replanejada: prazosTarefa.has(p.id)
+          ? { prazo: prazosTarefa.get(p.id)!, hoje: dataReuniao }
+          : null,
       };
       const item: ItemProv = {
         tipo: p.tipo,
@@ -441,7 +447,23 @@ export async function loadReuniao(data: string, criar = true): Promise<ReuniaoCo
     data: r.data,
     hora: (r.hora ?? '16:00').slice(0, 5),
     status: r.status,
-    obras: obras.map((o) => derivarObra(o, obsPorObra.get(o.id) ?? '', r.data)),
+    obras: obras.map((o) =>
+      derivarObra(
+        o,
+        obsPorObra.get(o.id) ?? '',
+        r.data,
+        prazosTarefaPorProvidencia(
+          tarefas
+            .filter((t) => t.obraId === o.id)
+            .map((t) => ({
+              status: t.concluido ? 'feita' : 'aberta',
+              vinculo_tipo: t.vinculoTipo,
+              vinculo_id: t.vinculoId,
+              prazo: t.prazo,
+            })),
+        ),
+      ),
+    ),
     tarefas,
     respostas,
     acoesResposta,

@@ -43,19 +43,58 @@ export interface ProvidenciaAtrasadaArgs {
   decorridos: number;
   esAtividade: number;
   antecedenciaDu: number;
+  /**
+   * Replanejada: a providência tem tarefa aberta vinculada ("Quem cuida · até").
+   * O prazo da tarefa é o compromisso vigente e vale no lugar do cronograma.
+   */
+  replanejada?: PrazoReplanejado | null;
+}
+
+/** Prazo da tarefa aberta vinculada e o dia de referência (hoje ou a data da reunião). */
+export interface PrazoReplanejado {
+  prazo: DataISO;
+  hoje: DataISO;
 }
 
 /**
  * Providência atrasada: pendente, atividade não concluída, obra iniciada e o dia
- * limite já passou ("providenciar até sex" ainda vale na sexta).
+ * limite já passou ("providenciar até sex" ainda vale na sexta). Com tarefa aberta
+ * vinculada, o limite é o prazo da tarefa (replanejar tira do atraso).
  */
 export function providenciaAtrasada(a: ProvidenciaAtrasadaArgs): boolean {
+  if (a.status !== 'pendente' || a.atividadeConcluida) return false;
+  if (a.replanejada) return a.replanejada.hoje > a.replanejada.prazo;
   return (
-    a.status === 'pendente' &&
-    !a.atividadeConcluida &&
-    a.obraIniciada &&
-    a.decorridos > Math.max(limiteProvidencia(a.esAtividade, a.antecedenciaDu), 0)
+    a.obraIniciada && a.decorridos > Math.max(limiteProvidencia(a.esAtividade, a.antecedenciaDu), 0)
   );
+}
+
+/**
+ * Prazo vigente da providência: o da tarefa aberta vinculada, se houver; senão o
+ * do cronograma. `original` só vem quando o prazo mudou (para "era dd/mm").
+ */
+export function prazoVigenteProvidencia(
+  doCronograma: DataISO,
+  prazoTarefa: DataISO | null | undefined,
+): { ate: DataISO; original: DataISO | null } {
+  if (!prazoTarefa || prazoTarefa === doCronograma) return { ate: doCronograma, original: null };
+  return { ate: prazoTarefa, original: doCronograma };
+}
+
+/** Prazo da tarefa aberta vinculada a cada providência (id da providência → prazo). */
+export function prazosTarefaPorProvidencia(
+  tarefas: {
+    status: string;
+    vinculo_tipo?: string | null;
+    vinculo_id?: string | null;
+    prazo: DataISO | null;
+  }[],
+): Map<string, DataISO> {
+  const m = new Map<string, DataISO>();
+  for (const t of tarefas)
+    if (t.status === 'aberta' && t.vinculo_tipo === 'providencia' && t.vinculo_id && t.prazo)
+      m.set(t.vinculo_id, t.prazo);
+  return m;
 }
 
 // Providências como ações: a providência pendente sem tarefa aberta vinculada

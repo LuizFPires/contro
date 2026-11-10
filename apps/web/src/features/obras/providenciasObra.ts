@@ -1,7 +1,9 @@
 import {
   comecarProvidencia,
+  deslocarDU,
   duEntre,
   naObraEm,
+  prazoVigenteProvidencia,
   providenciaAtrasada,
   providenciarAte,
   textoProvidencia,
@@ -16,7 +18,10 @@ export interface ItemProvidencia {
   descricao: string;
   rotulo: string;
   atividade: string;
+  /** Prazo vigente: o da tarefa aberta vinculada (replanejado) ou o do cronograma. */
   providenciarAte: string;
+  /** Prazo do cronograma quando a tarefa o replanejou (null se não mudou). */
+  prazoOriginal: string | null;
   /** Data em que precisa estar na obra (início previsto da atividade ou ajuste manual). */
   naObra: string;
   antecedenciaDu: number;
@@ -44,10 +49,15 @@ export interface ProvidenciasClassificadas {
   feitas: ItemProvidenciado[];
 }
 
-/** Classifica as providências da obra uma vez (usado pela aba e pelo badge). */
+/**
+ * Classifica as providências da obra uma vez (usado pela aba e pelo badge).
+ * `prazosTarefa`: prazo da tarefa aberta vinculada a cada providência, que vale no
+ * lugar do cronograma (replanejar tira do atraso).
+ */
 export function classificarProvidencias(
   obra: ObraCompleta,
   hoje: string,
+  prazosTarefa: ReadonlyMap<string, string> = new Map(),
 ): ProvidenciasClassificadas {
   const decorridos = duEntre(obra.inicio, hoje);
   const iniciada = hoje >= obra.inicio;
@@ -72,6 +82,7 @@ export function classificarProvidencias(
         });
         continue;
       }
+      const prazoTarefa = prazosTarefa.get(p.id);
       const atrasada = providenciaAtrasada({
         status: p.status,
         atividadeConcluida: Boolean(a.concluida_em),
@@ -79,7 +90,13 @@ export function classificarProvidencias(
         decorridos,
         esAtividade: es,
         antecedenciaDu: p.antecedencia_du,
+        replanejada: prazoTarefa ? { prazo: prazoTarefa, hoje } : null,
       });
+      const vigente = prazoVigenteProvidencia(
+        providenciarAte(obra.inicio, es, p.antecedencia_du),
+        prazoTarefa,
+      );
+      const duracaoDu = p.duracao_du ?? 0;
       const item: ItemProvidencia = {
         id: p.id,
         tipo: p.tipo,
@@ -87,11 +104,14 @@ export function classificarProvidencias(
         descricao: p.descricao,
         rotulo: textoProvidencia(p.tipo, p.descricao),
         atividade: nomePorId.get(a.id) ?? '',
-        providenciarAte: providenciarAte(obra.inicio, es, p.antecedencia_du),
+        providenciarAte: vigente.ate,
+        prazoOriginal: vigente.original,
         naObra: naObraEm(obra.inicio, es, p.na_obra_em),
         antecedenciaDu: p.antecedencia_du,
-        duracaoDu: p.duracao_du ?? 0,
-        comecar: comecarProvidencia(obra.inicio, es, p.antecedencia_du, p.duracao_du ?? 0),
+        duracaoDu,
+        comecar: vigente.original
+          ? deslocarDU(vigente.ate, -Math.max(duracaoDu, 0))
+          : comecarProvidencia(obra.inicio, es, p.antecedencia_du, duracaoDu),
         atrasada,
       };
       (atrasada ? atrasadas : aProvidenciar).push(item);
