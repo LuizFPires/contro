@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { VERBO_PROVIDENCIA } from '@contro/core';
+import { prazosTarefaPorProvidencia, VERBO_PROVIDENCIA } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { AvisoRascunho } from '../../components/AvisoRascunho';
 import { formatarDataCurta } from '../../lib/datas';
@@ -48,9 +48,14 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
   const [vista, setVista] = useState<'abertas' | 'feitas'>('abertas');
   const [pessoa, setPessoa] = useState<string | null>(null);
 
+  // Prazo da tarefa vinculada ("Quem cuida · até") vale no lugar do cronograma.
+  const prazosTarefa = useMemo(
+    () => prazosTarefaPorProvidencia(tarefasQ.data ?? []),
+    [tarefasQ.data],
+  );
   const { atrasadas, aProvidenciar, feitas } = useMemo(
-    () => classificarProvidencias(obra, hojeISO()),
-    [obra],
+    () => classificarProvidencias(obra, hojeISO(), prazosTarefa),
+    [obra, prazosTarefa],
   );
   const hojeLocal = diaLocal(new Date());
 
@@ -180,7 +185,9 @@ export function ProvidenciasAba({ obra }: { obra: ObraCompleta }) {
                   <div className={it.atrasada ? styles.quandoAtraso : styles.quando}>
                     {it.atrasada
                       ? `ATRASADO · era para providenciar até ${formatarDataCurta(it.providenciarAte)}`
-                      : `Providenciar até ${formatarDataCurta(it.providenciarAte)} (${it.antecedenciaDu} dias úteis antes)${it.duracaoDu ? ` · leva ${it.duracaoDu} d, começar ${formatarDataCurta(it.comecar)}` : ''}`}
+                      : it.prazoOriginal
+                        ? `Providenciar até ${formatarDataCurta(it.providenciarAte)} · replanejado (era ${formatarDataCurta(it.prazoOriginal)})`
+                        : `Providenciar até ${formatarDataCurta(it.providenciarAte)} (${it.antecedenciaDu} dias úteis antes)${it.duracaoDu ? ` · leva ${it.duracaoDu} d, começar ${formatarDataCurta(it.comecar)}` : ''}`}
                   </div>
                   <QuemCuida tarefa={quemCuida.get(it.id)} />
                   <button type="button" className={styles.marcar} onClick={() => marcar(it)}>

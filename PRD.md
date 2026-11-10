@@ -272,7 +272,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 3. **Não existe atividade bloqueada:** qualquer atividade aberta pode ser concluída; dependências só montam o cronograma e lembretes só avisam. Concluir uma atividade com subitens marca os subitens abertos.
 4. Atividade é **concluída com ou sem foto**; sem foto fica marcada e pode receber a foto depois.
 5. Atividade **atrasada** = não concluída e término previsto já passou.
-6. Lembrete **atrasado** = não providenciado e "providenciar até" já passou.
+6. Lembrete **atrasado** = não providenciado e "providenciar até" já passou. Com tarefa aberta vinculada ("Quem cuida · até"), vale o prazo da tarefa: replanejar a data tira o lembrete do atraso, e ele mostra "Providenciar até <nova data> · replanejado (era <data do cronograma>)" (10/11/2026).
 7. Pendência só fecha com **foto de depois**.
 8. Pendência resolvida vai direto para Resolvidos, com antes e depois.
 9. Tarefa tem responsável e prazo; mudar o prazo de tarefa aberta conta como replanejamento.

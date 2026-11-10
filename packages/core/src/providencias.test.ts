@@ -6,6 +6,8 @@ import {
   naObraEm,
   prazosParaGravar,
   providenciaAtrasada,
+  prazoVigenteProvidencia,
+  prazosTarefaPorProvidencia,
   providenciarAte,
   providenciasSemDono,
   semTarefaAberta,
@@ -180,5 +182,75 @@ describe('semTarefaAberta', () => {
       ],
     );
     expect(r.map((x) => x.id)).toEqual(['p2', 'p3', 'p4']);
+  });
+});
+
+describe('providência replanejada (tarefa aberta vinculada)', () => {
+  const atrasadaPeloCronograma = {
+    status: 'pendente' as const,
+    atividadeConcluida: false,
+    obraIniciada: true,
+    decorridos: 20,
+    esAtividade: 10,
+    antecedenciaDu: 3,
+  };
+
+  it('sem tarefa, segue o cronograma', () => {
+    expect(providenciaAtrasada(atrasadaPeloCronograma)).toBe(true);
+  });
+
+  it('prazo da tarefa no futuro tira do atraso', () => {
+    expect(
+      providenciaAtrasada({
+        ...atrasadaPeloCronograma,
+        replanejada: { prazo: '2026-11-30', hoje: '2026-11-10' },
+      }),
+    ).toBe(false);
+  });
+
+  it('vale até o dia do prazo da tarefa e atrasa no dia seguinte', () => {
+    const r = (hoje: string) =>
+      providenciaAtrasada({
+        ...atrasadaPeloCronograma,
+        replanejada: { prazo: '2026-11-30', hoje },
+      });
+    expect(r('2026-11-30')).toBe(false);
+    expect(r('2026-12-01')).toBe(true);
+  });
+
+  it('feita ou com atividade concluída nunca atrasa', () => {
+    const rep = { prazo: '2026-11-01', hoje: '2026-11-10' };
+    expect(providenciaAtrasada({ ...atrasadaPeloCronograma, replanejada: rep })).toBe(true);
+    expect(
+      providenciaAtrasada({ ...atrasadaPeloCronograma, status: 'feito', replanejada: rep }),
+    ).toBe(false);
+    expect(
+      providenciaAtrasada({
+        ...atrasadaPeloCronograma,
+        atividadeConcluida: true,
+        replanejada: rep,
+      }),
+    ).toBe(false);
+  });
+
+  it('prazo vigente: o da tarefa, com o original guardado', () => {
+    expect(prazoVigenteProvidencia('2026-10-26', '2026-11-30')).toEqual({
+      ate: '2026-11-30',
+      original: '2026-10-26',
+    });
+    expect(prazoVigenteProvidencia('2026-10-26', null)).toEqual({
+      ate: '2026-10-26',
+      original: null,
+    });
+    expect(prazoVigenteProvidencia('2026-10-26', '2026-10-26').original).toBeNull();
+  });
+
+  it('mapa de prazos: só tarefa aberta vinculada a providência', () => {
+    const m = prazosTarefaPorProvidencia([
+      { status: 'aberta', vinculo_tipo: 'providencia', vinculo_id: 'p1', prazo: '2026-11-30' },
+      { status: 'feita', vinculo_tipo: 'providencia', vinculo_id: 'p2', prazo: '2026-11-30' },
+      { status: 'aberta', vinculo_tipo: 'atividade', vinculo_id: 'a1', prazo: '2026-11-30' },
+    ]);
+    expect([...m.entries()]).toEqual([['p1', '2026-11-30']]);
   });
 });

@@ -1,7 +1,8 @@
 // Semana da obra (SPEC §4.6). Tudo relativo a `decorridos` (dias úteis desde o
 // início). A semana corrente é [decorridos, decorridos+5); a passada é
 // [decorridos−5, decorridos). Puro e testado (regra 1).
-import { limiteProvidencia, providenciaAtrasada } from './providencias';
+import { limiteProvidencia, providenciaAtrasada, type PrazoReplanejado } from './providencias';
+import { addDU } from './calendar';
 
 export interface AtividadeSemana {
   id: string;
@@ -67,6 +68,8 @@ export interface ProvidenciaSemanaArgs {
   decorridos: number;
   atividadeConcluida: boolean;
   obraIniciada: boolean;
+  /** Com tarefa aberta vinculada: o prazo dela vale no lugar do cronograma. */
+  replanejada?: PrazoReplanejado | null;
 }
 
 /** Providenciar nesta semana: pendente, NÃO atrasada, limite dentro da janela. */
@@ -80,10 +83,12 @@ export function providenciarNaSemana(a: ProvidenciaSemanaArgs): boolean {
       decorridos: a.decorridos,
       esAtividade: a.esAtividade,
       antecedenciaDu: a.antecedenciaDu,
+      replanejada: a.replanejada,
     })
   ) {
     return false;
   }
+  if (a.replanejada) return a.replanejada.prazo < addDU(a.replanejada.hoje, 5);
   const limite = Math.max(limiteProvidencia(a.esAtividade, a.antecedenciaDu), 0);
   return limite < a.decorridos + 5;
 }

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import {
   classificarSemana,
+  prazosTarefaPorProvidencia,
   providenciaAtrasada,
   ritmoTexto,
   textoProvidencia,
@@ -12,6 +13,7 @@ import { hojeISO } from './api';
 import type { ObraCompleta } from './detalhe';
 import { quemFazOQueBoletim } from './boletimAcoes';
 import { useAcoesDasObras } from './useAcoesDasObras';
+import { useObraTarefas } from './useObraTarefas';
 import { BoletimTela } from './BoletimTela';
 
 function semanaFmt(): string {
@@ -29,6 +31,7 @@ function semanaFmt(): string {
 /** Boletim da semana (protótipo · BOLETIM), dentro da tela da obra. */
 export function BoletimView({ obra }: { obra: ObraCompleta }) {
   const { acoes } = useAcoesDasObras([obra.id]);
+  const { query: tarefasQ } = useObraTarefas(obra.id);
 
   const dados = useMemo<BoletimDados>(() => {
     const hoje = hojeISO();
@@ -59,6 +62,8 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
       return { dataFmt: formatarDataCurta(data), nome: a.nome, motivo: motivo(a.id), data };
     });
 
+    // Prazo da tarefa vinculada ("Quem cuida · até") vale no lugar do cronograma.
+    const prazosTarefa = prazosTarefaPorProvidencia(tarefasQ.data ?? []);
     const atrasos: string[] = [];
     for (const a of topo) if (obra.estados[a.id]?.atrasada) atrasos.push(a.nome);
     for (const a of topo) {
@@ -72,6 +77,7 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
             decorridos: dec,
             esAtividade: es,
             antecedenciaDu: p.antecedencia_du,
+            replanejada: prazosTarefa.has(p.id) ? { prazo: prazosTarefa.get(p.id)!, hoje } : null,
           })
         ) {
           atrasos.push(textoProvidencia(p.tipo, p.descricao));
@@ -94,7 +100,7 @@ export function BoletimView({ obra }: { obra: ObraCompleta }) {
       comecar,
       quemFazOQue,
     };
-  }, [obra, acoes]);
+  }, [obra, acoes, tarefasQ.data]);
 
   return <BoletimTela dados={dados} />;
 }
