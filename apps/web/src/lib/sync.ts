@@ -46,8 +46,30 @@ const DISPATCH: Record<string, Handler> = {
       p_id: p.id,
       p_responsavel_id: p.responsavelId ?? null,
       p_client_op_id: opId,
+      // Nome digitado (prestador): só sem pessoa do app.
+      ...(!p.responsavelId && p.nome ? { p_responsavel_nome: p.nome } : {}),
     });
     if (error) throw error;
+  },
+  definir_prazo_pendencia: async (p, opId) => {
+    if (!supabase) throw new Error('Sem conexão');
+    const { error } = await supabase.rpc('definir_prazo_pendencia', {
+      p_id: p.id,
+      p_prazo: (p.prazo as string | null) ?? null,
+      p_client_op_id: opId,
+    });
+    if (error) throw error;
+  },
+  anexar_foto_antes_pendencia: async (p, opId) => {
+    if (!supabase) throw new Error('Sem conexão');
+    const fotoId = await subirFotoLocal(p.fotoLocalId as string); // upload com retomada
+    const { error } = await supabase.rpc('anexar_foto_antes_pendencia', {
+      p_id: p.id,
+      p_foto_antes_id: fotoId,
+      p_client_op_id: opId,
+    });
+    if (error) throw error;
+    await removerFotoLocal(p.fotoLocalId as string);
   },
   marcar_providencia: (p, opId) => marcarProvidencia(p.id as string, p.feito as boolean, opId),
   // Textos livres da obra: update idempotente (repetir grava o mesmo valor).
@@ -103,7 +125,7 @@ const DISPATCH: Record<string, Handler> = {
     marcarItem(p.itemId as string, (p.resultado as 'conforme' | null) ?? null, opId),
   restaurar_nc_avaliacao: (p, opId) =>
     restaurarNc(p.itemId as string, p.pendenciaId as string, opId),
-  // Foto opcional só na reabertura; pendência nova exige foto (o servidor valida).
+  // Foto opcional: sem ela, a pendência nasce sem a foto do antes (vem depois).
   avaliacao_nao_conforme: async (p, opId) => {
     const local = (p.fotoLocalId as string | null) ?? null;
     const fotoId = local ? await subirFotoLocal(local) : null;

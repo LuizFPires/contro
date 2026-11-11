@@ -3,7 +3,7 @@ import { BottomSheet, useToast } from '@contro/ui';
 import { supabase } from '../../lib/supabase';
 import { db } from '../../lib/db';
 import { loadPendencias, type PendenciaObra } from './pendenciasObra';
-import { gerarChecklistPdf, pendenciasParaPdf } from './checklistPdf';
+import { chaveResponsavel, gerarChecklistPdf, pendenciasParaPdf } from './checklistPdf';
 import styles from './ChecklistPdf.module.css';
 
 export function ChecklistPdfSheet({
@@ -26,8 +26,8 @@ export function ChecklistPdfSheet({
       [
         ...new Map(
           lista
-            .filter((p) => p.responsavel_id)
-            .map((p) => [p.responsavel_id!, p.responsavelNome || 'Responsável não identificado']),
+            .filter((p) => chaveResponsavel(p))
+            .map((p) => [chaveResponsavel(p), p.responsavelNome || 'Responsável não identificado']),
         ).entries(),
       ].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')),
     [lista],

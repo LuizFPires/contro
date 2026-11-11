@@ -56,14 +56,17 @@ export interface PrazosPendencia {
 export const PRAZOS_PENDENCIA_PADRAO: PrazosPendencia = { alta: 2, media: 4, baixa: 6 };
 
 /**
- * Prazo da pendência: dias úteis da criticidade contados a partir do dia em
- * que foi apontada (apontada em fim de semana conta a partir da segunda).
+ * Prazo da pendência: a data limite digitada, se houver (10/11/2026); senão,
+ * dias úteis da criticidade contados a partir do dia em que foi apontada
+ * (apontada em fim de semana conta a partir da segunda).
  */
 export function prazoPendencia(
   criticidade: Criticidade,
   apontadaEm: DataISO,
   cfg: PrazosPendencia = PRAZOS_PENDENCIA_PADRAO,
+  dataLimite?: DataISO | null,
 ): DataISO {
+  if (dataLimite) return dataLimite;
   return addDU(diaUtilAPartir(apontadaEm), cfg[criticidade]);
 }
 

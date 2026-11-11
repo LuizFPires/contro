@@ -39,11 +39,13 @@ it('filtra pessoa, atividade e abertas, ordenando alta, média e baixa sem alter
     p('feita', 'alta', { status: 'fechada' }),
     p('vistoria', 'alta', { status: 'em_vistoria' }),
     p('atividade', 'alta', { atividade_id: 'b' }),
-    p('sem', 'baixa', { responsavel_id: null }),
+    p('sem', 'baixa', { responsavel_id: null, responsavelNome: null }),
+    p('ze', 'media', { responsavel_id: null, responsavelNome: 'Zé Eletricista' }),
   ];
   expect(pendenciasParaPdf(lista, 'ana', 'a').map((p) => p.id)).toEqual(['alta', 'media', 'baixa']);
   expect(pendenciasParaPdf(lista, '').map((p) => p.id)).toEqual(['sem']);
-  expect(pendenciasParaPdf(lista, 'todos')).toHaveLength(6);
+  expect(pendenciasParaPdf(lista, 'nome:Zé Eletricista').map((p) => p.id)).toEqual(['ze']);
+  expect(pendenciasParaPdf(lista, 'todos')).toHaveLength(7);
   expect(lista[0].id).toBe('baixa');
 });
 it('não gera um relatório incompleto quando falta foto ou o download falha', async () => {

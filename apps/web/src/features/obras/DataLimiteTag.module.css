@@ -1,0 +1,14 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--contro-black);
+}
+.atrasada {
+  color: var(--contro-late);
+}
+.hoje {
+  color: var(--contro-attention);
+}

@@ -242,6 +242,8 @@ export interface NovaPendencia {
   local: string | null;
   criticidade: 'alta' | 'media' | 'baixa';
   atividadeId: string | null;
+  /** Data limite (opcional). Só no apontar; na edição vai por definir_prazo_pendencia. */
+  prazo?: string | null;
 }
 
 /** Aponta a pendência com id gerado no cliente e a foto do antes já enviada. */
@@ -262,6 +264,8 @@ export async function apontarPendencia(
     p_foto_antes_id: fotoId,
     p_atividade_id: dados.atividadeId,
     p_client_op_id: clientOpId ?? null,
+    // Só manda quando há data: o servidor antigo não conhece o parâmetro.
+    ...(dados.prazo ? { p_prazo: dados.prazo } : {}),
   });
   if (error) throw error;
 }

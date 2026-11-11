@@ -16,6 +16,7 @@ import { ApontarSheet, EditarPendenciaSheet } from './ApontarSheet';
 import { Camera } from './Camera';
 import { FotoViewer, type FotoAmpliada } from './FotoViewer';
 import { ChecklistInfo } from './ChecklistInfo';
+import { DataLimiteTag } from './DataLimiteTag';
 import { PendenciaDeck } from './PendenciaDeck';
 import type { ObraChecklist } from './listaAtividades';
 import type { PendenciaObra } from './pendenciasObra';
@@ -69,6 +70,8 @@ export function PendenciasAba({
   );
   const [apontar, setApontar] = useState(false);
   const [resolver, setResolver] = useState<PendenciaObra | null>(null);
+  // Pendência sem a foto do antes (Não da Avaliação): a câmera do antes.
+  const [fotoAntes, setFotoAntes] = useState<PendenciaObra | null>(null);
   const [info, setInfo] = useState(false);
   const [pdf, setPdf] = useState(false);
   const [atribuir, setAtribuir] = useState<PendenciaObra | null>(null);
@@ -152,6 +155,7 @@ export function PendenciasAba({
             local: editando.local,
             criticidade: editando.criticidade,
             atividadeId: editando.atividade_id,
+            prazo: editando.prazo ?? null,
           }
         : null,
     [editando],
@@ -171,6 +175,9 @@ export function PendenciasAba({
     const nomeDe = (id: string | null) =>
       id ? (obra.atividades.find((a) => a.id === id)?.nome ?? null) : null;
     campo.editar.mutate({ id: p.id, dados, atividadeNome: nomeDe(dados.atividadeId) });
+    const prazoAntes = p.prazo ?? null;
+    const prazoMudou = podeAtribuir && (dados.prazo ?? null) !== prazoAntes;
+    if (prazoMudou) campo.definirPrazo.mutate({ id: p.id, prazo: dados.prazo ?? null });
     const antes: NovaPendencia = {
       titulo: p.titulo,
       local: p.local,
@@ -179,7 +186,10 @@ export function PendenciasAba({
     };
     showToast({
       message: 'Pendência salva',
-      onUndo: () => campo.editar.mutate({ id: p.id, dados: antes, atividadeNome: p.atividadeNome }),
+      onUndo: () => {
+        campo.editar.mutate({ id: p.id, dados: antes, atividadeNome: p.atividadeNome });
+        if (prazoMudou) campo.definirPrazo.mutate({ id: p.id, prazo: prazoAntes });
+      },
     });
   }
 
@@ -259,7 +269,8 @@ export function PendenciasAba({
             campo.atribuir.mutateAsync({
               id: atribuir.id,
               responsavelId: id,
-              nome: id ? nome : null,
+              // Pessoa do app: o nome dela; sem id: o nome digitado (prestador) ou ninguém.
+              nome,
             })
           }
         />
@@ -273,6 +284,7 @@ export function PendenciasAba({
               onResolver={setResolver}
               onMais={setMenuPend}
               onFoto={(p) => abrirFoto(p)}
+              onFotoAntes={setFotoAntes}
               acao={
                 <button
                   type="button"
@@ -308,15 +320,26 @@ export function PendenciasAba({
                   </h3>
                   {g.itens.map((p) => (
                     <div key={p.id} className={cls(styles.linha, p.id)} data-pendencia={p.id}>
-                      <button
-                        type="button"
-                        className={styles.miniatura}
-                        aria-label={`Ver foto de "${p.titulo}"`}
-                        disabled={!p.fotoAntesUrl}
-                        onClick={() => abrirFoto(p)}
-                      >
-                        {p.fotoAntesUrl ? <img src={p.fotoAntesUrl} alt="" /> : null}
-                      </button>
+                      {p.temFotoAntes === false ? (
+                        <button
+                          type="button"
+                          className={`${styles.miniatura} ${styles.miniaturaSem}`}
+                          aria-label={`Tirar a foto do antes de "${p.titulo}"`}
+                          onClick={() => setFotoAntes(p)}
+                        >
+                          <Icon name="camera" size={20} strokeWidth={2} />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.miniatura}
+                          aria-label={`Ver foto de "${p.titulo}"`}
+                          disabled={!p.fotoAntesUrl}
+                          onClick={() => abrirFoto(p)}
+                        >
+                          {p.fotoAntesUrl ? <img src={p.fotoAntesUrl} alt="" /> : null}
+                        </button>
+                      )}
                       <div className={styles.info}>
                         <div className={styles.desc}>{p.titulo}</div>
                         <div className={styles.meta}>{onde(p)}</div>
@@ -330,6 +353,12 @@ export function PendenciasAba({
                               : `há ${pendenteHa(p.apontada_em, hoje)}`}
                           </span>
                         </div>
+                        {p.temFotoAntes === false ? (
+                          <div className={styles.semFotoTxt}>
+                            <Icon name="camera" size={14} strokeWidth={2} /> Falta a foto do antes
+                          </div>
+                        ) : null}
+                        <DataLimiteTag prazo={p.prazo} aberta hoje={hoje} />
                       </div>
                       <button
                         type="button"
@@ -452,6 +481,7 @@ export function PendenciasAba({
         aberto={apontar}
         obra={obra}
         atividadeInicial={atividadeId}
+        comPrazo={podeAtribuir}
         onFechar={() => setApontar(false)}
         onApontar={(dados, file) => campo.apontar.mutateAsync({ dados, file })}
         onDesfazer={(ids) => ids.forEach((id) => campo.excluir.mutate(id))}
@@ -476,6 +506,21 @@ export function PendenciasAba({
               },
             )
           }
+        />
+      ) : null}
+
+      {fotoAntes ? (
+        <Camera
+          kicker="Foto do antes"
+          titulo={fotoAntes.titulo}
+          dica="Fotografe o problema: esta é a foto do antes da pendência."
+          onCancelar={() => setFotoAntes(null)}
+          onCapturar={(file) => {
+            const p = fotoAntes;
+            setFotoAntes(null);
+            campo.anexarFotoAntes.mutate({ id: p.id, file });
+            showToast({ message: `Foto do antes de "${p.titulo}" salva` });
+          }}
         />
       ) : null}
 
@@ -510,6 +555,18 @@ export function PendenciasAba({
                 }}
               >
                 <Icon name="pessoa" size={20} /> Atribuir responsável
+              </button>
+            ) : null}
+            {menuPend.temFotoAntes === false ? (
+              <button
+                type="button"
+                className={styles.menuPendItem}
+                onClick={() => {
+                  setFotoAntes(menuPend);
+                  setMenuPend(null);
+                }}
+              >
+                <Icon name="camera" size={20} /> Tirar a foto do antes
               </button>
             ) : null}
             {fotosDe(menuPend).length ? (
@@ -602,6 +659,7 @@ export function PendenciasAba({
 
       <EditarPendenciaSheet
         obra={obra}
+        comPrazo={podeAtribuir}
         inicial={inicialEdicao}
         onFechar={() => setEditando(null)}
         onSalvar={salvarEdicao}

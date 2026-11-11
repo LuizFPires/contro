@@ -6,7 +6,12 @@ export interface PendenciaObra {
   obra_id: string;
   atividade_id: string | null;
   responsavel_id?: string | null;
+  /** Pessoa do app ou nome digitado (prestador, sem login). */
   responsavelNome?: string | null;
+  /** Data limite digitada (null = vale o prazo da criticidade). */
+  prazo?: string | null;
+  /** Tem foto do antes (o "Não" da Avaliação pode criar sem; a foto vem depois). */
+  temFotoAntes?: boolean;
   titulo: string;
   local: string | null;
   criticidade: Criticidade;
@@ -29,6 +34,9 @@ export interface PendenciaObra {
 
 interface LinhaPendencia {
   responsavel_id: string | null;
+  responsavel_nome: string | null;
+  prazo: string | null;
+  foto_antes_id: string | null;
   responsavel: { nome: string } | null;
   id: string;
   obra_id: string;
@@ -59,7 +67,7 @@ export async function loadPendencias(obraId: string): Promise<PendenciaObra[]> {
     const { data, error } = await supabase
       .from('pendencia')
       .select(
-        'id,obra_id,atividade_id,responsavel_id,titulo,local,criticidade,status,ordem_fila,adiada_ate,motivo_adiamento,apontada_em,resolvida_por,resolvida_em,vistoriada_por,vistoriada_em,' +
+        'id,obra_id,atividade_id,responsavel_id,responsavel_nome,prazo,foto_antes_id,titulo,local,criticidade,status,ordem_fila,adiada_ate,motivo_adiamento,apontada_em,resolvida_por,resolvida_em,vistoriada_por,vistoriada_em,' +
           'responsavel:pessoa!responsavel_id(nome),antes:foto!foto_antes_id(storage_path),depois:foto!foto_depois_id(storage_path),' +
           'apontou:pessoa!apontada_por(nome),resolveu:pessoa!resolvida_por(nome),atividade:obra_atividade!atividade_id(nome)',
       )
@@ -92,7 +100,9 @@ export async function loadPendencias(obraId: string): Promise<PendenciaObra[]> {
   return linhas.map((l) => ({
     id: l.id,
     responsavel_id: l.responsavel_id,
-    responsavelNome: l.responsavel?.nome ?? null,
+    responsavelNome: l.responsavel?.nome ?? l.responsavel_nome ?? null,
+    prazo: l.prazo,
+    temFotoAntes: Boolean(l.foto_antes_id),
     obra_id: l.obra_id,
     atividade_id: l.atividade_id,
     titulo: l.titulo,

@@ -606,3 +606,18 @@
 .menuPendVida {
   margin: 12px 0 4px;
 }
+.miniaturaSem {
+  display: grid;
+  place-items: center;
+  background: #4a4a4a;
+  color: var(--contro-white);
+  cursor: pointer;
+}
+.semFotoTxt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}

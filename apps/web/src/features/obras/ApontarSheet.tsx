@@ -8,7 +8,9 @@ import {
   type ItemLote,
 } from '@contro/core';
 import { BottomSheet, Button, Icon, Input, useToast } from '@contro/ui';
+import { formatarDataCurta } from '../../lib/datas';
 import { AtividadePicker } from './AtividadePicker';
+import { CampoDataLimite } from './CampoDataLimite';
 import { Camera } from './Camera';
 import type { NovaPendencia } from './campo';
 import type { ObraChecklist } from './listaAtividades';
@@ -23,15 +25,18 @@ const CRITS: { valor: 'alta' | 'media' | 'baixa'; rotulo: string }[] = [
 
 const VAZIA: NovaPendencia = { titulo: '', local: '', criticidade: 'media', atividadeId: null };
 
-/** Campos da pendência (o que, local, criticidade, atividade): apontar e editar. */
+/** Campos da pendência (o que, local, criticidade, atividade, data limite): apontar e editar. */
 function PendenciaCampos({
   obra,
   dados,
   onMudar,
+  comPrazo,
 }: {
   obra: ObraChecklist;
   dados: NovaPendencia;
   onMudar: (d: NovaPendencia) => void;
+  /** Data limite: obra geral, só quem planeja. */
+  comPrazo: boolean;
 }) {
   return (
     <>
@@ -68,6 +73,10 @@ function PendenciaCampos({
         valor={dados.atividadeId}
         onMudar={(atividadeId) => onMudar({ ...dados, atividadeId })}
       />
+
+      {comPrazo ? (
+        <CampoDataLimite valor={dados.prazo} onMudar={(prazo) => onMudar({ ...dados, prazo })} />
+      ) : null}
     </>
   );
 }
@@ -85,6 +94,7 @@ const paraNova = (it: ItemLote): NovaPendencia => ({
   local: it.local,
   criticidade: it.criticidade,
   atividadeId: it.atividadeId,
+  prazo: it.prazo ?? null,
 });
 
 /**
@@ -101,8 +111,11 @@ export function ApontarSheet({
   onApontar,
   onDesfazer,
   atividadeInicial,
+  comPrazo = true,
 }: {
   atividadeInicial?: string;
+  /** Data limite: obra geral, só quem planeja. */
+  comPrazo?: boolean;
   aberto: boolean;
   obra: ObraChecklist;
   onFechar: () => void;
@@ -174,6 +187,7 @@ export function ApontarSheet({
           local: base?.local ?? '',
           criticidade: base?.criticidade ?? ('media' as const),
           atividadeId: base ? base.atividadeId : (atividadeInicial ?? null),
+          prazo: base?.prazo ?? null,
         })),
       ];
     });
@@ -189,6 +203,7 @@ export function ApontarSheet({
               local: d.local ?? '',
               criticidade: d.criticidade,
               atividadeId: d.atividadeId,
+              prazo: d.prazo ?? null,
             }
           : it,
       ),
@@ -337,6 +352,7 @@ export function ApontarSheet({
         {itens.length >= 2 ? (
           <ParaTodas
             obra={obra}
+            comPrazo={comPrazo}
             n={itens.length}
             onAplicar={(campos) => {
               setItens((prev) => aplicarATodas(prev, campos));
@@ -373,7 +389,12 @@ export function ApontarSheet({
                     )}
                     {!aberto && pronta ? (
                       <span className={lote.resumo}>
-                        {[it.titulo, it.local, ROTULO_CRIT[it.criticidade]]
+                        {[
+                          it.titulo,
+                          it.local,
+                          ROTULO_CRIT[it.criticidade],
+                          it.prazo ? `até ${formatarDataCurta(it.prazo)}` : null,
+                        ]
                           .filter(Boolean)
                           .join(' · ')}
                       </span>
@@ -395,6 +416,7 @@ export function ApontarSheet({
                     obra={obra}
                     dados={paraNova(it)}
                     onMudar={(d) => mudar(it.id, d)}
+                    comPrazo={comPrazo}
                   />
                   {pronta && faltam.length > 0 ? (
                     <button
@@ -457,15 +479,20 @@ function ParaTodas({
   obra,
   n,
   onAplicar,
+  comPrazo,
 }: {
   obra: ObraChecklist;
   n: number;
-  onAplicar: (campos: Partial<Pick<ItemLote, 'local' | 'criticidade' | 'atividadeId'>>) => void;
+  onAplicar: (
+    campos: Partial<Pick<ItemLote, 'local' | 'criticidade' | 'atividadeId' | 'prazo'>>,
+  ) => void;
+  comPrazo: boolean;
 }) {
   const [local, setLocal] = useState('');
   const [crit, setCrit] = useState<ItemLote['criticidade'] | null>(null);
   const [atividadeId, setAtividadeId] = useState<string | null>(null);
-  const algum = Boolean(local.trim() || crit || atividadeId);
+  const [prazo, setPrazo] = useState<string | null>(null);
+  const algum = Boolean(local.trim() || crit || atividadeId || prazo);
 
   return (
     <div className={lote.todas}>
@@ -490,6 +517,7 @@ function ParaTodas({
       </div>
       <p className={styles.rotulo}>Atividade</p>
       <AtividadePicker obra={obra} valor={atividadeId} onMudar={setAtividadeId} />
+      {comPrazo ? <CampoDataLimite valor={prazo} onMudar={setPrazo} /> : null}
       <button
         type="button"
         className={lote.aplicar}
@@ -499,6 +527,7 @@ function ParaTodas({
             ...(local.trim() ? { local: local.trim() } : {}),
             ...(crit ? { criticidade: crit } : {}),
             ...(atividadeId ? { atividadeId } : {}),
+            ...(prazo ? { prazo } : {}),
           })
         }
       >
@@ -508,13 +537,15 @@ function ParaTodas({
   );
 }
 
-/** Editar pendência da lista completa (texto, local, criticidade, atividade). */
+/** Editar pendência da lista completa (texto, local, criticidade, atividade, data limite). */
 export function EditarPendenciaSheet({
   obra,
   inicial,
   onFechar,
   onSalvar,
+  comPrazo = true,
 }: {
+  comPrazo?: boolean;
   obra: ObraChecklist;
   /** Pendência em edição (null = fechado). */
   inicial: NovaPendencia | null;
@@ -530,7 +561,7 @@ export function EditarPendenciaSheet({
     <BottomSheet open={Boolean(inicial)} title="Editar pendência" onClose={onFechar}>
       {inicial ? (
         <>
-          <PendenciaCampos obra={obra} dados={dados} onMudar={setDados} />
+          <PendenciaCampos obra={obra} dados={dados} onMudar={setDados} comPrazo={comPrazo} />
           <div className={styles.rodape}>
             <Button full disabled={!dados.titulo.trim()} onClick={() => onSalvar(limpar(dados))}>
               Salvar

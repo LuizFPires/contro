@@ -57,3 +57,15 @@ describe('várias pendências de uma vez', () => {
     expect(cardAberto([item('a', 'X')], null)).toBeNull();
   });
 });
+
+describe('aplicarATodas com data limite', () => {
+  it('aplica a data limite a todas e mantém o resto', () => {
+    const itens: ItemLote[] = [
+      { id: '1', titulo: 'a', local: 'Sala', criticidade: 'alta', atividadeId: null },
+      { id: '2', titulo: 'b', local: 'Hall', criticidade: 'baixa', atividadeId: 'x' },
+    ];
+    const r = aplicarATodas(itens, { prazo: '2026-11-20' });
+    expect(r.map((i) => i.prazo)).toEqual(['2026-11-20', '2026-11-20']);
+    expect(r[1].local).toBe('Hall');
+  });
+});

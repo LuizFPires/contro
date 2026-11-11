@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { pendenteHa, proximaPendencia } from '@contro/core';
 import { Icon } from '@contro/ui';
 import { hojeISO } from './api';
+import { DataLimiteTag } from './DataLimiteTag';
 import type { PendenciaObra } from './pendenciasObra';
 import styles from './PendenciaDeck.module.css';
 
@@ -26,9 +27,12 @@ export function PendenciaDeck({
   onResolver,
   onMais,
   onFoto,
+  onFotoAntes,
   acao,
   focoId,
 }: {
+  /** Pendência sem a foto do antes (Não da Avaliação): tirar agora. */
+  onFotoAntes?: (p: PendenciaObra) => void;
   pendencias: PendenciaObra[];
   /** Começa nesta pendência (tocada em Tarefas ou Minhas ações). */
   focoId?: string;
@@ -119,6 +123,16 @@ export function PendenciaDeck({
                   draggable={false}
                   onClick={() => Math.abs(dx) < 6 && onFoto(atual)}
                 />
+              ) : atual.temFotoAntes === false && onFotoAntes ? (
+                <button
+                  type="button"
+                  className={styles.semFoto}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => onFotoAntes(atual)}
+                >
+                  <Icon name="camera" size={26} strokeWidth={2} />
+                  Sem foto do antes · Tirar foto
+                </button>
               ) : null}
               <span className={styles.antes}>ANTES · {quando(atual.apontada_em)}</span>
               <span
@@ -155,6 +169,11 @@ export function PendenciaDeck({
                   {atual.apontouNome ? `Apontado por ${atual.apontouNome} · ` : ''}pendente há{' '}
                   {pendenteHa(atual.apontada_em, hojeISO())}
                 </div>
+                <DataLimiteTag
+                  prazo={atual.prazo}
+                  aberta={atual.status === 'aberta'}
+                  hoje={hojeISO()}
+                />
               </div>
               <button
                 type="button"

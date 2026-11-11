@@ -321,6 +321,8 @@ export interface PendenciaAcaoGeral {
   responsavel_id?: string | null;
   responsavelNome?: string | null;
   resolvida_em: string | null;
+  /** Data limite digitada (vale no lugar do prazo da criticidade). */
+  prazo?: string | null;
 }
 
 /** Lembrete de providência com o prazo gravado pelo banco (`providenciar_ate`). */
@@ -400,7 +402,7 @@ export function acoesCompletasObraGeral(e: {
       id: p.id,
       obraId: e.obraId,
       texto: p.titulo,
-      prazo: prazoPendencia(p.criticidade, diaLocal(p.apontada_em), prazos),
+      prazo: prazoPendencia(p.criticidade, diaLocal(p.apontada_em), prazos, p.prazo),
       aberta,
       responsavelId: p.responsavel_id ?? null,
       responsavelNome: nome(p.responsavel_id, p.responsavelNome),
