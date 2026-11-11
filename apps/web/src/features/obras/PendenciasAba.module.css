@@ -621,3 +621,23 @@
   font-size: 12px;
   font-weight: 700;
 }
+.loteGuardado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #54b4b0;
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+.loteGuardado span {
+  flex: 1;
+}

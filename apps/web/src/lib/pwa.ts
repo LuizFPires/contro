@@ -10,6 +10,9 @@
 //  - `verificarAtualizacao()`, usada pelo "puxar pra atualizar": procura uma versão
 //    nova na hora e diz se há uma a caminho (nesse caso o autoUpdate recarrega).
 import { registerSW } from 'virtual:pwa-register';
+import { checarSeLivre, definirChecagem } from './seguraAtualizacao';
+
+export { checarSeLivre, segurarAtualizacao } from './seguraAtualizacao';
 
 const INTERVALO_CHECAGEM = 60 * 60 * 1000; // 1 hora
 
@@ -25,9 +28,10 @@ export function iniciarPwa(): void {
         // Offline ou falha de rede: ignora e tenta de novo no próximo ciclo.
         registration.update().catch(() => {});
       };
-      setInterval(checar, INTERVALO_CHECAGEM);
+      definirChecagem(checar);
+      setInterval(() => checarSeLivre(checar), INTERVALO_CHECAGEM);
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') checar();
+        if (document.visibilityState === 'visible') checarSeLivre(checar);
       });
     },
   });

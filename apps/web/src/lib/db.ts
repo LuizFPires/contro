@@ -22,15 +22,35 @@ export interface FotoDB {
   fotoId?: string; // preenchido após criar a linha `foto`
 }
 
+/**
+ * Foto de um lote de "Nova pendência" ainda não apontada (relato de campo,
+ * 10/11/2026): fica no aparelho desde que é tirada, para não se perder se o app
+ * recarregar ou o celular fechá-lo em segundo plano. Some ao apontar ou descartar.
+ */
+export interface FotoLoteDB {
+  id: string;
+  obraId: string;
+  dono: string; // pessoa que tirou (aparelho compartilhado)
+  file: File;
+  titulo: string;
+  local: string;
+  criticidade: 'alta' | 'media' | 'baixa';
+  atividadeId: string | null;
+  prazo: string | null;
+  ordem: number;
+}
+
 /** Banco local do CONTRO (fila offline das ações de campo + fotos). */
 class ControDB extends Dexie {
   outbox!: Table<OpDB, string>;
   fotos!: Table<FotoDB, string>;
+  loteFotos!: Table<FotoLoteDB, string>;
 
   constructor() {
     super('contro');
     this.version(1).stores({ outbox: 'id, status, criadoEm, userId' });
     this.version(2).stores({ fotos: 'localId' });
+    this.version(3).stores({ loteFotos: 'id, [obraId+dono]' });
   }
 }
 

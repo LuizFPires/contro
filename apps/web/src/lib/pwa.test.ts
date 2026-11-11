@@ -46,3 +46,22 @@ describe('atualização preserva push', () => {
     expect(reload).not.toHaveBeenCalled();
   });
 });
+
+describe('segurar a atualização (câmera e lote de fotos abertos)', () => {
+  it('espera enquanto alguém segura e checa ao soltar o último', async () => {
+    vi.stubGlobal('__VERSAO__', 'teste');
+    const { segurarAtualizacao, checarSeLivre } = await import('./pwa');
+    const checar = vi.fn();
+    const soltarA = segurarAtualizacao();
+    const soltarB = segurarAtualizacao();
+    checarSeLivre(checar);
+    expect(checar).not.toHaveBeenCalled();
+    soltarA();
+    soltarA(); // soltar duas vezes não conta em dobro
+    expect(checar).not.toHaveBeenCalled();
+    soltarB();
+    expect(checar).toHaveBeenCalledOnce();
+    checarSeLivre(checar);
+    expect(checar).toHaveBeenCalledTimes(2);
+  });
+});

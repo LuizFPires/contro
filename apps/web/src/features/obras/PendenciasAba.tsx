@@ -1,6 +1,7 @@
 import { ChecklistResponsavel } from './ChecklistResponsavel';
 import { ChecklistPdfSheet } from './ChecklistPdfSheet';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   classificarPendencias,
   pendenteHa,
@@ -22,6 +23,7 @@ import type { ObraChecklist } from './listaAtividades';
 import type { PendenciaObra } from './pendenciasObra';
 import type { NovaPendencia } from './campo';
 import { useObraPendencias } from './useObraPendencias';
+import { contarLote } from './loteGuardado';
 import { VidaDoItem } from '../log/VidaDoItem';
 import styles from './PendenciasAba.module.css';
 
@@ -69,6 +71,14 @@ export function PendenciasAba({
     atividadeId ? 'lista' : 'fotos',
   );
   const [apontar, setApontar] = useState(false);
+  // Fotos tiradas e não apontadas que ficaram no aparelho (app recarregou ou fechou).
+  const qc = useQueryClient();
+  const dono = qc.getQueryData<{ id: string } | null>(['perfil'])?.id ?? 'anon';
+  const loteQ = useQuery({
+    queryKey: ['lote-guardado', obra.id, dono],
+    queryFn: () => contarLote(obra.id, dono),
+  });
+  const fotosGuardadas = loteQ.data ?? 0;
   const [resolver, setResolver] = useState<PendenciaObra | null>(null);
   // Pendência sem a foto do antes (Não da Avaliação): a câmera do antes.
   const [fotoAntes, setFotoAntes] = useState<PendenciaObra | null>(null);
@@ -242,6 +252,17 @@ export function PendenciasAba({
           <Icon name="camera" size={20} strokeWidth={2} />
         </button>
       </div>
+
+      {fotosGuardadas > 0 && !apontar ? (
+        <button type="button" className={styles.loteGuardado} onClick={() => setApontar(true)}>
+          <Icon name="camera" size={20} strokeWidth={2} />
+          <span>
+            {fotosGuardadas === 1 ? '1 foto não apontada' : `${fotosGuardadas} fotos não apontadas`}{' '}
+            · Continuar
+          </span>
+          <Icon name="chevronRight" size={18} />
+        </button>
+      ) : null}
 
       <button
         type="button"
@@ -482,7 +503,10 @@ export function PendenciasAba({
         obra={obra}
         atividadeInicial={atividadeId}
         comPrazo={podeAtribuir}
-        onFechar={() => setApontar(false)}
+        onFechar={() => {
+          setApontar(false);
+          void loteQ.refetch();
+        }}
         onApontar={(dados, file) => campo.apontar.mutateAsync({ dados, file })}
         onDesfazer={(ids) => ids.forEach((id) => campo.excluir.mutate(id))}
       />
