@@ -225,7 +225,12 @@ export async function drenar(): Promise<void> {
       const op = proximaOp(
         ops,
         Date.now(),
-        (o) => (o.payload as { itemId?: string } | null)?.itemId ?? null,
+        // Mesmo item, mesma pendência ou mesmo registro: em ordem (ex.: o Não da
+        // avaliação cria a pendência antes da foto e do texto dela).
+        (o) => {
+          const p = o.payload as { itemId?: string; pendenciaId?: string; id?: string } | null;
+          return [p?.itemId, p?.pendenciaId, p?.id];
+        },
       );
       if (!op) break;
       const handler = DISPATCH[op.tipo];

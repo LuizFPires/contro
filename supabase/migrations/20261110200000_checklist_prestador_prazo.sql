@@ -139,6 +139,10 @@ begin
   end if;
   if v_ambiente = 'geral' then
     perform public.contro_valida_responsavel_geral(v_obra, p_responsavel_id);
+    -- Obra geral: responsável é pessoa da obra (como na tarefa), sem nome livre.
+    if v_nome is not null then
+      raise exception 'Na obra geral o responsável é uma pessoa da obra' using errcode = '22023';
+    end if;
   end if;
   if p_responsavel_id is not null and not exists (
     select 1 from public.pessoa where id = p_responsavel_id and ativo and deleted_at is null

@@ -16,7 +16,7 @@ import { CampoDataLimite } from './CampoDataLimite';
 import { Camera } from './Camera';
 import type { NovaPendencia } from './campo';
 import type { ObraChecklist } from './listaAtividades';
-import { atualizarNoLote, guardarNoLote, lerLote, tirarDoLote } from './loteGuardado';
+import { atualizarNoLote, guardarNoLote, lerLote, limparLote, tirarDoLote } from './loteGuardado';
 import styles from './AdiarSheet.module.css';
 import lote from './ApontarLote.module.css';
 
@@ -206,7 +206,7 @@ export function ApontarSheet({
   }
 
   function fechar() {
-    void tirarDoLote(itens.map((it) => it.id));
+    void limparLote(obraId, dono);
     liberar(itens);
     setItens([]);
     onFechar();
@@ -320,7 +320,8 @@ export function ApontarSheet({
     void tirarDoLote([...feitas]);
     liberar(itens.filter((it) => feitas.has(it.id)));
     const resto = itens.filter((it) => !feitas.has(it.id));
-    setItens(resto);
+    // Funcional: fotos que entraram durante o envio continuam na lista.
+    setItens((prev) => prev.filter((it) => !feitas.has(it.id)));
     if (ids.length) {
       showToast({
         message: ids.length === 1 ? 'Pendência apontada' : `${ids.length} pendências apontadas`,

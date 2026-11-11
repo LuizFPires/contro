@@ -24,22 +24,30 @@ export function backoffMs(tentativas: number): number {
 /**
  * Próxima op a enviar: a mais antiga que está pendente/erro e já pode tentar.
  * Com `chave`, ops de mesma chave saem em ordem: uma em backoff segura as seguintes
- * (o Desfazer de um item não pode passar na frente da ação que ele desfaz).
+ * (o Desfazer de um item não pode passar na frente da ação que ele desfaz). Uma op
+ * pode ter várias chaves (ex.: o item da avaliação e a pendência que ele cria):
+ * basta uma presa para ela esperar, e em backoff ela prende todas as suas.
  */
 export function proximaOp<T extends OpFila>(
   ops: T[],
   agora: number,
-  chave?: (op: T) => string | null,
+  chave?: (op: T) => string | readonly (string | null | undefined)[] | null,
 ): T | null {
   const fila = ops
     .filter((o) => o.status === 'pendente' || o.status === 'erro')
     .sort((a, b) => a.criadoEm - b.criadoEm);
   const presas = new Set<string>();
   for (const o of fila) {
-    const k = chave?.(o) ?? null;
-    if (k && presas.has(k)) continue;
+    const bruto = chave?.(o) ?? null;
+    const ks = (Array.isArray(bruto) ? bruto : [bruto]).filter(
+      (k): k is string => typeof k === 'string' && k.length > 0,
+    );
+    if (ks.some((k) => presas.has(k))) {
+      ks.forEach((k) => presas.add(k));
+      continue;
+    }
     if (o.proximaEm <= agora) return o;
-    if (k) presas.add(k);
+    ks.forEach((k) => presas.add(k));
   }
   return null;
 }

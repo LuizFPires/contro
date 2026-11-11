@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ROTULO_SITUACAO, situacaoItem } from '@contro/core';
 import { Icon, useToast } from '@contro/ui';
 import { Camera } from '../obras/Camera';
@@ -40,6 +40,7 @@ export function ItemLinha({
   const crit = (pendencia?.criticidade ?? item.criticidade ?? 'media') as Crit;
 
   function tocarOk() {
+    enviado.current = null;
     setFormAberto(false);
     setConfirmaReabrir(false);
     if (naoConforme) {
@@ -55,6 +56,7 @@ export function ItemLinha({
 
   function tocarNao() {
     // Já é Não: abre ou fecha o detalhe (texto, criticidade, foto).
+    enviado.current = null;
     if (naoConforme) {
       if (!formAberto)
         setTexto(pendencia && pendencia.titulo !== item.nome ? pendencia.titulo : '');
@@ -99,12 +101,21 @@ export function ItemLinha({
     showToast({ message: 'Pendência reaberta no Check list' });
   }
 
+  // Último texto/criticidade enviado (o cache otimista pode ainda não ter
+  // re-renderizado entre o blur e o toque em "Pronto": não enviar duas vezes).
+  const enviado = useRef<{ titulo: string; criticidade: string } | null>(null);
+
   /** Salva o texto e/ou a criticidade na pendência ligada. */
   function salvarDetalhe(novo: { titulo?: string; criticidade?: Crit }) {
     if (!pendencia) return;
-    const titulo = novo.titulo ?? pendencia.titulo;
-    const criticidade = novo.criticidade ?? pendencia.criticidade;
-    if (titulo === pendencia.titulo && criticidade === pendencia.criticidade) return;
+    const atual = enviado.current ?? {
+      titulo: pendencia.titulo,
+      criticidade: pendencia.criticidade,
+    };
+    const titulo = novo.titulo ?? atual.titulo;
+    const criticidade = (novo.criticidade ?? atual.criticidade) as Crit;
+    if (titulo === atual.titulo && criticidade === atual.criticidade) return;
+    enviado.current = { titulo, criticidade };
     aval.editarPendencia.mutate({
       id: pendencia.id,
       dados: {
@@ -117,8 +128,11 @@ export function ItemLinha({
     });
   }
 
-  // O texto é salvo ao sair do campo (o toque em "Pronto" já tira o foco dele).
+  const tituloDigitado = () => texto.trim() || item.nome;
+
+  // Salva o texto também aqui: nem todo celular tira o foco do campo ao tocar.
   function pronto() {
+    salvarDetalhe({ titulo: tituloDigitado() });
     setFormAberto(false);
   }
 
@@ -196,7 +210,7 @@ export function ItemLinha({
               placeholder="O que está errado?"
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
-              onBlur={() => salvarDetalhe({ titulo: texto.trim() || item.nome })}
+              onBlur={() => salvarDetalhe({ titulo: tituloDigitado() })}
             />
             {item.faltaFotoAntes ? (
               <button type="button" className={styles.terciario} onClick={() => setCamera(true)}>
@@ -217,7 +231,7 @@ export function ItemLinha({
                 type="button"
                 aria-pressed={crit === c.valor}
                 className={`${styles.crit} ${crit === c.valor ? styles.critOn : ''}`}
-                onClick={() => salvarDetalhe({ criticidade: c.valor })}
+                onClick={() => salvarDetalhe({ titulo: tituloDigitado(), criticidade: c.valor })}
               >
                 {c.rotulo}
               </button>

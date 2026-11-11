@@ -38,6 +38,46 @@ describe('proximaOp', () => {
     ];
     expect(proximaOp(ops, 100)?.id).toBe('b');
   });
+  it('com várias chaves, basta uma presa (Não da avaliação e a foto da pendência)', () => {
+    const ops: OpFila[] = [
+      {
+        id: 'nao',
+        tipo: 'avaliacao_nao_conforme',
+        status: 'erro',
+        tentativas: 1,
+        criadoEm: 1,
+        proximaEm: 500,
+      },
+      {
+        id: 'foto',
+        tipo: 'anexar_foto_antes_pendencia',
+        status: 'pendente',
+        tentativas: 0,
+        criadoEm: 2,
+        proximaEm: 0,
+      },
+      {
+        id: 'texto',
+        tipo: 'editar_pendencia',
+        status: 'pendente',
+        tentativas: 0,
+        criadoEm: 3,
+        proximaEm: 0,
+      },
+      {
+        id: 'outra',
+        tipo: 'editar_pendencia',
+        status: 'pendente',
+        tentativas: 0,
+        criadoEm: 4,
+        proximaEm: 0,
+      },
+    ];
+    const chave = (o: OpFila) =>
+      o.id === 'nao' ? ['item1', 'p1'] : o.id === 'outra' ? ['p2'] : [null, 'p1'];
+    expect(proximaOp(ops, 100, chave)?.id).toBe('outra');
+    expect(proximaOp(ops, 600, chave)?.id).toBe('nao');
+  });
   it('com chave, op em backoff segura as seguintes da mesma chave', () => {
     const ops = [
       op({ id: 'acao', status: 'erro', criadoEm: 1, proximaEm: 999 }),

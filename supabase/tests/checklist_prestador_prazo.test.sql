@@ -1,7 +1,7 @@
 -- Check list (10/11/2026): responsável prestador (nome digitado), data limite da
 -- pendência e foto do antes anexada depois (Não da Avaliação sem foto).
 begin;
-select plan(17);
+select plan(18);
 
 -- K equipe Contorno; C coordenador de G; J membro de G.
 insert into auth.users (id, email) values
@@ -48,8 +48,7 @@ select throws_ok($$ select apontar_pendencia(gen_random_uuid(), '00000000-0000-0
 
 select lives_ok($$ select atribuir_pendencia('00000000-0000-0000-0000-00000035f501', null, null, '  Zé Eletricista ') $$,
   'atribui a um prestador pelo nome');
-select is((select responsavel_id::text || '|' || responsavel_nome
-           from pendencia where id = '00000000-0000-0000-0000-00000035f501'), null,
+select ok((select responsavel_id is null from pendencia where id = '00000000-0000-0000-0000-00000035f501'),
   'sem pessoa do app');
 select is((select responsavel_nome from pendencia where id = '00000000-0000-0000-0000-00000035f501'),
   'Zé Eletricista', 'nome do prestador gravado sem espaços');
@@ -88,6 +87,8 @@ select throws_ok($$ select apontar_pendencia(gen_random_uuid(), '00000000-0000-0
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000035d3","role":"authenticated"}';
 select lives_ok($$ select definir_prazo_pendencia('00000000-0000-0000-0000-00000035f502', '2026-11-20') $$,
   'Coordenador define a data limite');
+select throws_ok($$ select atribuir_pendencia('00000000-0000-0000-0000-00000035f502', null, null, 'Zé') $$,
+  '22023', null, 'obra geral não aceita nome livre');
 
 select * from finish();
 rollback;

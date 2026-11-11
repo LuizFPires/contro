@@ -43,6 +43,15 @@ export async function atualizarNoLote(id: string, campos: CamposLote): Promise<v
   }
 }
 
+/** Descartar: apaga tudo desta obra e desta pessoa (inclusive o que ainda não voltou à tela). */
+export async function limparLote(obraId: string, dono: string): Promise<void> {
+  try {
+    await db.loteFotos.where({ obraId, dono }).delete();
+  } catch {
+    // idem
+  }
+}
+
 export async function tirarDoLote(ids: string[]): Promise<void> {
   if (!ids.length) return;
   try {
