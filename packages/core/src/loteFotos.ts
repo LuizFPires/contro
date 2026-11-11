@@ -1,7 +1,7 @@
 // Várias pendências de uma vez (pedido do usuário, 29/10/2026): no Check list, a
 // câmera tira várias fotos seguidas ou importa várias da galeria; cada foto vira
 // uma pendência. "Para todas as fotos" preenche local, criticidade e atividade
-// de uma vez; "Apontar" grava as prontas e mantém as outras na lista.
+// (e a data limite) de uma vez; "Apontar" grava as prontas e mantém as outras na lista.
 
 import type { Criticidade } from './pendencias';
 
@@ -11,6 +11,8 @@ export interface ItemLote {
   local: string;
   criticidade: Criticidade;
   atividadeId: string | null;
+  /** Data limite (opcional, 10/11/2026). */
+  prazo?: string | null;
 }
 
 /** Pronta para apontar: tem "o que é". */
@@ -21,13 +23,14 @@ export function itemPronto(it: Pick<ItemLote, 'titulo'>): boolean {
 /** Aplica a todas as fotos os campos informados (os ausentes ficam como estão). */
 export function aplicarATodas<T extends ItemLote>(
   itens: T[],
-  campos: Partial<Pick<ItemLote, 'local' | 'criticidade' | 'atividadeId'>>,
+  campos: Partial<Pick<ItemLote, 'local' | 'criticidade' | 'atividadeId' | 'prazo'>>,
 ): T[] {
   return itens.map((it) => ({
     ...it,
     ...(campos.local !== undefined ? { local: campos.local } : {}),
     ...(campos.criticidade !== undefined ? { criticidade: campos.criticidade } : {}),
     ...(campos.atividadeId !== undefined ? { atividadeId: campos.atividadeId } : {}),
+    ...(campos.prazo !== undefined ? { prazo: campos.prazo } : {}),
   }));
 }
 

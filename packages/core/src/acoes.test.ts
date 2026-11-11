@@ -31,6 +31,10 @@ function acao(p: Partial<Acao> & { id: string }): Acao {
 }
 
 describe('prazoPendencia', () => {
+  it('a data limite digitada vale no lugar do prazo da criticidade', () => {
+    expect(prazoPendencia('alta', '2026-11-02', undefined, '2026-11-20')).toBe('2026-11-20');
+    expect(prazoPendencia('alta', '2026-11-02', undefined, null)).toBe('2026-11-04');
+  });
   it('alta: 2 d.u. a partir de segunda 02/11 → qua 04/11', () =>
     expect(prazoPendencia('alta', '2026-11-02')).toBe('2026-11-04'));
   it('média 4 e baixa 6 d.u.', () => {

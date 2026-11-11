@@ -1,6 +1,16 @@
 import { classificarPendencias } from '@contro/core';
 import type { PendenciaObra } from './pendenciasObra';
 
+/**
+ * Chave do responsável no filtro do PDF: o id da pessoa do app, `nome:<nome>`
+ * para o nome digitado (prestador) e '' para sem responsável.
+ */
+export function chaveResponsavel(p: Pick<PendenciaObra, 'responsavel_id' | 'responsavelNome'>) {
+  if (p.responsavel_id) return p.responsavel_id;
+  const nome = p.responsavelNome?.trim();
+  return nome ? `nome:${nome}` : '';
+}
+
 export function pendenciasParaPdf(
   lista: PendenciaObra[],
   responsavel: string,
@@ -10,7 +20,7 @@ export function pendenciasParaPdf(
     lista.filter(
       (p) =>
         (!atividadeId || p.atividade_id === atividadeId) &&
-        (responsavel === 'todos' || (p.responsavel_id ?? '') === responsavel),
+        (responsavel === 'todos' || chaveResponsavel(p) === responsavel),
     ),
   ).pendentes;
 }
@@ -88,6 +98,7 @@ export async function gerarChecklistPdf(
     linha(`${i + 1}. Criticidade ${crit[p.criticidade]} · PENDENTE`, true, 12);
     linha(p.titulo, true, 13);
     linha(`Responsável: ${p.responsavelNome || 'Sem responsável'}`);
+    if (p.prazo) linha(`Resolver até: ${data(p.prazo)}`, true);
     linha(`Atividade: ${p.atividadeNome || 'Geral'} · Local: ${p.local || 'Não informado'}`);
     linha(`Apontada por: ${p.apontouNome || 'Não informado'} · Em: ${data(p.apontada_em)}`);
     if (p.adiada_ate)
@@ -95,6 +106,11 @@ export async function gerarChecklistPdf(
     if (p.resolvida_em)
       linha(`Resolução anterior: ${data(p.resolvida_em)} · ${p.resolveuNome || 'Não informado'}`);
     linha(`Registro: ${p.id}`, false, 8);
+    // Criada sem foto do antes (Não da Avaliação): segue sem foto, com o aviso.
+    if (p.temFotoAntes === false) {
+      linha('Sem foto do antes (tire a foto pelo Check list)', true, 9);
+      continue;
+    }
     if (!p.fotoAntesUrl)
       throw new Error(
         `A foto de "${p.titulo}" ainda não está disponível. Aguarde a sincronização e tente novamente.`,

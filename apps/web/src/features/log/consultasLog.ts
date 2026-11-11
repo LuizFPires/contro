@@ -42,7 +42,7 @@ export function lerPendenciasLog(
     sb
       .from('pendencia')
       .select(
-        'id,obra_id,titulo,criticidade,apontada_em,resolvida_em,status,responsavel_id,' +
+        'id,obra_id,titulo,criticidade,apontada_em,resolvida_em,status,responsavel_id,prazo,responsavel_nome,' +
           'responsavel:pessoa!responsavel_id(nome)',
       )
       .in('obra_id', ids)

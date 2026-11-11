@@ -20,6 +20,8 @@ import {
 export interface ItemTela extends ItemAvaliacao {
   pendenciaId: string | null;
   criticidade: string | null;
+  /** Pendência ligada sem a foto do antes (o Não grava na hora; a foto vem depois). */
+  faltaFotoAntes: boolean;
 }
 
 export interface RevisaoTela {
@@ -54,6 +56,7 @@ function paraTela(l: LinhaItem, pend: PendenciaObra | undefined, status: string 
     pendenciaStatus: status,
     pendenciaId: l.pendencia_id,
     criticidade: pend?.criticidade ?? null,
+    faltaFotoAntes: pend?.temFotoAntes === false,
   };
 }
 
@@ -189,6 +192,7 @@ export function useAvaliacao(obraId: string) {
                     atividadeId: null,
                   },
                   topoFila(ps.map((p) => p.ordem_fila)),
+                  Boolean(v.file),
                 ),
               ],
       );
@@ -247,6 +251,9 @@ export function useAvaliacao(obraId: string) {
     pendencias: listaPend ?? [],
     marcar,
     marcarNaoConforme,
+    // Detalhes da pendência criada pelo Não (texto, criticidade, foto do antes).
+    editarPendencia: pendencias.editar,
+    anexarFotoAntes: pendencias.anexarFotoAntes,
     restaurar,
     abrir,
     fechar,

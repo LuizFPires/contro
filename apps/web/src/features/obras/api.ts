@@ -257,7 +257,7 @@ export async function listarObras(ambiente: Ambiente): Promise<ObraResumo[]> {
         sb
           .from('pendencia')
           .select(
-            `id,obra_id,titulo,criticidade,apontada_em,responsavel_id,responsavel:pessoa!responsavel_id(nome),${emb}`,
+            `id,obra_id,titulo,criticidade,apontada_em,prazo,responsavel_id,responsavel_nome,responsavel:pessoa!responsavel_id(nome),${emb}`,
           )
           .eq('status', 'aberta')
           .is('deleted_at', null),
@@ -332,6 +332,8 @@ export async function listarObras(ambiente: Ambiente): Promise<ObraResumo[]> {
     titulo: string;
     criticidade: 'alta' | 'media' | 'baixa';
     apontada_em: string;
+    prazo: string | null;
+    responsavel_nome: string | null;
     responsavel: { nome: string } | null;
   }>(pendRes.data);
   // Ação = tarefa ou pendência aberta (mesma conta de Tarefas da equipe).
@@ -357,9 +359,9 @@ export async function listarObras(ambiente: Ambiente): Promise<ObraResumo[]> {
     somar(p.obra_id, {
       id: p.id,
       texto: p.titulo,
-      prazo: prazoPendencia(p.criticidade, dataLocal(new Date(p.apontada_em)), prazos),
+      prazo: prazoPendencia(p.criticidade, dataLocal(new Date(p.apontada_em)), prazos, p.prazo),
       aberta: true,
-      pessoa: nomeCurto(p.responsavel?.nome) || null,
+      pessoa: nomeCurto(p.responsavel?.nome ?? p.responsavel_nome) || null,
     });
 
   return obras.map((o) => {

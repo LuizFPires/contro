@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@contro/ui';
+import { segurarAtualizacao } from '../../lib/seguraAtualizacao';
 import styles from './Camera.module.css';
 
 export interface CameraProps {
@@ -49,6 +50,9 @@ export function Camera({
   const galeriaRef = useRef<HTMLInputElement>(null);
   const [aoVivo, setAoVivo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Câmera aberta: o app não procura versão nova (recarregar perdia a foto).
+  useEffect(() => segurarAtualizacao(), []);
 
   useEffect(() => {
     let cancelado = false;

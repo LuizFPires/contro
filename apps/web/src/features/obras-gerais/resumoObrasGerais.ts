@@ -53,6 +53,8 @@ interface PendenciaLinha {
   apontada_em: string;
   resolvida_em: string | null;
   responsavel_id: string | null;
+  responsavel_nome: string | null;
+  prazo: string | null;
 }
 
 type ProvidenciaLinha = ProvidenciaAcaoGeral & { obra_id: string };
@@ -129,7 +131,7 @@ export async function carregarResumoObrasGerais(
     supabase
       .from('pendencia')
       .select(
-        'id,obra_id,titulo,criticidade,status,apontada_em,resolvida_em,responsavel_id,obra!inner(ambiente)',
+        'id,obra_id,titulo,criticidade,status,apontada_em,resolvida_em,responsavel_id,responsavel_nome,prazo,obra!inner(ambiente)',
       )
       .eq('obra.ambiente', 'geral')
       .eq('status', 'aberta')

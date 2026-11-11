@@ -48,7 +48,7 @@ export function pendenciaParaAcao(p: PendenciaObra, prazos: PrazosPendencia): Ac
     obraId: p.obra_id,
     texto: p.titulo,
     // Data local: o instante em UTC pode cair no dia seguinte à noite.
-    prazo: prazoPendencia(p.criticidade, dataLocal(p.apontada_em), prazos),
+    prazo: prazoPendencia(p.criticidade, dataLocal(p.apontada_em), prazos, p.prazo),
     aberta,
     responsavelId: p.responsavel_id ?? null,
     // Nome curto, como nas tarefas: o chip e o card mostram o mesmo nome.

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   aplicarATodas,
   cardAberto,
@@ -8,10 +9,14 @@ import {
   type ItemLote,
 } from '@contro/core';
 import { BottomSheet, Button, Icon, Input, useToast } from '@contro/ui';
+import { formatarDataCurta } from '../../lib/datas';
+import { segurarAtualizacao } from '../../lib/seguraAtualizacao';
 import { AtividadePicker } from './AtividadePicker';
+import { CampoDataLimite } from './CampoDataLimite';
 import { Camera } from './Camera';
 import type { NovaPendencia } from './campo';
 import type { ObraChecklist } from './listaAtividades';
+import { atualizarNoLote, guardarNoLote, lerLote, limparLote, tirarDoLote } from './loteGuardado';
 import styles from './AdiarSheet.module.css';
 import lote from './ApontarLote.module.css';
 
@@ -23,15 +28,18 @@ const CRITS: { valor: 'alta' | 'media' | 'baixa'; rotulo: string }[] = [
 
 const VAZIA: NovaPendencia = { titulo: '', local: '', criticidade: 'media', atividadeId: null };
 
-/** Campos da pendência (o que, local, criticidade, atividade): apontar e editar. */
+/** Campos da pendência (o que, local, criticidade, atividade, data limite): apontar e editar. */
 function PendenciaCampos({
   obra,
   dados,
   onMudar,
+  comPrazo,
 }: {
   obra: ObraChecklist;
   dados: NovaPendencia;
   onMudar: (d: NovaPendencia) => void;
+  /** Data limite: obra geral, só quem planeja. */
+  comPrazo: boolean;
 }) {
   return (
     <>
@@ -68,6 +76,10 @@ function PendenciaCampos({
         valor={dados.atividadeId}
         onMudar={(atividadeId) => onMudar({ ...dados, atividadeId })}
       />
+
+      {comPrazo ? (
+        <CampoDataLimite valor={dados.prazo} onMudar={(prazo) => onMudar({ ...dados, prazo })} />
+      ) : null}
     </>
   );
 }
@@ -85,6 +97,7 @@ const paraNova = (it: ItemLote): NovaPendencia => ({
   local: it.local,
   criticidade: it.criticidade,
   atividadeId: it.atividadeId,
+  prazo: it.prazo ?? null,
 });
 
 /**
@@ -101,8 +114,11 @@ export function ApontarSheet({
   onApontar,
   onDesfazer,
   atividadeInicial,
+  comPrazo = true,
 }: {
   atividadeInicial?: string;
+  /** Data limite: obra geral, só quem planeja. */
+  comPrazo?: boolean;
   aberto: boolean;
   obra: ObraChecklist;
   onFechar: () => void;
@@ -121,6 +137,12 @@ export function ApontarSheet({
   const [enviando, setEnviando] = useState(false);
   const galeriaRef = useRef<HTMLInputElement>(null);
   const urls = useRef(new Set<string>());
+  const qc = useQueryClient();
+  const dono = qc.getQueryData<{ id: string } | null>(['perfil'])?.id ?? 'anon';
+  const obraId = obra.id;
+
+  // Aberto, o app não procura versão nova (recarregar apagava as fotos).
+  useEffect(() => (aberto ? segurarAtualizacao() : undefined), [aberto]);
 
   // Libera as miniaturas (object URLs) ao sair.
   useEffect(() => {
@@ -128,13 +150,45 @@ export function ApontarSheet({
     return () => set.forEach((u) => URL.revokeObjectURL(u));
   }, []);
 
-  // Cada apontamento começa do zero, mesmo depois de um envio.
+  // Cada apontamento começa do zero, mesmo depois de um envio; fotos tiradas e
+  // não apontadas (app recarregado ou fechado no meio) voltam do aparelho.
   useEffect(() => {
     if (!aberto) return;
     setFase('escolher');
     setItens([]);
     setEscolhido(null);
     setDescartar(false);
+    let vivo = true;
+    void lerLote(obraId, dono).then((salvas) => {
+      if (!vivo || salvas.length === 0) return;
+      const recuperadas = salvas.map((f) => {
+        const url = URL.createObjectURL(f.file);
+        urls.current.add(url);
+        return {
+          id: f.id,
+          file: f.file,
+          url,
+          titulo: f.titulo,
+          local: f.local,
+          criticidade: f.criticidade,
+          atividadeId: f.atividadeId,
+          prazo: f.prazo,
+        };
+      });
+      const ids = new Set(recuperadas.map((r) => r.id));
+      setItens((prev) => [...recuperadas, ...prev.filter((x) => !ids.has(x.id))]);
+      setFase((f) => (f === 'escolher' ? 'lista' : f));
+      showToast({
+        message:
+          recuperadas.length === 1
+            ? '1 foto não apontada recuperada'
+            : `${recuperadas.length} fotos não apontadas recuperadas`,
+      });
+    });
+    return () => {
+      vivo = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto]);
 
   // Escolha automática (o primeiro sem descrição) vira escolha fixa.
@@ -152,6 +206,7 @@ export function ApontarSheet({
   }
 
   function fechar() {
+    void limparLote(obraId, dono);
     liberar(itens);
     setItens([]);
     onFechar();
@@ -164,22 +219,42 @@ export function ApontarSheet({
       return { id: crypto.randomUUID(), file, url };
     });
     // Herda local, criticidade e atividade da última foto (mesmo ambiente).
-    setItens((prev) => {
-      const base = prev[prev.length - 1];
-      return [
-        ...prev,
-        ...novos.map((n) => ({
-          ...n,
-          titulo: '',
-          local: base?.local ?? '',
-          criticidade: base?.criticidade ?? ('media' as const),
-          atividadeId: base ? base.atividadeId : (atividadeInicial ?? null),
-        })),
-      ];
-    });
+    const base = itens[itens.length - 1];
+    const completos = novos.map((n) => ({
+      ...n,
+      titulo: '',
+      local: base?.local ?? '',
+      criticidade: base?.criticidade ?? ('media' as const),
+      atividadeId: base ? base.atividadeId : (atividadeInicial ?? null),
+      prazo: base?.prazo ?? null,
+    }));
+    setItens((prev) => [...prev, ...completos]);
+    // Guarda no aparelho na hora (sobrevive a recarregar ou fechar o app).
+    const agora = Date.now();
+    void guardarNoLote(
+      completos.map((c, i) => ({
+        id: c.id,
+        obraId,
+        dono,
+        file: c.file,
+        titulo: c.titulo,
+        local: c.local,
+        criticidade: c.criticidade,
+        atividadeId: c.atividadeId,
+        prazo: c.prazo,
+        ordem: agora + i,
+      })),
+    );
   }
 
   function mudar(id: string, d: NovaPendencia) {
+    void atualizarNoLote(id, {
+      titulo: d.titulo,
+      local: d.local ?? '',
+      criticidade: d.criticidade,
+      atividadeId: d.atividadeId,
+      prazo: d.prazo ?? null,
+    });
     setItens((prev) =>
       prev.map((it) =>
         it.id === id
@@ -189,6 +264,7 @@ export function ApontarSheet({
               local: d.local ?? '',
               criticidade: d.criticidade,
               atividadeId: d.atividadeId,
+              prazo: d.prazo ?? null,
             }
           : it,
       ),
@@ -198,14 +274,30 @@ export function ApontarSheet({
   function remover(it: FotoLote) {
     const pos = itens.findIndex((x) => x.id === it.id);
     setItens((prev) => prev.filter((x) => x.id !== it.id));
+    void tirarDoLote([it.id]);
     showToast({
       message: 'Foto removida',
-      onUndo: () =>
+      onUndo: () => {
         setItens((prev) => {
           const n = [...prev];
           n.splice(Math.min(pos, n.length), 0, it);
           return n;
-        }),
+        });
+        void guardarNoLote([
+          {
+            id: it.id,
+            obraId,
+            dono,
+            file: it.file,
+            titulo: it.titulo,
+            local: it.local,
+            criticidade: it.criticidade,
+            atividadeId: it.atividadeId,
+            prazo: it.prazo ?? null,
+            ordem: Date.now(),
+          },
+        ]);
+      },
     });
   }
 
@@ -224,9 +316,12 @@ export function ApontarSheet({
       setEnviando(false);
     }
     const feitas = new Set(prontos.slice(0, ids.length).map((it) => it.id));
+    // Apontadas já estão na fila offline: saem do lote guardado.
+    void tirarDoLote([...feitas]);
     liberar(itens.filter((it) => feitas.has(it.id)));
     const resto = itens.filter((it) => !feitas.has(it.id));
-    setItens(resto);
+    // Funcional: fotos que entraram durante o envio continuam na lista.
+    setItens((prev) => prev.filter((it) => !feitas.has(it.id)));
     if (ids.length) {
       showToast({
         message: ids.length === 1 ? 'Pendência apontada' : `${ids.length} pendências apontadas`,
@@ -337,9 +432,19 @@ export function ApontarSheet({
         {itens.length >= 2 ? (
           <ParaTodas
             obra={obra}
+            comPrazo={comPrazo}
             n={itens.length}
             onAplicar={(campos) => {
-              setItens((prev) => aplicarATodas(prev, campos));
+              const novos = aplicarATodas(itens, campos);
+              setItens(novos);
+              for (const it of novos)
+                void atualizarNoLote(it.id, {
+                  titulo: it.titulo,
+                  local: it.local,
+                  criticidade: it.criticidade,
+                  atividadeId: it.atividadeId,
+                  prazo: it.prazo ?? null,
+                });
               showToast({ message: `Aplicado às ${itens.length} fotos` });
             }}
           />
@@ -373,7 +478,12 @@ export function ApontarSheet({
                     )}
                     {!aberto && pronta ? (
                       <span className={lote.resumo}>
-                        {[it.titulo, it.local, ROTULO_CRIT[it.criticidade]]
+                        {[
+                          it.titulo,
+                          it.local,
+                          ROTULO_CRIT[it.criticidade],
+                          it.prazo ? `até ${formatarDataCurta(it.prazo)}` : null,
+                        ]
                           .filter(Boolean)
                           .join(' · ')}
                       </span>
@@ -395,6 +505,7 @@ export function ApontarSheet({
                     obra={obra}
                     dados={paraNova(it)}
                     onMudar={(d) => mudar(it.id, d)}
+                    comPrazo={comPrazo}
                   />
                   {pronta && faltam.length > 0 ? (
                     <button
@@ -457,15 +568,20 @@ function ParaTodas({
   obra,
   n,
   onAplicar,
+  comPrazo,
 }: {
   obra: ObraChecklist;
   n: number;
-  onAplicar: (campos: Partial<Pick<ItemLote, 'local' | 'criticidade' | 'atividadeId'>>) => void;
+  onAplicar: (
+    campos: Partial<Pick<ItemLote, 'local' | 'criticidade' | 'atividadeId' | 'prazo'>>,
+  ) => void;
+  comPrazo: boolean;
 }) {
   const [local, setLocal] = useState('');
   const [crit, setCrit] = useState<ItemLote['criticidade'] | null>(null);
   const [atividadeId, setAtividadeId] = useState<string | null>(null);
-  const algum = Boolean(local.trim() || crit || atividadeId);
+  const [prazo, setPrazo] = useState<string | null>(null);
+  const algum = Boolean(local.trim() || crit || atividadeId || prazo);
 
   return (
     <div className={lote.todas}>
@@ -490,6 +606,7 @@ function ParaTodas({
       </div>
       <p className={styles.rotulo}>Atividade</p>
       <AtividadePicker obra={obra} valor={atividadeId} onMudar={setAtividadeId} />
+      {comPrazo ? <CampoDataLimite valor={prazo} onMudar={setPrazo} /> : null}
       <button
         type="button"
         className={lote.aplicar}
@@ -499,6 +616,7 @@ function ParaTodas({
             ...(local.trim() ? { local: local.trim() } : {}),
             ...(crit ? { criticidade: crit } : {}),
             ...(atividadeId ? { atividadeId } : {}),
+            ...(prazo ? { prazo } : {}),
           })
         }
       >
@@ -508,13 +626,15 @@ function ParaTodas({
   );
 }
 
-/** Editar pendência da lista completa (texto, local, criticidade, atividade). */
+/** Editar pendência da lista completa (texto, local, criticidade, atividade, data limite). */
 export function EditarPendenciaSheet({
   obra,
   inicial,
   onFechar,
   onSalvar,
+  comPrazo = true,
 }: {
+  comPrazo?: boolean;
   obra: ObraChecklist;
   /** Pendência em edição (null = fechado). */
   inicial: NovaPendencia | null;
@@ -530,7 +650,7 @@ export function EditarPendenciaSheet({
     <BottomSheet open={Boolean(inicial)} title="Editar pendência" onClose={onFechar}>
       {inicial ? (
         <>
-          <PendenciaCampos obra={obra} dados={dados} onMudar={setDados} />
+          <PendenciaCampos obra={obra} dados={dados} onMudar={setDados} comPrazo={comPrazo} />
           <div className={styles.rodape}>
             <Button full disabled={!dados.titulo.trim()} onClick={() => onSalvar(limpar(dados))}>
               Salvar

@@ -18,9 +18,12 @@ export function pendenciaOtimista(
   id: string,
   dados: NovaPendencia,
   ordemFila: number,
+  temFotoAntes = true,
 ): PendenciaObra {
   return {
     id,
+    prazo: dados.prazo ?? null,
+    temFotoAntes,
     obra_id: obraId,
     atividade_id: dados.atividadeId,
     titulo: dados.titulo,
@@ -214,6 +217,30 @@ export function useObraPendencias(obraId: string) {
     onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
   });
 
+  // Data limite (null = volta ao prazo da criticidade).
+  const definirPrazo = useMutation({
+    networkMode: 'always',
+    mutationFn: (v: { id: string; prazo: string | null }) =>
+      enfileirar('definir_prazo_pendencia', { obraId, ...v }),
+    onMutate: (v: { id: string; prazo: string | null }) =>
+      patch(v.id, (p) => ({ ...p, prazo: v.prazo })),
+    onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['obras'] }),
+  });
+  // Foto do antes depois (pendência criada sem ela pelo "Não" da Avaliação).
+  const anexarFotoAntes = useMutation({
+    networkMode: 'always',
+    mutationFn: async (v: { id: string; file: File }) => {
+      const fotoLocalId = await guardarFotoLocal(obraId, v.file);
+      await enfileirar('anexar_foto_antes_pendencia', { obraId, id: v.id, fotoLocalId });
+    },
+    onMutate: (v: { id: string; file: File }) => patch(v.id, (p) => ({ ...p, temFotoAntes: true })),
+    onError: (_e, _v, ctx) => reverter(ctx),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ['avaliacao', obraId] });
+    },
+  });
+
   const atribuir = useMutation({
     networkMode: 'always',
     mutationFn: (v: { id: string; responsavelId: string | null; nome: string | null }) =>
@@ -225,6 +252,8 @@ export function useObraPendencias(obraId: string) {
   });
   return {
     atribuir,
+    definirPrazo,
+    anexarFotoAntes,
     query,
     apontar,
     resolver,

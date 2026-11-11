@@ -66,6 +66,9 @@ export interface LinhaPendenciaLog {
   status: string;
   responsavel_id: string | null;
   responsavel: { nome: string } | null;
+  /** Data limite digitada e nome digitado (prestador); antigos podem não ter. */
+  prazo?: string | null;
+  responsavel_nome?: string | null;
 }
 
 type Json = Record<string, unknown> | null;
@@ -139,7 +142,7 @@ function nomeResponsavelTarefa(t: LinhaTarefaLog): string | null {
 /** Prazo da pendência pela config da obra (obra geral) ou pela global (Contorno). */
 function prazoDaPendencia(p: LinhaPendenciaLog, d: DadosLogScore): DataISO {
   const prazos = d.geral?.prazosPorObra[p.obra_id] ?? d.prazos;
-  return prazoPendencia(p.criticidade, dataLocal(p.apontada_em), prazos);
+  return prazoPendencia(p.criticidade, dataLocal(p.apontada_em), prazos, p.prazo);
 }
 
 /** Atividades gerais agrupadas pela obra. */
@@ -193,7 +196,7 @@ export function itensDoLog(d: DadosLogScore): ItemLog[] {
       prazoOriginal: prazo,
       aberta: pendenciaAberta(p),
       concluidaEm: pendenciaAberta(p) ? null : p.resolvida_em,
-      responsavelNome: p.responsavel?.nome ?? null,
+      responsavelNome: p.responsavel?.nome ?? p.responsavel_nome ?? null,
       responsavelId: p.responsavel_id,
       criadaEm: p.apontada_em,
       excluida: false,
