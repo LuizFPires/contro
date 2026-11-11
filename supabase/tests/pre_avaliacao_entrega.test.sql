@@ -49,8 +49,11 @@ select throws_ok($$ select abrir_avaliacao_revisao((select id from obra where no
   '23505', null, 'só uma revisão aberta por vez');
 select throws_ok($$ select marcar_avaliacao_item((select i1 from ctx), 'nao_conforme') $$,
   '23514', null, 'Não não passa sem foto');
-select throws_ok($$ select avaliacao_nao_conforme((select i2 from ctx), gen_random_uuid()) $$,
-  '23503', null, 'Não conforme exige foto do antes');
+-- 10/11/2026: tocar Não grava na hora; a foto do antes entra depois.
+select lives_ok($$ select avaliacao_nao_conforme(
+    (select id from avaliacao_item where revisao_id = (select rev from ctx) and codigo = '1.4'),
+    '00000000-0000-0000-0000-00000000a0b9') $$,
+  'Não sem foto cria a pendência (foto do antes depois)');
 
 select marcar_avaliacao_item((select i1 from ctx), 'conforme');
 select avaliacao_nao_conforme((select i2 from ctx), '00000000-0000-0000-0000-00000000a0b1', null, null, 'alta',
