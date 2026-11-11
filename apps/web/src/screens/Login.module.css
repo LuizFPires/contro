@@ -111,3 +111,54 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Criar conta: onde a pessoa vai trabalhar (decide a fila de aprovação). */
+.ambiente {
+  display: flex;
+  flex-direction: column;
+  gap: var(--contro-space-2);
+}
+
+.ambienteRotulo {
+  margin: 0;
+  font-size: var(--contro-fs-body-sm);
+  font-weight: 700;
+  color: var(--contro-text);
+}
+
+.ambienteDica {
+  margin: 0;
+  font-size: var(--contro-fs-caption);
+  color: var(--contro-text);
+  opacity: 0.75;
+}
+
+.ambienteOpcoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--contro-space-2);
+}
+
+.ambienteOpcao {
+  min-height: var(--contro-touch);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1.5px solid currentColor;
+  background: transparent;
+  color: var(--contro-text);
+  font: inherit;
+  font-size: var(--contro-fs-body-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ambienteMarcado {
+  background: var(--contro-turquoise);
+  border-color: var(--contro-turquoise);
+  color: var(--contro-black);
+  font-weight: 800;
+}

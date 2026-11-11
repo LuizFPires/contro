@@ -15,12 +15,15 @@ const PAPEIS: { value: PapelGeral; label: string }[] = [
 /** Dar acesso a uma pessoa por e-mail; sem conta ainda, vira convite. */
 export function NovaPessoaGeral({
   aberto,
+  inicial,
   obras,
   carregando,
   erro: erroObras,
   onFechar,
 }: {
   aberto: boolean;
+  /** Cadastro da fila de Obras gerais: nome e e-mail já vêm preenchidos. */
+  inicial?: { nome: string; email: string } | null;
   obras: ObraGeral[];
   carregando: boolean;
   erro: boolean;
@@ -37,14 +40,14 @@ export function NovaPessoaGeral({
 
   useEffect(() => {
     if (aberto) {
-      setNome('');
-      setEmail('');
+      setNome(inicial?.nome ?? '');
+      setEmail(inicial?.email ?? '');
       setPapel('membro');
       setObraIds([]);
       setSalvando(false);
       setErro('');
     }
-  }, [aberto]);
+  }, [aberto, inicial]);
 
   async function dar() {
     if (salvando) return;
@@ -67,7 +70,7 @@ export function NovaPessoaGeral({
   }
 
   return (
-    <BottomSheet open={aberto} title="Nova pessoa" onClose={onFechar}>
+    <BottomSheet open={aberto} title={inicial ? 'Dar acesso' : 'Nova pessoa'} onClose={onFechar}>
       <div className={styles.campos}>
         <div>
           <Input label="Nome" value={nome} autoFocus onChange={(e) => setNome(e.target.value)} />

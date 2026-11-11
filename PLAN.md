@@ -457,6 +457,8 @@ Quarta de 5 etapas. Leva às Obras gerais o ciclo semanal da Contorno, por obra:
 
 ## Decisões
 
+- [x] **10/11/2026 · Criar conta escolhe o ambiente** (opção A do usuário, caso Ana Gabriele): quem criava conta sem convite caía sempre na aprovação da Contorno, mesmo sendo de Obras gerais. Agora a tela pergunta "Onde você vai trabalhar?" e o cadastro de Obras gerais vai só para o Administrador ("Aguardando acesso" em Pessoas e acessos, com Dar acesso ou É da Contorno). O cadastro que já está na fila da Contorno não muda sozinho: o Administrador dá o acesso dele pelo e-mail em Obras gerais.
+
 - [x] **10/11/2026 · Providência replanejada não fica atrasada** (bug relatado pelo usuário): a aba Providências marcava "ATRASADO · era para providenciar até 26/10" mesmo com a tarefa vinculada replanejada para 30/11. Agora o prazo da tarefa aberta vinculada é o prazo vigente (core `providenciaAtrasada` com `replanejada`), na aba, no selo, na ficha, no boletim e na reunião. A tarefa continua contando o replanejamento (regra 8), então o atraso não some do Score nem do Log.
 
 - [x] **08/11/2026 · Pré-avaliação sem pontos na tela** (pedido do usuário): como todos os itens têm o mesmo peso, a tela mostra porcentagem e contagem de itens. Os pontos seguem só na conta e no lançamento da nota oficial, que copia os números do PDF da Contorno.
