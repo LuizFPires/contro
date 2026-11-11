@@ -172,3 +172,28 @@ button.card {
 .trackOn .knob {
   transform: translateX(20px);
 }
+
+/* Fila de cadastros que escolheram Obras gerais */
+.fila {
+  padding: 8px 20px 0;
+}
+.filaTitulo {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.listaFila {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.filaAcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}

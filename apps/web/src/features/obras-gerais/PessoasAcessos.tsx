@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import { Chip, Icon } from '@contro/ui';
+import { Button, Chip, Icon, useToast } from '@contro/ui';
 import { rotuloPapelGeral } from '@contro/core';
+import { formatarDataCurta } from '../../lib/datas';
 import { FichaPessoaGeral } from './FichaPessoaGeral';
 import { NovaPessoaGeral } from './NovaPessoaGeral';
 import { useObrasGerais } from './useObrasGerais';
-import { usePessoasGerais, type PessoaGeral } from './usePessoasGerais';
+import {
+  useCadastrosGeraisPendentes,
+  usePessoasGerais,
+  type CadastroGeralPendente,
+  type PessoaGeral,
+} from './usePessoasGerais';
 import styles from './PessoasAcessos.module.css';
 
 /** Pessoas e acessos de Obras gerais (só Administrador). */
@@ -14,6 +20,23 @@ export function PessoasAcessos({ onVoltar }: { onVoltar: () => void }) {
   const obras = obrasQuery.data ?? [];
   const [ficha, setFicha] = useState<PessoaGeral | null>(null);
   const [nova, setNova] = useState(false);
+  // Cadastros que escolheram Obras gerais ao criar a conta.
+  const { pendentes, definirFila } = useCadastrosGeraisPendentes();
+  const [aprovando, setAprovando] = useState<CadastroGeralPendente | null>(null);
+  const { showToast } = useToast();
+
+  async function paraContorno(c: CadastroGeralPendente) {
+    try {
+      await definirFila(c.id, true);
+    } catch {
+      showToast({ message: 'Não foi possível mover o cadastro. Tente de novo.' });
+      return;
+    }
+    showToast({
+      message: `${c.nome} foi para a aprovação da Contorno`,
+      onUndo: () => void definirFila(c.id, false).catch(() => undefined),
+    });
+  }
 
   const nomeObra = (id: string) => obras.find((o) => o.id === id)?.nome ?? 'Obra';
   const chips = (ids: string[]) => (ids.length === 0 ? ['sem obra'] : ids.map(nomeObra));
@@ -37,6 +60,31 @@ export function PessoasAcessos({ onVoltar }: { onVoltar: () => void }) {
           <Icon name="plus" size={22} />
         </button>
       </div>
+
+      {pendentes.length > 0 ? (
+        <section aria-labelledby="fila-geral" className={styles.fila}>
+          <h2 id="fila-geral" className={styles.filaTitulo}>
+            Aguardando acesso · {pendentes.length}
+          </h2>
+          <ul className={styles.listaFila}>
+            {pendentes.map((c) => (
+              <li key={c.id} className={styles.card}>
+                <span className={styles.nome}>{c.nome}</span>
+                <span className={styles.meta}>
+                  {c.email ? `${c.email} · ` : ''}criou a conta{' '}
+                  {formatarDataCurta(c.criadoEm.slice(0, 10))}
+                </span>
+                <div className={styles.filaAcoes}>
+                  <Button onClick={() => setAprovando(c)}>Dar acesso</Button>
+                  <Button variant="tertiary" onClick={() => void paraContorno(c)}>
+                    É da Contorno
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {query.isError ? (
         <p role="alert" className={styles.aviso}>
@@ -87,6 +135,14 @@ export function PessoasAcessos({ onVoltar }: { onVoltar: () => void }) {
         carregando={obrasQuery.isLoading}
         erro={obrasQuery.isError}
         onFechar={() => setFicha(null)}
+      />
+      <NovaPessoaGeral
+        aberto={aprovando !== null}
+        inicial={aprovando}
+        obras={obras}
+        carregando={obrasQuery.isLoading}
+        erro={obrasQuery.isError}
+        onFechar={() => setAprovando(null)}
       />
       <NovaPessoaGeral
         aberto={nova}

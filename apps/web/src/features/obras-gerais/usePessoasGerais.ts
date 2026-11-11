@@ -80,6 +80,7 @@ export function useAcessoGeral() {
   const qc = useQueryClient();
   const atualizar = () => {
     void qc.invalidateQueries({ queryKey: ['pessoas-gerais'] });
+    void qc.invalidateQueries({ queryKey: ['cadastros-gerais-pendentes'] });
     void qc.invalidateQueries({ queryKey: ['obras-gerais'] });
   };
 
@@ -107,4 +108,48 @@ export function useAcessoGeral() {
   }
 
   return { salvar, definir };
+}
+
+/** Cadastro pendente que escolheu Obras gerais ao criar a conta. */
+export interface CadastroGeralPendente {
+  id: string;
+  nome: string;
+  email: string;
+  criadoEm: string;
+}
+
+const CHAVE_PENDENTES = ['cadastros-gerais-pendentes'];
+
+/**
+ * Fila de Obras gerais (só Administrador): quem criou a conta escolhendo Obras
+ * gerais. Dar acesso usa `salvar` pelo e-mail; `definirFila` manda para a fila da
+ * Contorno (ou traz de volta, no Desfazer).
+ */
+export function useCadastrosGeraisPendentes(habilitado = true) {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: CHAVE_PENDENTES,
+    enabled: Boolean(supabase) && habilitado,
+    queryFn: async (): Promise<CadastroGeralPendente[]> => {
+      if (!supabase) return [];
+      const { data, error } = await supabase.rpc('listar_cadastros_gerais_pendentes');
+      if (error) throw error;
+      return (
+        (data ?? []) as { id: string; nome: string; email: string | null; criado_em: string }[]
+      ).map((x) => ({ id: x.id, nome: x.nome, email: x.email ?? '', criadoEm: x.criado_em }));
+    },
+  });
+
+  async function definirFila(id: string, contorno: boolean) {
+    if (!supabase) throw new Error('Supabase não configurado');
+    const { error } = await supabase.rpc('definir_fila_cadastro', {
+      p_id: id,
+      p_contorno: contorno,
+    });
+    void qc.invalidateQueries({ queryKey: CHAVE_PENDENTES });
+    void qc.invalidateQueries({ queryKey: ['membros-pendentes'] });
+    if (error) throw error;
+  }
+
+  return { query, pendentes: query.data ?? [], definirFila };
 }

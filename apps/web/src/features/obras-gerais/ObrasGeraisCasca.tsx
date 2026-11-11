@@ -22,6 +22,7 @@ import { ReuniaoGeralScreen } from './reuniao/ReuniaoGeralScreen';
 import { ReunioesGeraisScreen } from './reuniao/ReunioesGeraisScreen';
 import { TrocarObraSheet } from './TrocarObraSheet';
 import { useObrasGerais } from './useObrasGerais';
+import { useCadastrosGeraisPendentes } from './usePessoasGerais';
 import { useResumoObrasGerais } from './useResumoObrasGerais';
 import inicio from './ObrasGeraisInicio.module.css';
 import styles from './ObrasGeraisCasca.module.css';
@@ -108,6 +109,8 @@ export function ObrasGeraisCasca({
   } = useResumoObrasGerais();
 
   const admin = pessoa.administrador;
+  // Cadastros que escolheram Obras gerais e esperam o acesso (só Administrador).
+  const nCadastros = useCadastrosGeraisPendentes(admin).pendentes.length;
   const coordenador = !admin && pessoa.papelGeral === 'coordenador';
   const podePessoasDaObra = admin || coordenador;
   // Chave lembrada de quem já não tem o papel: limpa.
@@ -266,7 +269,11 @@ export function ObrasGeraisCasca({
               {admin ? (
                 <ItemMenu
                   icon="pessoa"
-                  rotulo="Pessoas e acessos"
+                  rotulo={
+                    nCadastros
+                      ? `Pessoas e acessos · ${nCadastros} aguardando`
+                      : 'Pessoas e acessos'
+                  }
                   onClick={() => {
                     setPerfilAberto(false);
                     onPessoas();
