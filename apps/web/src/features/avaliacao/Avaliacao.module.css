@@ -466,3 +466,16 @@ button.revisao {
   flex-grow: 1;
   min-width: 0;
 }
+.faltaFoto,
+.fotoOk {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--contro-black);
+}
+.fotoOk {
+  align-self: center;
+  white-space: nowrap;
+}
