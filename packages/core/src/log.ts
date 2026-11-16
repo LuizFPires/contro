@@ -6,6 +6,7 @@
 import { addDU, type DataISO } from './calendar';
 import { atrasoDU, diaLocal } from './datas';
 import { nomeCurto } from './nomes';
+import { formatarNumero, rotuloDia } from './medicao';
 
 export type TipoLinhaLog =
   | 'criada'
@@ -483,6 +484,8 @@ export interface PassoVida {
   cor: CorLog;
   /** Nome curto de quem fez (na "vencida", do responsável). */
   pessoa: string | null;
+  /** Medição do passo (avanço por quantitativo): a ficha abre para editar. */
+  medicaoId?: string | null;
 }
 
 function plural(n: number, um: string, varios: string): string {
@@ -494,6 +497,65 @@ function plural(n: number, um: string, varios: string): string {
  * com a "vencida" derivada e as fotos anexadas) e o resumo
  * "N d.u. além do prazo original · N replanejamentos · N dias aberta".
  */
+const ROTULO_MEDICAO: Record<string, string> = {
+  quantitativo: 'Quantitativo definido',
+  medicao: 'Avanço medido',
+  medicao_editada: 'Medição ajustada',
+  medicao_excluida: 'Medição excluída',
+  medicao_restaurada: 'Medição restaurada',
+};
+
+/** Passo da vida para os eventos do avanço por quantitativo (ou null). */
+export function passoMedicao(ev: EventoBruto): PassoVida | null {
+  const rotulo = ROTULO_MEDICAO[ev.tipo];
+  if (!rotulo) return null;
+  const d = ev.depois ?? {};
+  const pessoa = nomeCurto(ev.porNome) || null;
+  if (ev.tipo === 'quantitativo') {
+    const total = Number(d.total);
+    return {
+      em: ev.em,
+      rotulo: d.total == null ? 'Quantitativo retirado' : rotulo,
+      detalhe:
+        d.total == null
+          ? 'avanço volta aos passos 25 · 50 · 75'
+          : `${formatarNumero(total, 2)} ${String(d.unidade ?? '')} · ${String(d.pessoas ?? '')} pessoas previstas`,
+      cor: 'neutra',
+      pessoa,
+    };
+  }
+  const q = Number(d.quantidade);
+  const un = String(d.unidade ?? '');
+  const de = typeof d.de === 'string' ? d.de : null;
+  const ate = typeof d.ate === 'string' ? d.ate : null;
+  const quando =
+    de && ate
+      ? de === ate
+        ? `no dia ${rotuloDia(de)}`
+        : `de ${rotuloDia(de)} a ${rotuloDia(ate)}`
+      : '';
+  const antesQ =
+    ev.antes && typeof ev.antes.quantidade !== 'undefined' ? Number(ev.antes.quantidade) : null;
+  const base =
+    ev.tipo === 'medicao_editada' && antesQ !== null && antesQ !== q
+      ? `de ${formatarNumero(antesQ, 2)} para ${formatarNumero(q, 2)} ${un} ${quando}`
+      : `${ev.tipo === 'medicao' ? '+' : ''}${formatarNumero(q, 2)} ${un} ${quando}`;
+  return {
+    em: ev.em,
+    rotulo,
+    detalhe: juntar([
+      base.trim(),
+      d.pessoas != null ? `${formatarNumero(Number(d.pessoas), 1)} pessoas` : null,
+    ]),
+    cor: ev.tipo === 'medicao_excluida' ? 'atencao' : 'neutra',
+    pessoa,
+    medicaoId:
+      ev.tipo === 'medicao' || ev.tipo === 'medicao_editada' || ev.tipo === 'medicao_restaurada'
+        ? String(d.medicao_id ?? '') || null
+        : null,
+  };
+}
+
 export function vidaDoItem(
   item: ItemLog,
   eventos: EventoBruto[],
@@ -510,6 +572,8 @@ export function vidaDoItem(
     pessoa: nomeCurto(p.evento.porNome) || null,
   }));
   for (const ev of doItem) {
+    const pm = passoMedicao(ev);
+    if (pm) passos.push(pm);
     if (ev.tipo === 'foto_anexada')
       passos.push({
         em: ev.em,
