@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { duInclusivo, type Ambiente, type Medicao, type Quantitativo } from '@contro/core';
 import { supabase } from '../../lib/supabase';
+import { escreverPdf } from '../../lib/pdfTexto';
 import type { ObraAtv, ObraCompleta } from './detalhe';
 
 /** Quantitativo da atividade com as datas do cronograma vigente (null sem quantitativo). */
@@ -121,16 +122,15 @@ export async function pdfTabela(args: {
 }): Promise<Blob> {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const limpa = (t: string) => t.replace(/→/g, '-').replace(/−/g, '-');
   let y = 18;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
-  doc.text(limpa(args.titulo), 14, y);
+  escreverPdf(doc, args.titulo, 14, y);
   y += 7;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   for (const s of args.subtitulo) {
-    doc.text(limpa(s), 14, y);
+    escreverPdf(doc, s, 14, y);
     y += 5;
   }
   y += 3;
@@ -142,7 +142,7 @@ export async function pdfTabela(args: {
     doc.setFont('helvetica', negrito ? 'bold' : 'normal');
     let x = 14;
     cols.forEach((c, i) => {
-      doc.text(limpa(c), x, y, { maxWidth: args.larguras[i] - 2 });
+      escreverPdf(doc, c, x, y, { maxWidth: args.larguras[i] - 2 });
       x += args.larguras[i];
     });
     y += 6;

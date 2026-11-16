@@ -152,6 +152,15 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - **Quem lança:** Gestor, Coordenador e Equipe (quem faz o campo).
 - **Empreiteiro = Prestador** (o campo que já existe na atividade; o nome na tela é "Prestador"). A medição guarda o prestador da hora, para o histórico não mudar se o prestador da atividade mudar.
 
+### 5.5-B Relatório de avanço físico (16/11/2026, protótipo aprovado)
+- **Onde abre:** pelo ícone de pessoa em Minhas obras (Perfil e ajustes), item **"Relatório de avanço físico"**. Gestor, Coordenador e Equipe veem (nas obras da Contorno).
+- **O que entra:** só **obras em andamento** com pelo menos uma atividade com quantitativo. Obra sem quantitativo fica de fora (não teria dado nenhum).
+- **Topo:** quantas obras, quantas atividades medidas e quantas **atrasam a inauguração** (card vermelho quando há); filtros Todas · Atrasam a inauguração · Atrasadas.
+- **Por obra:** a inauguração planejada e uma faixa: vermelha "No ritmo atual, a inauguração passa para [data] (+N dias úteis)" quando o ritmo das medições empurra a data, ou "as medições não mexem na inauguração". Obras que mais atrasam primeiro.
+- **Por atividade:** medido de total e %, situação (Atrasada / Em dia / Adiantada / Sem medição / Concluída) e um gráfico com o **planejado** (tracejado), a **curva medida** (turquesa) e a **projeção do término no ritmo atual** (tracejado; vermelho quando passa do prazo), mais o ritmo x meta e o término previsto. A atividade que atrasa a inauguração tem borda vermelha, a etiqueta **"Atrasa a inauguração em N dias úteis"** sobre o gráfico e o quanto precisa produzir por dia para não atrasar. Se passa do prazo mas cabe na folga, o card avisa que a inauguração não muda. Tocar abre a ficha da atividade na obra (Voltar retorna ao relatório).
+- **Ritmo atual** = medido ÷ dias úteis do início até a última medição. **Projeção:** o que falta ÷ ritmo, a partir de hoje (ou do dia seguinte à última medição). O atraso na inauguração refaz o cronograma da obra com essa projeção: por atividade (sozinha) e de todas juntas (data da faixa da obra).
+- **Baixar PDF** (A4) com o mesmo conteúdo, gerado no aparelho. Sem resumo no WhatsApp (decisão do usuário).
+
 ### 5.6 Providências (lembretes de contratação, locação e compra)
 - **Texto padronizado (05/11/2026):** ações e lembretes usam **Comprar**, **Alugar** e **Contratar**, sem dois-pontos entre verbo e descrição, em todos os fluxos e documentos. Os títulos antigos salvos são convertidos com auditoria, preservando descrição, prazo, responsável, estado e vínculos; itens distintos não são unidos.
 - Cada lembrete tem só: **tipo**, **o que providenciar**, **data em que precisa estar na obra** (padrão: início da atividade, editável) e **situação** (A providenciar ou Providenciado).

@@ -219,6 +219,8 @@ const paths = {
   ),
   grafico: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
   tabela: <path d="M3 5h18M3 12h18M3 19h18M9 5v14" />,
+  // Curva de avanço físico (relatório).
+  curva: <path d="M4 20h16M5 16l4-5 4 3 6-8M15 6h4v4" />,
   // Variação do score: sobe, desce, igual.
   sobe: <path d="M12 19V5M6 11l6-6 6 6" />,
   desce: <path d="M12 5v14M6 13l6 6 6-6" />,

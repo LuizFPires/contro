@@ -61,3 +61,4 @@ export * from './obraGeralSemana';
 export * from './obraGeralLog';
 export * from './avaliacao';
 export * from './medicao';
+export * from './avancoFisico';

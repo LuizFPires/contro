@@ -471,7 +471,24 @@ Protótipo aprovado pelo usuário em 16/11/2026 (canvas "CONTRO · Avanço por q
 
 ---
 
+## Relatório de avanço físico (16/11/2026)
+
+Protótipo aprovado pelo usuário em 16/11/2026 (canvas "CONTRO · Avanço por quantitativo", artboards 11 a 13). PRD §5.5-B, SPEC §3.3-B.
+
+- [x] Core `avancoFisico.ts` (projeção no ritmo atual, impacto de cada atividade e de todas juntas na inauguração, ordenação) com testes.
+- [x] Carga das obras em andamento com quantitativo, sem N+1 (`features/avancoFisico/api.ts`).
+- [x] Tela "Avanço físico": resumo, filtros, faixa da obra, cards com curva planejado x medido x projeção, etiqueta vermelha de atraso na inauguração; tocar abre a ficha da atividade.
+- [x] PDF A4 com o mesmo conteúdo (três cards do topo do mesmo tamanho).
+- [x] Item "Relatório de avanço físico" no menu de perfil, para Gestor, Coordenador e Equipe (Contorno).
+- [ ] Obras gerais: quando o quantitativo chegar lá.
+
+**Aceite:** piso 1.200 m² em 10 d.u. desde seg 09/11, medido 556 m² até sex 13/11, hoje seg 16/11: ritmo 111,2 m²/dia, término seg 23/11 (+1 d.u.); com uma sucessora no caminho crítico, "Atrasa a inauguração em 1 dia útil" e "Para não atrasar: 128,8 m²/dia"; uma atividade fora do caminho crítico que passa do prazo dentro da folga não muda a inauguração; obra sem quantitativo não aparece.
+
+---
+
 ## Decisões
+
+- [x] **16/11/2026 · Relatório de avanço físico** (pedido do usuário, protótipo aprovado): abre pelo ícone de pessoa (não por menu novo); Gestor, Coordenador e Equipe veem; só obras em andamento com quantitativo; PDF sem resumo de WhatsApp. Desvios do protótipo: o atraso de cada atividade na inauguração é medido sobre a previsão atual da obra (só o efeito do ritmo dela), e a faixa da obra soma o efeito de todas juntas contra a inauguração planejada; a projeção começa hoje (ou no dia seguinte à última medição); concluídas e sem medição aparecem no fim, sem projeção; só nas obras da Contorno, como o quantitativo. Junto: "²" e "³" passam a sair nos PDFs gerados no aparelho (Meta e Comparar também), que antes sumiam.
 
 - [x] **16/11/2026 · Quantitativo em gaveta, sem pessoas previstas** (pedido do usuário, ao usar em produção): a tela cheia do quantitativo virou uma gaveta por cima da ficha com a quantidade e a unidade numa lista; a meta do dia aparece ao digitar. Pessoas previstas saíram (as pessoas ficam em cada medição); a meta não mostra mais m²/pessoa planejado.
 
