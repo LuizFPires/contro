@@ -16,6 +16,9 @@ import {
   reabrirTarefa,
   renomearAtividade,
   definirAvanco,
+  definirQuantitativo,
+  salvarMedicao,
+  excluirMedicao,
   resolverPendencia,
   restaurarTarefa,
   salvarTarefa,
@@ -92,6 +95,35 @@ const DISPATCH: Record<string, Handler> = {
   },
   desfazer_conclusao: (p, opId) => desfazerConclusao(p.atividadeId as string, opId),
   definir_avanco: (p, opId) => definirAvanco(p.atividadeId as string, p.pct as number, opId),
+  // Avanço por quantitativo: quantitativo e medições (id gerado no aparelho).
+  definir_quantitativo: (p, opId) =>
+    definirQuantitativo(
+      p.atividadeId as string,
+      (p.total as number | null) ?? null,
+      (p.unidade as string | null) ?? null,
+      (p.pessoas as number | null) ?? null,
+      opId,
+    ),
+  salvar_medicao: async (p, opId) => {
+    // Foto opcional do lançamento: sobe do aparelho (com retomada) antes da RPC.
+    const local = (p.fotoLocalId as string | null) ?? null;
+    const fotoId = local ? await subirFotoLocal(local) : null;
+    await salvarMedicao(
+      p.medicao as {
+        id: string;
+        atividadeId: string;
+        tipo: 'dia' | 'periodo';
+        de: string;
+        ate: string;
+        quantidade: number;
+        pessoas: number;
+      },
+      fotoId,
+      opId,
+    );
+    if (local) await removerFotoLocal(local);
+  },
+  excluir_medicao: (p, opId) => excluirMedicao(p.id as string, Boolean(p.restaurar), opId),
   marcar_subitem: (p, opId) => marcarSubitem(p.subitemId as string, p.feito as boolean, opId),
   concluir_tarefa: (p, opId) => concluirTarefa(p.id as string, opId),
   reabrir_tarefa: (p, opId) => reabrirTarefa(p.id as string, opId),

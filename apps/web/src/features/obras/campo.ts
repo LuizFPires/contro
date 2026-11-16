@@ -541,3 +541,66 @@ export async function desfazerConclusao(atividadeId: string, clientOpId?: string
   });
   if (error) throw error;
 }
+
+/** Define o quantitativo da atividade (total null tira: volta aos passos 25 · 50 · 75). */
+export async function definirQuantitativo(
+  atividadeId: string,
+  total: number | null,
+  unidade: string | null,
+  pessoas: number | null,
+  clientOpId?: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('definir_quantitativo', {
+    p_atividade_id: atividadeId,
+    p_total: total,
+    p_unidade: unidade,
+    p_pessoas: pessoas,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}
+
+/** Lança (id novo) ou corrige (id existente) uma medição, idempotente pela op. */
+export async function salvarMedicao(
+  m: {
+    id: string;
+    atividadeId: string;
+    tipo: 'dia' | 'periodo';
+    de: string;
+    ate: string;
+    quantidade: number;
+    pessoas: number;
+  },
+  fotoId: string | null,
+  clientOpId?: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('salvar_medicao', {
+    p_id: m.id,
+    p_atividade_id: m.atividadeId,
+    p_tipo: m.tipo,
+    p_de: m.de,
+    p_ate: m.ate,
+    p_quantidade: m.quantidade,
+    p_pessoas: m.pessoas,
+    p_foto_id: fotoId,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}
+
+/** Exclui (lógico) ou restaura uma medição. */
+export async function excluirMedicao(
+  id: string,
+  restaurar: boolean,
+  clientOpId?: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('excluir_medicao', {
+    p_id: id,
+    p_restaurar: restaurar,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}

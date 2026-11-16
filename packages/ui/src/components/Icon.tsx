@@ -210,6 +210,15 @@ const paths = {
     </>
   ),
   seta: <path d="M8 5l8 7-8 7" />,
+  // Régua: avanço por quantitativo (medições da atividade).
+  regua: (
+    <>
+      <rect x="2.5" y="8" width="19" height="8" rx="1.5" />
+      <path d="M6.5 8v3M10 8v4.5M13.5 8v3M17 8v4.5" />
+    </>
+  ),
+  grafico: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
+  tabela: <path d="M3 5h18M3 12h18M3 19h18M9 5v14" />,
   // Variação do score: sobe, desce, igual.
   sobe: <path d="M12 19V5M6 11l6-6 6 6" />,
   desce: <path d="M12 5v14M6 13l6 6 6-6" />,

@@ -17,6 +17,7 @@ import { hojeISO } from './api';
 import { PropostasMapa } from './PropostasMapa';
 import { AjustePrazo } from './AjustePrazo';
 import { VidaDoItem } from '../log/VidaDoItem';
+import { BlocoQuantitativo, RodapeMedicao, type TelaAvanco } from './AvancoQuant';
 import { Camera } from './Camera';
 import { CampoPrestador } from './CampoPrestador';
 import type { ObraCompleta } from './detalhe';
@@ -46,11 +47,14 @@ export function FichaAtividade({
   atividadeId,
   onClose,
   onConcluida,
+  onAvanco,
 }: {
   obra: ObraCompleta;
   atividadeId: string | null;
   onClose: () => void;
   onConcluida: AoConcluir;
+  /** Abre as telas do avanço por quantitativo desta atividade. */
+  onAvanco: (atividadeId: string, tela: TelaAvanco) => void;
 }) {
   const campo = useObraCampo(obra.id);
   const conclusao = useConcluirAtividade(obra);
@@ -298,6 +302,11 @@ export function FichaAtividade({
 
           {mapa ? <PropostasMapa key={a.id} obraId={obra.id} atividadeId={a.id} /> : null}
 
+          {/* Avanço por quantitativo (16/11/2026): tudo sai da ficha da atividade. */}
+          {!mapa && !a.preObra && !a.pai_id ? (
+            <BlocoQuantitativo obra={obra} a={a} onAbrir={(t) => onAvanco(a.id, t)} />
+          ) : null}
+
           <section className={styles.secao}>
             <h3 className={styles.rotulo}>
               Para começar ·{' '}
@@ -434,7 +443,11 @@ export function FichaAtividade({
             ) : null}
           </div>
 
-          <VidaDoItem itemId={a.id} />
+          <VidaDoItem
+            itemId={a.id}
+            medicoes={a.medicoes.map((m) => m.id)}
+            onMedicao={(id) => onAvanco(a.id, { t: 'lancar', medicaoId: id })}
+          />
 
           {a.concluida_em && !a.foto_conclusao_id && !mapa ? (
             <div className={styles.semFoto}>
@@ -524,6 +537,12 @@ export function FichaAtividade({
               {conclusao.pendente ? 'Marcando…' : 'Mapa pronto'}
             </button>
           </div>
+        ) : podeConcluir && a.quant_total ? (
+          // Com quantitativo, o avanço é o medido: o rodapé lança a medição.
+          <RodapeMedicao
+            onLancar={() => onAvanco(a.id, { t: 'lancar' })}
+            onFoto={() => setCamera('concluir')}
+          />
         ) : podeConcluir ? (
           <RodapeAvanco
             avancoPct={a.avanco_pct}

@@ -455,7 +455,24 @@ Quarta de 5 etapas. Leva às Obras gerais o ciclo semanal da Contorno, por obra:
 
 ---
 
+## Avanço por quantitativo (16/11/2026)
+
+Protótipo aprovado pelo usuário em 16/11/2026 (canvas "CONTRO · Avanço por quantitativo"). PRD §5.5-A, SPEC §3.3-A.
+
+- [x] Banco: quantitativo na atividade, `obra_medicao` com RLS, RPCs `definir_quantitativo`, `salvar_medicao`, `excluir_medicao`, eventos e recálculo do avanço (`20261116100000_avanco_quantitativo.sql`), pgTAP `avanco_quantitativo.test.sql`.
+- [x] Core `medicao.ts` (meta, situação, referência meta/prazo, período, produtividade, comparativo, Meta e WhatsApp) com testes; vida da atividade com as medições.
+- [x] Ficha: bloco "Avanço por quantitativo" (+ Quantitativo ou medido x previsto com Medições · Meta · Produtividade) e rodapé Lançar avanço + Foto; trilha com "X de Y m²" e anel abrindo a ficha.
+- [x] Telas: quantitativo, lançar/editar (calendário de / até arrastando o dedo, referência meta e prazo, pessoas, foto opcional, prévia), medições, Meta (WhatsApp e PDF), Produtividade nesta obra e Comparar com outras obras (Excel e PDF). Fila offline e Desfazer.
+- [ ] Aplicar a migration no Supabase remoto (`npx supabase db push`, ação do usuário) antes do deploy do app.
+- [ ] Obras gerais: levar o mesmo bloco para a ficha da obra geral (fora deste corte).
+
+**Aceite:** com 1.200 m² em 10 d.u., meta 120 m²/dia; lançando 85 · 104 · 236 (2 d.u.) · 131 até sex 13/11, a ficha mostra 556 de 1.200 m² (46,3%), "Atrasado 44 m²" em 16/11 e "Para recuperar o prazo · 129 m²"; o período 26/10 → 28/10 lança normalmente; um dia já medido não pode ser marcado; editar uma medição recalcula o avanço; a Produtividade mostra 111,2 m²/dia (93% da meta); Meta, Produtividade e Comparar mostram só a atividade aberta.
+
+---
+
 ## Decisões
+
+- [x] **16/11/2026 · Avanço por quantitativo** (pedido do usuário, protótipo aprovado): o % medido só substitui 25 · 50 · 75 · 100 quando a atividade recebe quantitativo; empreiteiro é o Prestador da atividade; tudo pela ficha da atividade, sem menu novo; Meta, Produtividade e Comparar sempre só da atividade aberta; Gestor, Coordenador e Equipe lançam; lançamento em qualquer dia útil até hoje, sem sobrepor dias medidos. Desvios do protótipo: chegar a 100% medido conclui a atividade sem foto (regra 3: 100% é concluir); "Baixar Excel" gera planilha CSV (abre no Excel); o comparativo junta a atividade pelo nome e unidade nas obras do mesmo ambiente; tocar no medido da ficha abre o quantitativo para editar; nesta entrega só nas obras da Contorno (Obras gerais depois).
 
 - [x] **10/11/2026 · Check list e Avaliação (relato de campo, Divinópolis):** (1) **fotos não se perdem:** as fotos do lote de Nova pendência ficam no aparelho (Dexie `loteFotos`) desde que são tiradas e voltam com "N fotos não apontadas · Continuar"; com câmera ou lote aberto o app não procura versão nova (`segurarAtualizacao`), porque recarregar apagava as fotos ao voltar de outro app. (2) **Prestador como responsável:** `pendencia.responsavel_nome` (nome digitado, vira sugestão), como na tarefa; só na Contorno pela tela. (3) **Data limite:** `pendencia.prazo` opcional; com ela, vale no lugar do prazo da criticidade em todo lugar (core `prazoPendencia(…, dataLimite)`, avisos do dia no banco); obra geral, só quem planeja. (4) **Não da Avaliação grava na hora**, com a foto do antes podendo vir depois (`anexar_foto_antes_pendencia`); antes, sair sem a foto deixava o item em aberto e o ambiente em 100%. Migration `20261110200000`, pgTAP `checklist_prestador_prazo.test.sql`.
 

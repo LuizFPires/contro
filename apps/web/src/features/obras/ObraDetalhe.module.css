@@ -656,3 +656,17 @@
 .menuObraItem:active {
   background: rgb(24 24 24 / 6%);
 }
+
+/* Avanço por quantitativo na trilha: "556 de 1.200 m²" no card da atividade. */
+.medido {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 800;
+  background: rgb(84 180 176 / 16%);
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-top: 4px;
+}

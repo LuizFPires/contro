@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { vidaDoItem, type Ambiente, type EventoBruto, type ItemLog } from '@contro/core';
+import { Icon } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from '../obras/api';
 import { useVidaDoItem } from './dadosLogScore';
@@ -19,10 +20,15 @@ export function LinhaDoTempo({
   eventos,
   semTitulo,
   nomes,
+  onMedicao,
+  medicoes,
 }: {
   item: ItemLog;
   eventos: EventoBruto[];
   semTitulo?: boolean;
+  /** Avanço por quantitativo: tocar numa medição ainda ativa abre para editar. */
+  onMedicao?: (id: string) => void;
+  medicoes?: string[];
   /** Obras gerais: nome por id de pessoa (troca de responsável, de quem era). */
   nomes?: Record<string, string>;
 }) {
@@ -42,11 +48,29 @@ export function LinhaDoTempo({
               p.cor === 'ok' ? styles.ok : ''
             } ${p.cor === 'atraso' ? styles.atraso : ''}`}
           >
-            <span className={styles.rotulo}>
-              {p.rotulo} · {formatarDataCurta(diaDe(p.em))}
-              {p.pessoa ? ` · ${p.pessoa}` : ''}
-            </span>
-            {p.detalhe ? <span className={styles.detalhe}>{p.detalhe}</span> : null}
+            {onMedicao && p.medicaoId && medicoes?.includes(p.medicaoId) ? (
+              <button
+                type="button"
+                className={styles.passoBotao}
+                aria-label={`Editar a medição: ${p.detalhe}`}
+                onClick={() => onMedicao(p.medicaoId!)}
+              >
+                <span className={styles.rotulo}>
+                  {p.rotulo} · {formatarDataCurta(diaDe(p.em))}
+                  {p.pessoa ? ` · ${p.pessoa}` : ''}
+                </span>
+                {p.detalhe ? <span className={styles.detalhe}>{p.detalhe}</span> : null}
+                <Icon name="editar" size={16} strokeWidth={1.9} />
+              </button>
+            ) : (
+              <>
+                <span className={styles.rotulo}>
+                  {p.rotulo} · {formatarDataCurta(diaDe(p.em))}
+                  {p.pessoa ? ` · ${p.pessoa}` : ''}
+                </span>
+                {p.detalhe ? <span className={styles.detalhe}>{p.detalhe}</span> : null}
+              </>
+            )}
           </li>
         ))}
       </ol>
@@ -64,11 +88,23 @@ export function LinhaDoTempo({
 export function VidaDoItem({
   itemId,
   ambiente = 'contorno',
+  onMedicao,
+  medicoes,
 }: {
   itemId: string;
   ambiente?: Ambiente;
+  onMedicao?: (id: string) => void;
+  medicoes?: string[];
 }) {
   const { item, eventos, nomes } = useVidaDoItem(itemId, ambiente);
   if (!item) return null;
-  return <LinhaDoTempo item={item} eventos={eventos} nomes={nomes} />;
+  return (
+    <LinhaDoTempo
+      item={item}
+      eventos={eventos}
+      nomes={nomes}
+      onMedicao={onMedicao}
+      medicoes={medicoes}
+    />
+  );
 }
