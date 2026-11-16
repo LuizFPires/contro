@@ -28,7 +28,7 @@ import {
   type Quantitativo,
   type TomSituacao,
 } from '@contro/core';
-import { Icon, Segmented, useToast } from '@contro/ui';
+import { BottomSheet, Icon, Segmented, useToast } from '@contro/ui';
 import { formatarDataCurta } from '../../lib/datas';
 import { hojeISO } from './api';
 import {
@@ -236,7 +236,8 @@ export function AvancoTelas({
   const rotulo = `${num ? `#${num} ` : ''}${a.nome}`;
   const q = quantDe(obra, a);
   const comum = { obra, a, rotulo, voltar, ir };
-  if (tela.t === 'quant' || !q) return <TelaQuantitativo {...comum} />;
+  // O quantitativo é uma gaveta da ficha; sem ele, não há o que mostrar aqui.
+  if (tela.t === 'quant' || !q) return null;
   if (tela.t === 'lancar')
     return (
       <TelaLancar {...comum} q={q} medicaoId={tela.medicaoId ?? null} onConcluida={onConcluida} />
@@ -308,18 +309,33 @@ function Stepper({
 }
 
 /* ------------------------------------------------------------------ */
-/* Quantitativo da atividade                                           */
+/* Quantitativo da atividade: gaveta (só quantidade e unidade)         */
 /* ------------------------------------------------------------------ */
-function TelaQuantitativo({ obra, a, rotulo, voltar }: TelaProps) {
+/**
+ * Gaveta do quantitativo (pedido do usuário, 16/11/2026): abre por cima da ficha,
+ * só com a quantidade e a unidade (lista); a meta do dia aparece ao digitar. As
+ * pessoas entram em cada medição, não aqui.
+ */
+export function QuantitativoSheet({
+  obra,
+  a,
+  open,
+  onClose,
+}: {
+  obra: ObraCompleta;
+  a: ObraAtv;
+  open: boolean;
+  onClose: () => void;
+}) {
   const campo = useObraCampo(obra.id);
   const { showToast } = useToast();
   const datas = datasDe(obra, a);
+  const num = numeracaoObra(obra).get(a.id);
   const [total, setTotal] = useState(a.quant_total ? fmt(a.quant_total, 2) : '');
   const [unidade, setUnidade] = useState<string>(a.quant_unidade ?? 'm²');
-  const [pessoas, setPessoas] = useState(a.quant_pessoas ?? 4);
   const n = lerNumero(total);
   const meta = n / datas.du;
-  const hist = useMedicoesDaAtividade(a.nome, unidade, 'contorno');
+  const hist = useMedicoesDaAtividade(open ? a.nome : null, unidade, 'contorno');
   const historico = useMemo(() => {
     const outras = (hist.data ?? []).filter((x) => x.obraId !== obra.id);
     if (!outras.length || !n) return null;
@@ -346,12 +362,12 @@ function TelaQuantitativo({ obra, a, rotulo, voltar }: TelaProps) {
       showToast({ message: 'Informe a quantidade total' });
       return;
     }
-    campo.quantitativo.mutate({ atividadeId: a.id, total: n, unidade, pessoas });
+    campo.quantitativo.mutate({ atividadeId: a.id, total: n, unidade, pessoas: null });
     showToast({
       message: `Quantitativo salvo · meta ${fmt(meta, 1)} ${unidade}/dia`,
       onUndo: () => campo.quantitativo.mutate({ atividadeId: a.id, ...antes }),
     });
-    voltar();
+    onClose();
   }
   function tirar() {
     campo.quantitativo.mutate({ atividadeId: a.id, total: null, unidade: null, pessoas: null });
@@ -359,24 +375,18 @@ function TelaQuantitativo({ obra, a, rotulo, voltar }: TelaProps) {
       message: 'Avanço volta aos passos 25 · 50 · 75',
       onUndo: () => campo.quantitativo.mutate({ atividadeId: a.id, ...antes }),
     });
-    voltar();
+    onClose();
   }
 
   return (
-    <div className={styles.tela}>
-      <Cabecalho sub={obra.nome} titulo="Quantitativo da atividade" onVoltar={voltar} />
-      <div className={styles.conteudo}>
-        <div className={styles.cardFixo}>
-          <span>
-            <b>{rotulo}</b>
-            <span className={styles.miuda}>
-              {formatarDataCurta(datas.inicio)} → {formatarDataCurta(datas.fim)}
-              {a.prestador ? ` · ${a.prestador}` : ''}
-            </span>
-          </span>
-          <b>{datas.du} d.u.</b>
-        </div>
-        <div className={styles.duasColunas}>
+    <BottomSheet open={open} onClose={onClose} title="Quantitativo">
+      <div className={styles.gaveta}>
+        <span className={styles.miuda}>
+          {num ? `#${num} ` : ''}
+          {a.nome} · {formatarDataCurta(datas.inicio)} → {formatarDataCurta(datas.fim)} · {datas.du}{' '}
+          d.u.
+        </span>
+        <div className={styles.linhaQuant}>
           <label className={styles.campo}>
             <span className={styles.rotuloCampo}>Quantidade total</span>
             <input
@@ -387,57 +397,51 @@ function TelaQuantitativo({ obra, a, rotulo, voltar }: TelaProps) {
               onChange={(e) => setTotal(e.target.value)}
             />
           </label>
-          <div className={styles.campo}>
+          <label className={styles.campo}>
             <span className={styles.rotuloCampo}>Unidade</span>
-            <div className={styles.unidades} role="group" aria-label="Unidade">
-              {UNIDADES_QUANT.map((u) => (
-                <button
-                  key={u}
-                  type="button"
-                  aria-pressed={u === unidade}
-                  className={u === unidade ? styles.chipOn : styles.chip}
-                  onClick={() => setUnidade(u)}
-                >
-                  {u}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className={styles.linhaCard}>
-          <span>
-            <b>Pessoas previstas</b>
-            <span className={styles.miuda}>na frente de serviço, por dia</span>
-          </span>
-          <Stepper valor={pessoas} onMudar={setPessoas} rotulo="pessoas previstas" />
-        </div>
-        <div className={styles.cardEscuro}>
-          <span className={styles.kicker}>META DO DIA</span>
-          <span className={styles.numEscuro}>{n ? `${fmt(meta, 1)} ${unidade}/dia` : '—'}</span>
-          <span className={styles.miudaEscura}>
-            {n
-              ? `${fmt(n, 2)} ${unidade} em ${datas.du} dias úteis · ${fmt(meta / pessoas, 1)} ${unidade}/pessoa·dia com ${pessoas} pessoas`
-              : 'Informe a quantidade total'}
-          </span>
-          {historico ? (
-            <span className={styles.historico}>
-              <Icon name="grafico" size={18} strokeWidth={2} />
-              {historico}
+            <span className={styles.selectCaixa}>
+              <select
+                className={styles.select}
+                value={unidade}
+                onChange={(e) => setUnidade(e.target.value)}
+              >
+                {UNIDADES_QUANT.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
+              <Icon name="chevronDown" size={18} />
             </span>
-          ) : null}
+          </label>
         </div>
+        {n ? (
+          <div className={styles.cardEscuro}>
+            <span className={styles.kicker}>META DO DIA</span>
+            <span className={styles.numEscuro}>
+              {fmt(meta, 1)} {unidade}/dia
+            </span>
+            <span className={styles.miudaEscura}>
+              {fmt(n, 2)} {unidade} em {datas.du} dias úteis
+            </span>
+            {historico ? (
+              <span className={styles.historico}>
+                <Icon name="grafico" size={18} strokeWidth={2} />
+                {historico}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
         {a.quant_total ? (
           <button type="button" className={styles.link} onClick={tirar}>
             Medir pelos passos 25 · 50 · 75 (tirar o quantitativo)
           </button>
         ) : null}
-      </div>
-      <div className={styles.rodape}>
-        <button type="button" className={styles.btnPrimario} onClick={salvar}>
+        <button type="button" className={n ? styles.btnPrimario : styles.btnOff} onClick={salvar}>
           Salvar quantitativo
         </button>
       </div>
-    </div>
+    </BottomSheet>
   );
 }
 
@@ -471,7 +475,10 @@ function TelaLancar({
     mes: Number(ancora.slice(5, 7)),
   }));
   const [qtd, setQtd] = useState(editando ? fmt(editando.quantidade, 2) : '');
-  const [pessoas, setPessoas] = useState(editando?.pessoas ?? q.pessoas);
+  // Pessoas: as da medição editada, senão as do último lançamento.
+  const [pessoas, setPessoas] = useState(
+    editando?.pessoas ?? a.medicoes[a.medicoes.length - 1]?.pessoas ?? q.pessoas ?? 4,
+  );
   const [foto, setFoto] = useState<File | null>(null);
   const [camera, setCamera] = useState(false);
   const exc = editando?.id ?? null;
@@ -954,7 +961,7 @@ function TelaMedicoes({ obra, a, rotulo, voltar, ir, q }: TelaProps & { q: Quant
                 {fmt(metaDoDia(q), 1)} {q.unidade}/dia
               </b>
               <span>
-                {fmt(metaDoDia(q) / q.pessoas, 1)} {q.unidade}/pessoa·dia · {q.pessoas} pessoas
+                {fmt(q.total, 2)} {q.unidade} em {q.du} d.u.
               </span>
             </div>
             <div className={styles.mini}>
@@ -1124,7 +1131,7 @@ function TelaMeta({
         subtitulo: [
           obra.nome,
           `${a.prestador || 'sem prestador'} · ${fmt(q.total, 2)} ${q.unidade} · ${formatarDataCurta(q.inicio)} a ${formatarDataCurta(q.fim)} · ${q.du} d.u.`,
-          `Meta ${fmt(meta, 1)} ${q.unidade}/dia com ${q.pessoas} pessoas`,
+          `Meta ${fmt(meta, 1)} ${q.unidade}/dia`,
         ],
         larguras: [45, 40, 45, 45],
         linhas: [
@@ -1155,8 +1162,7 @@ function TelaMeta({
             <b>{rotulo}</b>
             <span className={styles.miuda}>
               {fmt(q.total, 2)} {q.unidade} · {formatarDataCurta(q.inicio)} →{' '}
-              {formatarDataCurta(q.fim)} · {q.du} d.u. · {fmt(meta, 1)} {q.unidade}/dia ·{' '}
-              {q.pessoas} pessoas
+              {formatarDataCurta(q.fim)} · {q.du} d.u. · {fmt(meta, 1)} {q.unidade}/dia
             </span>
           </div>
           <div className={`${styles.linhaTabela} ${styles.cabTabela}`}>
@@ -1230,7 +1236,7 @@ function TelaProdutividade({ a, rotulo, voltar, ir, q }: TelaProps & { q: Quanti
                 {p.dias ? `${fmt(p.ritmo, 1)} ${q.unidade}/dia` : '—'}
               </span>
               <span className={styles.miuda}>
-                meta {fmt(meta, 1)} {q.unidade}/dia com {q.pessoas} pessoas
+                meta {fmt(meta, 1)} {q.unidade}/dia
               </span>
             </span>
             <Selo tom={tom} texto={p.dias ? `${fmt(p.daMeta * 100)}% da meta` : 'Sem medição'} />
