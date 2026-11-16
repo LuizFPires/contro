@@ -88,6 +88,11 @@ obra_providencia(id, obra_id, atividade_id, tipo, descricao, antecedencia_du, du
 - Comparativo: lê `obra_medicao` com `obra_atividade!inner` (mesmo nome, sem diferenciar maiúsculas, e mesma unidade) e `obra!inner` (mesmo ambiente, não excluída); a RLS limita às obras que a pessoa vê.
 - Offline: ops `definir_quantitativo`, `salvar_medicao` (com `fotoLocalId`, foto sobe antes da RPC) e `excluir_medicao`, otimistas no cache da obra.
 
+### 3.3-B Relatório de avanço físico (16/11/2026)
+- Regras em `core/avancoFisico.ts`: `projetarAtividade` (ritmo = soma ÷ d.u. de min(início previsto, 1ª medição) até a última medição; restante começa em max(hoje útil, dia útil seguinte à última medição); término = restante ÷ ritmo arredondado para cima; atraso x fim planejado; curva em d.u. a partir de `x0`) e `avancoFisicoDaObra` (refaz `previsaoEntrega` com `inicio_manual` = início do restante e `duracao_du` = d.u. restantes da atividade: uma a uma dá o `impactoDu` de cada atividade sobre a previsão atual, todas juntas dão `entregaNoRitmo`; atividade com subitens não é simulada). "Para não atrasar" = falta ÷ d.u. até (término projetado − impacto). Ordenação: impacto, estado, atraso.
+- Carga (`features/avancoFisico/api.ts`): 5 consultas em paralelo (obra ativa da Contorno, fases, atividades com `quant_*`, dependências, `obra_medicao`), filhas filtradas por `obra!inner`; RLS limita às obras que a pessoa vê. Entram as obras com atividade de topo (fora do pré-obra) com quantitativo. Sem tabela nem RPC nova.
+- PDF A4 com jsPDF no aparelho (`pdfAvancoFisico.ts`), gráfico vetorial com a mesma geometria da tela (`geometria.ts`). `lib/pdfTexto.ts` desenha "²"/"³" como sobrescrito (as fontes padrão do jsPDF não têm esses glifos); vale também para os PDFs de Meta e Comparar.
+
 ### 3.4 Pendências
 ```
 pendencia(id, obra_id, atividade_id null, titulo, local, criticidade: 'alta'|'media'|'baixa',

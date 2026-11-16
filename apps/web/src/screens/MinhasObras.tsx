@@ -25,6 +25,7 @@ export type DestinoInicio =
   | 'minhas'
   | 'config'
   | 'membros'
+  | 'avanco'
   | 'avisos'
   | 'score'
   | 'log';
@@ -114,7 +115,13 @@ export function MinhasObras({
         abrirPendenciaId={obraAberta.pendenciaId}
         abrirAtividadeId={obraAberta.atividadeId}
         onAtalhoUsado={atalhoUsado}
-        rotuloVoltar={obraAberta.voltar === 'log' ? 'Voltar para o Log' : undefined}
+        rotuloVoltar={
+          obraAberta.voltar === 'log'
+            ? 'Voltar para o Log'
+            : obraAberta.voltar === 'avanco'
+              ? 'Voltar para o avanço físico'
+              : undefined
+        }
         onAbrirLog={
           onAbrirLog
             ? () => {
@@ -292,35 +299,47 @@ export function MinhasObras({
           onTrocarAmbiente={onTrocarAmbiente}
           onSair={onSair}
           itensDoAmbiente={
-            ehGestor ? (
-              <>
+            <>
+              {ambiente === 'contorno' ? (
                 <ItemMenu
-                  icon="calendario"
-                  rotulo="Reunião e avisos"
+                  icon="curva"
+                  rotulo="Relatório de avanço físico"
                   onClick={() => {
                     setPerfilAberto(false);
-                    onIr('avisos');
+                    onIr('avanco');
                   }}
                 />
-                <ItemMenu
-                  icon="documento"
-                  rotulo="Boletim automático"
-                  onClick={() => {
-                    setPerfilAberto(false);
-                    onIr('config');
-                  }}
-                />
-                <ItemMenu
-                  icon="membros"
-                  rotulo="Pessoas e acessos"
-                  selo={nMembros ? `${nMembros} aguardando` : undefined}
-                  onClick={() => {
-                    setPerfilAberto(false);
-                    onIr('membros');
-                  }}
-                />
-              </>
-            ) : null
+              ) : null}
+              {ehGestor ? (
+                <>
+                  <ItemMenu
+                    icon="calendario"
+                    rotulo="Reunião e avisos"
+                    onClick={() => {
+                      setPerfilAberto(false);
+                      onIr('avisos');
+                    }}
+                  />
+                  <ItemMenu
+                    icon="documento"
+                    rotulo="Boletim automático"
+                    onClick={() => {
+                      setPerfilAberto(false);
+                      onIr('config');
+                    }}
+                  />
+                  <ItemMenu
+                    icon="membros"
+                    rotulo="Pessoas e acessos"
+                    selo={nMembros ? `${nMembros} aguardando` : undefined}
+                    onClick={() => {
+                      setPerfilAberto(false);
+                      onIr('membros');
+                    }}
+                  />
+                </>
+              ) : null}
+            </>
           }
         />
       ) : null}
