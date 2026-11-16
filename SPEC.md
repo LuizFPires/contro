@@ -80,6 +80,14 @@ obra_providencia(id, obra_id, atividade_id, tipo, descricao, antecedencia_du, du
                  status: 'pendente'|'feito', feito_em, feito_por)
 ```
 
+### 3.3-A Avanço por quantitativo (16/11/2026)
+- `obra_atividade.quant_total` (numeric > 0), `quant_unidade` (m², m, m³, un, kg) e `quant_pessoas` (1..999). Null = sem quantitativo (passos 25 · 50 · 75 · 100).
+- `obra_medicao`: `id` (uuid gerado no aparelho), `obra_id`, `atividade_id`, `tipo` ('dia' | 'periodo'; dia ⇒ de = ate), `de`, `ate` (dias úteis nas pontas), `quantidade` > 0, `pessoas` > 0 (média por dia), `prestador` (o da atividade na hora), `foto_id` opcional, `criado_por/em`, `editado_por/em`, `deleted_at` (exclusão lógica). Leitura por `contro_ve_obra(obra_id)`; escrita só pelas RPCs.
+- RPCs (todas idempotentes por `client_op_id`, para quem faz o campo da obra): `definir_quantitativo(atividade, total|null, unidade, pessoas)`; `salvar_medicao(id, atividade, tipo, de, ate, quantidade, pessoas, foto_id)` lança (id novo) ou corrige (id existente), recusa futuro (fuso de Brasília), fim de semana nas pontas e sobreposição com outra medição da atividade; `excluir_medicao(id, restaurar)`. Cada uma grava evento em `obra_atividade_evento` (`quantitativo`, `medicao`, `medicao_editada`, `medicao_excluida`, `medicao_restaurada`, com `medicao_id`, datas, quantidade e pessoas) e recalcula `avanco_pct = min(99, floor(soma × 100 / total))` da atividade aberta. 100% é `concluir_atividade` (o app chama).
+- Regras puras em `core/medicao.ts`: meta do dia, previsto até um dia (d.u. decorridos ÷ duração), situação no início de um dia (só medições anteriores), referência do lançamento (meta e "para entregar no prazo"), período válido, produtividade e insights, barras e tabela da Meta, texto do WhatsApp da Meta, comparativo por obra e por prestador e a planilha. Datas do cronograma vigente da atividade (`obra.cron`).
+- Comparativo: lê `obra_medicao` com `obra_atividade!inner` (mesmo nome, sem diferenciar maiúsculas, e mesma unidade) e `obra!inner` (mesmo ambiente, não excluída); a RLS limita às obras que a pessoa vê.
+- Offline: ops `definir_quantitativo`, `salvar_medicao` (com `fotoLocalId`, foto sobe antes da RPC) e `excluir_medicao`, otimistas no cache da obra.
+
 ### 3.4 Pendências
 ```
 pendencia(id, obra_id, atividade_id null, titulo, local, criticidade: 'alta'|'media'|'baixa',
