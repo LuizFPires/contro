@@ -1,5 +1,5 @@
 // Avanço por quantitativo (pedido do usuário, 16/11/2026; protótipo aprovado).
-// A atividade pode ter um quantitativo (total, unidade, pessoas previstas); o
+// A atividade pode ter um quantitativo (total e unidade); o
 // avanço dela passa a ser o % medido. Medições do dia ou de um período (de / até),
 // em dias úteis de segunda a sexta, sem feriados. Tudo aqui é puro: telas, PDF e
 // textos de WhatsApp leem destas funções e nunca recalculam por conta própria.
@@ -11,8 +11,8 @@ export type UnidadeQuant = (typeof UNIDADES_QUANT)[number];
 export interface Quantitativo {
   total: number;
   unidade: string;
-  /** Pessoas previstas na frente de serviço. */
-  pessoas: number;
+  /** Pessoas previstas (opcional, legado): as pessoas entram em cada medição. */
+  pessoas: number | null;
   /** Início e fim previstos da atividade (cronograma vigente) e a duração em d.u. */
   inicio: DataISO;
   fim: DataISO;
@@ -398,7 +398,7 @@ export function textoMetaWhatsApp(args: {
     args.obra,
     `${args.numero ? `#${args.numero} ` : ''}${args.atividade} · ${args.prestador || 'sem prestador'}`,
     '',
-    `Meta ${formatarNumero(meta, 1)} ${q.unidade}/dia com ${q.pessoas} ${q.pessoas === 1 ? 'pessoa' : 'pessoas'}`,
+    `Meta ${formatarNumero(meta, 1)} ${q.unidade}/dia${q.pessoas ? ` com ${q.pessoas} ${q.pessoas === 1 ? 'pessoa' : 'pessoas'}` : ''}`,
     ...(linhas.length ? linhas : ['Sem dias úteis restantes no prazo da atividade.']),
   ].join('\n');
 }

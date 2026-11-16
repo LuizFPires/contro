@@ -172,6 +172,22 @@ describe('meta da atividade', () => {
     const t = tabelaMeta(piso, meds, HOJE);
     expect(t[4].acumulado).toBe(600);
   });
+  it('sem pessoas previstas, a meta sai sem o número de pessoas', () => {
+    const txt = textoMetaWhatsApp({
+      obra: 'CDC Exemplo',
+      numero: 39,
+      atividade: 'Piso vinílico',
+      prestador: null,
+      q: { ...piso, pessoas: null },
+      meds,
+      hoje: HOJE,
+    });
+    expect(txt.split('\n').slice(2, 5)).toEqual([
+      '#39 Piso vinílico · sem prestador',
+      '',
+      'Meta 120 m²/dia',
+    ]);
+  });
   it('texto do WhatsApp só da atividade, próximos 5 dias úteis', () => {
     const txt = textoMetaWhatsApp({
       obra: 'CDC Exemplo',

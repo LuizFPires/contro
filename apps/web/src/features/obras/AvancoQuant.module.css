@@ -989,3 +989,40 @@
   line-height: 1.5;
   white-space: pre-wrap;
 }
+
+/* ---------- Gaveta do quantitativo ---------- */
+.gaveta {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+.linhaQuant {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 10px;
+}
+.selectCaixa {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.selectCaixa > svg {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+}
+.select {
+  width: 100%;
+  min-height: 52px;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  border-radius: 12px;
+  padding: 0 40px 0 14px;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 800;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  appearance: none;
+  -webkit-appearance: none;
+}

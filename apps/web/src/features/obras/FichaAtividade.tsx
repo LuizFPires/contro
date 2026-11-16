@@ -17,7 +17,12 @@ import { hojeISO } from './api';
 import { PropostasMapa } from './PropostasMapa';
 import { AjustePrazo } from './AjustePrazo';
 import { VidaDoItem } from '../log/VidaDoItem';
-import { BlocoQuantitativo, RodapeMedicao, type TelaAvanco } from './AvancoQuant';
+import {
+  BlocoQuantitativo,
+  QuantitativoSheet,
+  RodapeMedicao,
+  type TelaAvanco,
+} from './AvancoQuant';
 import { Camera } from './Camera';
 import { CampoPrestador } from './CampoPrestador';
 import type { ObraCompleta } from './detalhe';
@@ -77,6 +82,9 @@ export function FichaAtividade({
   // Câmera para concluir ou para anexar a foto a uma conclusão sem foto.
   const [camera, setCamera] = useState<'concluir' | 'anexar' | null>(null);
   const [ajustes, setAjustes] = useState(false);
+  // Gaveta do quantitativo (por cima da ficha).
+  const [quantAberto, setQuantAberto] = useState(false);
+  useEffect(() => setQuantAberto(false), [atividadeId]);
 
   const dados = useMemo(() => {
     if (!atividadeId) return null;
@@ -304,7 +312,11 @@ export function FichaAtividade({
 
           {/* Avanço por quantitativo (16/11/2026): tudo sai da ficha da atividade. */}
           {!mapa && !a.preObra && !a.pai_id ? (
-            <BlocoQuantitativo obra={obra} a={a} onAbrir={(t) => onAvanco(a.id, t)} />
+            <BlocoQuantitativo
+              obra={obra}
+              a={a}
+              onAbrir={(t) => (t.t === 'quant' ? setQuantAberto(true) : onAvanco(a.id, t))}
+            />
           ) : null}
 
           <section className={styles.secao}>
@@ -553,6 +565,10 @@ export function FichaAtividade({
           />
         ) : null}
       </BottomSheet>
+
+      {quantAberto ? (
+        <QuantitativoSheet obra={obra} a={a} open onClose={() => setQuantAberto(false)} />
+      ) : null}
 
       <BottomSheet open={Boolean(provDet)} onClose={() => setDetalheProvId(null)}>
         {provDet ? (
