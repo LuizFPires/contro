@@ -4,7 +4,7 @@
 -- Requer o seed de homologação (Modelo 1 + unidades Contorno).
 
 begin;
-select plan(16);
+select plan(17);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000001a1', 'equipe@quant.contro'),
@@ -39,8 +39,12 @@ select throws_ok(
   'sem quantitativo não lança medição'
 );
 select lives_ok(
-  $$ select definir_quantitativo((select id from alvo), 1000, 'm²', 5) $$,
-  'define o quantitativo'
+  $$ select definir_quantitativo((select id from alvo), 1000, 'm²', null) $$,
+  'define o quantitativo só com quantidade e unidade'
+);
+select is(
+  (select quant_pessoas from obra_atividade where id = (select id from alvo)), null,
+  'pessoas previstas ficam vazias'
 );
 select lives_ok(
   $$ select salvar_medicao('00000000-0000-0000-0000-00000000aa01', (select id from alvo), 'dia', '2026-11-03', '2026-11-03', 120, 5) $$,
