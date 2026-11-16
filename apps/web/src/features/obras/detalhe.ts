@@ -9,6 +9,7 @@ import {
   type AtividadeEntrada,
   type AtividadeEstado,
   nomeCurto,
+  type Medicao,
 } from '@contro/core';
 import { supabase } from '../../lib/supabase';
 import { hojeISO } from './api';
@@ -35,6 +36,16 @@ export interface ObraProv {
   feito_em: string | null;
   feito_por_nome: string | null;
 }
+/** Medição do avanço por quantitativo (do dia ou de um período). */
+export interface ObraMedicao extends Medicao {
+  prestador: string | null;
+  /** Foto do lançamento (opcional); 'pendente' enquanto sobe do aparelho. */
+  foto_id: string | null;
+  criado_em: string;
+  criado_por_nome: string | null;
+  editado_em: string | null;
+  editado_por_nome: string | null;
+}
 export interface ObraAtv {
   id: string;
   fase_id: string;
@@ -50,6 +61,12 @@ export interface ObraAtv {
   /** Foto da conclusão; null = concluída sem foto (ou aberta). */
   foto_conclusao_id: string | null;
   prestador: string | null;
+  /** Quantitativo (avanço medido); null = avanço pelos passos 25 · 50 · 75 · 100. */
+  quant_total: number | null;
+  quant_unidade: string | null;
+  quant_pessoas: number | null;
+  /** Medições da atividade (só com quantitativo), em ordem de data. */
+  medicoes: ObraMedicao[];
   /** Mapa de coleta: antecedência (null = não é mapa) e as atividades que libera. */
   mapa_antecedencia_du: number | null;
   mapaLibera: string[];
@@ -90,7 +107,7 @@ export interface ObraCompleta {
 export async function loadObra(id: string): Promise<ObraCompleta | null> {
   if (!supabase) return null;
   const hoje = hojeISO();
-  const [oRes, fRes, aRes, dRes, pRes, lRes] = await Promise.all([
+  const [oRes, fRes, aRes, dRes, pRes, lRes, mRes] = await Promise.all([
     supabase
       .from('obra')
       .select('id,nome,inicio,modelo_rotulo,xp,entrega_original')
@@ -106,7 +123,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
       .from('obra_atividade')
       .select(
         'id,fase_id,ordem,nome,duracao_du,pai_id,em_sequencia,inicio_manual,concluida_em,foto_conclusao_id,prestador,' +
-          'mapa_antecedencia_du,avanco_pct',
+          'mapa_antecedencia_du,avanco_pct,quant_total,quant_unidade,quant_pessoas',
       )
       .eq('obra_id', id)
       .is('deleted_at', null)
@@ -124,6 +141,15 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
       .is('deleted_at', null)
       .eq('obra_id', id),
     supabase.from('obra_mapa_libera').select('mapa_id,atividade_id').eq('obra_id', id),
+    supabase
+      .from('obra_medicao')
+      .select(
+        'id,atividade_id,tipo,de,ate,quantidade,pessoas,prestador,foto_id,criado_em,editado_em,' +
+          'criador:pessoa!criado_por(nome),editor:pessoa!editado_por(nome)',
+      )
+      .eq('obra_id', id)
+      .is('deleted_at', null)
+      .order('de'),
   ]);
 
   const o = oRes.data as {
@@ -164,6 +190,26 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     provPorAtv.set(pr.atividade_id, arr);
   }
 
+  const medPorAtv = new Map<string, ObraMedicao[]>();
+  for (const m of (mRes.data ?? []) as unknown as (Omit<
+    ObraMedicao,
+    'criado_por_nome' | 'editado_por_nome'
+  > & {
+    atividade_id: string;
+    criador: { nome: string } | null;
+    editor: { nome: string } | null;
+  })[]) {
+    const { criador, editor, atividade_id, ...resto } = m;
+    const med: ObraMedicao = {
+      ...resto,
+      quantidade: Number(resto.quantidade),
+      pessoas: Number(resto.pessoas),
+      criado_por_nome: nomeCurto(criador?.nome) || null,
+      editado_por_nome: nomeCurto(editor?.nome) || null,
+    };
+    medPorAtv.set(atividade_id, [...(medPorAtv.get(atividade_id) ?? []), med]);
+  }
+
   const fases = (fRes.data ?? []) as ObraFase[];
   const faseePre = new Set(fases.filter((f) => f.preliminar).map((f) => f.id));
   const liberaPorMapa = new Map<string, string[]>();
@@ -172,10 +218,12 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
   const atividades: ObraAtv[] = (
     (aRes.data ?? []) as unknown as Omit<
       ObraAtv,
-      'predecessoras' | 'providencias' | 'preObra' | 'mapaLibera'
+      'predecessoras' | 'providencias' | 'preObra' | 'mapaLibera' | 'medicoes'
     >[]
   ).map((a) => ({
     ...a,
+    quant_total: a.quant_total === null ? null : Number(a.quant_total),
+    medicoes: medPorAtv.get(a.id) ?? [],
     preObra: faseePre.has(a.fase_id),
     mapaLibera: (liberaPorMapa.get(a.id) ?? []).filter((x) => ativas.has(x)),
     predecessoras: predsPorAtv.get(a.id) ?? [],

@@ -24,6 +24,9 @@ import { BoletimView } from './BoletimView';
 import { fixarEntregaOriginal } from './campo';
 import { CelebracaoFase, type CelebracaoFaseDados } from './CelebracaoFase';
 import { FichaAtividade } from './FichaAtividade';
+import { AvancoTelas, type TelaAvanco } from './AvancoQuant';
+import { quantDe } from './quantitativoObra';
+import { formatarNumero } from '@contro/core';
 import { GanttAba } from './GanttAba';
 import { PendenciasAba } from './PendenciasAba';
 import { PlanoRecuperacao } from './PlanoRecuperacao';
@@ -119,6 +122,11 @@ export function ObraDetalhe({
   const [focoAvaliacao, setFocoAvaliacao] = useState<string | undefined>();
   const [celebra, setCelebra] = useState<CelebracaoFaseDados | null>(null);
   const [planoAberto, setPlanoAberto] = useState(Boolean(abrirPlano));
+  // Avanço por quantitativo: telas abertas a partir da ficha (voltam para ela).
+  const [avancoAberto, setAvancoAberto] = useState<{
+    atividadeId: string;
+    tela: TelaAvanco;
+  } | null>(null);
   // Mapa de coleta: "+ Quem foi contratado" abre o campo (opcional, depois do check).
   const [contratadoId, setContratadoId] = useState<string | null>(null);
   // Fase que recebe um card novo ("+ Adicionar atividade").
@@ -208,6 +216,25 @@ export function ObraDetalhe({
 
   if (planoAberto) {
     return <PlanoRecuperacao obra={obra} onVoltar={() => setPlanoAberto(false)} />;
+  }
+  if (avancoAberto) {
+    const { atividadeId } = avancoAberto;
+    return (
+      <AvancoTelas
+        key={`${atividadeId}:${avancoAberto.tela.t}`}
+        obra={obra}
+        atividadeId={atividadeId}
+        inicio={avancoAberto.tela}
+        onSair={() => {
+          setAvancoAberto(null);
+          setFichaAtvId(atividadeId);
+        }}
+        onConcluida={(r, det) => {
+          setAvancoAberto(null);
+          aoConcluir(r, det);
+        }}
+      />
+    );
   }
 
   const pct = Math.round(obra.pct * 100);
@@ -378,7 +405,19 @@ export function ObraDetalhe({
                 aberta={aberta === f.id}
                 onToggle={() => setFaseAberta(aberta === f.id ? '' : f.id)}
                 onAbrir={setFichaAtvId}
-                onAnel={avanco.anel}
+                // Com quantitativo, o anel mostra o % medido: tocar abre a ficha.
+                onAnel={(atvId) =>
+                  obra.atividades.find((x) => x.id === atvId)?.quant_total
+                    ? setFichaAtvId(atvId)
+                    : avanco.anel(atvId)
+                }
+                medidoDe={(atvId) => {
+                  const x = obra.atividades.find((y) => y.id === atvId);
+                  const q = x ? quantDe(obra, x) : null;
+                  if (!x || !q) return null;
+                  const real = x.medicoes.reduce((s, m) => s + m.quantidade, 0);
+                  return `${formatarNumero(real, 2)} de ${formatarNumero(q.total, 2)} ${q.unidade}`;
+                }}
                 mapaDe={(id) => {
                   const m = obra.atividades.find((x) => x.id === id);
                   return m && m.mapa_antecedencia_du !== null
@@ -486,6 +525,10 @@ export function ObraDetalhe({
         atividadeId={fichaAtvId}
         onClose={() => setFichaAtvId(null)}
         onConcluida={aoConcluir}
+        onAvanco={(atividadeId, tela) => {
+          setFichaAtvId(null);
+          setAvancoAberto({ atividadeId, tela });
+        }}
       />
 
       <RenomearObraSheet
@@ -554,6 +597,7 @@ function Fase({
   onAdicionar,
   rotuloAdicionar = 'Adicionar atividade',
   subitensDe,
+  medidoDe,
 }: {
   fase: FaseTrilha;
   aberta: boolean;
@@ -571,6 +615,8 @@ function Fase({
   rotuloAdicionar?: string;
   /** Subitens da atividade, para listar embaixo dela na trilha. */
   subitensDe: (id: string) => { id: string; nome: string; feito: boolean }[];
+  /** Avanço por quantitativo: "556 de 1.200 m²" (null sem quantitativo). */
+  medidoDe?: (id: string) => string | null;
 }) {
   const noClasse =
     f.status === 'concluida'
@@ -653,6 +699,12 @@ function Fase({
                             {s.nome}
                           </span>
                         ))}
+                      </span>
+                    ) : null}
+                    {medidoDe?.(a.id) ? (
+                      <span className={styles.medido}>
+                        <Icon name="regua" size={14} strokeWidth={2} />
+                        {medidoDe(a.id)}
                       </span>
                     ) : null}
                     {a.prestador ? (

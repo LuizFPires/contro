@@ -1,4 +1,4 @@
-import { nomeCurto } from '@contro/core';
+import { avancoMedidoPct, medicoesEmOrdem, nomeCurto } from '@contro/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { enfileirar } from '../../lib/sync';
 import {
@@ -15,7 +15,7 @@ import {
 } from './campo';
 import { JANELA_DESFAZER_MS, tarefasFechadasPelaAtividade } from './acoesObra';
 import { guardarFotoLocal } from './foto';
-import type { ObraCompleta, ObraProv } from './detalhe';
+import type { ObraCompleta, ObraMedicao, ObraProv } from './detalhe';
 import type { TarefaObra } from './tarefasObra';
 
 /**
@@ -373,6 +373,102 @@ export function useObraCampo(obraId: string) {
     onSettled: inval,
   });
 
+  // Avanço por quantitativo: otimista e offline (fila idempotente). O avanço da
+  // atividade aberta passa a ser o % medido (0..99; 100% é concluir).
+  const comAvancoMedido = (a: ObraCompleta['atividades'][number]) =>
+    a.quant_total && !a.concluida_em
+      ? { ...a, avanco_pct: avancoMedidoPct(a.quant_total, a.medicoes) }
+      : a;
+  const quantitativo = useMutation({
+    networkMode: 'always',
+    mutationFn: (v: {
+      atividadeId: string;
+      total: number | null;
+      unidade: string | null;
+      pessoas: number | null;
+    }) => enfileirar('definir_quantitativo', { obraId, ...v }),
+    onMutate: (v) =>
+      patchAtv(v.atividadeId, (a) =>
+        comAvancoMedido({
+          ...a,
+          quant_total: v.total,
+          quant_unidade: v.total === null ? null : v.unidade,
+          quant_pessoas: v.total === null ? null : v.pessoas,
+        }),
+      ),
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+  const medicao = useMutation({
+    networkMode: 'always',
+    mutationFn: async (v: {
+      atividadeId: string;
+      medicao: Omit<
+        ObraMedicao,
+        | 'criado_em'
+        | 'criado_por_nome'
+        | 'editado_em'
+        | 'editado_por_nome'
+        | 'prestador'
+        | 'foto_id'
+      >;
+      foto: File | null;
+    }) =>
+      enfileirar('salvar_medicao', {
+        obraId,
+        // Foto opcional: fica no aparelho e sobe em 2º plano, com a op.
+        fotoLocalId: v.foto ? await guardarFotoLocal(obraId, v.foto) : null,
+        medicao: {
+          id: v.medicao.id,
+          atividadeId: v.atividadeId,
+          tipo: v.medicao.tipo,
+          de: v.medicao.de,
+          ate: v.medicao.ate,
+          quantidade: v.medicao.quantidade,
+          pessoas: v.medicao.pessoas,
+        },
+      }),
+    onMutate: (v) =>
+      patchAtv(v.atividadeId, (a) => {
+        const antes = a.medicoes.find((m) => m.id === v.medicao.id);
+        const foto = v.foto ? 'pendente' : null;
+        const nova: ObraMedicao = antes
+          ? {
+              ...antes,
+              ...v.medicao,
+              foto_id: foto ?? antes.foto_id,
+              editado_em: new Date().toISOString(),
+              editado_por_nome: 'Você',
+            }
+          : {
+              ...v.medicao,
+              prestador: a.prestador,
+              foto_id: foto,
+              criado_em: new Date().toISOString(),
+              criado_por_nome: 'Você',
+              editado_em: null,
+              editado_por_nome: null,
+            };
+        const medicoes = medicoesEmOrdem([...a.medicoes.filter((m) => m.id !== nova.id), nova]);
+        return comAvancoMedido({ ...a, medicoes });
+      }),
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+  const excluirMed = useMutation({
+    networkMode: 'always',
+    mutationFn: (v: { atividadeId: string; medicao: ObraMedicao; restaurar: boolean }) =>
+      enfileirar('excluir_medicao', { obraId, id: v.medicao.id, restaurar: v.restaurar }),
+    onMutate: (v) =>
+      patchAtv(v.atividadeId, (a) =>
+        comAvancoMedido({
+          ...a,
+          medicoes: v.restaurar
+            ? medicoesEmOrdem([...a.medicoes.filter((m) => m.id !== v.medicao.id), v.medicao])
+            : a.medicoes.filter((m) => m.id !== v.medicao.id),
+        }),
+      ),
+    onError: (_e, _v, ctx) => reverter(ctx),
+  });
+
   return {
     novaAtividade,
     novoMapa,
@@ -395,6 +491,9 @@ export function useObraCampo(obraId: string) {
     desfazer,
     reconcluir,
     avanco,
+    quantitativo,
+    medicao,
+    excluirMed,
   };
 }
 
