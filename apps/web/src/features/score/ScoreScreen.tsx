@@ -80,6 +80,7 @@ export function ScoreScreen({
     return (
       <ScoreDetalhe
         linha={linhaSel}
+        itens={aba === 'equipe' ? equipe : prestadores}
         aba={aba}
         janela={janela}
         score30={s(30)}

@@ -266,7 +266,7 @@ export function PendenciasAba({
 
       <button
         type="button"
-        className={styles.trocaVista}
+        className={styles.botaoPdf}
         disabled={campo.query.isLoading || campo.query.isError}
         onClick={() => setPdf(true)}
       >
