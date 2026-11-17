@@ -93,12 +93,12 @@ export const PESOS_PRESTADOR = { noFimPrevisto: 45, atrasoMedio: 30, comFoto: 25
 export const MINIMO_ITENS = 5;
 
 /** Primeiro dia da janela: hoje − (janela − 1) dias corridos. */
-function inicioJanela(hoje: DataISO, janela: Janela): DataISO {
+export function inicioJanela(hoje: DataISO, janela: Janela): DataISO {
   const t = Date.parse(`${hoje}T00:00:00Z`) - (janela - 1) * 86_400_000;
   return new Date(t).toISOString().slice(0, 10);
 }
 
-interface Base {
+export interface ItemBaseScore {
   id: string;
   texto: string;
   obraNome: string;
@@ -107,7 +107,12 @@ interface Base {
 }
 
 /** O item entra na janela? Concluído dentro dela, ou aberto e vencido com prazo dentro dela. */
-function naJanela(item: Base, prazo: DataISO, inicio: DataISO, hoje: DataISO): boolean {
+export function naJanela(
+  item: ItemBaseScore,
+  prazo: DataISO,
+  inicio: DataISO,
+  hoje: DataISO,
+): boolean {
   if (item.excluida) return false;
   if (item.concluidaEm != null) {
     const dia = diaLocal(item.concluidaEm);
@@ -117,7 +122,7 @@ function naJanela(item: Base, prazo: DataISO, inicio: DataISO, hoje: DataISO): b
 }
 
 /** Dia em que o atraso é medido: conclusão (dia local) ou hoje, se aberto. */
-function diaFim(item: Base, hoje: DataISO): DataISO {
+export function diaFim(item: ItemBaseScore, hoje: DataISO): DataISO {
   return item.concluidaEm != null ? diaLocal(item.concluidaEm) : hoje;
 }
 
@@ -177,7 +182,7 @@ interface Atraso<T> {
   du: number;
 }
 
-function piores<T extends Base>(
+function piores<T extends ItemBaseScore>(
   atrasos: Atraso<T>[],
   extra: (item: T) => string | null,
 ): LinhaScore<unknown>['piores'] {

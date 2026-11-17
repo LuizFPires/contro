@@ -1,0 +1,455 @@
+/* Analisador do Score (protótipo aprovado em 17/11/2026). Âmbar só na faixa
+   Regular e na nota regular (exceção aprovada do Score); vermelho só em atraso. */
+
+.corpo {
+  gap: 10px;
+}
+
+/* Barra dos 100 pontos, no detalhe */
+.pontos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--contro-black);
+  border-radius: 14px;
+  background: var(--contro-white);
+}
+.barra100 {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.conquistado {
+  background: var(--contro-turquoise);
+}
+.legendaPontos {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: #5f5f5f;
+}
+.legendaPontos b {
+  color: var(--contro-black);
+}
+.botaoPrimario,
+.botaoSecundario {
+  min-height: var(--contro-touch);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--contro-black);
+}
+.botaoPrimario {
+  border: 0;
+  background: var(--contro-turquoise);
+}
+.botaoSecundario {
+  border: 1.5px solid rgb(24 24 24 / 20%);
+  background: var(--contro-white);
+  font-size: 14px;
+}
+
+/* Card do indicador clicável (detalhe) */
+.chipPerda {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  white-space: nowrap;
+}
+.chipNeutro {
+  background: rgb(24 24 24 / 7%);
+  color: #5f5f5f;
+}
+.porque {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* Como chegar a 100 */
+.heroi {
+  background: var(--contro-black);
+  color: var(--contro-white);
+  border-radius: 16px;
+  padding: 16px;
+}
+.rotuloTurquesa {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--contro-turquoise);
+}
+.heroiNumero {
+  margin: 4px 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.heroiNumero > b {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+}
+.heroiNumero span {
+  font-size: 15px;
+  color: rgb(255 255 255 / 85%);
+}
+.heroiNumero span b {
+  color: var(--contro-white);
+}
+.heroiTexto {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 90%);
+}
+.lista {
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.linha {
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid rgb(24 24 24 / 8%);
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+}
+button.linha {
+  cursor: pointer;
+}
+.linha:last-child {
+  border-bottom: 0;
+}
+.badge {
+  width: 44px;
+  height: 36px;
+  flex: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  background: rgb(24 24 24 / 10%);
+}
+.badgeForte {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.badgeNulo {
+  background: rgb(24 24 24 / 6%);
+  color: #6b6b6b;
+}
+.linhaTexto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #5f5f5f;
+}
+.linhaTexto b {
+  font-size: 15px;
+  color: var(--contro-black);
+}
+.cardHoje {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.relogio {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--contro-late-bg);
+  color: var(--contro-late);
+}
+.vermelho {
+  color: var(--contro-late);
+  font-weight: 700;
+}
+.metodo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.metodo p {
+  margin: 0;
+}
+.peso {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.suave {
+  font-size: 12px;
+  color: #5f5f5f;
+  line-height: 1.4;
+}
+.faixas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.faixas span {
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.faixaOk {
+  background: rgb(84 180 176 / 20%);
+}
+.faixaRegular {
+  background: #fdf1e3;
+  color: var(--contro-attention);
+}
+.faixaAtencao {
+  background: var(--contro-late-bg);
+  color: var(--contro-late);
+}
+
+/* Analisador de um indicador */
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--contro-white);
+  border: 1.5px solid var(--contro-black);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+.cartaoTopo {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.valor {
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.05;
+}
+.ok {
+  color: #2a7f7b;
+}
+.regular {
+  color: var(--contro-attention);
+}
+.baixa {
+  color: var(--contro-black);
+}
+.perdeu {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #5f5f5f;
+}
+.perdeu b {
+  font-size: 22px;
+  color: var(--contro-black);
+}
+.barraNota {
+  height: 8px;
+  border-radius: 4px;
+  background: rgb(24 24 24 / 10%);
+  overflow: hidden;
+}
+.barraNota i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+.barraNota i.ok {
+  background: var(--contro-turquoise);
+}
+.barraNota i.regular {
+  background: var(--contro-attention);
+}
+.barraNota i.baixa {
+  background: var(--contro-black);
+}
+.bloco {
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.bloco p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.rotulo {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5f5f5f;
+}
+.acao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 10%);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.acaoTopo {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1.25;
+}
+.chipAtraso {
+  flex: none;
+  height: fit-content;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: var(--contro-late-bg);
+  color: var(--contro-late);
+}
+.fatos {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  row-gap: 2px;
+  font-size: 13px;
+}
+.fatos dt {
+  color: #5f5f5f;
+}
+.fatos dd {
+  margin: 0;
+  font-weight: 800;
+}
+.dica {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: rgb(84 180 176 / 14%);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.dica svg {
+  flex: none;
+  margin-top: 2px;
+}
+.instrutor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+.instrutor ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.instrutor li {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.instrutor li > span {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font-weight: 800;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.simulacao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid rgb(255 255 255 / 15%);
+  padding-top: 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgb(255 255 255 / 85%);
+}
+.simulacao b {
+  font-size: 22px;
+  white-space: nowrap;
+  color: var(--contro-white);
+}
+.simulacao b span {
+  color: var(--contro-turquoise);
+}
+
+/* Card do indicador no detalhe, quando abre o analisador */
+.kpiBotao {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: var(--contro-white);
+  cursor: pointer;
+}
+.kpiTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}

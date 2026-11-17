@@ -93,6 +93,9 @@ obra_providencia(id, obra_id, atividade_id, tipo, descricao, antecedencia_du, du
 - Carga (`features/avancoFisico/api.ts`): 5 consultas em paralelo (obra ativa da Contorno, fases, atividades com `quant_*`, dependências, `obra_medicao`), filhas filtradas por `obra!inner`; RLS limita às obras que a pessoa vê. Entram as obras com atividade de topo (fora do pré-obra) com quantitativo. Sem tabela nem RPC nova.
 - PDF A4 com jsPDF no aparelho (`pdfAvancoFisico.ts`), gráfico vetorial com a mesma geometria da tela (`geometria.ts`). `lib/pdfTexto.ts` desenha "²"/"³" como sobrescrito (as fontes padrão do jsPDF não têm esses glifos); vale também para os PDFs de Meta e Comparar.
 
+### 3.3-C Analisador do Score (17/11/2026)
+- `core/scoreAnalise.ts`: `perdasDoScore` (peso × (1 − nota) sobre os pesos usados, arredondado pelo maior resto para somar 100 − score), `analisarScoreEquipe` e `analisarScorePrestador` (por indicador: base, acertos, ações que tiraram pontos com prazo que conta e d.u., atrasos em ordem e a simulação recalculando o score com as até 3 piores ações certas; abertas e vencidas para fazer hoje). Usa a mesma régua de `score.ts` (janela, `naJanela`, `atrasoDU`). Textos em `features/score/textosAnalise.ts`. Sem consulta nova: o detalhe recebe os itens já carregados pelo Score.
+
 ### 3.4 Pendências
 ```
 pendencia(id, obra_id, atividade_id null, titulo, local, criticidade: 'alta'|'media'|'baixa',

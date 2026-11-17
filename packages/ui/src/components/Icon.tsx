@@ -221,6 +221,17 @@ const paths = {
   tabela: <path d="M3 5h18M3 12h18M3 19h18M9 5v14" />,
   // Curva de avanço físico (relatório).
   curva: <path d="M4 20h16M5 16l4-5 4 3 6-8M15 6h4v4" />,
+  // Analisador do Score: alvo (chegar a 100) e lâmpada (dica).
+  alvo: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="1.2" />
+    </>
+  ),
+  lampada: (
+    <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.7 1 1.5 1 2.5h6c0-1 .2-1.8 1-2.5A6 6 0 0 0 12 3z" />
+  ),
   // Variação do score: sobe, desce, igual.
   sobe: <path d="M12 19V5M6 11l6-6 6 6" />,
   desce: <path d="M12 5v14M6 13l6 6 6-6" />,
