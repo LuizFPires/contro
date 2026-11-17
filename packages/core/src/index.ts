@@ -63,3 +63,4 @@ export * from './avaliacao';
 export * from './medicao';
 export * from './avancoFisico';
 export * from './scoreAnalise';
+export * from './checkin';

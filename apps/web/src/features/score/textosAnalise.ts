@@ -176,6 +176,25 @@ export const TEXTOS: Record<Indicador, TextoIndicador> = {
         : `se as ${q} tivessem sido resolvidas no prazo`,
     vazio: 'Todas as pendências saíram no prazo.',
   },
+  presenca: {
+    nome: 'Presença na obra',
+    como: 'Em cada obra, conta os dias com check-in contra a frequência que o Gestor definiu para você. Todo dia útil: cada dia útil conta. Por semana: até o número de visitas pedido, de segunda a sexta. Check-in fora da obra só conta depois de validado pelo Gestor.',
+    conta: (a) =>
+      `${a.acertos} de ${a.base} ${a.base === 1 ? 'dia esperado' : 'dias esperados'} com check-in = ${pct(a.base ? a.acertos / a.base : null)}`,
+    frase: (a) => `${a.base - a.acertos} de ${a.base} dias esperados sem check-in`,
+    titulo: () => 'Por obra',
+    prazoRotulo: '',
+    fim: () => ({ rotulo: '', valor: '', atraso: false }),
+    chip: () => '',
+    dica: () => '',
+    dicas: () => [
+      'Faça o check-in assim que chegar: com foto e hora do sistema, não dá para registrar depois.',
+      'Nas obras com frequência por semana, faça as visitas até sexta: semana fechada não volta.',
+      'Check-in fora da obra precisa da validação do Gestor para contar.',
+    ],
+    simulacao: () => 'com check-in em todos os dias esperados',
+    vazio: 'Nenhuma falta de check-in no período.',
+  },
   noFimPrevisto: {
     nome: 'No fim previsto',
     como: 'Das atividades do prestador que terminaram ou venceram no período, conta quantas foram concluídas até o fim previsto do cronograma. Aberta e vencida conta como fora.',

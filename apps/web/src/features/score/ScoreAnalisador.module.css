@@ -453,3 +453,10 @@ button.linha {
   align-items: center;
   gap: 6px;
 }
+
+/* Presença na obra: faltas por obra */
+.faltas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
