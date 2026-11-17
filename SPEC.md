@@ -105,6 +105,8 @@ pendencia(id, obra_id, atividade_id null, titulo, local, criticidade: 'alta'|'me
 pendencia_evento(id, pendencia_id, tipo: 'apontada'|'adiada'|'trazida'|'resolvida'|'aprovada'|'reaberta', por, em, dados jsonb)
 ```
 
+- PDF do Check list (`features/obras/checklistPdf.ts`, 17/11/2026): jsPDF no aparelho, Nunito Sans 400/700/900 embutida (TTF em `public/fonts`, precache do PWA; sem ela, Helvetica), fotos recortadas (clip arredondado) e reaproveitadas por alias entre capa e página; 1 capa + ⌈n/21⌉ páginas de resumo + ⌈n/2⌉ páginas de pendências. Fotos baixadas antes de desenhar; falta de foto continua bloqueando o PDF (nunca omite foto).
+
 ### 3.4-A Pré-avaliação da entrega (só obras `contorno`)
 ```
 avaliacao_modelo_item(id, secao_ordem, secao, ordem, codigo, nome, pontos, deleted_at)   -- lista; escrita só perfil gestor
