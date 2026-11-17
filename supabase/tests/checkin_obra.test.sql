@@ -1,10 +1,10 @@
--- Check-in por obra (pgTAP): ponto da obra no primeiro check-in, raio de 200 m,
+-- Check-in por obra (pgTAP): mínimo de 4 fotos, ponto da obra no primeiro check-in, raio de 200 m,
 -- sem localização, ajuste do relógio, ao menos uma foto da obra, validação e
 -- frequência só pelo Gestor, e leitura só para quem vê a obra (RLS).
 -- Requer o seed de homologação (Modelo 1 + unidades Contorno).
 
 begin;
-select plan(16);
+select plan(17);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000002c1', 'gestor@checkin.contro'),
@@ -29,7 +29,19 @@ insert into foto (id, obra_id, storage_path) values
   ('00000000-0000-0000-0000-00000000f001', (select id from o), 'x/1.jpg'),
   ('00000000-0000-0000-0000-00000000f002', (select id from o), 'x/2.jpg'),
   ('00000000-0000-0000-0000-00000000f003', (select id from o), 'x/3.jpg'),
-  ('00000000-0000-0000-0000-00000000f004', (select id from o), 'x/4.jpg');
+  ('00000000-0000-0000-0000-00000000f004', (select id from o), 'x/4.jpg'),
+  ('00000000-0000-0000-0000-00000000f005', (select id from o), 'x/5.jpg'),
+  ('00000000-0000-0000-0000-00000000f006', (select id from o), 'x/6.jpg'),
+  ('00000000-0000-0000-0000-00000000f007', (select id from o), 'x/7.jpg'),
+  ('00000000-0000-0000-0000-00000000f008', (select id from o), 'x/8.jpg'),
+  ('00000000-0000-0000-0000-00000000f009', (select id from o), 'x/9.jpg'),
+  ('00000000-0000-0000-0000-00000000f010', (select id from o), 'x/10.jpg'),
+  ('00000000-0000-0000-0000-00000000f011', (select id from o), 'x/11.jpg'),
+  ('00000000-0000-0000-0000-00000000f012', (select id from o), 'x/12.jpg'),
+  ('00000000-0000-0000-0000-00000000f013', (select id from o), 'x/13.jpg'),
+  ('00000000-0000-0000-0000-00000000f014', (select id from o), 'x/14.jpg'),
+  ('00000000-0000-0000-0000-00000000f015', (select id from o), 'x/15.jpg'),
+  ('00000000-0000-0000-0000-00000000f016', (select id from o), 'x/16.jpg');
 grant select on o to authenticated;
 
 -- Equipe faz os check-ins
@@ -39,12 +51,18 @@ set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000002c2","r
 select throws_ok(
   $$ select registrar_checkin('00000000-0000-0000-0000-0000000c0001', (select id from o), now(), now(),
        -19.97, -43.96, 10, null, '[]'::jsonb) $$,
-  '22023', 'O check-in precisa de pelo menos uma foto',
+  '22023', 'O check-in precisa de pelo menos 4 fotos',
   'sem foto não registra'
+);
+select throws_ok(
+  $$ select registrar_checkin('00000000-0000-0000-0000-0000000c0001', (select id from o), now(), now(),
+       -19.97, -43.96, 10, null, '[{"foto_id":"00000000-0000-0000-0000-00000000f001","tirada_em":"2026-11-17T10:00:00Z","ordem":0},{"foto_id":"00000000-0000-0000-0000-00000000f002","tirada_em":"2026-11-17T10:00:00Z","ordem":1},{"foto_id":"00000000-0000-0000-0000-00000000f003","tirada_em":"2026-11-17T10:00:00Z","ordem":2}]'::jsonb) $$,
+  '22023', 'O check-in precisa de pelo menos 4 fotos',
+  'com 3 fotos não registra (mínimo 4)'
 );
 select lives_ok(
   $$ select registrar_checkin('00000000-0000-0000-0000-0000000c0001', (select id from o), now(), now(),
-       -19.97, -43.96, 10, 'Abertura', '[{"foto_id":"00000000-0000-0000-0000-00000000f001","tirada_em":"2026-11-17T10:00:00Z","ordem":0}]'::jsonb) $$,
+       -19.97, -43.96, 10, 'Abertura', '[{"foto_id":"00000000-0000-0000-0000-00000000f001","tirada_em":"2026-11-17T10:00:00Z","ordem":0},{"foto_id":"00000000-0000-0000-0000-00000000f002","tirada_em":"2026-11-17T10:00:00Z","ordem":1},{"foto_id":"00000000-0000-0000-0000-00000000f003","tirada_em":"2026-11-17T10:00:00Z","ordem":2},{"foto_id":"00000000-0000-0000-0000-00000000f004","tirada_em":"2026-11-17T10:00:00Z","ordem":3}]'::jsonb) $$,
   'primeiro check-in registra'
 );
 select is(
@@ -57,7 +75,7 @@ select is(
 );
 select lives_ok(
   $$ select registrar_checkin('00000000-0000-0000-0000-0000000c0002', (select id from o), now(), now(),
-       -19.9710, -43.96, 10, null, '[{"foto_id":"00000000-0000-0000-0000-00000000f002","tirada_em":"2026-11-17T10:00:00Z","ordem":0}]'::jsonb) $$,
+       -19.9710, -43.96, 10, null, '[{"foto_id":"00000000-0000-0000-0000-00000000f005","tirada_em":"2026-11-17T10:00:00Z","ordem":0},{"foto_id":"00000000-0000-0000-0000-00000000f006","tirada_em":"2026-11-17T10:00:00Z","ordem":1},{"foto_id":"00000000-0000-0000-0000-00000000f007","tirada_em":"2026-11-17T10:00:00Z","ordem":2},{"foto_id":"00000000-0000-0000-0000-00000000f008","tirada_em":"2026-11-17T10:00:00Z","ordem":3}]'::jsonb) $$,
   'check-in perto do ponto'
 );
 select is(
@@ -67,7 +85,7 @@ select is(
 select lives_ok(
   $$ select registrar_checkin('00000000-0000-0000-0000-0000000c0003', (select id from o), now() - interval '1 hour',
        now() - interval '1 hour', -19.98, -43.96, 10, null,
-       '[{"foto_id":"00000000-0000-0000-0000-00000000f003","tirada_em":"2026-11-17T10:00:00Z","ordem":0}]'::jsonb) $$,
+       '[{"foto_id":"00000000-0000-0000-0000-00000000f009","tirada_em":"2026-11-17T10:00:00Z","ordem":0},{"foto_id":"00000000-0000-0000-0000-00000000f010","tirada_em":"2026-11-17T10:00:00Z","ordem":1},{"foto_id":"00000000-0000-0000-0000-00000000f011","tirada_em":"2026-11-17T10:00:00Z","ordem":2},{"foto_id":"00000000-0000-0000-0000-00000000f012","tirada_em":"2026-11-17T10:00:00Z","ordem":3}]'::jsonb) $$,
   'check-in longe, com relógio do aparelho 1 h atrasado'
 );
 select is(
@@ -82,7 +100,7 @@ select ok(
 );
 select lives_ok(
   $$ select registrar_checkin('00000000-0000-0000-0000-0000000c0004', (select id from o), now(), now(),
-       null, null, null, null, '[{"foto_id":"00000000-0000-0000-0000-00000000f004","tirada_em":"2026-11-17T10:00:00Z","ordem":0}]'::jsonb) $$,
+       null, null, null, null, '[{"foto_id":"00000000-0000-0000-0000-00000000f013","tirada_em":"2026-11-17T10:00:00Z","ordem":0},{"foto_id":"00000000-0000-0000-0000-00000000f014","tirada_em":"2026-11-17T10:00:00Z","ordem":1},{"foto_id":"00000000-0000-0000-0000-00000000f015","tirada_em":"2026-11-17T10:00:00Z","ordem":2},{"foto_id":"00000000-0000-0000-0000-00000000f016","tirada_em":"2026-11-17T10:00:00Z","ordem":3}]'::jsonb) $$,
   'check-in sem localização'
 );
 select is(

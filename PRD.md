@@ -169,7 +169,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 
 ### 5.5-D Check-in por obra (17/11/2026, protótipo aprovado "CONTRO · Check-in por obra")
 - Na obra, o menu de baixo troca **Cronograma** por **Check-in**; o Cronograma fica no "⋮" do topo.
-- **Fazer check-in:** abre a câmera do app (sem galeria). Cada foto sai com um **carimbo gravado** (hora e data do sistema, obra e pessoa). Pelo menos 1 foto; sem mínimo além disso; sem check-out. "O que veio fazer" é opcional.
+- **Fazer check-in:** abre a câmera do app (sem galeria). Cada foto sai com um **carimbo gravado** (hora e data do sistema, obra e pessoa). **Mínimo de 4 fotos** (o app avisa: "tire pelo menos 4 fotos (2 de 4)" e só libera o "Pronto" com 4); sem check-out. "O que veio fazer" é opcional.
 - **Data e hora do sistema:** a hora do clique é conferida com o relógio do servidor ao sincronizar; diferença maior que 2 min é ajustada. Sem internet, o check-in fica no aparelho e sobe depois ("Enviado depois · hora conferida").
 - **Localização:** gravada no clique. O **primeiro check-in da obra vira o ponto da obra**; a mais de **200 m** (ou sem localização) o check-in aparece com o chip "Fora da obra · 1,2 km" (ou "Sem localização") e "Aguarda o Gestor". O **Gestor valida** ou não; até validar, não conta na Presença.
 - **Aba Check-in:** "Hoje na obra" com a contagem, "Esperados hoje" (quem já fez e quem falta), o botão "Fazer check-in" e o histórico por dia (60 dias). Tocar abre o detalhe com as fotos.

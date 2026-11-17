@@ -471,3 +471,10 @@
   color: var(--contro-white);
   border-color: var(--contro-black);
 }
+
+.faltaFoto {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}

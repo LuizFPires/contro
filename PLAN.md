@@ -502,6 +502,8 @@ Protótipo aprovado em 17/11/2026 (canvas "CONTRO · Check-in por obra"). PRD §
 
 ## Decisões
 
+- [x] **17/11/2026 · Check-in com no mínimo 4 fotos** (pedido do usuário, revendo a decisão de "sem mínimo"): a câmera mostra "tire pelo menos 4 fotos (N de 4)" e o "Pronto" só libera com 4; o conferir avisa quantas faltam; o banco recusa menos de 4.
+
 - [x] **17/11/2026 · Check-in por obra** (pedido do usuário, protótipo aprovado): Check-in no lugar do Cronograma (que vai para o "⋮"); câmera do app sem galeria, foto com carimbo gravado; sem check-out e sem mínimo além de 1 foto; localização gravada, primeiro check-in vira o ponto da obra, raio de 200 m (sugestão aceita sem objeção), fora ou sem localização o Gestor valida e só conta validado; sem internet sobe depois com a hora conferida (opção A); o Gestor define a frequência de cada pessoa por obra; Score com Presença na obra (10) e pesos 30/20/20/10/10/10. Desvios: "Gestor" = perfil gestor (inclui o Coordenador da Contorno); só obras da Contorno; histórico de 60 dias na aba.
 
 - [x] **17/11/2026 · Analisador do Score e botão do PDF do Check list** (pedido do usuário, protótipos aprovados): cada indicador do detalhe do Score mostra quantos pontos tirou e abre o analisador (como é medido, ações que tiraram pontos com o que teria contado, dicas e simulação); "Como chegar a 100" resume onde foram os pontos, o que fazer hoje e o método. Visibilidade igual à do Score (quem vê o nome vê o analisador), já que o usuário não restringiu. O botão "PDF por responsável" virou primário turquesa, centralizado, com respiro.

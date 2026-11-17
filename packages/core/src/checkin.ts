@@ -4,6 +4,8 @@
 import { addDU, diaUtilAPartir, type DataISO } from './calendar';
 
 export const RAIO_CHECKIN_M = 200;
+/** Mínimo de fotos por check-in (17/11/2026). */
+export const MINIMO_FOTOS_CHECKIN = 4;
 /** Diferença de relógio (aparelho × servidor) a partir da qual a hora é ajustada. */
 export const TOLERANCIA_RELOGIO_S = 120;
 
