@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   FREQUENCIAS,
+  MINIMO_FOTOS_CHECKIN,
   aguardaGestor,
   checkinValido,
   frequenciaEm,
@@ -144,13 +145,13 @@ export function CheckinAba({
     void removerFotoLocal(f.localId).catch(() => {});
     const resto = fotos.filter((_, k) => k !== i);
     setFotos(resto);
-    if (!resto.length) setEtapa('camera');
+    if (resto.length < MINIMO_FOTOS_CHECKIN) setEtapa('camera');
   }
 
   const previa = situacaoLocal(data?.ponto ?? null, local);
 
   async function confirmar() {
-    if (!fotos.length || !perfil) return;
+    if (fotos.length < MINIMO_FOTOS_CHECKIN || !perfil) return;
     const id = crypto.randomUUID();
     const feitoEm = fotos[0].tiradaEm;
     const novo: Checkin = {
@@ -286,7 +287,11 @@ export function CheckinAba({
   if (etapa === 'camera')
     return (
       <Camera
-        kicker="Check-in"
+        kicker={
+          fotos.length < MINIMO_FOTOS_CHECKIN
+            ? `Check-in · tire pelo menos ${MINIMO_FOTOS_CHECKIN} fotos (${fotos.length} de ${MINIMO_FOTOS_CHECKIN})`
+            : `Check-in · ${fotos.length} fotos`
+        }
         titulo={obraNome}
         carimbo={carimbo}
         onCapturar={(f) => void capturar(f)}
@@ -295,6 +300,7 @@ export function CheckinAba({
           miniaturas: fotos.map((f) => f.url),
           onPronto: () => setEtapa('conferir'),
           semGaleria: true,
+          minimo: MINIMO_FOTOS_CHECKIN,
         }}
       />
     );
@@ -373,7 +379,7 @@ export function CheckinAba({
         </button>
         <p className={styles.nota}>
           <Icon name="cadeado" size={14} />
-          Fotos pela câmera do app · data, hora e local do sistema
+          Pelo menos {MINIMO_FOTOS_CHECKIN} fotos pela câmera do app · data, hora e local do sistema
         </p>
       </section>
 
@@ -488,10 +494,17 @@ export function CheckinAba({
               onChange={(e) => setObs(e.target.value)}
             />
           </label>
+          {fotos.length < MINIMO_FOTOS_CHECKIN ? (
+            <p className={styles.faltaFoto} role="status">
+              Faltam {MINIMO_FOTOS_CHECKIN - fotos.length}{' '}
+              {MINIMO_FOTOS_CHECKIN - fotos.length === 1 ? 'foto' : 'fotos'}: o check-in precisa de
+              pelo menos {MINIMO_FOTOS_CHECKIN}.
+            </p>
+          ) : null}
           <button
             type="button"
             className={styles.fazer}
-            disabled={!fotos.length}
+            disabled={fotos.length < MINIMO_FOTOS_CHECKIN}
             onClick={() => void confirmar()}
           >
             <Icon name="checkGrosso" size={20} />

@@ -27,6 +27,8 @@ export interface CameraProps {
     onGaleria?: (files: File[]) => void;
     /** Check-in: só a câmera do app (sem o botão da galeria). */
     semGaleria?: boolean;
+    /** Mínimo de fotos para liberar "Pronto" (mostra "Pronto · 2 de 4"). */
+    minimo?: number;
   };
   /** Carimbo ao vivo sobre o visor (check-in: hora do sistema, obra e pessoa). */
   carimbo?: string[];
@@ -205,10 +207,11 @@ export function Camera({
           <button
             type="button"
             className={styles.pronto}
-            disabled={lote.miniaturas.length === 0}
+            disabled={lote.miniaturas.length < (lote.minimo ?? 1)}
             onClick={lote.onPronto}
           >
             Pronto · {lote.miniaturas.length}
+            {lote.minimo && lote.miniaturas.length < lote.minimo ? ` de ${lote.minimo}` : ''}
           </button>
         ) : null}
         {onSemFoto ? (
