@@ -3,6 +3,7 @@
 // contado), o que dá para fazer hoje e a simulação "se tivesse…". Usa a mesma
 // régua de score.ts (pesos, janela, atraso em dias úteis).
 import { type DataISO } from './calendar';
+import { presencaDaPessoa, type Presenca, type PresencaObraEntrada } from './checkin';
 import { atrasoDU, diaLocal } from './datas';
 import { normalizarNome } from './nomes';
 import {
@@ -61,6 +62,8 @@ export interface AnaliseIndicador {
   atrasos: number[];
   /** Score se as até 3 piores ações deste indicador tivessem saído certas. */
   simulacao: { score: number; quantas: number } | null;
+  /** Presença na obra: por obra, esperados, feitos e as faltas. */
+  presenca?: Presenca;
 }
 
 export interface AnaliseScore {
@@ -133,10 +136,12 @@ export function analisarScoreEquipe(
   chave: string,
   janela: Janela,
   hoje: DataISO,
+  presencas: PresencaObraEntrada[] = [],
 ): AnaliseScore {
   const meus = itens.filter((i) => i.chavePessoa === chave);
+  const minhasPresencas = presencas.filter((p) => p.chavePessoa === chave);
   const linhaDe = (lista: ItemEquipe[]) =>
-    calcularScoreEquipe(lista, janela, hoje).find((l) => l.chave === chave) as
+    calcularScoreEquipe(lista, janela, hoje, minhasPresencas).find((l) => l.chave === chave) as
       | LinhaScore<IndicadoresEquipe>
       | undefined;
   const linha = linhaDe(meus);
@@ -249,6 +254,26 @@ export function analisarScoreEquipe(
       acoes: falhas,
       atrasos: [],
       simulacao: simular(top3(falhas), noPrazoOriginal),
+    };
+  }
+
+  if (ind?.presenca != null) {
+    const pres = presencaDaPessoa(minhasPresencas, inicio, hoje);
+    const perdidos = perdas.find((p) => p.indicador === 'presenca')?.perdidos ?? 0;
+    const faltas = pres.obras.reduce(
+      (s, o) => s + o.faltas.reduce((t, f) => t + (f.tipo === 'dia' ? 1 : f.pedidos - f.feitos), 0),
+      0,
+    );
+    indicadores.presenca = {
+      indicador: 'presenca',
+      base: pres.esperados,
+      acertos: pres.feitos,
+      acoes: [],
+      atrasos: [],
+      // Com check-in em todos os dias esperados, a Presença vira nota cheia.
+      simulacao:
+        score != null && perdidos > 0 ? { score: score + perdidos, quantas: faltas } : null,
+      presenca: pres,
     };
   }
 

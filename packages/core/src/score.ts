@@ -4,6 +4,7 @@
 // excluídos ficam fora. Atraso medido em dias úteis (segunda a sexta, sem
 // feriados). Puro: recebe os itens já carregados e o "hoje".
 import { type DataISO } from './calendar';
+import { presencaDaPessoa, type PresencaObraEntrada } from './checkin';
 import { atrasoDU, diaLocal } from './datas';
 import { eventosDesfeitos } from './log';
 import { normalizarNome } from './nomes';
@@ -48,6 +49,8 @@ export interface IndicadoresEquipe {
   respostaAtraso: number | null;
   replanejamentos: number | null;
   pendencias: number | null;
+  /** Check-ins na frequência definida pelo Gestor (17/11/2026). */
+  presenca: number | null;
 }
 
 export interface IndicadoresPrestador {
@@ -79,12 +82,14 @@ export interface NumerosScore {
   obras: number;
 }
 
+// Pesos aprovados em 17/11/2026 com a Presença na obra (antes 35/20/20/15/10).
 export const PESOS_EQUIPE = {
-  pontualidade: 35,
+  pontualidade: 30,
   conclusaoDoDia: 20,
   respostaAtraso: 20,
-  replanejamentos: 15,
+  replanejamentos: 10,
   pendencias: 10,
+  presenca: 10,
 } as const;
 
 export const PESOS_PRESTADOR = { noFimPrevisto: 45, atrasoMedio: 30, comFoto: 25 } as const;
@@ -240,8 +245,16 @@ export function calcularScoreEquipe(
   itens: ItemEquipe[],
   janela: Janela,
   hoje: DataISO,
+  /** Check-ins e frequências por pessoa e obra (Presença na obra). */
+  presencas: PresencaObraEntrada[] = [],
 ): LinhaScore<IndicadoresEquipe>[] {
   const inicio = inicioJanela(hoje, janela);
+  const presencaDe = (chave: string) =>
+    presencaDaPessoa(
+      presencas.filter((p) => p.chavePessoa === chave),
+      inicio,
+      hoje,
+    ).nota;
   const validos = itens.filter((i) => naJanela(i, i.prazoOriginal, inicio, hoje));
   const linhas: LinhaScore<IndicadoresEquipe>[] = [];
 
@@ -272,6 +285,7 @@ export function calcularScoreEquipe(
       respostaAtraso: notaPorTeto(respostaMedianaDU, 5),
       replanejamentos: notaPorTeto(replanejamentosMedia, 2),
       pendencias: proporcao(pendencias.filter(pontual).length, pendencias.length),
+      presenca: presencaDe(chave),
     };
     const score = grupo.length >= MINIMO_ITENS ? pontuar(indicadores, PESOS_EQUIPE) : null;
     linhas.push({
@@ -315,6 +329,7 @@ export function calcularScoreEquipe(
         respostaAtraso: null,
         replanejamentos: null,
         pendencias: null,
+        presenca: null,
       },
       numeros: {
         atrasoMedioDU: null,

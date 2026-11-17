@@ -1,5 +1,11 @@
 import { useState, type ReactNode } from 'react';
-import { rotuloDia, type AnaliseScore, type Indicador, type PerdaIndicador } from '@contro/core';
+import {
+  rotuloDia,
+  textoFrequencia,
+  type AnaliseScore,
+  type Indicador,
+  type PerdaIndicador,
+} from '@contro/core';
 import { Icon } from '@contro/ui';
 import { TEXTOS } from './textosAnalise';
 import type { AbaScore } from './scoreTela';
@@ -286,8 +292,48 @@ export function AnalisadorIndicador({
         <p>{t.como}</p>
       </section>
 
-      <h2 className={base.secao}>{a.acoes.length ? t.titulo(a) : 'Nada tirou pontos aqui'}</h2>
-      {a.acoes.length === 0 ? <p className={base.nota}>{t.vazio}</p> : null}
+      {a.presenca ? (
+        <>
+          <h2 className={base.secao}>Por obra</h2>
+          {a.presenca.obras.map((o) => (
+            <article key={o.obraId} className={styles.acao}>
+              <div className={styles.acaoTopo}>
+                <b>{o.obraNome}</b>
+                <b>
+                  {o.feitos} de {o.esperados}
+                </b>
+              </div>
+              <span className={styles.suave}>Frequência: {textoFrequencia(o.frequencia)}</span>
+              {o.faltas.length ? (
+                <div className={styles.faltas}>
+                  {o.faltas.slice(0, todas ? undefined : 8).map((f) => (
+                    <span key={f.tipo === 'dia' ? f.dia : f.segunda} className={styles.chipAtraso}>
+                      {f.tipo === 'dia'
+                        ? rotuloDia(f.dia)
+                        : `semana ${rotuloDia(f.segunda).slice(4)}: ${f.feitos} de ${f.pedidos}`}
+                    </span>
+                  ))}
+                  {!todas && o.faltas.length > 8 ? (
+                    <button
+                      type="button"
+                      className={styles.botaoSecundario}
+                      onClick={() => setTodas(true)}
+                    >
+                      Ver as outras {o.faltas.length - 8}
+                    </button>
+                  ) : null}
+                </div>
+              ) : (
+                <span className={styles.suave}>Sem falta no período.</span>
+              )}
+            </article>
+          ))}
+        </>
+      ) : null}
+      {a.presenca ? null : (
+        <h2 className={base.secao}>{a.acoes.length ? t.titulo(a) : 'Nada tirou pontos aqui'}</h2>
+      )}
+      {!a.presenca && a.acoes.length === 0 ? <p className={base.nota}>{t.vazio}</p> : null}
       {mostradas.map((x) => {
         const fim = t.fim(x);
         return (

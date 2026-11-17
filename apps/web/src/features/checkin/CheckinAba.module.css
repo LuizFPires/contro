@@ -1,0 +1,473 @@
+/* Aba Check-in (protótipo aprovado em 17/11/2026): turquesa, preto e branco. */
+
+.aba {
+  padding: 14px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rotulo {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5f5f5f;
+}
+.suave {
+  font-size: 12px;
+  color: #5f5f5f;
+}
+.vazio {
+  text-align: center;
+  color: var(--contro-muted);
+  padding: 16px 0;
+  margin: 0;
+}
+
+.hoje {
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 8%);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hojeTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px;
+}
+.hojeTopo > div:first-child {
+  display: flex;
+  flex-direction: column;
+}
+.data {
+  font-size: 20px;
+  font-weight: 800;
+}
+.contagem {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #5f5f5f;
+}
+.contagem b {
+  font-size: 26px;
+  line-height: 1;
+  color: var(--contro-black);
+}
+.esperados {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.esperadosTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.botaoPilula {
+  min-height: var(--contro-touch);
+  border: 1.5px solid rgb(24 24 24 / 20%);
+  background: var(--contro-white);
+  border-radius: 999px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--contro-black);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+.chips > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.chipOk {
+  background: rgb(84 180 176 / 25%);
+}
+.chipFalta {
+  background: rgb(24 24 24 / 6%);
+  color: #474747;
+}
+.chipFora {
+  background: var(--contro-black);
+  color: var(--contro-white);
+}
+.chipAguarda {
+  background: var(--contro-white);
+  box-shadow: inset 0 0 0 1.5px var(--contro-black);
+}
+.chipNeutro {
+  background: rgb(24 24 24 / 7%);
+}
+.meu {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgb(84 180 176 / 16%);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+.meuIcone {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--contro-turquoise);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fazer {
+  min-height: 56px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--contro-turquoise);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  width: 100%;
+}
+.fazer:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.cancelar {
+  min-height: 48px;
+  width: 100%;
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  background: var(--contro-white);
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--contro-black);
+  cursor: pointer;
+}
+.nota {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #5f5f5f;
+}
+
+.dia {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.diaTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 6px;
+}
+.diaQtd {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5f5f5f;
+}
+.card {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  border: 1px solid rgb(24 24 24 / 8%);
+  background: var(--contro-white);
+  border-radius: 16px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.miniatura {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--contro-bg-app);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mais {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 6px;
+}
+.cardTexto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cardLinha {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 15px;
+}
+.hora {
+  font-weight: 800;
+}
+.obs {
+  font-size: 13px;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Conferir */
+.conferir,
+.detalhe,
+.freq {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.grade {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.fotoConf {
+  position: relative;
+  height: 196px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--contro-bg-app);
+}
+.fotoConf img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.remover {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: rgb(24 24 24 / 72%);
+  color: var(--contro-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.maisFoto {
+  height: 196px;
+  border-radius: 14px;
+  border: 1.5px dashed rgb(24 24 24 / 30%);
+  background: var(--contro-white);
+  font: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--contro-black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.campos {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  column-gap: 8px;
+  row-gap: 6px;
+  font-size: 14px;
+  background: var(--contro-white);
+  border: 1px solid rgb(24 24 24 / 8%);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.campos dt {
+  color: #5f5f5f;
+}
+.campos dd {
+  margin: 0;
+  font-weight: 800;
+}
+.trava {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: rgb(84 180 176 / 14%);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.trava svg {
+  flex: none;
+  margin-top: 1px;
+}
+.campoObs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.campoObs textarea {
+  border: 1.5px solid rgb(24 24 24 / 18%);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  resize: none;
+}
+
+/* Detalhe */
+.fotoGrande {
+  height: 380px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--contro-bg-app);
+}
+.fotoGrande img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.miniaturas {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+.mini,
+.miniOn {
+  width: 64px;
+  height: 84px;
+  flex: none;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgb(24 24 24 / 15%);
+  background: none;
+  cursor: pointer;
+}
+.miniOn {
+  border: 2.5px solid var(--contro-black);
+}
+.mini img,
+.miniOn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.aviso {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1.5px solid var(--contro-black);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.aviso p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.validar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.validar .fazer {
+  min-height: 48px;
+  font-size: 15px;
+}
+.decisao,
+.decisaoOk {
+  font-weight: 800;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgb(24 24 24 / 7%);
+}
+.decisaoOk {
+  background: rgb(84 180 176 / 20%);
+}
+
+/* Frequência */
+.freqPessoa {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid rgb(24 24 24 / 8%);
+}
+.opcoes {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+.opcao,
+.opcaoOn {
+  min-height: var(--contro-touch);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.1;
+  padding: 0 2px;
+  cursor: pointer;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  border: 1.5px solid rgb(24 24 24 / 18%);
+}
+.opcaoOn {
+  background: var(--contro-black);
+  color: var(--contro-white);
+  border-color: var(--contro-black);
+}

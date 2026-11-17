@@ -7,6 +7,7 @@ import {
   type Indicador,
   type ItemEquipe,
   type ItemPrestador,
+  type PresencaObraEntrada,
   type IndicadoresEquipe,
   type IndicadoresPrestador,
   type Janela,
@@ -72,6 +73,13 @@ function kpisEquipe(l: LinhaQualquer): Kpi[] {
       descricao: 'resolvidas no prazo da criticidade',
       nota: i.pendencias,
     },
+    {
+      indicador: 'presenca',
+      rotulo: 'Presença na obra',
+      valor: pct(i.presenca),
+      descricao: 'check-ins na frequência definida',
+      nota: i.presenca,
+    },
   ];
 }
 
@@ -116,6 +124,7 @@ function corNota(nota: number): 'ok' | 'regular' | 'baixa' {
 export function ScoreDetalhe({
   linha: l,
   itens,
+  presencas = [],
   aba,
   janela,
   score30,
@@ -129,6 +138,8 @@ export function ScoreDetalhe({
   linha: LinhaQualquer;
   /** Itens do Score da aba (todos os nomes): o analisador filtra pela chave. */
   itens: ItemEquipe[] | ItemPrestador[];
+  /** Check-ins e frequências (Presença na obra). */
+  presencas?: PresencaObraEntrada[];
   aba: AbaScore;
   janela: Janela;
   score30: number | null;
@@ -149,9 +160,9 @@ export function ScoreDetalhe({
   const analise = useMemo(
     () =>
       aba === 'equipe'
-        ? analisarScoreEquipe(itens as ItemEquipe[], l.chave, janela, hoje)
+        ? analisarScoreEquipe(itens as ItemEquipe[], l.chave, janela, hoje, presencas)
         : analisarScorePrestador(itens as ItemPrestador[], l.chave, janela, hoje),
-    [aba, itens, l.chave, janela, hoje],
+    [aba, itens, l.chave, janela, hoje, presencas],
   );
   // Analisador: "Como chegar a 100" ou um indicador (lembra de onde veio).
   const [vista, setVista] = useState<

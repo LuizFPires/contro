@@ -81,6 +81,7 @@ pnpm lint && pnpm typecheck
   - cabeçalho da obra sem chips, com o ícone discreto de boletim à direita;
   - tarja preta de **Inauguração** no fim da trilha de fases;
   - botões curtos ("WhatsApp", "Baixar PDF");
+  - menu inferior da obra (17/11/2026): Fases · Providências · **Check-in** · Check list · Avaliação; o Cronograma fica no "⋮" do cabeçalho da obra;
   - menu inferior da tela inicial com quatro itens: Hoje · Obras · Score · Log, ícones lineares, ativo com fundo preto e ícone branco; Score e Log são de todos os perfis.
 
 ## Cadastros e marca

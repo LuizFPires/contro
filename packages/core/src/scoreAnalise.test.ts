@@ -95,11 +95,14 @@ describe('perdasDoScore', () => {
       respostaAtraso: 0.5,
       replanejamentos: 0.75,
       pendencias: null,
+      presenca: null,
     };
+    // Pesos de 17/11/2026: sem pendências e presença, usados 30 + 20 + 20 + 10 = 80.
     const p = perdasDoScore(ind, PESOS_EQUIPE, 62);
     expect(p.reduce((s, x) => s + x.perdidos, 0)).toBe(38);
-    expect(p.find((x) => x.indicador === 'pontualidade')).toMatchObject({ vale: 39, perdidos: 17 });
-    expect(p.find((x) => x.indicador === 'respostaAtraso')?.perdidos).toBe(11);
+    expect(p.find((x) => x.indicador === 'pontualidade')).toMatchObject({ vale: 38, perdidos: 16 });
+    expect(p.find((x) => x.indicador === 'respostaAtraso')?.perdidos).toBe(13);
+    expect(p.find((x) => x.indicador === 'presenca')).toMatchObject({ vale: 0, perdidos: 0 });
     expect(p.find((x) => x.indicador === 'pendencias')).toMatchObject({ vale: 0, perdidos: 0 });
   });
 });

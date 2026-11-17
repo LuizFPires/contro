@@ -184,15 +184,15 @@ describe('calcularScoreEquipe', () => {
 
   it('redistribui o peso proporcionalmente entre os indicadores com base', () => {
     // 5 tarefas no prazo, concluídas no dia, com 1 replanejamento cada (nota 0,5).
-    // Sem atraso e sem pendência: pesos 35 + 20 + 15 = 70.
-    // score = (35×1 + 20×1 + 15×0,5) / 70 × 100 = 89,28… → 89
+    // Sem atraso, pendência ou presença: pesos 30 + 20 + 10 = 60 (pesos de 17/11/2026).
+    // score = (30×1 + 20×1 + 10×0,5) / 60 × 100 = 91,66… → 92
     const [linha] = calcularScoreEquipe(
       cinco(() => tarefa({ replanejamentos: 1 })),
       30,
       HOJE,
     );
     expect(linha.indicadores.replanejamentos).toBeCloseTo(0.5);
-    expect(linha.score).toBe(89);
+    expect(linha.score).toBe(92);
   });
 
   it('aberto e vencido conta como não pontual e mede atraso até hoje', () => {

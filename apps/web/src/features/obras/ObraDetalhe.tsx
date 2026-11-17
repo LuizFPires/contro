@@ -10,6 +10,7 @@ import {
 } from '@contro/core';
 import { BottomSheet, Icon, useToast, type IconName } from '@contro/ui';
 import { usePerfil } from '../perfil/usePerfil';
+import { CheckinAba } from '../checkin/CheckinAba';
 import { ApagarObraSheet } from './ApagarObraSheet';
 import { RenomearObraSheet } from './RenomearObraSheet';
 import { CampoPrestador } from './CampoPrestador';
@@ -49,13 +50,15 @@ export type AbaObra =
   | 'pendencias'
   | 'providencias'
   | 'cronograma'
+  | 'checkin'
   | 'avaliacao'
   | 'boletim';
 
-const ABAS: { key: Exclude<AbaObra, 'boletim'>; label: string; icon: IconName }[] = [
+const ABAS: { key: Exclude<AbaObra, 'boletim' | 'cronograma'>; label: string; icon: IconName }[] = [
   { key: 'fases', label: 'Fases', icon: 'fases' },
   { key: 'providencias', label: 'Providências', icon: 'providencias' },
-  { key: 'cronograma', label: 'Cronograma', icon: 'cronograma' },
+  // Check-in no lugar do Cronograma (17/11/2026); o Cronograma foi para o "⋮".
+  { key: 'checkin', label: 'Check-in', icon: 'checkin' },
   // Pendências de qualidade, com o nome "Check list" (pedido do usuário).
   { key: 'pendencias', label: 'Check list', icon: 'pendencias' },
   // Pré-avaliação de entrega: esta tela é só das obras da Contorno.
@@ -335,6 +338,18 @@ export function ObraDetalhe({
                     className={styles.menuObraItem}
                     onClick={() => {
                       setMenuObra(false);
+                      setAba('cronograma');
+                    }}
+                  >
+                    <Icon name="cronograma" size={20} />
+                    Cronograma
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.menuObraItem}
+                    onClick={() => {
+                      setMenuObra(false);
                       setRenomearAberto(true);
                     }}
                   >
@@ -490,6 +505,9 @@ export function ObraDetalhe({
         ) : null}
         {aba === 'providencias' ? <ProvidenciasAba obra={obra} /> : null}
         {aba === 'cronograma' ? <GanttAba obra={obra} onAbrir={setFichaAtvId} /> : null}
+        {aba === 'checkin' ? (
+          <CheckinAba obraId={obra.id} obraNome={obra.nome} perfil={perfil} />
+        ) : null}
         {aba === 'boletim' ? <BoletimView obra={obra} /> : null}
       </div>
 

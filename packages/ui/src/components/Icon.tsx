@@ -221,6 +221,8 @@ const paths = {
   tabela: <path d="M3 5h18M3 12h18M3 19h18M9 5v14" />,
   // Curva de avanço físico (relatório).
   curva: <path d="M4 20h16M5 16l4-5 4 3 6-8M15 6h4v4" />,
+  // Check-in da obra: marcador de local com um visto.
+  checkin: <path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11zM9.5 10l2 2 3.5-3.5" />,
   // Analisador do Score: alvo (chegar a 100) e lâmpada (dica).
   alvo: (
     <>

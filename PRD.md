@@ -167,6 +167,15 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - **Como chegar a 100:** onde foram os pontos (ranking por indicador), "Dá para fazer hoje" (ações abertas e vencidas) e o método (o que conta, pesos, peso dividido sem base e as faixas).
 - Vale para Equipe e Prestadores, com os mesmos números da régua do Score. Quem vê o Score de um nome vê o analisador dele (como hoje).
 
+### 5.5-D Check-in por obra (17/11/2026, protótipo aprovado "CONTRO · Check-in por obra")
+- Na obra, o menu de baixo troca **Cronograma** por **Check-in**; o Cronograma fica no "⋮" do topo.
+- **Fazer check-in:** abre a câmera do app (sem galeria). Cada foto sai com um **carimbo gravado** (hora e data do sistema, obra e pessoa). Pelo menos 1 foto; sem mínimo além disso; sem check-out. "O que veio fazer" é opcional.
+- **Data e hora do sistema:** a hora do clique é conferida com o relógio do servidor ao sincronizar; diferença maior que 2 min é ajustada. Sem internet, o check-in fica no aparelho e sobe depois ("Enviado depois · hora conferida").
+- **Localização:** gravada no clique. O **primeiro check-in da obra vira o ponto da obra**; a mais de **200 m** (ou sem localização) o check-in aparece com o chip "Fora da obra · 1,2 km" (ou "Sem localização") e "Aguarda o Gestor". O **Gestor valida** ou não; até validar, não conta na Presença.
+- **Aba Check-in:** "Hoje na obra" com a contagem, "Esperados hoje" (quem já fez e quem falta), o botão "Fazer check-in" e o histórico por dia (60 dias). Tocar abre o detalhe com as fotos.
+- **Frequência:** o Gestor define, por obra, a frequência de cada pessoa (Todo dia útil, 3×, 2×, 1× por semana, Não precisa). Vale a partir do dia em que é salva.
+- **Score:** novo indicador **Presença na obra** (dias com check-in válido ÷ dias esperados; por semana, semanas fechadas pedem até N dias; a corrente só soma). Pesos da equipe: Pontualidade 30 · Conclusão do dia 20 · Resposta ao atraso 20 · Replanejamentos 10 · Pendências 10 · Presença 10. Sem frequência definida, a Presença fica sem base e o peso é dividido. O analisador mostra as faltas por obra.
+
 ### 5.6 Providências (lembretes de contratação, locação e compra)
 - **Texto padronizado (05/11/2026):** ações e lembretes usam **Comprar**, **Alugar** e **Contratar**, sem dois-pontos entre verbo e descrição, em todos os fluxos e documentos. Os títulos antigos salvos são convertidos com auditoria, preservando descrição, prazo, responsável, estado e vínculos; itens distintos não são unidos.
 - Cada lembrete tem só: **tipo**, **o que providenciar**, **data em que precisa estar na obra** (padrão: início da atividade, editável) e **situação** (A providenciar ou Providenciado).

@@ -12,6 +12,7 @@ import {
 import { Icon } from '@contro/ui';
 import { useLembrado } from '../../lib/useLembrado';
 import { useScoreDados } from '../log/dadosLogScore';
+import { usePresencas } from '../checkin/api';
 import { hojeISO } from '../obras/api';
 import { usePerfil } from '../perfil/usePerfil';
 import { du, pct } from './formato';
@@ -38,7 +39,13 @@ export function ScoreScreen({
    */
   menu: (antesDeIr?: () => void) => ReactNode;
 }) {
-  const { equipe, prestadores, carregando, erro } = useScoreDados(ambiente);
+  const dadosScore = useScoreDados(ambiente);
+  const { equipe, prestadores } = dadosScore;
+  // Presença na obra (check-ins): só nas obras da Contorno.
+  const pres = usePresencas(ambiente === 'contorno');
+  const presencas = useMemo(() => pres.data ?? [], [pres.data]);
+  const carregando = dadosScore.carregando || (ambiente === 'contorno' && pres.isLoading);
+  const erro = dadosScore.erro;
   const { data: perfil } = usePerfil();
   const prefixo = ambiente === 'contorno' ? '' : 'obrasgerais:';
   const [aba, setAba] = useLembrado<AbaScore>(`${prefixo}score:aba`, 'equipe');
@@ -50,13 +57,13 @@ export function ScoreScreen({
   // janela escolhidas, o detalhe mostra a tendência 30 × 90 e o score diário
   // grava todas.
   const todas = useMemo(() => {
-    const eq = (j: Janela): LinhaQualquer[] => calcularScoreEquipe(equipe, j, hoje);
+    const eq = (j: Janela): LinhaQualquer[] => calcularScoreEquipe(equipe, j, hoje, presencas);
     const pr = (j: Janela): LinhaQualquer[] => calcularScorePrestadores(prestadores, j, hoje);
     return {
       equipe: { 30: eq(30), 90: eq(90) } as Record<Janela, LinhaQualquer[]>,
       prestadores: { 30: pr(30), 90: pr(90) } as Record<Janela, LinhaQualquer[]>,
     };
-  }, [equipe, prestadores, hoje]);
+  }, [equipe, prestadores, hoje, presencas]);
   const porJanela = todas[aba];
   const linhas = porJanela[janela];
 
@@ -81,6 +88,7 @@ export function ScoreScreen({
       <ScoreDetalhe
         linha={linhaSel}
         itens={aba === 'equipe' ? equipe : prestadores}
+        presencas={presencas}
         aba={aba}
         janela={janela}
         score30={s(30)}

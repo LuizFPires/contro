@@ -24,8 +24,12 @@ export interface CameraProps {
   lote?: {
     miniaturas: string[];
     onPronto: () => void;
-    onGaleria: (files: File[]) => void;
+    onGaleria?: (files: File[]) => void;
+    /** Check-in: só a câmera do app (sem o botão da galeria). */
+    semGaleria?: boolean;
   };
+  /** Carimbo ao vivo sobre o visor (check-in: hora do sistema, obra e pessoa). */
+  carimbo?: string[];
 }
 
 /**
@@ -43,6 +47,7 @@ export function Camera({
   onCapturar,
   onCancelar,
   lote,
+  carimbo,
 }: CameraProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -109,7 +114,7 @@ export function Camera({
   function escolherGaleria(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     e.target.value = '';
-    if (files.length) lote?.onGaleria(files);
+    if (files.length) lote?.onGaleria?.(files);
   }
 
   function escolherArquivo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -156,6 +161,15 @@ export function Camera({
           ))}
         </div>
         {dica ? <div className={styles.dica}>{dica}</div> : null}
+        {carimbo?.length ? (
+          <div className={styles.carimbo} aria-live="off">
+            {carimbo.map((l, i) => (
+              <span key={i} className={i === 0 ? styles.carimboHora : undefined}>
+                {l}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {lote && lote.miniaturas.length > 0 ? (
@@ -167,7 +181,10 @@ export function Camera({
       ) : null}
 
       <div className={`${styles.controles} ${lote ? styles.controlesLote : ''}`}>
-        {lote ? (
+        {lote && lote.semGaleria ? (
+          <span className={styles.galeria} style={{ visibility: 'hidden' }} aria-hidden="true" />
+        ) : null}
+        {lote && !lote.semGaleria ? (
           <button
             type="button"
             className={styles.galeria}
@@ -207,7 +224,7 @@ export function Camera({
           className={styles.inputOculto}
           onChange={escolherArquivo}
         />
-        {lote ? (
+        {lote && !lote.semGaleria ? (
           <input
             ref={galeriaRef}
             type="file"

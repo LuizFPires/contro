@@ -170,6 +170,52 @@ const DISPATCH: Record<string, Handler> = {
     );
     if (local) await removerFotoLocal(local);
   },
+  // Check-in (17/11/2026): sobe as fotos do aparelho (com retomada) e registra.
+  registrar_checkin: async (p, opId) => {
+    const fotos = p.fotos as { localId: string; tiradaEm: string; ordem: number }[];
+    const subidas = [];
+    for (const f of fotos)
+      subidas.push({
+        foto_id: await subirFotoLocal(f.localId),
+        tirada_em: f.tiradaEm,
+        ordem: f.ordem,
+      });
+    if (!supabase) throw new Error('Sem conexão');
+    const { error } = await supabase.rpc('registrar_checkin', {
+      p_id: p.id as string,
+      p_obra_id: p.obraId as string,
+      p_feito_em: p.feitoEm as string,
+      // Relógio do aparelho no envio: o servidor compara com o dele.
+      p_relogio: new Date().toISOString(),
+      p_lat: (p.lat as number | null) ?? null,
+      p_lng: (p.lng as number | null) ?? null,
+      p_precisao: (p.precisao as number | null) ?? null,
+      p_observacao: (p.observacao as string | null) ?? null,
+      p_fotos: subidas,
+      p_client_op_id: opId,
+    });
+    if (error) throw error;
+    for (const f of fotos) await removerFotoLocal(f.localId);
+  },
+  validar_checkin: async (p, opId) => {
+    if (!supabase) throw new Error('Sem conexão');
+    const { error } = await supabase.rpc('validar_checkin', {
+      p_id: p.id as string,
+      p_valido: p.valido as boolean,
+      p_client_op_id: opId,
+    });
+    if (error) throw error;
+  },
+  definir_frequencia_checkin: async (p, opId) => {
+    if (!supabase) throw new Error('Sem conexão');
+    const { error } = await supabase.rpc('definir_frequencia_checkin', {
+      p_obra_id: p.obraId as string,
+      p_pessoa_id: p.pessoaId as string,
+      p_frequencia: p.frequencia as string,
+      p_client_op_id: opId,
+    });
+    if (error) throw error;
+  },
   apontar_pendencia: async (p, opId) => {
     const fotoId = await subirFotoLocal(p.fotoLocalId as string); // foto do antes (retomada)
     await apontarPendencia(
@@ -211,6 +257,8 @@ function invalidar(payload: Record<string, unknown>) {
     qc.invalidateQueries({ queryKey: ['propostas-mapa', obraId] });
     qc.invalidateQueries({ queryKey: ['reuniao'] });
     qc.invalidateQueries({ queryKey: ['sugestao', 'prestador'] });
+    qc.invalidateQueries({ queryKey: ['checkins', obraId] });
+    qc.invalidateQueries({ queryKey: ['presencas-checkin'], refetchType: 'none' });
     // Log, Score e Vida do item leem os eventos gravados pela ação. Só marca como
     // velha (sem refazer agora): as telas buscam de novo ao montar ou ao voltar o foco.
     qc.invalidateQueries({ queryKey: ['log-score'], refetchType: 'none' });
