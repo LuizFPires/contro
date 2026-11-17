@@ -55,7 +55,7 @@ export default defineConfig({
       },
       workbox: {
         // Não precachear os SVGs de marca (PNG embutido pesado). Só o essencial.
-        globPatterns: ['**/*.{js,css,html,woff,woff2}', 'icons/*.png'],
+        globPatterns: ['**/*.{js,css,html,woff,woff2}', 'icons/*.png', 'fonts/*.ttf'],
         // Handlers de Web Push adicionados ao SW gerado (sem trocar a estratégia:
         // o precache/offline continua igual). Arquivo em public/push-handlers.js.
         importScripts: ['/push-handlers.js'],
