@@ -4,7 +4,7 @@
 -- Requer o seed de homologação (Modelo 1 + unidades Contorno).
 
 begin;
-select plan(17);
+select plan(20);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000002c1', 'gestor@checkin.contro'),
@@ -113,7 +113,7 @@ select throws_ok(
   'a Equipe não valida'
 );
 select throws_ok(
-  $$ select definir_frequencia_checkin((select id from o), (select id from pessoa where nome = 'Equipe Check-in'), 'diario') $$,
+  $$ select definir_frequencia_checkin((select id from o), (select id from pessoa where nome = 'Equipe Check-in'), '5/semana') $$,
   '42501', 'Só o Gestor define a frequência',
   'a Equipe não define frequência'
 );
@@ -125,8 +125,24 @@ select lives_ok(
   'o Gestor valida o check-in fora da obra'
 );
 select lives_ok(
-  $$ select definir_frequencia_checkin((select id from o), (select id from pessoa where nome = 'Equipe Check-in'), '2') $$,
-  'o Gestor define a frequência'
+  $$ select definir_frequencia_checkin((select id from o), (select id from pessoa where nome = 'Equipe Check-in'), '2/mes') $$,
+  'o Gestor define a frequência (2 por mês)'
+);
+select is(
+  (select frequencia from obra_checkin_frequencia
+    where obra_id = (select id from o)
+      and pessoa_id = (select id from pessoa where nome = 'Equipe Check-in')),
+  '2/mes', 'grava quantidade e período'
+);
+select throws_ok(
+  $$ select definir_frequencia_checkin((select id from o), (select id from pessoa where nome = 'Equipe Check-in'), '6/semana') $$,
+  '22023', 'Frequência inválida',
+  'quantidade acima de 5 é recusada'
+);
+select throws_ok(
+  $$ select definir_frequencia_checkin((select id from o), (select id from pessoa where nome = 'Equipe Check-in'), 'diario') $$,
+  '22023', 'Frequência inválida',
+  'o formato antigo é recusado'
 );
 reset role;
 
