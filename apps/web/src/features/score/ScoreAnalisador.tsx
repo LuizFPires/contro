@@ -21,6 +21,11 @@ const TONS = [
 ];
 
 /** Barra dos 100 pontos: o conquistado e o que cada indicador tirou. */
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+function rotuloMes(inicio: string): string {
+  return `${MESES[Number(inicio.slice(5, 7)) - 1]}/${inicio.slice(0, 4)}`;
+}
+
 export function BarraPontos({
   score,
   perdas,
@@ -307,10 +312,11 @@ export function AnalisadorIndicador({
               {o.faltas.length ? (
                 <div className={styles.faltas}>
                   {o.faltas.slice(0, todas ? undefined : 8).map((f) => (
-                    <span key={f.tipo === 'dia' ? f.dia : f.segunda} className={styles.chipAtraso}>
-                      {f.tipo === 'dia'
-                        ? rotuloDia(f.dia)
-                        : `semana ${rotuloDia(f.segunda).slice(4)}: ${f.feitos} de ${f.pedidos}`}
+                    <span key={`${f.periodo}${f.inicio}`} className={styles.chipAtraso}>
+                      {f.periodo === 'semana'
+                        ? `semana ${rotuloDia(f.inicio).slice(4)}`
+                        : rotuloMes(f.inicio)}
+                      : {f.feitos} de {f.pedidos}
                     </span>
                   ))}
                   {!todas && o.faltas.length > 8 ? (

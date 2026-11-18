@@ -69,18 +69,37 @@ export function checkinValido(c: {
 
 // ---------------------------------------------------------------- frequência
 
-export type FrequenciaCheckin = 'diario' | '3' | '2' | '1' | 'nao';
+export type PeriodoFrequencia = 'semana' | 'mes';
+export type QuantidadeFrequencia = 1 | 2 | 3 | 4 | 5;
+/** "N/semana", "N/mes" (N de 1 a 5) ou "nao" (não precisa). */
+export type FrequenciaCheckin = `${QuantidadeFrequencia}/${PeriodoFrequencia}` | 'nao';
 
-export const FREQUENCIAS: { valor: FrequenciaCheckin; curto: string; longo: string }[] = [
-  { valor: 'diario', curto: 'Todo dia', longo: 'todo dia útil' },
-  { valor: '3', curto: '3×/sem', longo: '3× por semana' },
-  { valor: '2', curto: '2×/sem', longo: '2× por semana' },
-  { valor: '1', curto: '1×/sem', longo: '1× por semana' },
-  { valor: 'nao', curto: 'Não precisa', longo: 'não precisa' },
+export const QUANTIDADES_FREQUENCIA: QuantidadeFrequencia[] = [1, 2, 3, 4, 5];
+export const PERIODOS_FREQUENCIA: { valor: PeriodoFrequencia; rotulo: string }[] = [
+  { valor: 'semana', rotulo: 'Semanal' },
+  { valor: 'mes', rotulo: 'Mensal' },
 ];
 
+/** Quantidade e período de uma frequência; null quando não precisa. */
+export function lerFrequencia(
+  f: string,
+): { quantidade: QuantidadeFrequencia; periodo: PeriodoFrequencia } | null {
+  const m = /^([1-5])\/(semana|mes)$/.exec(f);
+  if (!m) return null;
+  return { quantidade: Number(m[1]) as QuantidadeFrequencia, periodo: m[2] as PeriodoFrequencia };
+}
+
+export function montarFrequencia(
+  quantidade: QuantidadeFrequencia | null,
+  periodo: PeriodoFrequencia,
+): FrequenciaCheckin {
+  return quantidade ? `${quantidade}/${periodo}` : 'nao';
+}
+
 export function textoFrequencia(f: FrequenciaCheckin): string {
-  return FREQUENCIAS.find((x) => x.valor === f)?.longo ?? 'não precisa';
+  const l = lerFrequencia(f);
+  if (!l) return 'não precisa';
+  return `${l.quantidade}× por ${l.periodo === 'semana' ? 'semana' : 'mês'}`;
 }
 
 export interface MudancaFrequencia {
@@ -104,6 +123,20 @@ export function segundaDa(dia: DataISO): DataISO {
   return d.toISOString().slice(0, 10);
 }
 
+/** Primeiro dia do mês do dia (ISO). */
+export function primeiroDoMes(dia: DataISO): DataISO {
+  return `${dia.slice(0, 7)}-01`;
+}
+
+/** Último dia útil do mês do dia (ISO). */
+export function ultimoDiaUtilDoMes(dia: DataISO): DataISO {
+  const d = new Date(`${dia.slice(0, 7)}-01T12:00:00Z`);
+  d.setUTCMonth(d.getUTCMonth() + 1);
+  d.setUTCDate(0);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
 // ------------------------------------------------------------------ presença
 
 export interface PresencaObraEntrada {
@@ -115,9 +148,13 @@ export interface PresencaObraEntrada {
   dias: DataISO[];
 }
 
-export type FaltaPresenca =
-  | { tipo: 'dia'; dia: DataISO }
-  | { tipo: 'semana'; segunda: DataISO; feitos: number; pedidos: number };
+export interface FaltaPresenca {
+  periodo: PeriodoFrequencia;
+  /** Segunda-feira da semana ou dia 1 do mês. */
+  inicio: DataISO;
+  feitos: number;
+  pedidos: number;
+}
 
 export interface PresencaObra {
   obraId: string;
@@ -137,9 +174,9 @@ export interface Presenca {
 
 /**
  * Presença de uma pessoa entre `inicio` e `hoje`: dias com check-in contra a
- * frequência definida pelo Gestor em cada obra. Todo dia útil: cada dia útil
- * passado conta (hoje só se já fez). Por semana: semanas fechadas pedem até N
- * dias com check-in; a semana corrente só soma o que já foi feito.
+ * frequência definida pelo Gestor em cada obra (N vezes por semana ou por mês,
+ * N de 1 a 5). Período fechado pede até N dias com check-in (no máximo os dias
+ * úteis dele dentro da janela); o período corrente só soma o que já foi feito.
  */
 export function presencaDaPessoa(
   obras: PresencaObraEntrada[],
@@ -152,38 +189,31 @@ export function presencaDaPessoa(
     let esperados = 0;
     let feitos = 0;
     const faltas: FaltaPresenca[] = [];
-    const semanas = new Map<DataISO, { n: number; dias: DataISO[] }>();
+    const periodos = new Map<
+      string,
+      { periodo: PeriodoFrequencia; inicio: DataISO; n: number; dias: DataISO[] }
+    >();
     for (let d = diaUtilAPartir(inicio); d <= hoje; d = addDU(d, 1)) {
-      const f = frequenciaEm(o.frequencias, d);
-      if (f === 'nao') continue;
-      if (f === 'diario') {
-        if (d < hoje) {
-          esperados++;
-          if (feitosDias.has(d)) feitos++;
-          else faltas.push({ tipo: 'dia', dia: d });
-        } else if (feitosDias.has(d)) {
-          esperados++;
-          feitos++;
-        }
-        continue;
-      }
-      const seg = segundaDa(d);
-      const s = semanas.get(seg) ?? { n: 0, dias: [] };
-      s.n = Math.max(s.n, Number(f));
-      s.dias.push(d);
-      semanas.set(seg, s);
+      const l = lerFrequencia(frequenciaEm(o.frequencias, d));
+      if (!l) continue;
+      const ini = l.periodo === 'semana' ? segundaDa(d) : primeiroDoMes(d);
+      const chave = `${l.periodo}:${ini}`;
+      const p = periodos.get(chave) ?? { periodo: l.periodo, inicio: ini, n: 0, dias: [] };
+      p.n = Math.max(p.n, l.quantidade);
+      p.dias.push(d);
+      periodos.set(chave, p);
     }
-    for (const [seg, s] of semanas) {
-      const sexta = addDU(seg, 4);
-      const feitosSem = s.dias.filter((d) => feitosDias.has(d)).length;
-      const pedidos = Math.min(s.n, s.dias.length);
-      if (sexta < hoje) {
+    for (const p of periodos.values()) {
+      const fim = p.periodo === 'semana' ? addDU(p.inicio, 4) : ultimoDiaUtilDoMes(p.inicio);
+      const feitosP = p.dias.filter((d) => feitosDias.has(d)).length;
+      const pedidos = Math.min(p.n, p.dias.length);
+      const ok = Math.min(pedidos, feitosP);
+      if (fim < hoje) {
         esperados += pedidos;
-        const ok = Math.min(pedidos, feitosSem);
         feitos += ok;
-        if (ok < pedidos) faltas.push({ tipo: 'semana', segunda: seg, feitos: ok, pedidos });
+        if (ok < pedidos)
+          faltas.push({ periodo: p.periodo, inicio: p.inicio, feitos: ok, pedidos });
       } else {
-        const ok = Math.min(pedidos, feitosSem);
         esperados += ok;
         feitos += ok;
       }
@@ -195,11 +225,7 @@ export function presencaDaPessoa(
         frequencia: frequenciaEm(o.frequencias, hoje),
         esperados,
         feitos,
-        faltas: faltas.sort((a, b) =>
-          (a.tipo === 'dia' ? a.dia : a.segunda).localeCompare(
-            b.tipo === 'dia' ? b.dia : b.segunda,
-          ),
-        ),
+        faltas: faltas.sort((a, b) => a.inicio.localeCompare(b.inicio)),
       });
   }
   const esperados = porObra.reduce((s, o) => s + o.esperados, 0);

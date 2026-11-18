@@ -447,29 +447,33 @@
   padding: 10px 0;
   border-top: 1px solid rgb(24 24 24 / 8%);
 }
-.opcoes {
+.freqCampos {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
-.opcao,
-.opcaoOn {
-  min-height: var(--contro-touch);
-  border-radius: 10px;
-  font: inherit;
+.freqCampo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   font-size: 12px;
+  font-weight: 700;
+  color: rgb(24 24 24 / 65%);
+}
+.freqSelect {
+  width: 100%;
+  min-height: var(--contro-touch);
+  border: 1.5px solid rgb(24 24 24 / 25%);
+  border-radius: 12px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 15px;
   font-weight: 800;
-  line-height: 1.1;
-  padding: 0 2px;
-  cursor: pointer;
   background: var(--contro-white);
   color: var(--contro-black);
-  border: 1.5px solid rgb(24 24 24 / 18%);
 }
-.opcaoOn {
-  background: var(--contro-black);
-  color: var(--contro-white);
-  border-color: var(--contro-black);
+.freqSelect:disabled {
+  opacity: 0.45;
 }
 
 .faltaFoto {

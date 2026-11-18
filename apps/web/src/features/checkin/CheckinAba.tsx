@@ -1,19 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  FREQUENCIAS,
+  PERIODOS_FREQUENCIA,
+  QUANTIDADES_FREQUENCIA,
   MINIMO_FOTOS_CHECKIN,
   aguardaGestor,
   checkinValido,
   frequenciaEm,
+  lerFrequencia,
+  montarFrequencia,
   linhasCarimbo,
   rotuloDia,
+  primeiroDoMes,
   segundaDa,
   situacaoLocal,
   textoDistancia,
   textoFrequencia,
   type Coordenada,
   type FrequenciaCheckin,
+  type PeriodoFrequencia,
+  type QuantidadeFrequencia,
 } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
 import { enfileirar } from '../../lib/sync';
@@ -246,26 +252,28 @@ export function CheckinAba({
   const meus = deHoje.filter((c) => c.pessoaId === perfil?.id);
   const ultimoMeu = meus[0];
 
-  // Esperados hoje: todo dia útil, ou por semana (ainda faltando na semana).
+  // Esperados hoje: quem tem frequência (N por semana ou por mês) nesta obra.
   const esperados = useMemo(() => {
-    const seg = segundaDa(hoje);
-    return (data?.pessoas ?? [])
-      .map((p) => ({ p, f: frequenciaEm(p.frequencias, hoje) }))
-      .filter(({ f }) => f !== 'nao')
-      .map(({ p, f }) => {
-        const validos = checkins.filter((c) => c.pessoaId === p.pessoaId && checkinValido(c));
-        const fezHoje = validos.some((c) => c.dia === hoje);
-        const naSemana = new Set(
-          validos.filter((c) => c.dia >= seg && c.dia <= hoje).map((c) => c.dia),
-        ).size;
-        const diario = f === 'diario';
-        return {
+    return (data?.pessoas ?? []).flatMap((p) => {
+      const l = lerFrequencia(frequenciaEm(p.frequencias, hoje));
+      if (!l) return [];
+      const ini = l.periodo === 'semana' ? segundaDa(hoje) : primeiroDoMes(hoje);
+      const validos = checkins.filter((c) => c.pessoaId === p.pessoaId && checkinValido(c));
+      const fezHoje = validos.some((c) => c.dia === hoje);
+      const noPeriodo = new Set(
+        validos.filter((c) => c.dia >= ini && c.dia <= hoje).map((c) => c.dia),
+      ).size;
+      return [
+        {
           id: p.pessoaId,
           nome: p.nome,
-          ok: diario ? fezHoje : naSemana >= Number(f),
-          extra: diario ? '' : ` · ${Math.min(naSemana, Number(f))} de ${f} na semana`,
-        };
-      });
+          ok: fezHoje || noPeriodo >= l.quantidade,
+          extra: ` · ${Math.min(noPeriodo, l.quantidade)} de ${l.quantidade} ${
+            l.periodo === 'semana' ? 'na semana' : 'no mês'
+          }`,
+        },
+      ];
+    });
   }, [data?.pessoas, checkins, hoje]);
 
   const dias = useMemo(() => {
@@ -538,43 +546,88 @@ export function CheckinAba({
             Quantas vezes cada pessoa precisa fazer check-in <b>nesta obra</b>. Vale a partir de
             hoje e conta no Score em Presença na obra. &quot;Não precisa&quot; não é cobrado.
           </p>
-          {(data?.pessoas ?? []).map((p) => {
-            const atual = frequenciaEm(p.frequencias, hoje);
-            return (
-              <div key={p.pessoaId} className={styles.freqPessoa}>
-                <div className={styles.cardLinha}>
-                  <span>
-                    <b>{p.nome}</b> <span className={styles.suave}>· {p.papel}</span>
-                  </span>
-                  <span className={styles.suave}>{textoFrequencia(atual)}</span>
-                </div>
-                <div
-                  className={styles.opcoes}
-                  role="radiogroup"
-                  aria-label={`Frequência de ${p.nome}`}
-                >
-                  {FREQUENCIAS.map((o) => (
-                    <button
-                      key={o.valor}
-                      type="button"
-                      role="radio"
-                      aria-checked={atual === o.valor}
-                      className={atual === o.valor ? styles.opcaoOn : styles.opcao}
-                      onClick={() => definirFrequencia(p.pessoaId, o.valor)}
-                    >
-                      {o.curto}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          {(data?.pessoas ?? []).map((p) => (
+            <FrequenciaPessoa
+              key={p.pessoaId}
+              nome={p.nome}
+              papel={p.papel}
+              atual={frequenciaEm(p.frequencias, hoje)}
+              onMudar={(f) => definirFrequencia(p.pessoaId, f)}
+            />
+          ))}
           <p className={styles.suave}>
-            Por semana: conta até o número de dias pedido, de segunda a sexta. Todo dia útil:
-            segunda a sexta.
+            Semanal: de segunda a sexta. Mensal: no mês do calendário. Conta um check-in por dia,
+            até a quantidade escolhida.
           </p>
         </div>
       </BottomSheet>
+    </div>
+  );
+}
+
+function FrequenciaPessoa({
+  nome,
+  papel,
+  atual,
+  onMudar,
+}: {
+  nome: string;
+  papel: string;
+  atual: FrequenciaCheckin;
+  onMudar: (f: FrequenciaCheckin) => void;
+}) {
+  const lida = lerFrequencia(atual);
+  const [periodo, setPeriodo] = useState<PeriodoFrequencia>(lida?.periodo ?? 'semana');
+  const quantidade = lida?.quantidade ?? null;
+  return (
+    <div className={styles.freqPessoa}>
+      <div className={styles.cardLinha}>
+        <span>
+          <b>{nome}</b> <span className={styles.suave}>· {papel}</span>
+        </span>
+        <span className={styles.suave}>{textoFrequencia(atual)}</span>
+      </div>
+      <div className={styles.freqCampos}>
+        <label className={styles.freqCampo}>
+          <span>Quantidade</span>
+          <select
+            className={styles.freqSelect}
+            value={quantidade ?? ''}
+            aria-label={`Quantidade de check-ins de ${nome}`}
+            onChange={(e) => {
+              const q = e.target.value ? (Number(e.target.value) as QuantidadeFrequencia) : null;
+              onMudar(montarFrequencia(q, periodo));
+            }}
+          >
+            <option value="">Não precisa</option>
+            {QUANTIDADES_FREQUENCIA.map((q) => (
+              <option key={q} value={q}>
+                {q}×
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.freqCampo}>
+          <span>Período</span>
+          <select
+            className={styles.freqSelect}
+            value={periodo}
+            disabled={!quantidade}
+            aria-label={`Período de ${nome}`}
+            onChange={(e) => {
+              const per = e.target.value as PeriodoFrequencia;
+              setPeriodo(per);
+              if (quantidade) onMudar(montarFrequencia(quantidade, per));
+            }}
+          >
+            {PERIODOS_FREQUENCIA.map((o) => (
+              <option key={o.valor} value={o.valor}>
+                {o.rotulo}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
     </div>
   );
 }

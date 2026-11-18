@@ -261,7 +261,7 @@ export function analisarScoreEquipe(
     const pres = presencaDaPessoa(minhasPresencas, inicio, hoje);
     const perdidos = perdas.find((p) => p.indicador === 'presenca')?.perdidos ?? 0;
     const faltas = pres.obras.reduce(
-      (s, o) => s + o.faltas.reduce((t, f) => t + (f.tipo === 'dia' ? 1 : f.pedidos - f.feitos), 0),
+      (s, o) => s + o.faltas.reduce((t, f) => t + (f.pedidos - f.feitos), 0),
       0,
     );
     indicadores.presenca = {

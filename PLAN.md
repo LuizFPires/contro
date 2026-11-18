@@ -494,6 +494,7 @@ Protótipo aprovado em 17/11/2026 (canvas "CONTRO · Check-in por obra"). PRD §
 - [x] Core `checkin.ts` (localização, validação, frequência, presença, carimbo) com testes; Presença no Score (pesos 30/20/20/10/10/10) e no analisador.
 - [x] Aba Check-in no lugar do Cronograma (Cronograma no "⋮"), câmera do app com carimbo gravado, conferir, detalhe, validação do Gestor e frequência por pessoa.
 - [x] Fila offline com ajuste de hora pelo servidor.
+- [x] Frequência em quantidade (1 a 5) e período (semanal ou mensal), com migration e pgTAP (20 testes).
 - [ ] Obras gerais (o Check-in vale só para as obras da Contorno por enquanto).
 
 **Aceite:** primeiro check-in marca o ponto; a 1,1 km aparece "Fora da obra · 1,1 km" e "Aguarda o Gestor"; o Gestor valida e passa a contar; relógio do aparelho 1 h atrasado tem a hora ajustada; Presença 2 de 6 dias reduz o score e a simulação volta a 100.
@@ -501,6 +502,8 @@ Protótipo aprovado em 17/11/2026 (canvas "CONTRO · Check-in por obra"). PRD §
 ---
 
 ## Decisões
+
+- [x] **18/11/2026 · Frequência de check-in em quantidade e período** (pedido do usuário): a frequência por pessoa passa a ter dois campos de seleção, quantidade (1 a 5, ou Não precisa) e período (Semanal ou Mensal). Mensal segue o mês do calendário; período fechado pede até N dias com check-in, o corrente só soma o feito. "Todo dia útil" deixou de existir e virou 5 por semana, o que muda a cobrança: o dia perdido só conta quando a semana fecha. Frequências salvas foram convertidas (diário → 5/semana, 3/2/1 → por semana).
 
 - [x] **17/11/2026 · Check-in com no mínimo 4 fotos** (pedido do usuário, revendo a decisão de "sem mínimo"): a câmera mostra "tire pelo menos 4 fotos (N de 4)" e o "Pronto" só libera com 4; o conferir avisa quantas faltam; o banco recusa menos de 4.
 
