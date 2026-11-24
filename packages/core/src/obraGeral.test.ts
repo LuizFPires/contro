@@ -10,7 +10,11 @@ import {
   textoAcoesBloco,
   textoEficiencia,
   atalhosDataPrevista,
+  conflitoInicioTermino,
   diaCurto,
+  mudancaDeDataPedeMotivo,
+  normalizarAnotacao,
+  normalizarMotivoData,
   podePlanejarObraGeral,
   prazoAtividadeGeral,
   resumoObraGeral,
@@ -683,5 +687,55 @@ describe('agendaObraGeral com as ações completas', () => {
       ['providencia:pv1', 'acao', 'Paula · até hoje'],
       ['geral:a1', 'concluir', 'Paula · previsto concluir hoje'],
     ]);
+  });
+});
+
+describe('início, motivo e anotação (24/11/2026)', () => {
+  it('trilha expõe o início previsto da atividade de topo', () => {
+    const [f] = trilhaObraGeral({
+      fases,
+      atividades: [
+        ativ({ id: 'a1', data_inicio: '2026-11-09', data_prevista: '2026-11-20' }),
+        ativ({ id: 'a2', ordem: 2 }),
+      ],
+      hoje,
+      pessoaId: null,
+      nomes: {},
+    });
+    expect(f!.atividades.map((a) => a.inicio)).toEqual(['2026-11-09', null]);
+  });
+
+  it('início não fica depois do término', () => {
+    expect(conflitoInicioTermino('2026-11-09', '2026-11-20')).toBeNull();
+    expect(conflitoInicioTermino('2026-11-20', '2026-11-20')).toBeNull();
+    expect(conflitoInicioTermino('2026-11-21', '2026-11-20')).toBe(
+      'O início fica depois do término',
+    );
+    expect(conflitoInicioTermino(null, '2026-11-20')).toBeNull();
+    expect(conflitoInicioTermino('2026-11-21', null)).toBeNull();
+  });
+
+  it('pede motivo só ao replanejar item aberto que já tinha data', () => {
+    expect(
+      mudancaDeDataPedeMotivo({ concluida: false, atual: '2026-11-20', nova: '2026-11-25' }),
+    ).toBe(true);
+    expect(mudancaDeDataPedeMotivo({ concluida: false, atual: null, nova: '2026-11-25' })).toBe(
+      false,
+    );
+    expect(
+      mudancaDeDataPedeMotivo({ concluida: true, atual: '2026-11-20', nova: '2026-11-25' }),
+    ).toBe(false);
+    expect(
+      mudancaDeDataPedeMotivo({ concluida: false, atual: '2026-11-20', nova: '2026-11-20' }),
+    ).toBe(false);
+  });
+
+  it('motivo aparado e cortado em 120; anotação aparada até 500', () => {
+    expect(normalizarMotivoData('  choveu  ')).toBe('choveu');
+    expect(normalizarMotivoData('   ')).toBeNull();
+    expect(normalizarMotivoData('x'.repeat(130))).toHaveLength(120);
+    expect(normalizarAnotacao('  Choveu, parado ')).toBe('Choveu, parado');
+    expect(normalizarAnotacao('  ')).toBeNull();
+    expect(normalizarAnotacao('x'.repeat(501))).toBeNull();
   });
 });
