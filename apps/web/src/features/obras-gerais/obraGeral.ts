@@ -82,8 +82,8 @@ export async function carregarObraGeral(id: string): Promise<ObraGeral | null> {
     supabase
       .from('obra_atividade')
       .select(
-        'id,fase_id,pai_id,ordem,nome,data_prevista,data_prevista_original,replanejamentos,responsavel_id,concluida_em,' +
-          'avanco_pct,foto_conclusao_id,prestador',
+        'id,fase_id,pai_id,ordem,nome,data_prevista,data_prevista_original,replanejamentos,data_inicio,responsavel_id,' +
+          'concluida_em,avanco_pct,foto_conclusao_id,prestador',
       )
       .eq('obra_id', id)
       .is('deleted_at', null)

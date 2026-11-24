@@ -88,6 +88,28 @@ export async function definirDataPrevista(
   return (id as string | null) ?? null;
 }
 
+/**
+ * Muda o início previsto da atividade de topo. Mudar um início que já existia é
+ * replanejar (motivo opcional). Devolve o id do evento (para o Desfazer), ou null.
+ */
+export async function definirInicioPrevisto(
+  atividadeId: string,
+  data: string | null,
+  motivo?: string | null,
+): Promise<string | null> {
+  const id = await chamar('definir_inicio_previsto', {
+    p_atividade_id: atividadeId,
+    p_data: data,
+    p_motivo: motivo ?? null,
+  });
+  return (id as string | null) ?? null;
+}
+
+/** Desfaz a mudança de início do evento (volta o início de antes). */
+export async function desfazerInicioPrevisto(eventoId: string): Promise<void> {
+  await chamar('desfazer_inicio_previsto', { p_evento_id: eventoId });
+}
+
 /** Desfaz a mudança de data do evento (volta data, original e replanejamentos exatamente). */
 export async function desfazerDataPrevista(eventoId: string): Promise<void> {
   await chamar('desfazer_data_prevista', { p_evento_id: eventoId });

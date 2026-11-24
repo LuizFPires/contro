@@ -518,6 +518,21 @@ export async function anexarFotoConclusao(
 }
 
 /** Desfaz a conclusão (só quem concluiu; nenhuma sucessora concluída). */
+/** Anotação do andamento da atividade (texto livre), idempotente pela op. */
+export async function anotarAtividade(
+  atividadeId: string,
+  texto: string,
+  clientOpId?: string,
+): Promise<void> {
+  if (!supabase) throw new Error('Sem conexão');
+  const { error } = await supabase.rpc('anotar_atividade', {
+    p_atividade_id: atividadeId,
+    p_texto: texto,
+    p_client_op_id: clientOpId ?? null,
+  });
+  if (error) throw error;
+}
+
 /** Avanço parcial da atividade aberta (0..99), idempotente pela op. */
 export async function definirAvanco(
   atividadeId: string,

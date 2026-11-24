@@ -15,6 +15,7 @@ import {
   marcarSubitem,
   reabrirTarefa,
   renomearAtividade,
+  anotarAtividade,
   definirAvanco,
   definirQuantitativo,
   salvarMedicao,
@@ -95,6 +96,7 @@ const DISPATCH: Record<string, Handler> = {
   },
   desfazer_conclusao: (p, opId) => desfazerConclusao(p.atividadeId as string, opId),
   definir_avanco: (p, opId) => definirAvanco(p.atividadeId as string, p.pct as number, opId),
+  anotar_atividade: (p, opId) => anotarAtividade(p.atividadeId as string, p.texto as string, opId),
   // Avanço por quantitativo: quantitativo e medições (id gerado no aparelho).
   definir_quantitativo: (p, opId) =>
     definirQuantitativo(
@@ -261,7 +263,11 @@ function invalidar(payload: Record<string, unknown>) {
     qc.invalidateQueries({ queryKey: ['presencas-checkin'], refetchType: 'none' });
     // Log, Score e Vida do item leem os eventos gravados pela ação. Só marca como
     // velha (sem refazer agora): as telas buscam de novo ao montar ou ao voltar o foco.
-    qc.invalidateQueries({ queryKey: ['log-score'], refetchType: 'none' });
+    // A anotação do andamento só aparece na Vida do item: essa refaz já.
+    qc.invalidateQueries({
+      queryKey: ['log-score'],
+      refetchType: payload.refazerLog ? 'active' : 'none',
+    });
   }
 }
 
