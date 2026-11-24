@@ -101,7 +101,7 @@ select is(atualizar_prazos_atividades('00000000-0000-0000-0000-00000006f001',
 
 -- B/C) C (coordenador de G): data com evento devolvido e Desfazer exato.
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000006a2","role":"authenticated"}';
-insert into evs select 'e1', definir_data_prevista('00000000-0000-0000-0000-00000006f204', '2026-11-16');
+insert into evs select 'e1', definir_data_prevista('00000000-0000-0000-0000-00000006f204', '2026-11-16', 'Ajuste');
 select is((select tipo from obra_atividade_evento where id = (select id from evs where k = 'e1')), 'data_definida',
   'primeira data devolve o id do evento data_definida');
 select is((select antes from obra_atividade_evento where id = (select id from evs where k = 'e1')),
@@ -114,7 +114,7 @@ select is(
 select is((select antes from obra_atividade_evento where id = (select id from evs where k = 'e2')),
   '{"data": "2026-11-16", "data_prevista_original": null, "replanejamentos": 0}'::jsonb,
   'replanejada guarda o estado anterior');
-select is(definir_data_prevista('00000000-0000-0000-0000-00000006f204', '2026-11-18'), null::uuid,
+select is(definir_data_prevista('00000000-0000-0000-0000-00000006f204', '2026-11-18', 'Ajuste'), null::uuid,
   'mesma data devolve null');
 select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000006f204', null) $$,
   '22023', 'Não dá para tirar a data; use Desfazer', 'item aberto com data nao volta a sem data');
@@ -145,7 +145,7 @@ select throws_ok($$ select desfazer_data_prevista(gen_random_uuid()) $$,
   '22023', 'Não dá mais para desfazer', 'evento inexistente nao desfaz');
 
 -- Desfazer de outra pessoa: recusado; o autor ainda desfaz.
-insert into evs select 'e3', definir_data_prevista('00000000-0000-0000-0000-00000006f204', '2026-11-20');
+insert into evs select 'e3', definir_data_prevista('00000000-0000-0000-0000-00000006f204', '2026-11-20', 'Ajuste');
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000006a3","role":"authenticated"}';
 select throws_ok(format('select desfazer_data_prevista(%L)', (select id from evs where k = 'e3')),
   '22023', 'Não dá mais para desfazer', 'A nao desfaz a data que C mudou');
@@ -159,7 +159,7 @@ select is(
   row('2026-11-16'::date, null::date, 0)::text, 'de volta a primeira data, sem replanejamento');
 
 -- Depois de 10 minutos: recusado.
-insert into evs select 'e4', definir_data_prevista('00000000-0000-0000-0000-00000006f206', '2026-11-19');
+insert into evs select 'e4', definir_data_prevista('00000000-0000-0000-0000-00000006f206', '2026-11-19', 'Ajuste');
 reset role;
 update obra_atividade_evento set em = now() - interval '11 minutes' where id = (select id from evs where k = 'e4');
 set local role authenticated;

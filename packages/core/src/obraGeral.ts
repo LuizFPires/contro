@@ -19,6 +19,8 @@ export interface AtividadeGeral {
   /** Primeira data prevista; fica fixa nos replanejamentos. */
   data_prevista_original: DataISO | null;
   replanejamentos: number;
+  /** Início previsto (opcional; só a atividade de topo). */
+  data_inicio?: DataISO | null;
   responsavel_id: string | null;
   concluida_em: string | null;
   avanco_pct: number;
@@ -47,6 +49,8 @@ export interface AtividadeGeralTrilha {
   nome: string;
   status: StatusGeral;
   prazo: DataISO | null;
+  /** Início previsto, ou null. */
+  inicio: DataISO | null;
   responsavelId: string | null;
   quem: string;
   sub: string;
@@ -84,6 +88,46 @@ export function prazoAtividadeGeral(a: AtividadeGeral, subitens: AtividadeGeral[
     if (s.data_prevista && (maior === null || s.data_prevista > maior)) maior = s.data_prevista;
   }
   return maior ?? a.data_prevista;
+}
+
+/** Tamanho máximo do motivo da mudança de data (como nas tarefas). */
+export const MOTIVO_DATA_MAX = 120;
+/** Tamanho máximo da anotação do andamento. */
+export const ANOTACAO_MAX = 500;
+
+/**
+ * Mudar esta data é replanejar? Só em item aberto que já tinha data e recebe
+ * outra; então a folha exige o motivo antes de salvar (24/11/2026).
+ */
+export function mudancaDeDataPedeMotivo(e: {
+  concluida: boolean;
+  atual: DataISO | null;
+  nova: DataISO;
+}): boolean {
+  return !e.concluida && e.atual !== null && e.nova !== e.atual;
+}
+
+/** Motivo aparado e cortado em MOTIVO_DATA_MAX, ou null se vazio. */
+export function normalizarMotivoData(motivo: string): string | null {
+  return motivo.trim().slice(0, MOTIVO_DATA_MAX) || null;
+}
+
+/** Anotação aparada, ou null se vazia ou longa demais. */
+export function normalizarAnotacao(texto: string): string | null {
+  const t = texto.trim();
+  return t && t.length <= ANOTACAO_MAX ? t : null;
+}
+
+/**
+ * Início e término da atividade de topo: o início não fica depois do término.
+ * Devolve a mensagem do conflito, ou null se as datas combinam.
+ */
+export function conflitoInicioTermino(
+  inicio: DataISO | null,
+  termino: DataISO | null,
+): string | null {
+  if (!inicio || !termino || inicio <= termino) return null;
+  return 'O início fica depois do término';
 }
 
 export function statusAtividadeGeral(
@@ -140,6 +184,7 @@ export function trilhaObraGeral(e: {
         nome: a.nome,
         status,
         prazo,
+        inicio: a.data_inicio ?? null,
         responsavelId: a.responsavel_id,
         quem,
         sub: `${quem} · ${detalhe(status, prazo, semFoto)}`,

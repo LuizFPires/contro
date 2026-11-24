@@ -298,6 +298,19 @@ export function useObraCampo(obraId: string) {
     onError: (_e, _v, ctx) => reverter(ctx),
   });
 
+  // Anotação do andamento ("choveu, não deu para trabalhar"): vai pela fila
+  // offline; a Vida da atividade mostra quando o servidor gravar.
+  const anotar = useMutation({
+    networkMode: 'always',
+    mutationFn: (v: { atividadeId: string; texto: string }) =>
+      enfileirar('anotar_atividade', {
+        obraId,
+        atividadeId: v.atividadeId,
+        texto: v.texto,
+        refazerLog: true,
+      }),
+  });
+
   // Desfazer de "Voltar para pendente": conclui de novo, com a mesma foto se havia.
   const reconcluir = useMutation({
     networkMode: 'always',
@@ -491,6 +504,7 @@ export function useObraCampo(obraId: string) {
     desfazer,
     reconcluir,
     avanco,
+    anotar,
     quantitativo,
     medicao,
     excluirMed,

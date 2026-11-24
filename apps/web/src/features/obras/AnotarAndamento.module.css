@@ -1,0 +1,9 @@
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.registrar {
+  align-self: flex-end;
+  min-height: 44px;
+}

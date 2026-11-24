@@ -469,6 +469,17 @@ Protótipo aprovado pelo usuário em 16/11/2026 (canvas "CONTRO · Avanço por q
 
 **Aceite:** com 1.200 m² em 10 d.u., meta 120 m²/dia; lançando 85 · 104 · 236 (2 d.u.) · 131 até sex 13/11, a ficha mostra 556 de 1.200 m² (46,3%), "Atrasado 44 m²" em 16/11 e "Para recuperar o prazo · 129 m²"; o período 26/10 → 28/10 lança normalmente; um dia já medido não pode ser marcado; editar uma medição recalcula o avanço; a Produtividade mostra 111,2 m²/dia (93% da meta); Meta, Produtividade e Comparar mostram só a atividade aberta.
 
+## Ficha: início, motivo e andamento (24/11/2026)
+
+Pedido do usuário em vídeo (24/11/2026), na ficha da atividade de obra geral. PRD §Obras gerais e Avanço parcial, SPEC §3.3-B.
+
+- [x] Banco: `data_inicio`, `definir_inicio_previsto`, `desfazer_inicio_previsto`, término não antes do início, `anotar_atividade` (`20261124100000_inicio_anotacao_atividade.sql`), pgTAP `inicio_anotacao_atividade.test.sql`.
+- [x] Core: início na trilha da obra geral, conflito início × término, motivo e anotação normalizados; Vida e Log com anotação, início definido/ajustado (motivo)/desfeito.
+- [x] Ficha da obra geral: linhas Início previsto e Término previsto com Mudar; folha de data em dois passos ao replanejar ("De X para Y" + motivo).
+- [x] Ficha (Contorno e geral): bloco Andamento ("O que está acontecendo?" + Registrar), pela fila offline.
+
+**Aceite:** na atividade atrasada de sex 20/11, mudar o término para sex 27/11 pede o motivo e a Vida mostra "Replanejada 1x · de sex 20/11 para sex 27/11 · "Choveu a semana toda""; definir o início qua 25/11 mostra "início qua 25/11"; início depois do término é recusado; registrar "Choveu demais, não deu para fazer nada hoje" com 25% mostra "Anotação · "…" · 25% feito".
+
 ---
 
 ## Relatório de avanço físico (16/11/2026)
@@ -502,6 +513,8 @@ Protótipo aprovado em 17/11/2026 (canvas "CONTRO · Check-in por obra"). PRD §
 ---
 
 ## Decisões
+
+- [x] **24/11/2026 · Início, motivo e andamento** (vídeo do usuário): (1) o **início previsto** vale só para a obra geral (na Contorno o início vem do cronograma e se ajusta com `inicio_manual`); não entra no Hoje, no boletim nem nos avisos neste corte, e mudar o início não sobe `replanejamentos` (o contador é do término), mas o ajuste conta como replanejamento na Vida e no Log, como o `inicio_ajustado` da Contorno. (2) O **motivo** é obrigatório ao replanejar item aberto (pedido do usuário no mesmo dia; antes era opcional como nas tarefas): segundo passo da folha com "Salvar" só com motivo, e as RPCs recusam sem ele (testes antigos de replanejamento passaram a enviar motivo); a primeira data salva no toque. Subitem (editar_subitem_geral) continua sem motivo. (3) A **anotação** é um registro à parte do avanço (não exige mudar o %); vale nos dois ambientes e para qualquer papel; sem editar nem excluir; o Mapa de coleta não tem o bloco.
 
 - [x] **18/11/2026 · Frequência de check-in em quantidade e período** (pedido do usuário): a frequência por pessoa passa a ter dois campos de seleção, quantidade (1 a 5, ou Não precisa) e período (Semanal ou Mensal). Mensal segue o mês do calendário; período fechado pede até N dias com check-in, o corrente só soma o feito. "Todo dia útil" deixou de existir e virou 5 por semana, o que muda a cobrança: o dia perdido só conta quando a semana fecha. Frequências salvas foram convertidas (diário → 5/semana, 3/2/1 → por semana).
 

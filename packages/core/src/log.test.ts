@@ -492,6 +492,50 @@ describe('vidaDoItem', () => {
     expect(vidaDoItem(t, [], HOJE, fmt).resumo).toMatch(/30 dias aberta$/);
   });
 
+  it('obra geral: início definido, ajustado com motivo, desfeito, e anotação do andamento', () => {
+    const t = item({ id: 'g1', origem: 'atividade', prazo: '2026-11-20' });
+    const ajuste = ev({
+      itemId: 'g1',
+      tipo: 'inicio_ajustado',
+      em: '2026-11-03T10:00:00',
+      antes: { inicio: '2026-11-09' },
+      depois: { inicio: '2026-11-11', motivo: 'choveu' },
+    });
+    const eventos = [
+      ev({
+        itemId: 'g1',
+        tipo: 'inicio_definido',
+        em: '2026-11-02T09:00:00',
+        antes: { inicio: null },
+        depois: { inicio: '2026-11-09' },
+      }),
+      ajuste,
+      ev({
+        itemId: 'g1',
+        tipo: 'inicio_desfeito',
+        em: '2026-11-03T10:01:00',
+        antes: { inicio: '2026-11-11' },
+        depois: { inicio: '2026-11-09', evento_id: ajuste.id },
+      }),
+      ev({
+        itemId: 'g1',
+        tipo: 'anotacao',
+        em: '2026-11-04T08:00:00',
+        depois: { texto: 'Choveu demais, não deu para trabalhar', pct: 25 },
+      }),
+      ev({ itemId: 'g1', tipo: 'anotacao', em: '2026-11-04T09:00:00', depois: { texto: '  ' } }),
+    ];
+    const vida = vidaDoItem(t, eventos, HOJE, fmt);
+    expect(vida.passos.map((p) => [p.rotulo, p.detalhe, p.cor])).toEqual([
+      ['Data alterada', 'início seg 09/11', 'neutra'],
+      ['Início ajustado', 'de seg 09/11 para qua 11/11 · "choveu" · desfeito', 'atencao'],
+      ['Mudança de data desfeita', 'início voltou para seg 09/11', 'neutra'],
+      ['Anotação', '"Choveu demais, não deu para trabalhar" · 25% feito', 'neutra'],
+    ]);
+    // O ajuste desfeito não conta como replanejamento.
+    expect(vida.resumo).toMatch(/· 0 replanejamentos ·/);
+  });
+
   it('sem prazo nem eventos: tudo zero', () => {
     expect(vidaDoItem(item({ id: 'z' }), [], HOJE, fmt).resumo).toBe(
       '0 d.u. além do prazo original · 0 replanejamentos · 0 dias aberta',

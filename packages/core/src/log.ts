@@ -23,7 +23,8 @@ export type TipoLinhaLog =
   | 'apontada'
   | 'data_alterada'
   | 'data_desfeita'
-  | 'responsavel_trocado';
+  | 'responsavel_trocado'
+  | 'anotacao';
 export type OrigemLog = 'atividade' | 'tarefa' | 'pendencia' | 'providencia';
 export type CorLog = 'neutra' | 'ok' | 'atencao' | 'atraso';
 
@@ -113,6 +114,7 @@ const COR: Record<TipoLinhaLog, CorLog> = {
   data_alterada: 'neutra',
   data_desfeita: 'neutra',
   responsavel_trocado: 'neutra',
+  anotacao: 'neutra',
 };
 
 const ROTULO: Record<TipoLinhaLog, string> = {
@@ -131,6 +133,7 @@ const ROTULO: Record<TipoLinhaLog, string> = {
   data_alterada: 'Data alterada',
   data_desfeita: 'Mudança de data desfeita',
   responsavel_trocado: 'Responsável trocado',
+  anotacao: 'Anotação',
 };
 
 /** Rótulo do tipo na linha do Log (a "vencida" por extenso). */
@@ -183,7 +186,8 @@ function atrasoTexto(referencia: DataISO | null, dia: DataISO, nome: string): st
 export function eventosDesfeitos(eventos: { tipo: string; depois: unknown }[]): Set<string> {
   const ids = new Set<string>();
   for (const ev of eventos) {
-    if (ev.tipo !== 'data_desfeita' || !ev.depois || typeof ev.depois !== 'object') continue;
+    if (ev.tipo !== 'data_desfeita' && ev.tipo !== 'inicio_desfeito') continue;
+    if (!ev.depois || typeof ev.depois !== 'object') continue;
     const id = (ev.depois as Record<string, unknown>).evento_id;
     if (typeof id === 'string') ids.add(id);
   }
@@ -306,9 +310,44 @@ function passosDoItem(
       case 'inicio_ajustado': {
         const de = data(antes.inicio_manual) ?? data(antes.inicio);
         const ate = data(depois.inicio_manual) ?? data(depois.inicio);
+        const motivo = texto(depois.motivo);
         passos.push({
           tipo: 'inicio_ajustado',
           base: de && ate ? `de ${formatarData(de)} para ${formatarData(ate)}` : 'início ajustado',
+          extra:
+            juntar([motivo ? `"${motivo}"` : null, desfeitos.has(ev.id) ? 'desfeito' : null]) ||
+            null,
+          evento: ev,
+        });
+        break;
+      }
+      case 'inicio_definido': {
+        // Obra geral: primeiro início (ou início de item concluído).
+        const ate = data(depois.inicio);
+        passos.push({
+          tipo: 'data_alterada',
+          base: ate ? `início ${formatarData(ate)}` : 'início retirado',
+          evento: ev,
+        });
+        break;
+      }
+      case 'inicio_desfeito': {
+        const volta = data(depois.inicio);
+        passos.push({
+          tipo: 'data_desfeita',
+          base: volta ? `início voltou para ${formatarData(volta)}` : 'início voltou para sem data',
+          evento: ev,
+        });
+        break;
+      }
+      case 'anotacao': {
+        const t = texto(depois.texto);
+        if (!t) break;
+        const pct = depois.pct;
+        passos.push({
+          tipo: 'anotacao',
+          base: `"${t}"`,
+          extra: typeof pct === 'number' ? `${pct}% feito` : null,
           evento: ev,
         });
         break;

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   atalhosDataPrevista,
+  conflitoInicioTermino,
   diaCurto,
   podePlanejarObraGeral,
   VERBO_PROVIDENCIA,
@@ -11,7 +12,6 @@ import {
   type TipoProvidencia,
 } from '@contro/core';
 import { BottomSheet, Icon, useToast } from '@contro/ui';
-import { EscolherData } from '../../components/EscolherData';
 import { VidaDoItem } from '../log/VidaDoItem';
 import { hojeISO } from '../obras/api';
 import { Camera } from '../obras/Camera';
@@ -19,6 +19,7 @@ import fichaStyles from '../obras/FichaAtividade.module.css';
 import { LinhaPara } from '../obras/LinhaPara';
 import linhaStyles from '../obras/LinhaPara.module.css';
 import { NovaProvidenciaSheet } from '../obras/ProvidenciasAba';
+import { AnotarAndamento } from '../obras/AnotarAndamento';
 import { CampoPrestador } from '../obras/CampoPrestador';
 import { RodapeAvanco } from '../obras/RodapeAvanco';
 import { numeracaoObra } from '../obras/numeracaoObra';
@@ -29,17 +30,20 @@ import { useObraCampo } from '../obras/useObraCampo';
 import type { PessoaAtual } from '../perfil/usePerfil';
 import { EditarSubitemSheet } from './EditarSubitemSheet';
 import { EscolherResponsavel } from './EscolherResponsavel';
+import { MudarDataSheet } from './MudarDataSheet';
 import styles from './FichaAtividadeGeral.module.css';
 import type { ObraGeral } from './obraGeral';
 import {
   definirDataPrevista,
+  definirInicioPrevisto,
   definirResponsavelAtividade,
   desfazerDataPrevista,
+  desfazerInicioPrevisto,
   desfazerResponsavelAtividade,
 } from './planejamento';
 
 const NOTA_MEMBRO =
-  'Data e responsável são definidos pelo coordenador. Se não vai dar no prazo, fale com ele para ajustar.';
+  'Datas e responsável são definidos pelo coordenador. Se não vai dar no prazo, fale com ele para ajustar.';
 
 /** Ficha da atividade da obra geral (mockup C4, C12, J4): data, responsável, subitens e avanço. */
 export function FichaAtividadeGeral({
@@ -69,6 +73,7 @@ export function FichaAtividadeGeral({
   const [menuAberto, setMenuAberto] = useState(false);
   const [editandoNome, setEditandoNome] = useState(false);
   const [mudandoData, setMudandoData] = useState(false);
+  const [mudandoInicio, setMudandoInicio] = useState(false);
   const [trocandoResp, setTrocandoResp] = useState(false);
   const [camera, setCamera] = useState<'concluir' | 'anexar' | null>(null);
   const [novoTipo, setNovoTipo] = useState<TipoProvidencia | null>(null);
@@ -147,19 +152,38 @@ export function FichaAtividadeGeral({
     }
   }
 
-  function mudarData(nova: string) {
+  function mudarData(nova: string, motivo: string | null) {
     setMudandoData(false);
     if (nova === bruta!.data_prevista) return;
+    const conflito = conflitoInicioTermino(a.inicio, nova);
+    if (conflito) return avisarErro(new Error(conflito));
     let evento: string | null = null;
     void planejar(
       async () => {
-        evento = await definirDataPrevista(a.id, nova);
+        evento = await definirDataPrevista(a.id, nova, motivo);
       },
       // Volta exatamente (data, original e replanejamentos), sem contar outro replanejamento.
       async () => {
         if (evento) await desfazerDataPrevista(evento);
       },
       'Data alterada.',
+    );
+  }
+
+  function mudarInicio(nova: string, motivo: string | null) {
+    setMudandoInicio(false);
+    if (nova === a.inicio) return;
+    const conflito = conflitoInicioTermino(nova, a.prazo);
+    if (conflito) return avisarErro(new Error(conflito));
+    let evento: string | null = null;
+    void planejar(
+      async () => {
+        evento = await definirInicioPrevisto(a.id, nova, motivo);
+      },
+      async () => {
+        if (evento) await desfazerInicioPrevisto(evento);
+      },
+      'Início alterado.',
     );
   }
 
@@ -319,7 +343,25 @@ export function FichaAtividadeGeral({
 
           <div className={styles.linhaInfo}>
             <div className={styles.infoTexto}>
-              <span className={styles.rotulo}>Data prevista</span>
+              <span className={styles.rotulo}>Início previsto</span>
+              <span className={a.inicio ? styles.infoValor : styles.vazioTxt}>
+                {a.inicio ? diaCurto(a.inicio) : 'sem data'}
+              </span>
+            </div>
+            {planeja ? (
+              <button
+                type="button"
+                className={styles.acaoLinha}
+                onClick={() => setMudandoInicio(true)}
+              >
+                Mudar
+              </button>
+            ) : null}
+          </div>
+
+          <div className={styles.linhaInfo}>
+            <div className={styles.infoTexto}>
+              <span className={styles.rotulo}>Término previsto</span>
               <span className={styles.infoValor}>
                 {dataTxt}
                 {!concluida && a.status === 'vence_hoje' ? (
@@ -332,7 +374,7 @@ export function FichaAtividadeGeral({
               </span>
               {temSubitens ? (
                 <span className={styles.infoNota}>
-                  A data da atividade acompanha a do último subitem.
+                  O término acompanha a data do último subitem.
                 </span>
               ) : null}
             </div>
@@ -488,6 +530,13 @@ export function FichaAtividadeGeral({
           {/* Sem "Pendências da atividade" na ficha (06/11/2026): muita informação numa
               tela só. As pendências ficam na aba Check list da obra. */}
 
+          <AnotarAndamento
+            pendente={campo.anotar.isPending}
+            onAnotar={(texto, aoGravar) =>
+              campo.anotar.mutate({ atividadeId: a.id, texto }, { onSuccess: aoGravar })
+            }
+          />
+
           <VidaDoItem itemId={a.id} ambiente="geral" />
 
           {concluida && a.semFoto ? (
@@ -522,15 +571,30 @@ export function FichaAtividadeGeral({
         ) : null}
       </BottomSheet>
 
-      <BottomSheet open={mudandoData} title="Data prevista" onClose={() => setMudandoData(false)}>
-        <EscolherData
-          valor={bruta.data_prevista ?? ''}
-          onEscolher={mudarData}
-          sugestoes={atalhosDataPrevista(hoje)}
-          hoje={hoje}
-          rotulo="Data prevista da atividade"
-        />
-      </BottomSheet>
+      <MudarDataSheet
+        aberto={mudandoInicio}
+        titulo="Início previsto"
+        rotulo="Início previsto da atividade"
+        valor={a.inicio}
+        concluida={concluida}
+        hoje={hoje}
+        sugestoes={atalhosDataPrevista(hoje)}
+        onFechar={() => setMudandoInicio(false)}
+        onSalvar={mudarInicio}
+      />
+
+      <MudarDataSheet
+        aberto={mudandoData}
+        titulo="Término previsto"
+        rotulo="Término previsto da atividade"
+        valor={bruta.data_prevista}
+        concluida={concluida}
+        hoje={hoje}
+        sugestoes={atalhosDataPrevista(hoje)}
+        min={a.inicio ?? undefined}
+        onFechar={() => setMudandoData(false)}
+        onSalvar={mudarData}
+      />
 
       <BottomSheet open={trocandoResp} title="Responsável" onClose={() => setTrocandoResp(false)}>
         <EscolherResponsavel

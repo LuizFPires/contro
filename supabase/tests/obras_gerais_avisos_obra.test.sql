@@ -151,7 +151,7 @@ select is((select providenciar_ate from obra_providencia where id = '00000000-00
   '2031-01-08'::date, 'providência de 3 d.u. antes de uma segunda: quarta anterior');
 select is((select providenciar_ate from obra_providencia where id = '00000000-0000-0000-0000-00000006b302'),
   '2031-01-13'::date, 'antecedência 0: a própria data');
-select definir_data_prevista('00000000-0000-0000-0000-00000006b201', '2031-01-15');
+select definir_data_prevista('00000000-0000-0000-0000-00000006b201', '2031-01-15', 'Ajuste');
 select is((select providenciar_ate from obra_providencia where id = '00000000-0000-0000-0000-00000006b301'),
   '2031-01-10'::date, 'replanejar a atividade recalcula (quarta 15/01 → sexta 10/01)');
 select set_config('avo.sub', adicionar_subitem_geral('00000000-0000-0000-0000-00000006b201', 'Sub P', '2031-01-20')::text, true);

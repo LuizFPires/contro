@@ -97,8 +97,8 @@ select is((select count(*)::int from aviso_disparo where user_id in (select user
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000005a2","role":"authenticated"}';
 select definir_responsavel_atividade('00000000-0000-0000-0000-00000005a204', (select id from ids where quem = 'J'));
-select definir_data_prevista('00000000-0000-0000-0000-00000005a204', '2031-01-08');
-select definir_data_prevista('00000000-0000-0000-0000-00000005a201', '2031-01-07');
+select definir_data_prevista('00000000-0000-0000-0000-00000005a204', '2031-01-08', 'Ajuste');
+select definir_data_prevista('00000000-0000-0000-0000-00000005a201', '2031-01-07', 'Ajuste');
 select definir_responsavel_atividade('00000000-0000-0000-0000-00000005a201', (select id from ids where quem = 'J'));
 select definir_responsavel_atividade('00000000-0000-0000-0000-00000005a205', (select id from ids where quem = 'J'));
 select definir_responsavel_atividade('00000000-0000-0000-0000-00000005a208', (select id from ids where quem = 'L'));
@@ -130,7 +130,7 @@ select is((select dia from aviso_disparo where user_id = (select user_id from id
 
 -- Replanejamento avisa o responsável; o Desfazer não avisa de novo.
 set local role authenticated;
-select set_config('avs.ev', definir_data_prevista('00000000-0000-0000-0000-00000005a201', '2031-01-09')::text, true);
+select set_config('avs.ev', definir_data_prevista('00000000-0000-0000-0000-00000005a201', '2031-01-09', 'Ajuste')::text, true);
 reset role;
 select is((select corpo from aviso_disparo where corpo like 'Nova data:%'
   and user_id = (select user_id from ids where quem = 'J')),
@@ -145,7 +145,7 @@ select is((select count(*)::int from aviso_disparo where corpo like 'Nova data:%
 
 -- Concluída: mudar a data não avisa.
 set local role authenticated;
-select definir_data_prevista('00000000-0000-0000-0000-00000005a211', '2031-01-04');
+select definir_data_prevista('00000000-0000-0000-0000-00000005a211', '2031-01-04', 'Ajuste');
 reset role;
 select is((select count(*)::int from aviso_disparo where corpo like 'Nova data:%'), 1, 'atividade concluída não avisa data');
 
@@ -337,7 +337,7 @@ select is((select corpo from aviso_disparo where corpo like 'Nova data: Atv 10%'
 -- Data da atividade com os subitens mandando (16/02), subitem que não muda o
 -- prazo e o Desfazer do subitem (16/02 → 12/02; prazo vira 13/02): nada.
 set local role authenticated;
-select definir_data_prevista('00000000-0000-0000-0000-00000005a222', '2031-02-13');
+select definir_data_prevista('00000000-0000-0000-0000-00000005a222', '2031-02-13', 'Ajuste');
 select editar_subitem_geral('00000000-0000-0000-0000-00000005a224', 'S2', '2031-02-13');
 select desfazer_data_prevista(current_setting('avs.ev2')::uuid);
 reset role;

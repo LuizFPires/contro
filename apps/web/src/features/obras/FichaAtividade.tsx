@@ -34,6 +34,7 @@ import { numeracaoObra } from './numeracaoObra';
 import { useConcluirAtividade, type AoConcluir } from './useConcluirAtividade';
 import { useAvanco } from './useAvanco';
 import { useObraCampo } from './useObraCampo';
+import { AnotarAndamento } from './AnotarAndamento';
 import { useObraTarefas } from './useObraTarefas';
 import { QuemCuida } from './QuemCuida';
 import { RodapeAvanco } from './RodapeAvanco';
@@ -454,6 +455,15 @@ export function FichaAtividade({
               </div>
             ) : null}
           </div>
+
+          {!mapa ? (
+            <AnotarAndamento
+              pendente={campo.anotar.isPending}
+              onAnotar={(texto, aoGravar) =>
+                campo.anotar.mutate({ atividadeId: a.id, texto }, { onSuccess: aoGravar })
+              }
+            />
+          ) : null}
 
           <VidaDoItem
             itemId={a.id}
