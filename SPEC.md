@@ -80,6 +80,17 @@ obra_providencia(id, obra_id, atividade_id, tipo, descricao, antecedencia_du, du
                  status: 'pendente'|'feito', feito_em, feito_por)
 ```
 
+### 3.3-B Início previsto, motivo e anotação (24/11/2026)
+
+Migration `20261124100000_inicio_anotacao_atividade.sql`, pgTAP `inicio_anotacao_atividade.test.sql`.
+
+- `obra_atividade.data_inicio date null` (só obra geral, atividade de topo), protegida pelo gatilho `contro_protege_planejamento_atividade` (só muda por RPC).
+- `definir_inicio_previsto(atividade, data, motivo?) → uuid` (quem planeja a obra geral): mesma data → null; aberta com início que recebe outro → evento `inicio_ajustado` (`antes.inicio`, `depois.inicio`, `depois.motivo` até 120); senão `inicio_definido`. Aberta com início não volta a null (22023). Início depois do término (`contro_termino_atividade`: maior data dos subitens, senão a data prevista) → 22023 "O início fica depois do término". Subitem → 23503; obra da Contorno → 23505.
+- `desfazer_inicio_previsto(evento)`: mesmas regras de `desfazer_data_prevista` (próprio evento, 10 min, último evento de início); grava `inicio_desfeito` com `depois.evento_id`.
+- `definir_data_prevista` recriada: término antes do início da atividade → 22023 "O término fica antes do início"; motivo cortado em 120.
+- `anotar_atividade(atividade, texto, client_op_id)`: quem vê a obra (`contro_ve_obra`, Contorno e geral), atividade de topo; texto aparado de 1 a 500 (senão 22023); idempotente; evento `anotacao` com `depois.texto` e `depois.pct` (avanço da hora, só aberta). Web: fila `anotar_atividade` (payload `refazerLog` refaz o `['log-score']` ativo depois de gravar).
+- Core: `obraGeral.ts` (`AtividadeGeral.data_inicio`, `AtividadeGeralTrilha.inicio`, `conflitoInicioTermino`, `mudancaDeDataPedeMotivo`, `normalizarMotivoData`, `normalizarAnotacao`, `MOTIVO_DATA_MAX`, `ANOTACAO_MAX`); `log.ts`: `anotacao` (tipo novo do Log, "Anotação"), `inicio_definido` (como data alterada, "início qua 25/11"), `inicio_ajustado` com motivo e "desfeito", `inicio_desfeito` (como mudança desfeita); `eventosDesfeitos` também lê `inicio_desfeito`.
+
 ### 3.3-A Avanço por quantitativo (16/11/2026)
 - `obra_atividade.quant_total` (numeric > 0), `quant_unidade` (m², m, m³, un, kg) e `quant_pessoas` (1..999, opcional desde `20261116110000`; o app não pede mais). Null em `quant_total` = sem quantitativo (passos 25 · 50 · 75 · 100).
 - `obra_medicao`: `id` (uuid gerado no aparelho), `obra_id`, `atividade_id`, `tipo` ('dia' | 'periodo'; dia ⇒ de = ate), `de`, `ate` (dias úteis nas pontas), `quantidade` > 0, `pessoas` > 0 (média por dia), `prestador` (o da atividade na hora), `foto_id` opcional, `criado_por/em`, `editado_por/em`, `deleted_at` (exclusão lógica). Leitura por `contro_ve_obra(obra_id)`; escrita só pelas RPCs.
