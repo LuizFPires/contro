@@ -97,7 +97,7 @@ export const ANOTACAO_MAX = 500;
 
 /**
  * Mudar esta data é replanejar? Só em item aberto que já tinha data e recebe
- * outra; então a folha pede o motivo antes de salvar.
+ * outra; então a folha exige o motivo antes de salvar (24/11/2026).
  */
 export function mudancaDeDataPedeMotivo(e: {
   concluida: boolean;

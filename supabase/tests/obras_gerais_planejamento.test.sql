@@ -126,7 +126,7 @@ select lives_ok($$ select adicionar_atividade_geral('00000000-0000-0000-0000-000
   'Administrador (fora da obra) pode ser responsavel');
 
 -- definir_data_prevista
-select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f212', '2026-11-16') $$, 'primeira data');
+select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f212', '2026-11-16', 'Ajuste') $$, 'primeira data');
 select is(
   (select row(data_prevista, data_prevista_original, replanejamentos)::text from obra_atividade where id = '00000000-0000-0000-0000-00000002f212'),
   row('2026-11-16'::date, null::date, 0)::text, 'primeira data nao conta replanejamento');
@@ -142,16 +142,16 @@ select is(
   row('{"data": "2026-11-16", "data_prevista_original": null, "replanejamentos": 0}'::jsonb,
       '{"data": "2026-11-18", "motivo": "Chuva"}'::jsonb)::text,
   'evento replanejada com antes e depois (motivo aparado)');
-select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f212', '2026-11-23') $$, 'terceira data');
+select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f212', '2026-11-23', 'Ajuste') $$, 'terceira data');
 select is(
   (select row(data_prevista, data_prevista_original, replanejamentos)::text from obra_atividade where id = '00000000-0000-0000-0000-00000002f212'),
   row('2026-11-23'::date, '2026-11-16'::date, 2)::text, 'terceira data: 2 replanejamentos, original ainda a primeira');
-select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f212', '2026-11-23') $$, 'mesma data');
+select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f212', '2026-11-23', 'Ajuste') $$, 'mesma data');
 select is(
   (select row(replanejamentos, (select count(*) from obra_atividade_evento e where e.atividade_id = a.id))::text
    from obra_atividade a where id = '00000000-0000-0000-0000-00000002f212'),
   row(2, 4::bigint)::text, 'mesma data: nada muda e nenhum evento novo');
-select throws_ok($$ select definir_data_prevista(gen_random_uuid(), '2026-11-23') $$,
+select throws_ok($$ select definir_data_prevista(gen_random_uuid(), '2026-11-23', 'Ajuste') $$,
   '23503', null, 'item inexistente e recusado');
 
 -- Atividade concluída: só troca a data
@@ -159,7 +159,7 @@ reset role;
 update obra_atividade set concluida_em = now() where id = '00000000-0000-0000-0000-00000002f212';
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000002d3","role":"authenticated"}';
-select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f212', '2026-11-25') $$, 'data em atividade concluida');
+select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f212', '2026-11-25', 'Ajuste') $$, 'data em atividade concluida');
 select is(
   (select row(data_prevista, data_prevista_original, replanejamentos)::text from obra_atividade where id = '00000000-0000-0000-0000-00000002f212'),
   row('2026-11-25'::date, '2026-11-16'::date, 2)::text, 'concluida: replanejamentos nao muda');
@@ -265,7 +265,7 @@ select throws_ok($$ select adicionar_atividade_geral('00000000-0000-0000-0000-00
   '42501', null, 'J nao cria atividade');
 select throws_ok($$ select adicionar_subitem_geral('00000000-0000-0000-0000-00000002f211', 'X', null) $$, '42501', null, 'J nao cria subitem');
 select throws_ok($$ select editar_subitem_geral('00000000-0000-0000-0000-00000002f221', 'X', '2026-11-30') $$, '42501', null, 'J nao edita subitem');
-select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f211', '2026-11-30') $$, '42501', null, 'J nao muda data');
+select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f211', '2026-11-30', 'Ajuste') $$, '42501', null, 'J nao muda data');
 select throws_ok($$ select definir_responsavel_atividade('00000000-0000-0000-0000-00000002f211', null) $$, '42501', null, 'J nao troca responsavel');
 select throws_ok($$ select excluir_atividade_obra('00000000-0000-0000-0000-00000002f211') $$, '42501', null, 'J nao exclui atividade');
 select throws_ok($$ select excluir_subitem_geral('00000000-0000-0000-0000-00000002f223') $$, '42501', null, 'J nao exclui subitem');
@@ -278,12 +278,12 @@ select throws_ok($$ insert into obra_fase (obra_id, ordem, titulo) values ('0000
 -- C2 (coordenador de G2): não planeja G
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000002d5","role":"authenticated"}';
 select throws_ok($$ select adicionar_fase_geral('00000000-0000-0000-0000-00000002f002', 'X') $$, '42501', null, 'C2 nao cria fase em G');
-select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f211', '2026-11-30') $$, '42501', null, 'C2 nao muda data em G');
+select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f211', '2026-11-30', 'Ajuste') $$, '42501', null, 'C2 nao muda data em G');
 
 -- A (administrador): obra Contorno não passa pelas RPCs gerais; exclui e restaura em G
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000002d2","role":"authenticated"}';
 select throws_ok($$ select adicionar_fase_geral('00000000-0000-0000-0000-00000002f001', 'X') $$, '23505', null, 'obra Contorno: 23505');
-select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f201', '2026-11-30') $$, '23505', null, 'atividade Contorno: 23505');
+select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f201', '2026-11-30', 'Ajuste') $$, '23505', null, 'atividade Contorno: 23505');
 select throws_ok($$ select excluir_subitem_geral('00000000-0000-0000-0000-00000002f204') $$, '23505', null, 'subitem Contorno: 23505');
 select lives_ok($$ select excluir_atividade_obra('00000000-0000-0000-0000-00000002f211') $$, 'A exclui atividade de G');
 select throws_ok($$ select restaurar_subitem_geral('00000000-0000-0000-0000-00000002f223') $$,

@@ -6,6 +6,8 @@
 -- 2) Anotação do andamento ("choveu, não deu para trabalhar"): qualquer pessoa
 --    que vê a obra (Contorno ou geral) registra um texto livre; evento
 --    `anotacao` com o texto e o avanço da hora. Fila offline (client_op_id).
+-- Motivo obrigatório (pedido do usuário, 24/11/2026): replanejar o início ou
+-- o término de atividade aberta que já tinha data exige o motivo (22023).
 -- 3) O término não fica antes do início: gatilho em obra_atividade, que vale
 --    para a data prevista, os subitens (criar e editar) e os dois Desfazer.
 
@@ -137,6 +139,9 @@ begin
   if p_data is not null and v_fim is not null and p_data > v_fim then
     raise exception 'O início fica depois do término' using errcode = '22023';
   end if;
+  if v_atv.concluida_em is null and v_atv.data_inicio is not null and v_motivo is null then
+    raise exception 'Informe o motivo da mudança' using errcode = '22023';
+  end if;
   select id into v_pessoa from public.pessoa where user_id = auth.uid() and deleted_at is null;
   update public.obra_atividade set data_inicio = p_data where id = p_atividade_id;
   if v_atv.concluida_em is null and v_atv.data_inicio is not null then
@@ -208,8 +213,9 @@ $$;
 revoke execute on function desfazer_inicio_previsto(uuid) from public, anon;
 grant execute on function desfazer_inicio_previsto(uuid) to authenticated;
 
--- Data prevista (término): igual a antes, com a mensagem do término antes do
--- início já na entrada (o gatilho confere de novo) e o motivo até 120.
+-- Data prevista (término): igual a antes, com o motivo obrigatório ao
+-- replanejar (até 120) e a mensagem do término antes do início já na entrada
+-- (o gatilho confere de novo).
 create or replace function definir_data_prevista(p_atividade_id uuid, p_data date, p_motivo text default null)
 returns uuid
 language plpgsql
@@ -219,11 +225,14 @@ as $$
 declare
   v_obra uuid;
   v_inicio date;
+  v_data date;
+  v_concluida timestamptz;
+  v_motivo text := left(nullif(btrim(coalesce(p_motivo, '')), ''), 120);
 begin
   if not public.contro_tem_acesso() then
     raise exception 'Sem acesso' using errcode = '42501';
   end if;
-  select obra_id, data_inicio into v_obra, v_inicio
+  select obra_id, data_inicio, data_prevista, concluida_em into v_obra, v_inicio, v_data, v_concluida
   from public.obra_atividade where id = p_atividade_id and deleted_at is null;
   if v_obra is null then
     raise exception 'Atividade inválida' using errcode = '23503';
@@ -232,7 +241,11 @@ begin
   if p_data is not null and v_inicio is not null and p_data < v_inicio then
     raise exception 'O término fica antes do início' using errcode = '22023';
   end if;
-  return public.contro_aplica_data_prevista(p_atividade_id, p_data, left(p_motivo, 120));
+  if v_concluida is null and v_data is not null and p_data is not null
+     and p_data <> v_data and v_motivo is null then
+    raise exception 'Informe o motivo da mudança' using errcode = '22023';
+  end if;
+  return public.contro_aplica_data_prevista(p_atividade_id, p_data, v_motivo);
 end;
 $$;
 

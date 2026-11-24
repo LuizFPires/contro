@@ -12,8 +12,8 @@ import styles from './MudarDataSheet.module.css';
 /**
  * Folha de data da atividade da obra geral (início ou término previsto). Data
  * nova em item sem data: salva no toque. Replanejar (item aberto que já tinha
- * data): segundo passo "de X para Y" com o motivo da mudança, que vai para a
- * Vida da atividade e o Log (pedido do usuário, 24/11/2026).
+ * data): segundo passo "de X para Y" com o motivo da mudança, obrigatório, que
+ * vai para a Vida da atividade e o Log (pedido do usuário, 24/11/2026).
  */
 export function MudarDataSheet({
   aberto,
@@ -40,6 +40,7 @@ export function MudarDataSheet({
 }) {
   const [nova, setNova] = useState<string | null>(null);
   const [motivo, setMotivo] = useState('');
+  const motivoOk = normalizarMotivoData(motivo);
 
   useEffect(() => {
     if (!aberto) {
@@ -76,8 +77,13 @@ export function MudarDataSheet({
             onChange={(e) => setMotivo(e.target.value)}
             autoFocus
           />
-          <p className={styles.dica}>Fica na vida da atividade e no Log.</p>
-          <Button type="button" full onClick={() => onSalvar(nova, normalizarMotivoData(motivo))}>
+          <p className={styles.dica}>Obrigatório. Fica na vida da atividade e no Log.</p>
+          <Button
+            type="button"
+            full
+            disabled={!motivoOk}
+            onClick={() => motivoOk && onSalvar(nova, motivoOk)}
+          >
             Salvar
           </Button>
           <Button type="button" variant="tertiary" full onClick={() => setNova(null)}>
