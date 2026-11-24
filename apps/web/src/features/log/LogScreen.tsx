@@ -53,6 +53,8 @@ function iconeDo(tipo: TipoLinhaLog): IconName {
       return 'undo';
     case 'responsavel_trocado':
       return 'pessoa';
+    case 'anotacao':
+      return 'editar';
     case 'vencida':
       return 'alert';
     case 'criada':
