@@ -345,7 +345,8 @@ export function calcularScoreEquipe(
 
 /**
  * Replanejamentos por item contados pelos eventos (obras gerais): cada `replanejada`
- * conta, menos as desfeitas (apontadas pelo `evento_id` de um `data_desfeita`).
+ * (término) e cada `inicio_ajustado` (início, 24/11/2026) conta, menos as desfeitas
+ * (apontadas pelo `evento_id` de um `data_desfeita` ou `inicio_desfeito`).
  */
 export function replanejamentosPorEventos(
   eventos: { id: string; itemId: string; tipo: string; depois: unknown }[],
@@ -353,7 +354,8 @@ export function replanejamentosPorEventos(
   const desfeitos = eventosDesfeitos(eventos);
   const contagem: Record<string, number> = {};
   for (const ev of eventos) {
-    if (ev.tipo !== 'replanejada' || desfeitos.has(ev.id)) continue;
+    if (ev.tipo !== 'replanejada' && ev.tipo !== 'inicio_ajustado') continue;
+    if (desfeitos.has(ev.id)) continue;
     contagem[ev.itemId] = (contagem[ev.itemId] ?? 0) + 1;
   }
   return contagem;

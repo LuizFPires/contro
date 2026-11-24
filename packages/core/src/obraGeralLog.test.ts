@@ -57,6 +57,22 @@ describe('replanejamentosPorEventos', () => {
     expect(replanejamentosPorEventos(eventos)).toEqual({ a1: 1, a2: 1 });
   });
 
+  it('ajuste do início também conta, menos o desfeito (24/11/2026)', () => {
+    const eventos = [
+      ev({ id: 'i0', itemId: 'a1', tipo: 'inicio_definido', em: '2026-10-19T10:00:00' }),
+      ev({ id: 'i1', itemId: 'a1', tipo: 'inicio_ajustado', em: '2026-10-20T10:00:00' }),
+      ev({ id: 'i2', itemId: 'a1', tipo: 'inicio_ajustado', em: '2026-10-21T10:00:00' }),
+      ev({
+        itemId: 'a1',
+        tipo: 'inicio_desfeito',
+        em: '2026-10-21T10:02:00',
+        depois: { inicio: '2026-10-25', evento_id: 'i2' },
+      }),
+      ev({ id: 'r1', itemId: 'a1', tipo: 'replanejada', em: '2026-10-22T10:00:00' }),
+    ];
+    expect(replanejamentosPorEventos(eventos)).toEqual({ a1: 2 });
+  });
+
   it('sem eventos, nada', () => {
     expect(replanejamentosPorEventos([])).toEqual({});
   });

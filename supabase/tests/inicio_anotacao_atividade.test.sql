@@ -2,7 +2,7 @@
 -- planeja, com motivo no ajuste e Desfazer), término não antes do início e
 -- anotação do andamento por quem vê a obra (Contorno e geral, idempotente).
 begin;
-select plan(32);
+select plan(36);
 
 -- Elenco: M equipe Contorno, C coordenador de G, J membro de G.
 insert into auth.users (id, email) values
@@ -82,6 +82,12 @@ select isnt(definir_inicio_previsto('00000000-0000-0000-0000-00000003f203', '202
   'com subitem, inicio ate a data do ultimo subitem');
 select throws_ok($$ select definir_inicio_previsto('00000000-0000-0000-0000-00000003f203', '2026-11-30') $$,
   '22023', null, 'com subitem, inicio depois do ultimo subitem e recusado');
+select throws_ok($$ select editar_subitem_geral('00000000-0000-0000-0000-00000003f204', 'Subitem', '2026-11-19') $$,
+  '22023', 'O subitem termina antes do início da atividade', 'subitem nao termina antes do inicio da atividade');
+select throws_ok($$ select adicionar_subitem_geral('00000000-0000-0000-0000-00000003f203', 'Novo', '2026-11-18') $$,
+  '22023', 'O subitem termina antes do início da atividade', 'subitem novo nao termina antes do inicio');
+select lives_ok($$ select adicionar_subitem_geral('00000000-0000-0000-0000-00000003f203', 'Novo', '2026-11-24') $$,
+  'subitem novo depois do inicio passa');
 select throws_ok($$ select definir_inicio_previsto('00000000-0000-0000-0000-00000003f204', '2026-11-20') $$,
   '23503', null, 'subitem nao tem inicio');
 select throws_ok($$ select definir_inicio_previsto('00000000-0000-0000-0000-00000003f201', '2026-11-20') $$,
@@ -105,6 +111,12 @@ select throws_ok(format('select desfazer_inicio_previsto(%L)', (select id from e
   '22023', null, 'nao desfaz duas vezes');
 select throws_ok(format('select desfazer_inicio_previsto(%L)', (select id from ev where nome = 'def')),
   '22023', null, 'so desfaz o ultimo evento de inicio');
+
+-- Desfazer que deixaria o termino antes do inicio: o gatilho recusa.
+insert into ev values ('t', definir_data_prevista('00000000-0000-0000-0000-00000003f202', '2026-11-27'));
+select definir_inicio_previsto('00000000-0000-0000-0000-00000003f202', '2026-11-26');
+select throws_ok(format('select desfazer_data_prevista(%L)', (select id from ev where nome = 't')),
+  '22023', 'O término fica antes do início', 'desfazer o termino nao deixa ele antes do inicio');
 
 -- J (membro de G): nao planeja, mas anota o andamento.
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000003e3","role":"authenticated"}';

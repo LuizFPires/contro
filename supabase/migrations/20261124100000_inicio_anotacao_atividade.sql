@@ -6,7 +6,8 @@
 -- 2) Anotação do andamento ("choveu, não deu para trabalhar"): qualquer pessoa
 --    que vê a obra (Contorno ou geral) registra um texto livre; evento
 --    `anotacao` com o texto e o avanço da hora. Fila offline (client_op_id).
--- 3) O término não fica antes do início (definir_data_prevista recriada).
+-- 3) O término não fica antes do início: gatilho em obra_atividade, que vale
+--    para a data prevista, os subitens (criar e editar) e os dois Desfazer.
 
 alter table obra_atividade add column data_inicio date;
 
@@ -37,6 +38,51 @@ begin
   return new;
 end;
 $$;
+
+-- Início × término. Atividade de topo: o início não passa do término (maior
+-- data dos subitens, senão a dela). Subitem: a data dele não fica antes do
+-- início da atividade. Só confere quando uma dessas datas muda.
+create or replace function contro_confere_inicio_termino()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_inicio date;
+  v_fim date;
+begin
+  if new.deleted_at is not null then
+    return new;
+  end if;
+  if tg_op = 'UPDATE'
+     and new.data_prevista is not distinct from old.data_prevista
+     and new.data_inicio is not distinct from old.data_inicio
+     and new.deleted_at is not distinct from old.deleted_at then
+    return new;
+  end if;
+  if new.pai_id is null then
+    if new.data_inicio is null then
+      return new;
+    end if;
+    v_fim := coalesce(
+      (select max(s.data_prevista) from public.obra_atividade s
+       where s.pai_id = new.id and s.deleted_at is null),
+      new.data_prevista);
+    if v_fim is not null and v_fim < new.data_inicio then
+      raise exception 'O término fica antes do início' using errcode = '22023';
+    end if;
+  elsif new.data_prevista is not null then
+    select data_inicio into v_inicio from public.obra_atividade where id = new.pai_id;
+    if v_inicio is not null and new.data_prevista < v_inicio then
+      raise exception 'O subitem termina antes do início da atividade' using errcode = '22023';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+create trigger obra_atividade_confere_inicio_termino before insert or update on obra_atividade
+  for each row execute function contro_confere_inicio_termino();
 
 -- Término da atividade de topo: a maior data dos subitens; sem subitem com
 -- data, a dela (como prazoAtividadeGeral no core).
@@ -132,7 +178,12 @@ begin
   if not found then
     raise exception 'Não dá mais para desfazer' using errcode = '22023';
   end if;
-  select * into v_atv from public.obra_atividade where id = v_ev.atividade_id for update;
+  select * into v_atv from public.obra_atividade
+  where id = v_ev.atividade_id and deleted_at is null
+  for update;
+  if not found then
+    raise exception 'Não dá mais para desfazer' using errcode = '22023';
+  end if;
   perform public.contro_exige_planejar_geral(v_atv.obra_id);
   select id into v_pessoa from public.pessoa where user_id = auth.uid() and deleted_at is null;
   if v_ev.tipo not in ('inicio_definido', 'inicio_ajustado')
@@ -157,8 +208,8 @@ $$;
 revoke execute on function desfazer_inicio_previsto(uuid) from public, anon;
 grant execute on function desfazer_inicio_previsto(uuid) to authenticated;
 
--- Data prevista (término): igual a antes, mas o término da atividade de topo
--- não fica antes do início dela.
+-- Data prevista (término): igual a antes, com a mensagem do término antes do
+-- início já na entrada (o gatilho confere de novo) e o motivo até 120.
 create or replace function definir_data_prevista(p_atividade_id uuid, p_data date, p_motivo text default null)
 returns uuid
 language plpgsql
