@@ -103,9 +103,38 @@ describe('forward pass', () => {
         { id: 'C', duracao_du: 1, predecessoras: ['B'] },
       ],
     });
-    expect(c.porId.B.es).toBe(5); // max(EF A=2, offset 5)
+    expect(c.porId.B.es).toBe(5); // a data escolhida (offset 5)
     expect(c.porId.C.es).toBe(8); // empurrada pela B
     expect(c.total).toBe(9);
+  });
+
+  it('inicio_manual antes do fim da predecessora vale (data livre); folga nunca negativa', () => {
+    const c = calcularCronograma({
+      inicio: INICIO,
+      atividades: [
+        { id: 'A', duracao_du: 4 },
+        { id: 'B', duracao_du: 2, predecessoras: ['A'], inicio_manual: '2026-01-06' }, // +1 du
+        { id: 'C', duracao_du: 1, predecessoras: ['B'] },
+      ],
+    });
+    expect(c.porId.B.es).toBe(1); // antes do fim da A (EF 4)
+    expect(c.porId.C.es).toBe(3);
+    expect(c.total).toBe(4);
+    expect(c.porId.A.folga).toBe(0);
+    expect(c.itens.every((it) => it.folga >= 0)).toBe(true);
+  });
+
+  it('inicio_minimo (interno, previsões) é piso: as predecessoras ainda empurram', () => {
+    const c = calcularCronograma({
+      inicio: INICIO,
+      atividades: [
+        { id: 'A', duracao_du: 4 },
+        { id: 'B', duracao_du: 2, predecessoras: ['A'], inicio_minimo: '2026-01-06' },
+        { id: 'D', duracao_du: 2, inicio_minimo: '2026-01-07' }, // +2 du
+      ],
+    });
+    expect(c.porId.B.es).toBe(4);
+    expect(c.porId.D.es).toBe(2);
   });
 });
 

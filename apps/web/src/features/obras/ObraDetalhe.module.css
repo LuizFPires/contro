@@ -670,3 +670,49 @@
   border-radius: 6px;
   margin-top: 4px;
 }
+
+/* Obra concluída: faixa no topo do conteúdo, com Reabrir (Gestor e Coordenador). */
+.concluida {
+  margin: 12px 16px 0;
+  background: var(--contro-white);
+  border: 1.5px solid var(--contro-black);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.concluidaIcone {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.concluidaTexto {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+.concluidaTexto b {
+  font-size: 14px;
+}
+.concluidaBtn {
+  min-height: var(--contro-touch);
+  padding: 0 12px;
+  border: 1.5px solid var(--contro-black);
+  border-radius: 10px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  font-weight: 800;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}

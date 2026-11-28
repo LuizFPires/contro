@@ -84,7 +84,7 @@ function comRestantes(e: EntradaRecuperacao, rest: Map<string, Restante>): Entra
     ...e,
     atividades: e.atividades.map((a) => {
       const r = rest.get(a.id);
-      return r ? { ...a, inicio_manual: r.inicio, duracao_du: r.du } : a;
+      return r ? { ...a, inicio_manual: null, inicio_minimo: r.inicio, duracao_du: r.du } : a;
     }),
   };
 }

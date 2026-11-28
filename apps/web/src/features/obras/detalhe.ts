@@ -85,6 +85,9 @@ export interface ObraCompleta {
   xp: number;
   /** Inauguração planejada, fixada na obra (null até a primeira abertura). */
   entrega_original: string | null;
+  /** 'concluida' depois de "Concluir obra" (sai das listas, da reunião e dos avisos). */
+  status: 'ativa' | 'concluida' | 'pausada';
+  concluida_em: string | null;
   fases: ObraFase[];
   atividades: ObraAtv[]; // topo + subitens
   cron: {
@@ -110,7 +113,7 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
   const [oRes, fRes, aRes, dRes, pRes, lRes, mRes] = await Promise.all([
     supabase
       .from('obra')
-      .select('id,nome,inicio,modelo_rotulo,xp,entrega_original')
+      .select('id,nome,inicio,modelo_rotulo,xp,entrega_original,status,concluida_em')
       .eq('id', id)
       .is('deleted_at', null)
       .maybeSingle(),
@@ -159,6 +162,8 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     modelo_rotulo: string;
     xp: number;
     entrega_original: string | null;
+    status: ObraCompleta['status'];
+    concluida_em: string | null;
   } | null;
   if (!o) return null;
 
@@ -303,6 +308,8 @@ export async function loadObra(id: string): Promise<ObraCompleta | null> {
     modelo_rotulo: o.modelo_rotulo,
     xp: o.xp,
     entrega_original: o.entrega_original,
+    status: o.status,
+    concluida_em: o.concluida_em,
     fases,
     atividades,
     cron,

@@ -19,8 +19,16 @@ export interface AtividadeEntrada {
    * fim da predecessora (paralelismo do plano de recuperação). Sem chave = 0.
    */
   defasagens?: Record<string, number>;
-  /** Ajuste manual de início (feriado/imprevisto). */
+  /**
+   * Início escolhido pelo usuário (data livre, 28/11/2026): vale como está, mesmo
+   * antes do fim das predecessoras; nunca antes do início da obra.
+   */
   inicio_manual?: DataISO | null;
+  /**
+   * Piso interno das previsões (recuperação, avanço físico): "não antes de". As
+   * predecessoras ainda empurram. Não é gravado no banco.
+   */
+  inicio_minimo?: DataISO | null;
 }
 
 export interface EntradaCronograma {
@@ -158,8 +166,10 @@ export function calcularCronograma(entrada: EntradaCronograma): Cronograma {
       0,
       ...(a.predecessoras ?? []).map((p) => Math.max((ef.get(p) ?? 0) + lag(p), es.get(p) ?? 0)),
     );
-    const offsetManual = a.inicio_manual ? duEntre(entrada.inicio, a.inicio_manual) : 0;
-    const esA = Math.max(maxPred, offsetManual);
+    const piso = a.inicio_minimo ? duEntre(entrada.inicio, a.inicio_minimo) : 0;
+    const esA = a.inicio_manual
+      ? duEntre(entrada.inicio, a.inicio_manual)
+      : Math.max(maxPred, piso);
     es.set(a.id, esA);
     ef.set(a.id, esA + dur.get(a.id)!);
   }
@@ -181,7 +191,11 @@ export function calcularCronograma(entrada: EntradaCronograma): Cronograma {
   for (let i = topo.length - 1; i >= 0; i--) {
     const a = topo[i];
     const succ = sucessoras.get(a.id)!;
-    const lfA = succ.length > 0 ? Math.min(...succ.map((s) => ls.get(s.id)! - s.lag)) : total;
+    // Sucessora com início livre antes do fim desta não gera folga negativa.
+    const lfA = Math.max(
+      ef.get(a.id)!,
+      succ.length > 0 ? Math.min(...succ.map((s) => ls.get(s.id)! - s.lag)) : total,
+    );
     lf.set(a.id, lfA);
     ls.set(a.id, lfA - dur.get(a.id)!);
   }

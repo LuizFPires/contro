@@ -69,6 +69,43 @@ export async function renomearObra(id: string, nome: string): Promise<void> {
   if (error) throw error;
 }
 
+/**
+ * Mudar o início da obra (qualquer membro): grava o início, a inauguração
+ * planejada e as datas manuais deslocadas pelo core (`mudarInicioObra`).
+ */
+export async function mudarInicioDaObra(v: {
+  obraId: string;
+  inicio: string;
+  entregaOriginal: string | null;
+  atividades: { id: string; inicio_manual: string | null }[];
+  providencias: { id: string; na_obra_em: string | null }[];
+}): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { error } = await supabase.rpc('mudar_inicio_obra', {
+    p_obra_id: v.obraId,
+    p_inicio: v.inicio,
+    p_entrega_original: v.entregaOriginal,
+    p_atividades: v.atividades,
+    p_providencias: v.providencias,
+  });
+  if (error) throw error;
+}
+
+/** Concluir obra (Gestor e Coordenador): devolve quantas pendências foram resolvidas. */
+export async function concluirObra(id: string): Promise<number> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { data, error } = await supabase.rpc('concluir_obra', { p_obra_id: id });
+  if (error) throw error;
+  return Number(data ?? 0);
+}
+
+/** Reabrir obra; `desfazer` (logo depois de concluir) reabre também as pendências. */
+export async function reabrirObra(id: string, desfazer = false): Promise<void> {
+  if (!supabase) throw new Error('Supabase não configurado');
+  const { error } = await supabase.rpc('reabrir_obra', { p_obra_id: id, p_desfazer: desfazer });
+  if (error) throw error;
+}
+
 /** Apagar obra (só o gestor; exclusão lógica no banco) e o Desfazer. */
 export async function excluirObra(id: string): Promise<void> {
   if (!supabase) throw new Error('Supabase não configurado');

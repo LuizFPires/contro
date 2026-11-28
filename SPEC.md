@@ -154,6 +154,9 @@ obra_dependencia.defasagem_du int default 0 (≤ 0)             -- paralelismo: 
 obra_atividade excluída (deleted_at): as dependências ficam; no cálculo a sucessora herda as predecessoras dela (core dependenciasAtivas). RPCs adicionar_atividade_obra / excluir_atividade_obra / restaurar_atividade_obra (eventos criada/excluida/restaurada).
 RPC adicionar_mapa_obra(p_obra_id, p_nome, p_duracao_du, p_antecedencia_du, p_libera uuid[], p_id): security definer, membro; valida fase preliminar "Mapa de coleta" e alvos de topo, de fases não preliminares, da mesma obra (pelo menos um); insere a atividade com mapa_antecedencia_du e as linhas de obra_mapa_libera; evento criada; idempotente por p_id. Web: campo.ts adicionarMapa e useObraCampo.novoMapa chamam a RPC direto e invalidam a obra (como "Adicionar atividade"; **não passa pela fila offline**); folha NovoMapaSheet; Desfazer = excluir_atividade_obra, otimista.
 obra.excluida_por (pessoa) + RPCs excluir_obra / restaurar_obra (só gestor; trigger obra_protege_exclusao barra update direto de deleted_at pela equipe).
+obra.concluida_em timestamptz, obra.concluida_por (pessoa)      -- "Obra concluída" (status 'concluida'), 28/11/2026
+obra_evento(id, obra_id, tipo, por, em, antes jsonb, depois jsonb) -- 'inicio_alterado' | 'concluida' | 'reaberta'; select por contro_ve_obra, escrita só por RPC
+Trigger obra_protege_status: status, concluida_em, concluida_por e inicio só mudam pelas RPCs (insert nasce 'ativa').
 tarefa(id, obra_id, texto, responsavel_id → pessoa, prazo date,
        prazo_original date null, replanejamentos int default 0,
        status: 'aberta'|'feita', feita_em, feita_por,
@@ -211,14 +214,18 @@ As atividades são ordenadas topologicamente. A ordem do modelo já garante isso
 ```
 dur(a) = sem subitens ? duracao_du : vão dos subitens
          (subitem k: ini = em_sequencia ? fim(k−1) : 0; fim = ini + dur(k); vão = max(fim))
-ES(a) = max( max(EF(p) for p in pred(a)) ou 0 , duEntre(obra.inicio, a.inicio_manual) se houver )
+ES(a) = a.inicio_manual ? duEntre(obra.inicio, a.inicio_manual)          -- data livre (28/11/2026)
+                       : max( max(EF(p) + defasagem, ES(p)) for p in pred(a) ou 0 , piso )
+        piso = duEntre(obra.inicio, a.inicio_minimo) — só nas previsões (recuperação, avanço físico), não gravado
 EF(a) = ES(a) + dur(a)
 total = max(EF)
 inicio_previsto(a) = addDU(obra.inicio, ES(a))
 fim_previsto(a)    = addDU(obra.inicio, EF(a) − 1)
 entrega (inauguração) = addDU(obra.inicio, total − 1)
 ```
-Caminho crítico (modelos de obra e obras): backward pass com `LS = min(LS(sucessoras)) − duração`, e folga = LS − ES; crítica quando a folga é 0.
+Caminho crítico (modelos de obra e obras): backward pass com `LF = max(EF, min(LS(sucessoras) − defasagem))`, `LS = LF − duração`, e folga = LS − ES (nunca negativa, mesmo com sucessora de início livre antes do fim); crítica quando a folga é 0.
+
+**Mudar o início da obra** (`core/inicioObra.ts · mudarInicioObra`): novo início em dia útil (`diaUtilAPartir`); delta = dias úteis com sinal; `inicio_manual` das atividades, `na_obra_em` das providências e `entrega_original` andam `deslocarDU(delta)`; devolve a inauguração antes e depois para a prévia.
 
 > Tanto o protótipo quanto a v1 planejam sempre pelas **datas do modelo da obra**. A conclusão tardia não empurra o plano. O atraso aparece como atraso, e para mudar o plano o engenheiro edita o cronograma da obra.
 
@@ -325,7 +332,10 @@ Efeito de reabrir: se `efeito_providencia_id` aponta para uma providência `feit
 | Operação | Quem | Efeito |
 |---|---|---|
 | `gerar_obra(unidade_id, inicio, nome, modelo_id)` | gestor, equipe | Copia o modelo escolhido (fases, atividades, subitens, dependências e providências) numa transação |
-| `ajustar_inicio(atividade_id, data)` | gestor, equipe | Grava `inicio_manual` e o evento; sucessoras recalculam |
+| `ajustar_inicio(atividade_id, data)` | gestor, equipe | Grava `inicio_manual` (data livre) e o evento; sucessoras recalculam |
+| `mudar_inicio_obra(obra_id, inicio, entrega_original, atividades jsonb, providencias jsonb)` | gestor, equipe (Contorno, obra ativa) | Grava o novo início (dia útil), a inauguração planejada e as datas manuais deslocadas pelo core; evento `inicio_alterado` com antes e depois (o Desfazer reenvia o antes) |
+| `concluir_obra(obra_id)` → int | gestor (Gestor e Coordenador), Contorno | Status `concluida` com `concluida_em/por`; pendências `aberta`/`em_vistoria` viram `fechada` sem foto (evento `resolvida` com `conclusao_obra`); sai das `reuniao_obra` de reuniões não fechadas; evento `concluida` com os ids; devolve quantas pendências resolveu |
+| `reabrir_obra(obra_id, desfazer bool)` | gestor (Gestor e Coordenador) | Volta a `ativa` e à pauta das reuniões não fechadas; com `desfazer`, reabre as pendências da última conclusão que seguem sem foto do depois (evento `reaberta`) |
 | `marcar_subitem(id, feito)` | gestor, equipe | Marca ou desmarca o subitem (foto opcional) |
 | `salvar_modelo_*` (fase, atividade, subitem, dependência, providência, nome/subtítulo) | **só gestor** | Valida sem ciclos, duração ≥ 1, fase com nome e subitem com um nível só |
 | `duplicar_modelo(modelo_id \| null)`, `excluir_modelo(id)` | **só gestor** | Cópia profunda (ou em branco); exclusão lógica, mantendo ao menos um |
@@ -514,7 +524,8 @@ Os horários do boletim **deixam de ser fixos**: o gestor configura dia e hora (
 - `core`:
   - forward pass e backward pass com os 28 itens do modelo (total de 54 dias úteis na versão do protótipo);
   - subitens em sequência e em paralelo (Demolições: alvenaria 2 · forro 2 em paralelo · piso 3 em sequência = 5 du);
-  - `inicio_manual` empurrando a atividade e as sucessoras;
+  - `inicio_manual` empurrando a atividade e as sucessoras, e valendo antes do fim da predecessora (data livre, folga nunca negativa);
+  - mudar o início da obra (`mudarInicioObra`): datas manuais e inauguração planejada deslocadas, fim de semana vira segunda;
   - liberação com providências;
   - atrasos;
   - % e ritmo (casos Eldorado 47% / 53% / −3, Pampulha e Betim do protótipo);

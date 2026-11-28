@@ -42,6 +42,7 @@ import {
   itensEquipe,
   itensPrestador,
   obrasNaJanela,
+  semAbertosDeConcluidas,
   type DadosLogScore,
   type LinhaAtividadeLog,
   type ObraLog,
@@ -144,30 +145,45 @@ export async function loadDadosLogScore(
 
   // 2ª rodada: tudo o mais em paralelo; cada tabela lê as próprias páginas em sequência.
   // Itens: abertos ou fechados desde `desde`. Eventos: `em >= desde` (consultasLog).
-  const [cronAtivas, tarefas, pendencias, cfgRes, [evT, evP, evA], atvConcluidasNaJanela] =
-    await Promise.all([
-      cronogramaDasObras(sb, ativas),
-      lerTarefasLog(sb, ids, desde),
-      lerPendenciasLog(sb, ids, desde),
-      sb.from('config_avisos').select('pend_alta_du,pend_media_du,pend_baixa_du').maybeSingle(),
-      lerEventosLog(sb, desde),
-      // Concluídas: só interessa saber quais têm atividade aberta ou concluída na janela.
-      concluidas.length === 0
-        ? Promise.resolve([] as { id: string; obra_id: string }[])
-        : todasAsPaginas<{ id: string; obra_id: string }>((de, ate) =>
-            sb
-              .from('obra_atividade')
-              .select('id,obra_id')
-              .in('obra_id', concluidas)
-              .is('deleted_at', null)
-              .or(`concluida_em.is.null,concluida_em.gte.${desde}`)
-              .order('id')
-              .range(de, ate)
-              .returns<{ id: string; obra_id: string }[]>(),
-          ),
-    ]);
+  const [
+    cronAtivas,
+    tarefasLidas,
+    pendenciasLidas,
+    cfgRes,
+    [evT, evP, evA],
+    atvConcluidasNaJanela,
+  ] = await Promise.all([
+    cronogramaDasObras(sb, ativas),
+    lerTarefasLog(sb, ids, desde),
+    lerPendenciasLog(sb, ids, desde),
+    sb.from('config_avisos').select('pend_alta_du,pend_media_du,pend_baixa_du').maybeSingle(),
+    lerEventosLog(sb, desde),
+    // Concluídas: só interessa saber quais têm atividade concluída na janela (as
+    // abertas de obra concluída não contam, ver semAbertosDeConcluidas).
+    concluidas.length === 0
+      ? Promise.resolve([] as { id: string; obra_id: string }[])
+      : todasAsPaginas<{ id: string; obra_id: string }>((de, ate) =>
+          sb
+            .from('obra_atividade')
+            .select('id,obra_id')
+            .in('obra_id', concluidas)
+            .is('deleted_at', null)
+            .gte('concluida_em', desde)
+            .order('id')
+            .range(de, ate)
+            .returns<{ id: string; obra_id: string }[]>(),
+        ),
+  ]);
   if (cfgRes.error) throw cfgRes.error;
 
+  // Obra concluída: só os itens fechados contam (os abertos saem do Log e do Score).
+  const setConcluidas = new Set(concluidas);
+  const tarefas = semAbertosDeConcluidas(tarefasLidas, setConcluidas, (t) => t.status === 'feita');
+  const pendencias = semAbertosDeConcluidas(
+    pendenciasLidas,
+    setConcluidas,
+    (p) => p.status === 'fechada',
+  );
   // Concluídas sem nenhum item na janela ficam fora antes de calcular.
   const obras = obrasNaJanela(todas, [...tarefas, ...pendencias, ...atvConcluidasNaJanela]);
   const naCarga = new Set(obras.map((o) => o.id));
@@ -198,7 +214,7 @@ export async function loadDadosLogScore(
 
   return {
     obras: obras.map((o) => ({ id: o.id, nome: o.nome, status: o.status, inicio: o.inicio })),
-    atividades,
+    atividades: semAbertosDeConcluidas(atividades, setConcluidas, (a) => Boolean(a.concluida_em)),
     tarefas: tarefas.filter((t) => naCarga.has(t.obra_id)),
     pendencias: pendencias.filter((p) => naCarga.has(p.obra_id)),
     fimPrevisto,

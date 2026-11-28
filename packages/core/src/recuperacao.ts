@@ -68,7 +68,7 @@ export function previsaoEntrega(e: EntradaRecuperacao): Previsao {
     const predAberta = (a.predecessoras ?? []).some((p) => !e.concluidas.has(p));
     if (it.es < decorridos && !predAberta) return a;
     if (a.inicio_manual && a.inicio_manual >= hojeDU) return a;
-    return { ...a, inicio_manual: hojeDU };
+    return { ...a, inicio_manual: null, inicio_minimo: hojeDU };
   });
   let cron = plano;
   for (let i = 0; i < 10; i++) {
