@@ -49,7 +49,13 @@ describe('simularAjuste', () => {
       esManual: 1,
       predecessoras: ['A'],
     });
-    expect(s).toMatchObject({ es: 1, ef: 5, esMinimo: 3, inicioManual: '2026-11-03', deltaEntrega: -2 });
+    expect(s).toMatchObject({
+      es: 1,
+      ef: 5,
+      esMinimo: 3,
+      inicioManual: '2026-11-03',
+      deltaEntrega: -2,
+    });
     expect(s.cronograma.porId.C.es).toBe(5);
   });
 

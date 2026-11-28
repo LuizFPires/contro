@@ -17,10 +17,16 @@ describe('deltaInicioDU', () => {
 
 describe('mudarInicioObra', () => {
   it('adiantar: a obra toda e as datas manuais andam juntas', () => {
-    const m = mudarInicioObra(INICIO, '2026-11-03', atvs, [
-      { id: 'p1', na_obra_em: '2026-11-12' },
-      { id: 'p2', na_obra_em: null },
-    ], '2026-11-18');
+    const m = mudarInicioObra(
+      INICIO,
+      '2026-11-03',
+      atvs,
+      [
+        { id: 'p1', na_obra_em: '2026-11-12' },
+        { id: 'p2', na_obra_em: null },
+      ],
+      '2026-11-18',
+    );
     expect(m.inicio).toBe('2026-11-03');
     expect(m.deltaDu).toBe(-5);
     expect(m.atividades).toEqual([{ id: 'B', inicio_manual: '2026-11-10' }]);
