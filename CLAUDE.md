@@ -14,6 +14,8 @@ Cada obra nasce de um **modelo de obra** escolhido entre os modelos salvos (ex.:
 
 O app tem ainda o ambiente **Obras gerais** (obras que não são das unidades Contorno do Corpo, com acesso por obra), entregue nas 5 etapas: ambientes e acesso, a obra por dentro, Hoje e avisos, reunião e boletim por obra, e Score, Log e sugestões por ambiente (ver PLAN.md).
 
+Obra da Contorno pode ser marcada como **Obra concluída** (Gestor e Coordenador, pelo "⋮"): sai das listas, da reunião, dos avisos e do boletim e fica em "Obras concluídas", no menu do perfil (ver PRD §5.3).
+
 Nas obras da Contorno há ainda a **Pré-avaliação da entrega** (aba Avaliação): prova interna em revisões sucessivas, com nota que começa em 0%; "Não" exige foto do antes e vira pendência do Check list (ver PRD §5.7-A).
 
 A **maquete 3D da obra** é uma melhoria futura (E1) em avaliação: **não implemente** nada dela sem pedido explícito do usuário.
@@ -52,7 +54,7 @@ pnpm lint && pnpm typecheck
 
 ## Regras que não podem ser quebradas
 1. **Regra de domínio só em `packages/core`.** Telas e pdf-service importam do core e nunca recalculam por conta própria. Toda função do core tem teste.
-2. **Cronograma em dias úteis de segunda a sexta, sem feriados.** Não crie cadastro de feriados (decisão do produto); o usuário ajusta datas manualmente com `inicio_manual`. Nunca use dias corridos.
+2. **Cronograma em dias úteis de segunda a sexta, sem feriados.** Não crie cadastro de feriados (decisão do produto); o usuário ajusta datas manualmente com `inicio_manual`, que é **data livre** (vale mesmo antes do fim das predecessoras, 28/11/2026), e pode mudar o início da obra inteira pelo "⋮". Nunca use dias corridos.
 3. **Não existe atividade bloqueada** (decisão do usuário em 26/10/2026): qualquer atividade aberta pode ser concluída a qualquer momento, mesmo com predecessora aberta ou lembrete pendente. Dependências servem só para o cronograma; lembretes só avisam. Conclui **com ou sem foto**: sem foto, fica "Concluída · sem foto" e a foto pode ser anexada depois. Atividade aberta tem **avanço parcial** (25/50/75%, anel na trilha e cards na ficha), que conta no % da obra; 100% é concluir. Atividade com **quantitativo** (16/11/2026) tem o avanço **medido** (medições do dia ou do período, em `core/medicao.ts`) no lugar dos passos; tudo pela ficha da atividade, e as telas abertas dela (Meta, Medições, Produtividade, Comparar) mostram só aquela atividade. Atividade com subitens tem prazo derivado dos subitens (sequência ou paralelo); concluí-la marca os subitens abertos junto. Subitem tem um nível só.
 4. **Lembretes de contratação, locação e compra não têm valor nem fornecedor.** Só tipo, descrição, antecedência, duração (quantos dias leva para providenciar), data na obra e status (pendente/feito). Não adicione esses campos (decisão do produto: isso é de outro sistema).
 5. **Pendência fecha com a foto de depois.** Tirou a foto do depois, está resolvida; não há vistoria nem aprovação de outra pessoa (decisão do usuário em 28/10/2026). O Check list tem só Pendências (fotos ou lista por criticidade) e Resolvidos; sem fila e sem adiar.

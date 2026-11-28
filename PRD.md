@@ -105,7 +105,10 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - Ao confirmar, gera a obra com cópia **independente** do modelo escolhido, como ele está naquele momento: atividades, prazos, conexões e lembretes. A obra pode ser editada sem alterar o modelo.
 
 ### 5.3 Obra · cabeçalho
-- **Menu "⋮" no cabeçalho da obra:** "Editar nome da obra" (qualquer membro, com Desfazer) e, só para o gestor, "Apagar obra".
+- **Menu "⋮" no cabeçalho da obra:** "Cronograma", "Editar nome da obra" (qualquer membro, com Desfazer), "Mudar início da obra" (qualquer membro), "Concluir obra" ou "Reabrir obra" (Gestor e Coordenador) e, só para o gestor, "Apagar obra".
+- **Mudar início da obra (28/11/2026, pedido do João):** escolhe a nova data (chips "1 semana antes", "Hoje", "1 semana depois" ou o calendário; fim de semana vira a segunda seguinte). A obra inteira anda junto: o cronograma, as datas de início ajustadas à mão, o "na obra em" das providências e a inauguração planejada se deslocam o mesmo número de dias úteis. A folha mostra o efeito ("Adianta a obra em 5 dias úteis: inauguração qua 16/12 (era qua 23/12)") antes de salvar; o aviso tem Desfazer. Fica registrado na obra (evento `inicio_alterado`).
+- **Concluir obra (28/11/2026, pedido do Matheus):** Gestor e Coordenador, pelo "⋮". A obra vira **Obra concluída** e sai de Minhas obras, do Hoje, das ações da equipe, dos avisos, da reunião (pautas ainda não fechadas) e do boletim; continua no Score e no Log. Não exige 100% nem trava por pendência: com pendências abertas, a folha avisa "Há N pendências abertas no Check list. Ao concluir, todas serão dadas como resolvidas e você confirma que todas foram resolvidas neste ato" (ficam resolvidas sem foto do depois). Atividades abertas ficam como estão. O aviso tem Desfazer (reabre a obra e as pendências fechadas pela conclusão).
+- **Obras concluídas:** lista no menu do perfil (todos os perfis), da mais recente para a mais antiga, com a data e quem concluiu. Tocar abre a obra, com a faixa "Obra concluída" no topo e o botão **Reabrir** (Gestor e Coordenador), que a devolve às listas e à pauta das reuniões abertas; reabrir mais tarde não reabre as pendências.
 - **Apagar obra:** só o gestor, pelo menu "⋮"; sempre pede confirmação ("Apagar esta obra?" com Cancelar e Apagar obra). Exclusão lógica: some de Minhas obras, Hoje, reunião e boletim; o aviso logo depois tem Desfazer.
 - Nome, "Dia N de M do modelo", % real, barra de avanço e **ícone discreto de Boletim da semana** à direita.
 - Ritmo, fase e entrega **não** ficam em chips no cabeçalho (decisão do usuário).
@@ -132,7 +135,8 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 - **Subitens** (quando a atividade tem): checklist com o prazo de cada um.
   - Marcar um subitem não exige foto (é opcional).
   - A atividade só pode ser concluída depois de todos os subitens marcados (com ou sem foto).
-- **Ajustar início (manual):** empurra a atividade para uma data posterior, por exemplo por feriado, chuva ou liberação do shopping.
+- **Ajustar início (manual):** muda a data de início da atividade, por exemplo por feriado, chuva, liberação do shopping ou para adiantar a obra.
+  - **Data livre (28/11/2026):** a data escolhida vale como está, para depois **ou para antes** do fim das atividades de que ela depende ("início manual · antes das anteriores"); só não fica antes do início da obra. Escolher a mesma data do cronograma volta ao "pelo cronograma".
   - As sucessoras se deslocam junto.
   - O ajuste fica registrado na atividade: "início ajustado manualmente de dd/mm para dd/mm".
 - **Prestador da atividade:** campo de texto opcional com o nome de quem executa. Não tem valor nem vínculo com compras.
@@ -316,7 +320,7 @@ Pendência fecha com a foto de depois, sem vistoria de outra pessoa (decisão de
 ## 7. Regras de negócio (resumo; detalhe no SPEC)
 
 1. Toda obra é cópia do **modelo escolhido** ao criá-la. Editar a obra não altera o modelo, e editar o modelo não altera obras já criadas. Só o perfil **Gestor** edita modelos.
-2. Cronograma em **dias úteis de segunda a sexta, sem cadastro de feriados**. Feriado ou imprevisto se resolve com **ajuste manual** da data de início da atividade, e as sucessoras acompanham.
+2. Cronograma em **dias úteis de segunda a sexta, sem cadastro de feriados**. Feriado ou imprevisto se resolve com **ajuste manual** da data de início da atividade (data livre: vale mesmo antes do fim das predecessoras), e as sucessoras acompanham. Mudar o início da obra desloca a obra inteira.
 3. **Não existe atividade bloqueada:** qualquer atividade aberta pode ser concluída; dependências só montam o cronograma e lembretes só avisam. Concluir uma atividade com subitens marca os subitens abertos.
 4. Atividade é **concluída com ou sem foto**; sem foto fica marcada e pode receber a foto depois.
 5. Atividade **atrasada** = não concluída e término previsto já passou.
