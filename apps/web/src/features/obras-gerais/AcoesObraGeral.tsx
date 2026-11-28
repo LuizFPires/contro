@@ -216,8 +216,9 @@ export function AcoesObraGeral({
     v: { pct: number | 'feita'; comentario: string; prazo: string; motivo: string },
   ) {
     setAvancando(null);
-    // Prazo só muda para quem planeja (a folha esconde o "Mudar" dos outros).
-    if (planeja && v.prazo !== t.prazo) {
+    // Prazos livres (28/11/2026): qualquer pessoa da obra muda o prazo (o banco
+    // aceita de quem não planeja só a mudança do prazo).
+    if (v.prazo !== t.prazo) {
       acoes.salvar.mutate(
         {
           obraId: t.obra_id,
@@ -405,7 +406,7 @@ export function AcoesObraGeral({
         tarefa={avancando}
         obra={nomeObra.get(avancando?.obra_id ?? '') ?? ''}
         hoje={hoje}
-        mudaPrazo={planeja}
+        mudaPrazo
         aviso="Quem coordena a obra vê o avanço e o comentário nas ações e na próxima reunião."
         onFechar={() => setAvancando(null)}
         onSalvar={(v) => avancando && salvarAvanco(avancando, v)}
