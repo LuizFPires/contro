@@ -186,7 +186,7 @@ export function PendenciasAba({
       id ? (obra.atividades.find((a) => a.id === id)?.nome ?? null) : null;
     campo.editar.mutate({ id: p.id, dados, atividadeNome: nomeDe(dados.atividadeId) });
     const prazoAntes = p.prazo ?? null;
-    const prazoMudou = podeAtribuir && (dados.prazo ?? null) !== prazoAntes;
+    const prazoMudou = (dados.prazo ?? null) !== prazoAntes;
     if (prazoMudou) campo.definirPrazo.mutate({ id: p.id, prazo: dados.prazo ?? null });
     const antes: NovaPendencia = {
       titulo: p.titulo,
@@ -502,7 +502,7 @@ export function PendenciasAba({
         aberto={apontar}
         obra={obra}
         atividadeInicial={atividadeId}
-        comPrazo={podeAtribuir}
+        comPrazo
         onFechar={() => {
           setApontar(false);
           void loteQ.refetch();
@@ -683,7 +683,7 @@ export function PendenciasAba({
 
       <EditarPendenciaSheet
         obra={obra}
-        comPrazo={podeAtribuir}
+        comPrazo
         inicial={inicialEdicao}
         onFechar={() => setEditando(null)}
         onSalvar={salvarEdicao}

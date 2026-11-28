@@ -43,7 +43,7 @@ import {
 } from './planejamento';
 
 const NOTA_MEMBRO =
-  'Datas e responsável são definidos pelo coordenador. Se não vai dar no prazo, fale com ele para ajustar.';
+  'O responsável é definido pelo coordenador. As datas qualquer pessoa da obra pode ajustar.';
 
 /** Ficha da atividade da obra geral (mockup C4, C12, J4): data, responsável, subitens e avanço. */
 export function FichaAtividadeGeral({
@@ -348,15 +348,14 @@ export function FichaAtividadeGeral({
                 {a.inicio ? diaCurto(a.inicio) : 'sem data'}
               </span>
             </div>
-            {planeja ? (
-              <button
-                type="button"
-                className={styles.acaoLinha}
-                onClick={() => setMudandoInicio(true)}
-              >
-                Mudar
-              </button>
-            ) : null}
+            {/* Prazos livres (28/11/2026): qualquer pessoa da obra muda as datas. */}
+            <button
+              type="button"
+              className={styles.acaoLinha}
+              onClick={() => setMudandoInicio(true)}
+            >
+              Mudar
+            </button>
           </div>
 
           <div className={styles.linhaInfo}>
@@ -378,7 +377,7 @@ export function FichaAtividadeGeral({
                 </span>
               ) : null}
             </div>
-            {planeja && !temSubitens ? (
+            {!temSubitens ? (
               <button
                 type="button"
                 className={styles.acaoLinha}
@@ -445,7 +444,7 @@ export function FichaAtividadeGeral({
                     disabled={concluida}
                     onChange={(e) => campo.subitem.mutate({ id: s.id, feito: e.target.checked })}
                   />
-                  {planeja ? (
+                  {planeja || !concluida ? (
                     <button
                       type="button"
                       className={styles.subTexto}
@@ -664,6 +663,7 @@ export function FichaAtividadeGeral({
         atividadeId={a.id}
         subitem={subitemEdit ?? null}
         onFechar={() => setSubitemEdit(undefined)}
+        soData={!planeja}
       />
 
       {camera === 'concluir' ? (

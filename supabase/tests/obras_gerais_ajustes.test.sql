@@ -151,7 +151,7 @@ select throws_ok(format('select desfazer_data_prevista(%L)', (select id from evs
   '22023', 'Não dá mais para desfazer', 'A nao desfaz a data que C mudou');
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000006a4","role":"authenticated"}';
 select throws_ok(format('select desfazer_data_prevista(%L)', (select id from evs where k = 'e3')),
-  '42501', null, 'J (membro) nao desfaz');
+  '22023', 'Não dá mais para desfazer', 'J (membro) nao desfaz a data que C mudou');
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000006a2","role":"authenticated"}';
 select lives_ok(format('select desfazer_data_prevista(%L)', (select id from evs where k = 'e3')), 'C desfaz a propria data');
 select is(

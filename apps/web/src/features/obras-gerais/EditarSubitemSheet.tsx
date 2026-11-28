@@ -13,19 +13,26 @@ import {
 } from './planejamento';
 import styles from './FichaAtividadeGeral.module.css';
 
-/** Editar subitem (subitem preenchido) ou criar um novo (subitem nulo). Só quem planeja abre. */
+/**
+ * Editar subitem (subitem preenchido) ou criar um novo (subitem nulo). A data é
+ * de qualquer pessoa da obra (prazos livres, 28/11/2026); nome, criar e excluir
+ * são de quem planeja (`soData` para os outros).
+ */
 export function EditarSubitemSheet({
   aberto,
   obraId,
   atividadeId,
   subitem,
   onFechar,
+  soData = false,
 }: {
   aberto: boolean;
   obraId: string;
   atividadeId: string;
   subitem: SubitemGeral | null;
   onFechar: () => void;
+  /** Quem não planeja: muda só a data (o nome aparece, sem editar). */
+  soData?: boolean;
 }) {
   const qc = useQueryClient();
   const { showToast } = useToast();
@@ -108,16 +115,20 @@ export function EditarSubitemSheet({
   return (
     <BottomSheet
       open={aberto}
-      title={subitem ? 'Editar subitem' : 'Novo subitem'}
+      title={subitem ? (soData ? 'Data do subitem' : 'Editar subitem') : 'Novo subitem'}
       onClose={onFechar}
     >
       <div className={styles.sheetCorpo}>
-        <TextoCrescente
-          label="Texto"
-          value={nome}
-          autoFocus={!subitem}
-          onChange={(e) => setNome(e.target.value)}
-        />
+        {soData ? (
+          <p className={styles.infoValor}>{nome}</p>
+        ) : (
+          <TextoCrescente
+            label="Texto"
+            value={nome}
+            autoFocus={!subitem}
+            onChange={(e) => setNome(e.target.value)}
+          />
+        )}
         <div>
           <div className={styles.rotulo}>Data prevista</div>
           <EscolherData
@@ -138,7 +149,7 @@ export function EditarSubitemSheet({
         <Button onClick={() => void salvar()} disabled={!limpo || ocupado}>
           Salvar
         </Button>
-        {subitem ? (
+        {subitem && !soData ? (
           <button
             type="button"
             className={styles.excluirSub}

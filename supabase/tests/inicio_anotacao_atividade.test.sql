@@ -122,10 +122,10 @@ select definir_inicio_previsto('00000000-0000-0000-0000-00000003f202', '2026-11-
 select throws_ok(format('select desfazer_data_prevista(%L)', (select id from ev where nome = 't')),
   '22023', 'O término fica antes do início', 'desfazer o termino nao deixa ele antes do inicio');
 
--- J (membro de G): nao planeja, mas anota o andamento.
+-- J (membro de G): nao planeja, mas muda o inicio (prazo livre) e anota o andamento.
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000003e3","role":"authenticated"}';
-select throws_ok($$ select definir_inicio_previsto('00000000-0000-0000-0000-00000003f202', '2026-11-10', 'x') $$,
-  '42501', null, 'membro nao muda o inicio');
+select lives_ok($$ select definir_inicio_previsto('00000000-0000-0000-0000-00000003f202', '2026-11-10', 'x') $$,
+  'membro muda o inicio (prazo livre)');
 
 reset role;
 update obra_atividade set avanco_pct = 25 where id = '00000000-0000-0000-0000-00000003f202';

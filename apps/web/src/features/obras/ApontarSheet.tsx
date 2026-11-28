@@ -38,7 +38,7 @@ function PendenciaCampos({
   obra: ObraChecklist;
   dados: NovaPendencia;
   onMudar: (d: NovaPendencia) => void;
-  /** Data limite: obra geral, só quem planeja. */
+  /** Data limite (qualquer pessoa da obra; prazos livres, 28/11/2026). */
   comPrazo: boolean;
 }) {
   return (
@@ -117,7 +117,7 @@ export function ApontarSheet({
   comPrazo = true,
 }: {
   atividadeInicial?: string;
-  /** Data limite: obra geral, só quem planeja. */
+  /** Data limite (qualquer pessoa da obra; prazos livres, 28/11/2026). */
   comPrazo?: boolean;
   aberto: boolean;
   obra: ObraChecklist;

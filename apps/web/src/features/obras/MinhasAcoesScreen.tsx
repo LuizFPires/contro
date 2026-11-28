@@ -262,7 +262,7 @@ export function AvancoSheet({
   obra: string;
   hoje: string;
   onFechar: () => void;
-  /** Obra geral: só quem planeja muda o prazo; sem isso, o prazo só aparece. */
+  /** Sem isso, o prazo só aparece (hoje todos mudam: prazos livres, 28/11/2026). */
   mudaPrazo?: boolean;
   aviso?: string;
   onSalvar: (v: {
