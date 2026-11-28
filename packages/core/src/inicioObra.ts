@@ -1,6 +1,7 @@
 // Mudar o início da obra (28/11/2026): a obra inteira anda junto. O cronograma
 // já é relativo ao início; as datas gravadas à mão (início manual da atividade e
-// "na obra em" da providência) andam o mesmo número de dias úteis.
+// "na obra em" da providência) e a inauguração planejada andam o mesmo número
+// de dias úteis.
 import { deslocarDU, diaUtilAPartir, duEntre, type DataISO } from './calendar';
 import { calcularCronograma, type AtividadeEntrada } from './schedule';
 
@@ -17,6 +18,8 @@ export interface MudancaInicioObra {
   providencias: { id: string; na_obra_em: DataISO }[];
   entregaAntes: DataISO;
   entregaDepois: DataISO;
+  /** Inauguração planejada (base do atraso e do Score), deslocada junto. */
+  entregaOriginal: DataISO | null;
 }
 
 /**
@@ -28,6 +31,7 @@ export function mudarInicioObra(
   inicioEscolhido: DataISO,
   atividades: AtividadeEntrada[],
   providencias: { id: string; na_obra_em: DataISO | null }[],
+  entregaOriginal: DataISO | null = null,
 ): MudancaInicioObra {
   const inicio = diaUtilAPartir(inicioEscolhido);
   const deltaDu = deltaInicioDU(inicioAntes, inicio);
@@ -48,5 +52,6 @@ export function mudarInicioObra(
       .map((p) => ({ id: p.id, na_obra_em: mover(p.na_obra_em as DataISO) })),
     entregaAntes: calcularCronograma({ inicio: inicioAntes, atividades }).entrega,
     entregaDepois: calcularCronograma({ inicio, atividades: depois }).entrega,
+    entregaOriginal: entregaOriginal ? mover(entregaOriginal) : null,
   };
 }

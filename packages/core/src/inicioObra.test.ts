@@ -20,13 +20,14 @@ describe('mudarInicioObra', () => {
     const m = mudarInicioObra(INICIO, '2026-11-03', atvs, [
       { id: 'p1', na_obra_em: '2026-11-12' },
       { id: 'p2', na_obra_em: null },
-    ]);
+    ], '2026-11-18');
     expect(m.inicio).toBe('2026-11-03');
     expect(m.deltaDu).toBe(-5);
     expect(m.atividades).toEqual([{ id: 'B', inicio_manual: '2026-11-10' }]);
     expect(m.providencias).toEqual([{ id: 'p1', na_obra_em: '2026-11-05' }]);
     expect(m.entregaAntes).toBe('2026-11-18');
     expect(m.entregaDepois).toBe('2026-11-11');
+    expect(m.entregaOriginal).toBe('2026-11-11');
   });
 
   it('data no fim de semana vira a segunda seguinte', () => {
@@ -39,5 +40,6 @@ describe('mudarInicioObra', () => {
     const m = mudarInicioObra(INICIO, INICIO, atvs, []);
     expect(m.deltaDu).toBe(0);
     expect(m.entregaDepois).toBe(m.entregaAntes);
+    expect(m.entregaOriginal).toBeNull();
   });
 });
