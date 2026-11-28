@@ -1,0 +1,76 @@
+.screen {
+  min-height: 100dvh;
+  background: var(--contro-bg-app);
+  padding: 12px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.voltar {
+  display: grid;
+  place-items: center;
+  width: var(--contro-touch);
+  height: var(--contro-touch);
+  border: none;
+  background: transparent;
+  color: var(--contro-black);
+  cursor: pointer;
+}
+.titulo {
+  margin: 0;
+  font-size: var(--contro-fs-h2);
+  font-weight: 800;
+}
+.vazio {
+  color: var(--contro-muted);
+  font-size: var(--contro-fs-body-sm);
+}
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.item {
+  width: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--contro-border);
+  border-radius: 14px;
+  background: var(--contro-white);
+  color: var(--contro-black);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.icone {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--contro-black);
+  color: var(--contro-white);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+.texto b {
+  font-size: 15px;
+  font-weight: 800;
+}

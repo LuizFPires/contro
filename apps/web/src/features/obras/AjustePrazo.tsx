@@ -18,7 +18,8 @@ interface Alvo {
 /**
  * Ajustar prazo e dependências pela linha do tempo (protótipo aprovado · opção C):
  * a atividade entre as vizinhas, setas para início e duração, efeito na entrega
- * calculado pelo core e "Salvar ajustes" com Desfazer.
+ * calculado pelo core e "Salvar ajustes" com Desfazer. Data livre (28/11/2026):
+ * o início pode vir antes do fim das anteriores; só não antes do início da obra.
  */
 export function AjustePrazo({ obra, atividadeId }: { obra: ObraCompleta; atividadeId: string }) {
   const campo = useObraCampo(obra.id);
@@ -205,8 +206,8 @@ export function AjustePrazo({ obra, atividadeId }: { obra: ObraCompleta; ativida
               type="button"
               className={styles.seta}
               aria-label="Um dia útil antes"
-              disabled={sim.es <= sim.esMinimo}
-              onClick={() => setEsManual(sim.es - 1 <= sim.esMinimo ? null : sim.es - 1)}
+              disabled={sim.es <= 0}
+              onClick={() => setEsManual(sim.es - 1 === sim.esMinimo ? null : sim.es - 1)}
             >
               ‹
             </button>
@@ -215,13 +216,17 @@ export function AjustePrazo({ obra, atividadeId }: { obra: ObraCompleta; ativida
               type="button"
               className={styles.seta}
               aria-label="Um dia útil depois"
-              onClick={() => setEsManual(sim.es + 1)}
+              onClick={() => setEsManual(sim.es + 1 === sim.esMinimo ? null : sim.es + 1)}
             >
               ›
             </button>
           </div>
           <div className={styles.miuda}>
-            {sim.inicioManual ? 'início manual' : 'pelo cronograma'}
+            {!sim.inicioManual
+              ? 'pelo cronograma'
+              : sim.es < sim.esMinimo
+                ? 'início manual · antes das anteriores'
+                : 'início manual'}
           </div>
         </div>
         <div className={styles.controle}>

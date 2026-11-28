@@ -21,6 +21,7 @@ import { ReunioesScreen } from './features/reuniao/ReunioesScreen';
 import { ConfigBoletimScreen } from './features/boletim-auto/ConfigBoletimScreen';
 import { ConfigAvisosScreen } from './features/avisos/ConfigAvisosScreen';
 import { AprovarMembros } from './features/membros/AprovarMembros';
+import { ObrasConcluidas } from './features/obras/ObrasConcluidas';
 import { RelatorioAvancoFisico } from './features/avancoFisico/RelatorioAvancoFisico';
 import { supabase } from './lib/supabase';
 import { Login } from './screens/Login';
@@ -347,6 +348,14 @@ export function App() {
           <ConfigBoletimScreen onVoltar={voltar} />
         ) : tela === 'membros' && ehGestor ? (
           <AprovarMembros onVoltar={voltar} />
+        ) : tela === 'concluidas' && ambiente === 'contorno' ? (
+          <ObrasConcluidas
+            onVoltar={voltar}
+            onAbrir={(obraId) => {
+              setAbrirObra({ id: obraId, voltar: 'concluidas' });
+              setTela('inicio');
+            }}
+          />
         ) : tela === 'avanco' && ambiente === 'contorno' ? (
           <RelatorioAvancoFisico
             onVoltar={voltar}

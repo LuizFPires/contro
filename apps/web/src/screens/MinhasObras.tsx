@@ -28,7 +28,8 @@ export type DestinoInicio =
   | 'avanco'
   | 'avisos'
   | 'score'
-  | 'log';
+  | 'log'
+  | 'concluidas';
 
 /** Pedido para abrir uma obra numa aba (ex.: pendência tocada em Tarefas). */
 export interface AbrirObra {
@@ -120,7 +121,9 @@ export function MinhasObras({
             ? 'Voltar para o Log'
             : obraAberta.voltar === 'avanco'
               ? 'Voltar para o avanço físico'
-              : undefined
+              : obraAberta.voltar === 'concluidas'
+                ? 'Voltar para Obras concluídas'
+                : undefined
         }
         onAbrirLog={
           onAbrirLog
@@ -301,14 +304,24 @@ export function MinhasObras({
           itensDoAmbiente={
             <>
               {ambiente === 'contorno' ? (
-                <ItemMenu
-                  icon="curva"
-                  rotulo="Relatório de avanço físico"
-                  onClick={() => {
-                    setPerfilAberto(false);
-                    onIr('avanco');
-                  }}
-                />
+                <>
+                  <ItemMenu
+                    icon="curva"
+                    rotulo="Relatório de avanço físico"
+                    onClick={() => {
+                      setPerfilAberto(false);
+                      onIr('avanco');
+                    }}
+                  />
+                  <ItemMenu
+                    icon="bandeira"
+                    rotulo="Obras concluídas"
+                    onClick={() => {
+                      setPerfilAberto(false);
+                      onIr('concluidas');
+                    }}
+                  />
+                </>
               ) : null}
               {ehGestor ? (
                 <>

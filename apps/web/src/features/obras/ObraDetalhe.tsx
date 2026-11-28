@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   classificarPendencias,
   diasUteisRestantes,
   podeApagarObra,
+  podeConcluirObra,
   prazosTarefaPorProvidencia,
   previsaoEntrega,
   ritmoTexto,
@@ -13,6 +15,9 @@ import { usePerfil } from '../perfil/usePerfil';
 import { CheckinAba } from '../checkin/CheckinAba';
 import { ApagarObraSheet } from './ApagarObraSheet';
 import { RenomearObraSheet } from './RenomearObraSheet';
+import { MudarInicioObraSheet } from './MudarInicioObraSheet';
+import { ConcluirObraSheet } from './ConcluirObraSheet';
+import { reabrirObra } from './campo';
 import { CampoPrestador } from './CampoPrestador';
 import { NovaAtividadeSheet } from './NovaAtividadeSheet';
 import { NovoMapaSheet } from './NovoMapaSheet';
@@ -141,6 +146,10 @@ export function ObraDetalhe({
   const [apagarAberto, setApagarAberto] = useState(false);
   const [menuObra, setMenuObra] = useState(false);
   const [renomearAberto, setRenomearAberto] = useState(false);
+  const [inicioAberto, setInicioAberto] = useState(false);
+  const [concluirAberto, setConcluirAberto] = useState(false);
+  const [reabrindo, setReabrindo] = useState(false);
+  const qc = useQueryClient();
 
   const fases = useMemo(() => (obra ? montarTrilha(obra) : []), [obra]);
 
@@ -262,6 +271,21 @@ export function ObraDetalhe({
     return {};
   };
 
+  // Reabrir (Gestor e Coordenador): a obra volta às listas, à reunião e aos avisos.
+  async function reabrir() {
+    if (!obra) return;
+    setReabrindo(true);
+    try {
+      await reabrirObra(obra.id);
+      void qc.invalidateQueries();
+      showToast({ message: `Obra "${obra.nome}" reaberta` });
+    } catch {
+      showToast({ message: 'Não foi possível reabrir a obra' });
+    } finally {
+      setReabrindo(false);
+    }
+  }
+
   const ritmo = ritmoTexto(obra.ritmoDias);
   const restantes = diasUteisRestantes(obra.decorridos, obra.dia.m);
   const inaugSub =
@@ -356,6 +380,35 @@ export function ObraDetalhe({
                     <Icon name="editar" size={20} />
                     Editar nome da obra
                   </button>
+                  {obra.status === 'ativa' ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.menuObraItem}
+                      onClick={() => {
+                        setMenuObra(false);
+                        setInicioAberto(true);
+                      }}
+                    >
+                      <Icon name="calendario" size={20} />
+                      Mudar início da obra
+                    </button>
+                  ) : null}
+                  {perfil && podeConcluirObra(perfil.perfil) ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.menuObraItem}
+                      onClick={() => {
+                        setMenuObra(false);
+                        if (obra.status === 'concluida') void reabrir();
+                        else setConcluirAberto(true);
+                      }}
+                    >
+                      <Icon name={obra.status === 'concluida' ? 'undo' : 'bandeira'} size={20} />
+                      {obra.status === 'concluida' ? 'Reabrir obra' : 'Concluir obra'}
+                    </button>
+                  ) : null}
                   {perfil && podeApagarObra(perfil.perfil) ? (
                     <button
                       type="button"
@@ -388,9 +441,34 @@ export function ObraDetalhe({
       </header>
 
       <div className={styles.conteudo}>
+        {obra.status === 'concluida' ? (
+          <div className={styles.concluida} role="status">
+            <span className={styles.concluidaIcone} aria-hidden="true">
+              <Icon name="bandeira" size={18} strokeWidth={2.2} />
+            </span>
+            <span className={styles.concluidaTexto}>
+              <b>Obra concluída</b>
+              <span>
+                {obra.concluida_em
+                  ? formatarDataCompleta(obra.concluida_em.slice(0, 10))
+                  : 'fora das listas, da reunião e dos avisos'}
+              </span>
+            </span>
+            {perfil && podeConcluirObra(perfil.perfil) ? (
+              <button
+                type="button"
+                className={styles.concluidaBtn}
+                disabled={reabrindo}
+                onClick={() => void reabrir()}
+              >
+                {reabrindo ? 'Reabrindo…' : 'Reabrir'}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         {aba === 'fases' ? (
           <div className={styles.mapa}>
-            {previsao && previsao.atrasoDu > 0 ? (
+            {obra.status === 'ativa' && previsao && previsao.atrasoDu > 0 ? (
               <div className={styles.risco}>
                 <span className={styles.riscoIcone} aria-hidden="true">
                   <Icon name="relogio" size={18} strokeWidth={2.4} />
@@ -553,6 +631,21 @@ export function ObraDetalhe({
         obra={obra}
         aberto={renomearAberto}
         onFechar={() => setRenomearAberto(false)}
+      />
+
+      <MudarInicioObraSheet
+        obra={obra}
+        aberto={inicioAberto}
+        onFechar={() => setInicioAberto(false)}
+      />
+
+      <ConcluirObraSheet
+        obra={obra}
+        pct={pct}
+        pendAbertas={pendAbertas}
+        aberto={concluirAberto}
+        onFechar={() => setConcluirAberto(false)}
+        onConcluida={onVoltar}
       />
 
       <ApagarObraSheet
