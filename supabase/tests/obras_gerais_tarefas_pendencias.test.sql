@@ -5,7 +5,7 @@
 -- tudo para qualquer participante, menos atribuir (quem planeja). Quem não
 -- participa leva 42501. A Contorno continua igual.
 begin;
-select plan(78);
+select plan(80);
 
 -- Elenco: K equipe Contorno, A administrador (fora de G), C coordenador de G,
 -- J membro de G, X membro só de G2.
@@ -115,6 +115,15 @@ select is((select prazo from tarefa where id = '00000000-0000-0000-0000-00000034
   'prazo novo gravado');
 select ok((select replanejamentos > 0 from tarefa where id = '00000000-0000-0000-0000-00000034f402'),
   'conta como replanejamento');
+create temp table texto_antes as
+  select texto from tarefa where id = '00000000-0000-0000-0000-00000034f402';
+select lives_ok($$ select salvar_tarefa('00000000-0000-0000-0000-00000034f402', '00000000-0000-0000-0000-00000034f002',
+    'Texto como a tela mostra',
+    (select responsavel_id from tarefa where id = '00000000-0000-0000-0000-00000034f402'),
+    '2026-12-07', p_motivo => 'chuva') $$,
+  'Membro muda o prazo mesmo com o texto normalizado da tela');
+select is((select texto from tarefa where id = '00000000-0000-0000-0000-00000034f402'),
+  (select texto from texto_antes), 'o texto gravado não muda');
 select throws_ok($$ select excluir_tarefa('00000000-0000-0000-0000-00000034f403') $$,
   '42501', null, 'Membro não exclui tarefa');
 

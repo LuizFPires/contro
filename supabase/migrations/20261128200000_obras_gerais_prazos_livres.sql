@@ -339,7 +339,8 @@ revoke execute on function public.contro_criar_pendencia(uuid, uuid, text, text,
   from public, anon, authenticated;
 
 -- Tarefa: quem não planeja (mas vê a obra) muda só o prazo de tarefa aberta
--- existente; texto, responsável, observação e vínculo ficam como estão. O resto
+-- existente (texto, observação e vínculo enviados são ignorados; trocar o
+-- responsável dá 42501). O resto
 -- é igual a 20261106400000.
 create or replace function salvar_tarefa(
   p_id uuid,
@@ -386,8 +387,9 @@ begin
   v_obra := coalesce(v_old.obra_id, p_obra_id);
   if not public.contro_planeja_obra(v_obra) then
     -- Prazo livre: quem vê a obra replaneja o prazo da tarefa aberta (só o prazo).
+    -- O texto vem normalizado da tela (pode diferir do gravado) e é ignorado;
+    -- trocar o responsável é atribuir, e segue de quem planeja.
     if v_old.id is null or v_old.status <> 'aberta' or not public.contro_ve_obra(v_obra)
-       or p_texto is distinct from v_old.texto
        or p_responsavel_id is distinct from v_old.responsavel_id then
       raise exception 'sem acesso a esta obra' using errcode = '42501';
     end if;
