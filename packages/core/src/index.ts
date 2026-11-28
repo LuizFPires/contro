@@ -20,6 +20,7 @@ export * from './outbox';
 export * from './trilha';
 export * from './previaModelo';
 export * from './ajusteObra';
+export * from './inicioObra';
 export * from './pautaReuniao';
 export * from './agendaDia';
 export * from './preObra';
@@ -45,6 +46,14 @@ export function rotuloPerfil(perfil: Perfil): string {
 
 /** Só o gestor apaga obra (espelhado em excluir_obra no banco). */
 export function podeApagarObra(perfil: Perfil): boolean {
+  return perfil === 'gestor';
+}
+
+/**
+ * Concluir e reabrir obra (28/11/2026): Gestor e Coordenador da Contorno (os dois
+ * têm perfil `gestor`; o Coordenador é marcado por `coordenador_contorno`).
+ */
+export function podeConcluirObra(perfil: Perfil): boolean {
   return perfil === 'gestor';
 }
 

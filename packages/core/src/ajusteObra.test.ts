@@ -42,14 +42,35 @@ describe('simularAjuste', () => {
     expect(s.cronograma.porId.C.es).toBe(9);
   });
 
-  it('início manual antes do mais cedo é ignorado (predecessoras mandam)', () => {
+  it('início manual antes do mais cedo vale (data livre) e adianta a entrega', () => {
     const s = simularAjuste(INICIO, atvs, {
       id: 'B',
       duracao_du: 4,
       esManual: 1,
       predecessoras: ['A'],
     });
+    expect(s).toMatchObject({ es: 1, ef: 5, esMinimo: 3, inicioManual: '2026-11-03', deltaEntrega: -2 });
+    expect(s.cronograma.porId.C.es).toBe(5);
+  });
+
+  it('início manual igual ao mais cedo não é ajuste (segue o cronograma)', () => {
+    const s = simularAjuste(INICIO, atvs, {
+      id: 'B',
+      duracao_du: 4,
+      esManual: 3,
+      predecessoras: ['A'],
+    });
     expect(s).toMatchObject({ es: 3, inicioManual: null });
+  });
+
+  it('início manual nunca fica antes do início da obra', () => {
+    const s = simularAjuste(INICIO, atvs, {
+      id: 'B',
+      duracao_du: 4,
+      esManual: -2,
+      predecessoras: ['A'],
+    });
+    expect(s).toMatchObject({ es: 0, inicioManual: INICIO });
   });
 
   it('tirar a predecessora adianta a atividade e a entrega', () => {

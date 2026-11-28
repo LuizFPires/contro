@@ -17,7 +17,7 @@ export interface SimulacaoAjuste {
   /** Dia útil de início e fim (fim exclusivo) da atividade no rascunho. */
   es: number;
   ef: number;
-  /** Início mais cedo possível (só pelas predecessoras). */
+  /** Início pelo cronograma (só pelas predecessoras); dá para escolher antes. */
   esMinimo: number;
   /** Data do início manual a gravar (null = sem ajuste manual). */
   inicioManual: DataISO | null;
@@ -41,9 +41,11 @@ export function simularAjuste(
     );
   const semManual = calcularCronograma({ inicio: inicioObra, atividades: montar(null) });
   const esMinimo = semManual.porId[r.id]?.es ?? 0;
-  // Início manual igual (ou antes) do mais cedo possível não é ajuste: fica pelo cronograma.
+  // Data livre (28/11/2026): antes ou depois do cronograma vale; igual a ele não é
+  // ajuste. Nunca antes do início da obra.
+  const esManual = r.esManual === null ? null : Math.max(0, r.esManual);
   const inicioManual =
-    r.esManual !== null && r.esManual > esMinimo ? addDU(inicioObra, r.esManual) : null;
+    esManual !== null && esManual !== esMinimo ? addDU(inicioObra, esManual) : null;
   const depois = inicioManual
     ? calcularCronograma({ inicio: inicioObra, atividades: montar(inicioManual) })
     : semManual;

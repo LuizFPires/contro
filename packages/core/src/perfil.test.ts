@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { podeApagarObra, podeEditarModelos, rotuloPerfil } from './index';
+import { podeApagarObra, podeConcluirObra, podeEditarModelos, rotuloPerfil } from './index';
 
 describe('perfil', () => {
   it('só o gestor edita modelos', () => {
@@ -10,6 +10,11 @@ describe('perfil', () => {
   it('só o gestor apaga obra', () => {
     expect(podeApagarObra('gestor')).toBe(true);
     expect(podeApagarObra('equipe')).toBe(false);
+  });
+
+  it('gestor e coordenador (perfil gestor) concluem obra; a equipe não', () => {
+    expect(podeConcluirObra('gestor')).toBe(true);
+    expect(podeConcluirObra('equipe')).toBe(false);
   });
 
   it('rótulos em pt-BR', () => {
