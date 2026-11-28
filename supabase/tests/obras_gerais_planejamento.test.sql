@@ -265,7 +265,7 @@ select throws_ok($$ select adicionar_atividade_geral('00000000-0000-0000-0000-00
   '42501', null, 'J nao cria atividade');
 select throws_ok($$ select adicionar_subitem_geral('00000000-0000-0000-0000-00000002f211', 'X', null) $$, '42501', null, 'J nao cria subitem');
 select throws_ok($$ select editar_subitem_geral('00000000-0000-0000-0000-00000002f221', 'X', '2026-11-30') $$, '42501', null, 'J nao edita subitem');
-select throws_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f211', '2026-11-30', 'Ajuste') $$, '42501', null, 'J nao muda data');
+select lives_ok($$ select definir_data_prevista('00000000-0000-0000-0000-00000002f211', '2026-11-30', 'Ajuste') $$, 'J muda a data (prazo livre)');
 select throws_ok($$ select definir_responsavel_atividade('00000000-0000-0000-0000-00000002f211', null) $$, '42501', null, 'J nao troca responsavel');
 select throws_ok($$ select excluir_atividade_obra('00000000-0000-0000-0000-00000002f211') $$, '42501', null, 'J nao exclui atividade');
 select throws_ok($$ select excluir_subitem_geral('00000000-0000-0000-0000-00000002f223') $$, '42501', null, 'J nao exclui subitem');

@@ -75,15 +75,15 @@ select throws_ok($$ select anexar_foto_antes_pendencia('00000000-0000-0000-0000-
     '00000000-0000-0000-0000-00000035f301') $$,
   '23514', null, 'a foto do antes não é trocada');
 
--- Obra geral: Membro não define data limite; Coordenador sim ----------------
+-- Obra geral: prazos livres (28/11/2026), o Membro também define a data limite --
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000035d4","role":"authenticated"}';
 select apontar_pendencia('00000000-0000-0000-0000-00000035f502', '00000000-0000-0000-0000-00000035f002',
   'Fissura', 'Sala', 'alta', '00000000-0000-0000-0000-00000035f303');
-select throws_ok($$ select definir_prazo_pendencia('00000000-0000-0000-0000-00000035f502', '2026-11-20') $$,
-  '42501', null, 'Membro não define a data limite');
-select throws_ok($$ select apontar_pendencia(gen_random_uuid(), '00000000-0000-0000-0000-00000035f002',
+select lives_ok($$ select definir_prazo_pendencia('00000000-0000-0000-0000-00000035f502', '2026-11-20') $$,
+  'Membro define a data limite (prazo livre)');
+select lives_ok($$ select apontar_pendencia(gen_random_uuid(), '00000000-0000-0000-0000-00000035f002',
     'Outra', null, 'alta', '00000000-0000-0000-0000-00000035f303', null, null, '2026-11-20') $$,
-  '42501', null, 'Membro não aponta com data limite');
+  'Membro aponta com data limite (prazo livre)');
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000035d3","role":"authenticated"}';
 select lives_ok($$ select definir_prazo_pendencia('00000000-0000-0000-0000-00000035f502', '2026-11-20') $$,
   'Coordenador define a data limite');
