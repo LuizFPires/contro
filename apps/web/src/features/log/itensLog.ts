@@ -287,6 +287,17 @@ export function obrasNaJanela<O extends ObraLog>(obras: O[], comItem: { obra_id:
   );
 }
 
+/**
+ * Obra concluída (28/11/2026): o que ficou aberto nela sai do Log e do Score (a
+ * equipe não vê mais a obra para fechar). Contam só os itens fechados: tarefa
+ * feita, pendência fechada e atividade concluída.
+ */
+export function semAbertosDeConcluidas<
+  T extends { obra_id: string; status?: string; concluida_em?: string | null },
+>(itens: T[], concluidas: Set<string>, fechado: (i: T) => boolean): T[] {
+  return itens.filter((i) => !concluidas.has(i.obra_id) || fechado(i));
+}
+
 /** Eventos agrupados pelo id do item (para a "Vida do item"). */
 export function eventosPorItem(eventos: { evento: EventoBruto }[]): Map<string, EventoBruto[]> {
   const mapa = new Map<string, EventoBruto[]>();

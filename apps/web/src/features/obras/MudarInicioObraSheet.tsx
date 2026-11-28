@@ -59,8 +59,15 @@ export function MudarInicioObraSheet({
     [obra.atividades],
   );
   const m = useMemo(
-    () => mudarInicioObra(obra.inicio, data, entrada, provs, obra.entrega_original),
-    [obra.inicio, data, entrada, provs, obra.entrega_original],
+    () =>
+      mudarInicioObra(
+        obra.inicio,
+        data,
+        entrada,
+        provs,
+        obra.entrega_original ?? obra.cron.entrega,
+      ),
+    [obra.inicio, data, entrada, provs, obra.entrega_original, obra.cron.entrega],
   );
 
   const atualizar = () => {

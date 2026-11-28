@@ -24,7 +24,7 @@ import { NovoMapaSheet } from './NovoMapaSheet';
 import type { ObraFase } from './detalhe';
 import { ehFaseMapa } from './listaAtividades';
 import { formatarDataCompleta, formatarDataCurta } from '../../lib/datas';
-import { hojeISO } from './api';
+import { dataLocal, hojeISO } from './api';
 import { AvaliacaoAba } from '../avaliacao/AvaliacaoAba';
 import { BoletimView } from './BoletimView';
 import { fixarEntregaOriginal } from './campo';
@@ -450,7 +450,7 @@ export function ObraDetalhe({
               <b>Obra concluída</b>
               <span>
                 {obra.concluida_em
-                  ? formatarDataCompleta(obra.concluida_em.slice(0, 10))
+                  ? formatarDataCompleta(dataLocal(obra.concluida_em))
                   : 'fora das listas, da reunião e dos avisos'}
               </span>
             </span>

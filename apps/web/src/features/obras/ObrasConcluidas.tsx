@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Icon } from '@contro/ui';
 import { formatarDataCompleta } from '../../lib/datas';
+import { dataLocal } from './api';
 import { listarObrasConcluidas } from './obrasConcluidasApi';
 import styles from './ObrasConcluidas.module.css';
 
@@ -48,7 +49,7 @@ export function ObrasConcluidas({
                   <b>{o.nome}</b>
                   <span>
                     Concluída
-                    {o.concluida_em ? ` ${formatarDataCompleta(o.concluida_em.slice(0, 10))}` : ''}
+                    {o.concluida_em ? ` ${formatarDataCompleta(dataLocal(o.concluida_em))}` : ''}
                     {o.concluida_por_nome ? ` · ${o.concluida_por_nome}` : ''}
                   </span>
                 </span>

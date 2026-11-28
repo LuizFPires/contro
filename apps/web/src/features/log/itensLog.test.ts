@@ -8,6 +8,7 @@ import {
   itensEquipe,
   itensPrestador,
   obrasNaJanela,
+  semAbertosDeConcluidas,
   type DadosLogScore,
   type LinhaAtividadeLog,
   type LinhaPendenciaLog,
@@ -396,6 +397,18 @@ describe('obrasNaJanela', () => {
     ];
     expect(obrasNaJanela(obras, [{ obra_id: 'o3' }]).map((o) => o.id)).toEqual(['o1', 'o3']);
     expect(obrasNaJanela(obras, []).map((o) => o.id)).toEqual(['o1']);
+  });
+});
+
+describe('semAbertosDeConcluidas', () => {
+  it('na obra concluída fica só o que fechou; nas ativas, tudo', () => {
+    const itens = [
+      { id: 't1', obra_id: 'o1', status: 'aberta' },
+      { id: 't2', obra_id: 'o2', status: 'aberta' },
+      { id: 't3', obra_id: 'o2', status: 'feita' },
+    ];
+    const r = semAbertosDeConcluidas(itens, new Set(['o2']), (t) => t.status === 'feita');
+    expect(r.map((t) => t.id)).toEqual(['t1', 't3']);
   });
 });
 

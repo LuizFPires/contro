@@ -4,7 +4,7 @@
 -- Desfazer reabre tudo. Requer o seed de homologação (Modelo 1).
 
 begin;
-select plan(16);
+select plan(17);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000001c1', 'gestor@concluida.contro'),
@@ -24,6 +24,8 @@ create temp table a as
   select id from obra_atividade where obra_id = (select id from o) and pai_id is null order by ordem limit 1;
 update obra_atividade set inicio_manual = '2026-11-17' where id = (select id from a);
 insert into pendencia (obra_id, titulo) values ((select id from o), 'Rejunte');
+update reuniao_obra set observacoes = 'Conferir rejunte'
+where reuniao_id = (select id from r) and obra_id = (select id from o);
 grant select on o, r, a to authenticated;
 
 -- Equipe: muda o início (com as datas manuais), não conclui, não burla.
@@ -80,6 +82,10 @@ select is((select status from pendencia where obra_id = (select id from o)), 'ab
 select ok(
   exists (select 1 from reuniao_obra where reuniao_id = (select id from r) and obra_id = (select id from o)),
   'voltou à reunião aberta'
+);
+select is(
+  (select observacoes from reuniao_obra where reuniao_id = (select id from r) and obra_id = (select id from o)),
+  'Conferir rejunte', 'com as observações de antes'
 );
 
 select * from finish();

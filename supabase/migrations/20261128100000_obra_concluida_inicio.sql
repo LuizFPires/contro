@@ -7,10 +7,14 @@
 --    'concluida', sai de Minhas obras, Hoje, ações, avisos, reunião e boletim
 --    (todos já filtram status = 'ativa'). Não trava por pendência: as abertas
 --    são dadas como resolvidas no ato (evento `resolvida` com
---    `conclusao_obra`). A obra sai das reuniões ainda não fechadas.
--- 3) Reabrir a obra: volta a 'ativa' e à pauta das reuniões abertas. O
---    Desfazer (logo depois de concluir) também reabre as pendências fechadas
---    naquele ato; reabrir mais tarde não mexe nelas.
+--    `conclusao_obra`). A obra sai das reuniões ainda não fechadas; as linhas
+--    tiradas (com as observações) ficam no evento `concluida`.
+--    O que ficou aberto na obra concluída sai do Log e do Score (filtro no
+--    cliente, semAbertosDeConcluidas).
+-- 3) Reabrir a obra: volta a 'ativa' e às reuniões de onde saiu (com as
+--    observações), se ainda não fecharam; as próximas pautas a trazem de novo
+--    (abrir_reuniao). O Desfazer (logo depois de concluir) também reabre as
+--    pendências fechadas naquele ato; reabrir mais tarde não mexe nelas.
 -- 4) Data livre do início manual (core): a data escolhida vale mesmo antes do
 --    fim das predecessoras. A única atividade em produção cujo início manual
 --    ficava antes das predecessoras recebe a data em que já estava, para o
@@ -152,7 +156,7 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
-declare v_obra public.obra; v_pessoa uuid; v_pends uuid[];
+declare v_obra public.obra; v_pessoa uuid; v_pends uuid[]; v_reunioes jsonb;
 begin
   if public.contro_perfil() is distinct from 'gestor' then
     raise exception 'Só o gestor ou o coordenador conclui a obra' using errcode = '42501';
@@ -186,14 +190,22 @@ begin
   update public.obra
   set status = 'concluida', concluida_em = now(), concluida_por = v_pessoa
   where id = p_obra_id;
-  -- Sai das reuniões da Contorno ainda não fechadas (a ata fechada não muda).
+  -- Sai das reuniões da Contorno ainda não fechadas (a ata fechada não muda); as
+  -- linhas tiradas, com as observações, ficam no evento para voltar ao reabrir.
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'reuniao_id', ro.reuniao_id, 'observacoes', ro.observacoes, 'snapshot', ro.snapshot)), '[]')
+    into v_reunioes
+  from public.reuniao_obra ro
+  join public.reuniao r on r.id = ro.reuniao_id
+  where ro.obra_id = p_obra_id and r.status <> 'fechada' and r.obra_id is null;
   delete from public.reuniao_obra ro
   using public.reuniao r
   where ro.reuniao_id = r.id and ro.obra_id = p_obra_id
     and r.status <> 'fechada' and r.obra_id is null;
 
   insert into public.obra_evento (obra_id, tipo, por, depois)
-  values (p_obra_id, 'concluida', v_pessoa, jsonb_build_object('pendencias', to_jsonb(v_pends)));
+  values (p_obra_id, 'concluida', v_pessoa,
+          jsonb_build_object('pendencias', to_jsonb(v_pends), 'reunioes', v_reunioes));
   return coalesce(array_length(v_pends, 1), 0);
 end;
 $$;
@@ -206,7 +218,7 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
-declare v_obra public.obra; v_pessoa uuid; v_pends uuid[];
+declare v_obra public.obra; v_pessoa uuid; v_ev jsonb; v_pends uuid[];
 begin
   if public.contro_perfil() is distinct from 'gestor' then
     raise exception 'Só o gestor ou o coordenador reabre a obra' using errcode = '42501';
@@ -218,32 +230,41 @@ begin
   if not public.contro_ve_obra(p_obra_id) then
     raise exception 'sem acesso a esta obra' using errcode = '42501';
   end if;
+  if v_obra.ambiente <> 'contorno' then
+    raise exception 'Use as funções da obra geral' using errcode = '23505';
+  end if;
   if v_obra.status <> 'concluida' then
     raise exception 'Obra não está concluída' using errcode = '22023';
   end if;
   v_pessoa := public.contro_pessoa_atual();
+  select depois into v_ev from public.obra_evento
+  where obra_id = p_obra_id and tipo = 'concluida'
+  order by em desc limit 1;
 
   if p_desfazer then
-    select coalesce(array(select jsonb_array_elements_text(depois -> 'pendencias')::uuid), '{}')
-      into v_pends
-    from public.obra_evento
-    where obra_id = p_obra_id and tipo = 'concluida'
-    order by em desc limit 1;
-    update public.pendencia
-    set status = 'aberta', resolvida_por = null, resolvida_em = null
-    where id = any (coalesce(v_pends, '{}')) and status = 'fechada' and foto_depois_id is null;
+    v_pends := coalesce(
+      array(select jsonb_array_elements_text(coalesce(v_ev -> 'pendencias', '[]'))::uuid), '{}');
+    -- Só as que seguem fechadas sem foto do depois (e só elas ganham o evento).
+    with r as (
+      update public.pendencia
+      set status = 'aberta', resolvida_por = null, resolvida_em = null
+      where id = any (v_pends) and status = 'fechada' and foto_depois_id is null
+      returning id
+    )
     insert into public.pendencia_evento (pendencia_id, tipo, por, dados)
-    select x, 'reaberta', v_pessoa, jsonb_build_object('conclusao_obra_desfeita', true)
-    from unnest(coalesce(v_pends, '{}')) x;
+    select r.id, 'reaberta', v_pessoa, jsonb_build_object('conclusao_obra_desfeita', true)
+    from r;
   end if;
 
   update public.obra
   set status = 'ativa', concluida_em = null, concluida_por = null
   where id = p_obra_id;
-  -- Volta à pauta das reuniões da Contorno ainda não fechadas.
-  insert into public.reuniao_obra (reuniao_id, obra_id)
-  select r.id, p_obra_id from public.reuniao r
-  where r.status <> 'fechada' and r.obra_id is null
+  -- Volta às reuniões de onde saiu, com as observações, se ainda não fecharam.
+  insert into public.reuniao_obra (reuniao_id, obra_id, observacoes, snapshot)
+  select (x ->> 'reuniao_id')::uuid, p_obra_id, x ->> 'observacoes', x -> 'snapshot'
+  from jsonb_array_elements(coalesce(v_ev -> 'reunioes', '[]')) x
+  join public.reuniao r on r.id = (x ->> 'reuniao_id')::uuid
+  where r.status <> 'fechada'
   on conflict (reuniao_id, obra_id) do nothing;
 
   insert into public.obra_evento (obra_id, tipo, por, depois)
